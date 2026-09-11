@@ -1,0 +1,109 @@
+{
+	"arc_zones": [],
+	"breach_zones": [],
+	"fire_zones": [],
+	"goal_room": "bridge_01",
+	"loot_containers": [
+		{
+			"approach_cell": [
+				2,
+				2,
+				0
+			],
+			"id": "loot_cargo_01",
+			"kind": "generic_crate",
+			"loot_table": "generic_crate",
+			"room_id": "cargo_01",
+			"slot_index": 0,
+			"slot_kind": "wall"
+		},
+		{
+			"approach_cell": [
+				4,
+				2,
+				0
+			],
+			"id": "loot_cargo_02",
+			"kind": "generic_locker",
+			"loot_table": "salvage_cargo",
+			"room_id": "cargo_02",
+			"slot_index": 1,
+			"slot_kind": "center"
+		},
+		{
+			"approach_cell": [
+				3,
+				-1,
+				0
+			],
+			"id": "loot_cargo_03",
+			"kind": "generic_crate",
+			"loot_table": "hidden_cache",
+			"room_id": "cargo_03",
+			"slot_index": 1,
+			"slot_kind": "center"
+		}
+	],
+	"objectives": [
+		{
+			"approach_cell": [
+				2,
+				1,
+				0
+			],
+			"id": "obj_salvage_cargo_01",
+			"kind": "single",
+			"loot_table": "salvage_cargo",
+			"room_id": "cargo_01",
+			"sequence": 1,
+			"slot_index": 0,
+			"slot_kind": "center",
+			"type": "salvage"
+		},
+		{
+			"approach_cell": [
+				5,
+				2,
+				0
+			],
+			"id": "obj_salvage_cargo_02",
+			"kind": "single",
+			"loot_table": "salvage_cargo",
+			"room_id": "cargo_02",
+			"sequence": 2,
+			"slot_index": 3,
+			"slot_kind": "center",
+			"type": "salvage"
+		},
+		{
+			"approach_cell": [
+				3,
+				-2,
+				0
+			],
+			"id": "obj_salvage_cargo_03",
+			"kind": "single",
+			"loot_table": "hidden_cache",
+			"room_id": "cargo_03",
+			"sequence": 3,
+			"slot_index": 0,
+			"slot_kind": "center",
+			"type": "salvage"
+		},
+		{
+			"approach_cell": [
+				13,
+				1,
+				0
+			],
+			"id": "obj_reach_goal",
+			"kind": "single",
+			"room_id": "bridge_01",
+			"sequence": 4,
+			"slot_index": 3,
+			"slot_kind": "wall",
+			"type": "interact"
+		}
+	],
+	"start_room": "dock_01"
+}

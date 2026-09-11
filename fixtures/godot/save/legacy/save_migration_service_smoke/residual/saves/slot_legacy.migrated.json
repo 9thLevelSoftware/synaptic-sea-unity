@@ -1,0 +1,78 @@
+{
+	"addiction_summary": {},
+	"ammo_summary": {},
+	"audio_summary": {},
+	"component_placement_summary": {},
+	"consumable_summary": {},
+	"crafting_summary": {},
+	"current_location": "",
+	"current_objective_sequence": 4.0,
+	"electrical_arc_summary": {
+		"state": "DISCHARGED"
+	},
+	"fire_summary": {
+		"state": "CLEARED"
+	},
+	"gameplay_slice_path": "",
+	"godot_version": "4.7.1-stable (official)",
+	"hallucination_summary": {},
+	"hydroponics_summary": {},
+	"inventory_summary": {
+		"tools": []
+	},
+	"is_autosave": false,
+	"is_quicksave": false,
+	"kit_path": "",
+	"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+	"material_summary": {},
+	"medicine_summary": {},
+	"module_integrity_summary": {},
+	"objective_progress_summary": {
+		"current": 4.0
+	},
+	"oxygen_summary": {
+		"oxygen": 75.0
+	},
+	"parent_world_slot": "",
+	"play_time_seconds": 0.0,
+	"player_position": [
+		1.0,
+		0.0,
+		2.0
+	],
+	"player_progression_summary": {
+		"class_id": "",
+		"level": 1,
+		"xp": {}
+	},
+	"radiation_summary": {},
+	"route_control_summary": {
+		"active_blockers": 0.0
+	},
+	"run_id": "",
+	"sanity_summary": {},
+	"saved_at": "2026-06-20T00:00:00",
+	"saved_at_epoch": 1789104074.0,
+	"settings_summary": {},
+	"ship_modification_summary": {},
+	"ship_systems_summary": {
+		"systems": {
+			"power": {
+				"health": 0.5
+			}
+		}
+	},
+	"skill_tree_summary": {},
+	"slice_version": "gate2-current-run-4",
+	"slot_id": "slot_legacy",
+	"slot_kind": "manual",
+	"spoilage_summary": {},
+	"status_effects_summary": {},
+	"stimulant_summary": {},
+	"temperature_summary": {},
+	"utility_summary": {},
+	"vitals_summary": {},
+	"water_recycler_summary": {},
+	"work_action_summary": {},
+	"world_seed": 0.0
+}

@@ -1,0 +1,4 @@
+Initialize godot-rust (API v4.6.stable.official, runtime v4.7.1.stable.official, safeguards balanced)
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+SAVE MIGRATION SERVICE PASS

@@ -47,9 +47,10 @@ namespace SynapticSea.Tests
 
         public static string ReadText(string relative) => File.ReadAllText(PathOf(relative), new UTF8Encoding(false));
 
+        /// <summary>Reads a fixture keeping integer literals exact (long) — fixtures carry 64-bit states and hashes.</summary>
         public static GdDict ReadDict(string relative)
         {
-            var d = GdJson.Parse(ReadText(relative)) as GdDict;
+            var d = GdJson.Parse(ReadText(relative), integersAsLong: true) as GdDict;
             Assert.IsNotNull(d, $"fixture {relative} is not a JSON object");
             return d;
         }

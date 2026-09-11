@@ -1,0 +1,568 @@
+{
+	"config": {
+		"arcing_duration": 2.5,
+		"discharged_duration": 1.5,
+		"zone_ids": [
+			"side_corridor_arc"
+		]
+	},
+	"configure_call": "configure(config)",
+	"construct": "res://scripts/systems/electrical_arc_state.gd.new()",
+	"model": "electrical_arc_state",
+	"notes": [],
+	"reference_smoke": "res://scripts/validation/electrical_arc_state_smoke.gd",
+	"round_trip": {
+		"apply_summary_return": true,
+		"description": "source = get_summary() after the last step; fresh = res://scripts/systems/electrical_arc_state.gd.new(); no configure (the smoke restores into a bare ElectricalArcState.new()); fresh.apply_summary(source); restored = fresh.get_summary()",
+		"differences_source_vs_restored": [],
+		"equal": true,
+		"restored_summary": {
+			"arcing": false,
+			"arcing_duration": 2.5,
+			"cycle_duration": 4.0,
+			"discharged_duration": 1.5,
+			"hazard_kind": "electrical_arc",
+			"passability_blocked": false,
+			"phase": 0,
+			"remaining_in_state": 0.0,
+			"state": "DISCHARGED",
+			"time_in_state": 8.91666666666667,
+			"zone_ids": [
+				"side_corridor_arc"
+			]
+		},
+		"source_summary": {
+			"arcing": false,
+			"arcing_duration": 2.5,
+			"cycle_duration": 4.0,
+			"discharged_duration": 1.5,
+			"hazard_kind": "electrical_arc",
+			"passability_blocked": false,
+			"phase": 0,
+			"remaining_in_state": 0.0,
+			"state": "DISCHARGED",
+			"time_in_state": 8.91666666666667,
+			"zone_ids": [
+				"side_corridor_arc"
+			]
+		}
+	},
+	"schema": "parity.models.tick.v1",
+	"script": "res://scripts/systems/electrical_arc_state.gd",
+	"setup": [],
+	"step_groups": [
+		[
+			"0.016666666666666666",
+			10
+		],
+		[
+			"0.35",
+			5
+		],
+		[
+			"3.0",
+			3
+		],
+		[
+			"5.0",
+			2
+		]
+	],
+	"steps": [
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 0,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.48333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 0.0166666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 1,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.46666666666667,
+				"state": "DISCHARGED",
+				"time_in_state": 0.0333333333333333,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 2,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.45,
+				"state": "DISCHARGED",
+				"time_in_state": 0.05,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 3,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.43333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 0.0666666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 4,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.41666666666667,
+				"state": "DISCHARGED",
+				"time_in_state": 0.0833333333333333,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 5,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.4,
+				"state": "DISCHARGED",
+				"time_in_state": 0.1,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 6,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.38333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 0.116666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 7,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.36666666666667,
+				"state": "DISCHARGED",
+				"time_in_state": 0.133333333333333,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 8,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.35,
+				"state": "DISCHARGED",
+				"time_in_state": 0.15,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 9,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 1.33333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 0.166666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 10,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 0.983333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 0.516666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 11,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 0.633333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 0.866666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 12,
+			"return": false,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 0.283333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 1.21666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 13,
+			"return": true,
+			"summary": {
+				"arcing": true,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": true,
+				"phase": 1,
+				"remaining_in_state": 2.43333333333333,
+				"state": "ARCING",
+				"time_in_state": 0.0666666666666664,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 14,
+			"return": false,
+			"summary": {
+				"arcing": true,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": true,
+				"phase": 1,
+				"remaining_in_state": 2.08333333333333,
+				"state": "ARCING",
+				"time_in_state": 0.416666666666666,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 15,
+			"return": true,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 0.583333333333333,
+				"state": "DISCHARGED",
+				"time_in_state": 0.916666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 16,
+			"return": true,
+			"summary": {
+				"arcing": true,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": true,
+				"phase": 1,
+				"remaining_in_state": 0.0833333333333335,
+				"state": "ARCING",
+				"time_in_state": 2.41666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 17,
+			"return": true,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 0.0,
+				"state": "DISCHARGED",
+				"time_in_state": 2.91666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 18,
+			"return": true,
+			"summary": {
+				"arcing": true,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": true,
+				"phase": 1,
+				"remaining_in_state": 0.0,
+				"state": "ARCING",
+				"time_in_state": 6.41666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 19,
+			"return": true,
+			"summary": {
+				"arcing": false,
+				"arcing_duration": 2.5,
+				"cycle_duration": 4.0,
+				"discharged_duration": 1.5,
+				"hazard_kind": "electrical_arc",
+				"passability_blocked": false,
+				"phase": 0,
+				"remaining_in_state": 0.0,
+				"state": "DISCHARGED",
+				"time_in_state": 8.91666666666667,
+				"zone_ids": [
+					"side_corridor_arc"
+				]
+			}
+		}
+	],
+	"summary_after_configure": {
+		"arcing": false,
+		"arcing_duration": 2.5,
+		"cycle_duration": 4.0,
+		"discharged_duration": 1.5,
+		"hazard_kind": "electrical_arc",
+		"passability_blocked": false,
+		"phase": 0,
+		"remaining_in_state": 1.5,
+		"state": "DISCHARGED",
+		"time_in_state": 0.0,
+		"zone_ids": [
+			"side_corridor_arc"
+		]
+	}
+}

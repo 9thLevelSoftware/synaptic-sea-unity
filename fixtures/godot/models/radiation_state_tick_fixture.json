@@ -1,0 +1,475 @@
+{
+	"config": {},
+	"configure_call": "configure({})",
+	"construct": "res://scripts/systems/radiation_state.gd.new()",
+	"model": "radiation_state",
+	"notes": [
+		"in_radiation_zone=true for groups 0-2, set false before the first 5.0s step (decay), as the smoke toggles the property."
+	],
+	"reference_smoke": "res://scripts/validation/radiation_state_smoke.gd",
+	"round_trip": {
+		"apply_summary_return": true,
+		"description": "source = get_summary() after the last step; fresh = res://scripts/systems/radiation_state.gd.new(); configure with the same config; fresh.apply_summary(source); restored = fresh.get_summary()",
+		"differences_source_vs_restored": [],
+		"equal": true,
+		"restored_summary": {
+			"accumulation_rate": 2.0,
+			"decay_rate": 0.5,
+			"health_drain_active": false,
+			"health_drain_per_second": 0.0,
+			"health_drain_rate": 1.0,
+			"in_radiation_zone": false,
+			"max_radiation": 100.0,
+			"radiation": 16.8333333333333
+		},
+		"source_summary": {
+			"accumulation_rate": 2.0,
+			"decay_rate": 0.5,
+			"health_drain_active": false,
+			"health_drain_per_second": 0.0,
+			"health_drain_rate": 1.0,
+			"in_radiation_zone": false,
+			"max_radiation": 100.0,
+			"radiation": 16.8333333333333
+		}
+	},
+	"schema": "parity.models.tick.v1",
+	"script": "res://scripts/systems/radiation_state.gd",
+	"setup": [
+		{
+			"args": {
+				"in_radiation_zone": true
+			},
+			"op": "set in_radiation_zone",
+			"return": null,
+			"summary_after": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.0
+			}
+		}
+	],
+	"step_groups": [
+		[
+			"0.016666666666666666",
+			10
+		],
+		[
+			"0.35",
+			5
+		],
+		[
+			"3.0",
+			3
+		],
+		[
+			"5.0",
+			2
+		]
+	],
+	"steps": [
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 0,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.0333333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 1,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.0666666666666667
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 2,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.1
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 3,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.133333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 4,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.166666666666667
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 5,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.2
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 6,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.233333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 7,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.266666666666667
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 8,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.3
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 9,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 0.333333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 10,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 1.03333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 11,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 1.73333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 12,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 2.43333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 13,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 3.13333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 14,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 3.83333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 15,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 9.83333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 16,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 15.8333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 17,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": true,
+				"max_radiation": 100.0,
+				"radiation": 21.8333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 18,
+			"pre_ops": [
+				{
+					"args": {
+						"in_radiation_zone": false
+					},
+					"op": "set in_radiation_zone"
+				}
+			],
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": false,
+				"max_radiation": 100.0,
+				"radiation": 19.3333333333333
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 19,
+			"return": true,
+			"summary": {
+				"accumulation_rate": 2.0,
+				"decay_rate": 0.5,
+				"health_drain_active": false,
+				"health_drain_per_second": 0.0,
+				"health_drain_rate": 1.0,
+				"in_radiation_zone": false,
+				"max_radiation": 100.0,
+				"radiation": 16.8333333333333
+			}
+		}
+	],
+	"summary_after_configure": {
+		"accumulation_rate": 2.0,
+		"decay_rate": 0.5,
+		"health_drain_active": false,
+		"health_drain_per_second": 0.0,
+		"health_drain_rate": 1.0,
+		"in_radiation_zone": false,
+		"max_radiation": 100.0,
+		"radiation": 0.0
+	}
+}

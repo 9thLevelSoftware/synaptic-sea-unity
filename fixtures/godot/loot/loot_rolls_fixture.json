@@ -1,0 +1,3198 @@
+{
+	"contexts": [
+		{
+			"context": {},
+			"description": "empty context: LootDistribution defaults biome_id=abyssal_synaptic_sea, depth=0, condition=damaged, container_kind=<table.container_kind or table id> (seed string) / generic_crate (weights), loot_quality_modifier=1.0, item_definitions=ItemDefs.load_definitions(), unique_state=null",
+			"id": "default"
+		},
+		{
+			"context": {
+				"biome_id": "dead_fleet",
+				"condition": "wrecked",
+				"container_kind": "salvage_objective",
+				"depth": 3,
+				"loot_quality_modifier": 1.4
+			},
+			"description": "every key LootDistribution.roll reads except item_definitions/unique_state (same shape as the playable_generated_ship.gd salvage grant context)",
+			"id": "dead_fleet_wrecked_depth3"
+		}
+	],
+	"loot_distribution_rolls": [
+		{
+			"context_id": "default",
+			"result": [],
+			"rng_seed": 535993399,
+			"rng_seed_string": "_schema|a|abyssal_synaptic_sea|0|_schema",
+			"seed_source": "a",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [],
+			"rng_seed": 2146364755,
+			"rng_seed_string": "_schema|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "default",
+			"result": [],
+			"rng_seed": 2837670691,
+			"rng_seed_string": "_schema|salvage|m1|c1|abyssal_synaptic_sea|0|_schema",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [],
+			"rng_seed": 153074751,
+			"rng_seed_string": "_schema|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "default",
+			"result": [],
+			"rng_seed": 4190577301,
+			"rng_seed_string": "_schema|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|_schema",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [],
+			"rng_seed": 1505981361,
+			"rng_seed_string": "_schema|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "default",
+			"result": [],
+			"rng_seed": 997626222,
+			"rng_seed_string": "_schema|x|abyssal_synaptic_sea|0|_schema",
+			"seed_source": "x",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [],
+			"rng_seed": 2607997578,
+			"rng_seed_string": "_schema|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "default",
+			"result": [],
+			"rng_seed": 455368443,
+			"rng_seed_string": "_schema|derelict_42|cargo|0|abyssal_synaptic_sea|0|_schema",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [],
+			"rng_seed": 2065739799,
+			"rng_seed_string": "_schema|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "_schema"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "combat_drop_common",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3982318267,
+			"rng_seed_string": "combat_drop_common|a|abyssal_synaptic_sea|0|combat_drop_common",
+			"seed_source": "a",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "flare_round",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|flare_round",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3482019317,
+			"rng_seed_string": "combat_drop_common|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "combat_drop_common",
+					"depth": 0,
+					"item_id": "fuel_canister",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|fuel_canister",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2847645991,
+			"rng_seed_string": "combat_drop_common|salvage|m1|c1|abyssal_synaptic_sea|0|combat_drop_common",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "capacitor_cell",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|capacitor_cell",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1767127009,
+			"rng_seed_string": "combat_drop_common|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "combat_drop_common",
+					"depth": 0,
+					"item_id": "fuel_canister",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|fuel_canister",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3567415257,
+			"rng_seed_string": "combat_drop_common|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|combat_drop_common",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "fuel_canister",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|fuel_canister",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2058904019,
+			"rng_seed_string": "combat_drop_common|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "combat_drop_common",
+					"depth": 0,
+					"item_id": "flare_round",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|flare_round",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1571241874,
+			"rng_seed_string": "combat_drop_common|x|abyssal_synaptic_sea|0|combat_drop_common",
+			"seed_source": "x",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "scrap_metal",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3943652140,
+			"rng_seed_string": "combat_drop_common|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "combat_drop_common",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2252226431,
+			"rng_seed_string": "combat_drop_common|derelict_42|cargo|0|abyssal_synaptic_sea|0|combat_drop_common",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "scrap_metal",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 601873721,
+			"rng_seed_string": "combat_drop_common|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "frayed_cable_coil",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "a|0|frayed_cable_coil",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 667407855,
+			"rng_seed_string": "generic_crate|a|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "a",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "scrap_metal",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "a|0|scrap_metal",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "wiring_spool",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|1|wiring_spool",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2670938990,
+			"rng_seed_string": "generic_crate|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "frayed_cable_coil",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|frayed_cable_coil",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "power_cell",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "power_cell",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|1|power_cell",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 346668763,
+			"rng_seed_string": "generic_crate|salvage|m1|c1|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "contaminated_water",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|1|contaminated_water",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "scrap_metal",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1927748314,
+			"rng_seed_string": "generic_crate|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "frayed_cable_coil",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|frayed_cable_coil",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "power_cell",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "power_cell",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|1|power_cell",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1324395597,
+			"rng_seed_string": "generic_crate|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "contaminated_water",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|contaminated_water",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "scrap_metal",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|1|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2985955340,
+			"rng_seed_string": "generic_crate|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "cracked_pressure_valve",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|1|cracked_pressure_valve",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "x|0|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3788806406,
+			"rng_seed_string": "generic_crate|x|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "x",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "frayed_cable_coil",
+					"quantity": 4,
+					"rarity": "common",
+					"seed_key": "x|0|frayed_cable_coil",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3132571813,
+			"rng_seed_string": "generic_crate|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "frayed_cable_coil",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|frayed_cable_coil",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|1|scrap_metal",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 754783731,
+			"rng_seed_string": "generic_crate|derelict_42|cargo|0|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "cracked_pressure_valve",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|0|cracked_pressure_valve",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "frayed_cable_coil",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|1|frayed_cable_coil",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1543067378,
+			"rng_seed_string": "generic_crate|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "generic_crate"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "corroded_data_shard",
+					"quantity": 2,
+					"rarity": "uncommon",
+					"seed_key": "a|0|corroded_data_shard",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2543140802,
+			"rng_seed_string": "generic_locker|a|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "a",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "ration_pack",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "a|1|ration_pack",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "a|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1401796255,
+			"rng_seed_string": "generic_locker|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "medkit",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|medkit",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|1|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 709528750,
+			"rng_seed_string": "generic_locker|salvage|m1|c1|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "corroded_data_shard",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|1|corroded_data_shard",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "flare_round",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|flare_round",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1751832459,
+			"rng_seed_string": "generic_locker|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "medkit",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|1|medkit",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2963416352,
+			"rng_seed_string": "generic_locker|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "fire_extinguisher",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|1|fire_extinguisher",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "ration_pack",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|ration_pack",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 4050787837,
+			"rng_seed_string": "generic_locker|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "plasma_cutter",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "x|0|plasma_cutter",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "ration_pack",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|1|ration_pack",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2767879161,
+			"rng_seed_string": "generic_locker|x|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "x",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "flare_round",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|flare_round",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|1|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1863429078,
+			"rng_seed_string": "generic_locker|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "corroded_data_shard",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|0|corroded_data_shard",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "plasma_cutter",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "derelict_42|cargo|0|1|plasma_cutter",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2646155654,
+			"rng_seed_string": "generic_locker|derelict_42|cargo|0|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "fire_extinguisher",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|1|fire_extinguisher",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "ration_pack",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|ration_pack",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 626922595,
+			"rng_seed_string": "generic_locker|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "generic_locker"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "flare_pistol",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "a|1|flare_pistol",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 840386325,
+			"rng_seed_string": "hidden_cache|a|abyssal_synaptic_sea|0|hidden_cache",
+			"seed_source": "a",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "flare_pistol",
+					"quantity": 2,
+					"rarity": "rare",
+					"seed_key": "a|0|flare_pistol",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 4186673762,
+			"rng_seed_string": "hidden_cache|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "medkit",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|1|medkit",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1637378049,
+			"rng_seed_string": "hidden_cache|salvage|m1|c1|abyssal_synaptic_sea|0|hidden_cache",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "medkit",
+					"quantity": 2,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|medkit",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3027070926,
+			"rng_seed_string": "hidden_cache|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "medkit",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|0|medkit",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|1|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2290404723,
+			"rng_seed_string": "hidden_cache|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|hidden_cache",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "flare_pistol",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "marker_7|room_3|crate_2|1|flare_pistol",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2597725696,
+			"rng_seed_string": "hidden_cache|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "medkit",
+					"quantity": 2,
+					"rarity": "uncommon",
+					"seed_key": "x|0|medkit",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 4154988204,
+			"rng_seed_string": "hidden_cache|x|abyssal_synaptic_sea|0|hidden_cache",
+			"seed_source": "x",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "data_core",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "x|1|data_core",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "medkit",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|0|medkit",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 353339289,
+			"rng_seed_string": "hidden_cache|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "data_core",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "derelict_42|cargo|0|0|data_core",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "hidden_cache",
+					"depth": 0,
+					"item_id": "medkit",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|1|medkit",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2818914841,
+			"rng_seed_string": "hidden_cache|derelict_42|cargo|0|abyssal_synaptic_sea|0|hidden_cache",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "data_core",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "derelict_42|cargo|0|1|data_core",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "flare_pistol",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "derelict_42|cargo|0|0|flare_pistol",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2758841062,
+			"rng_seed_string": "hidden_cache|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "hidden_cache"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|circuit_board",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "data_core",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "a|1|data_core",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 866508449,
+			"rng_seed_string": "repair_parts_common|a|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "a",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|circuit_board",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "data_core",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "a|1|data_core",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3700413239,
+			"rng_seed_string": "repair_parts_common|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "data_core",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|data_core",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "sensor_module",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|1|sensor_module",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 104249997,
+			"rng_seed_string": "repair_parts_common|salvage|m1|c1|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|1|circuit_board",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "sensor_module",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|sensor_module",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 165976099,
+			"rng_seed_string": "repair_parts_common|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 4,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2695845247,
+			"rng_seed_string": "repair_parts_common|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "sensor_module",
+					"quantity": 2,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|0|sensor_module",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 891780245,
+			"rng_seed_string": "repair_parts_common|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "data_core",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|1|data_core",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "sensor_module",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|0|sensor_module",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 793445528,
+			"rng_seed_string": "repair_parts_common|x|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "x",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|circuit_board",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "hull_sealant",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|1|hull_sealant",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 4162046062,
+			"rng_seed_string": "repair_parts_common|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|circuit_board",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "sensor_module",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|1|sensor_module",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3661657957,
+			"rng_seed_string": "repair_parts_common|derelict_42|cargo|0|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2679891707,
+			"rng_seed_string": "repair_parts_common|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3379756694,
+			"rng_seed_string": "repair_parts_starter|a|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "a",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3184779635,
+			"rng_seed_string": "repair_parts_starter|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1399400834,
+			"rng_seed_string": "repair_parts_starter|salvage|m1|c1|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3186876511,
+			"rng_seed_string": "repair_parts_starter|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1182391028,
+			"rng_seed_string": "repair_parts_starter|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3702210513,
+			"rng_seed_string": "repair_parts_starter|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3604495053,
+			"rng_seed_string": "repair_parts_starter|x|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "x",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3646412458,
+			"rng_seed_string": "repair_parts_starter|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "survivor_locker",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3784772954,
+			"rng_seed_string": "repair_parts_starter|derelict_42|cargo|0|abyssal_synaptic_sea|0|survivor_locker",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1321692215,
+			"rng_seed_string": "repair_parts_starter|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "a|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 46265952,
+			"rng_seed_string": "repair_tools|a|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "a",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "a|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1144283190,
+			"rng_seed_string": "repair_tools|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 555051212,
+			"rng_seed_string": "repair_tools|salvage|m1|c1|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 275094434,
+			"rng_seed_string": "repair_tools|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "plasma_cutter",
+					"quantity": 1,
+					"rarity": "rare",
+					"seed_key": "marker_7|room_3|crate_2|0|plasma_cutter",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1041243774,
+			"rng_seed_string": "repair_tools|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1342581460,
+			"rng_seed_string": "repair_tools|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 4268170327,
+			"rng_seed_string": "repair_tools|x|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "x",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1605916013,
+			"rng_seed_string": "repair_tools|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 712939748,
+			"rng_seed_string": "repair_tools|derelict_42|cargo|0|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "welder",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|0|welder",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3788983738,
+			"rng_seed_string": "repair_tools|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_tools"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|scrap_metal",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "sealant",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "a|1|sealant",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|2|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3827229138,
+			"rng_seed_string": "salvage_cargo|a|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "a",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "hull_sealant",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "a|2|hull_sealant",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "scrap_metal",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "a|0|scrap_metal",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "sealant",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|1|sealant",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3995145201,
+			"rng_seed_string": "salvage_cargo|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "oxygen_filter",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|oxygen_filter",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "plating",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|1|plating",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "sealant",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|2|sealant",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2184099646,
+			"rng_seed_string": "salvage_cargo|salvage|m1|c1|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "hull_sealant",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|hull_sealant",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "oxygen_filter",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|1|oxygen_filter",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "sealant",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|2|sealant",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1784856541,
+			"rng_seed_string": "salvage_cargo|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|1|scrap_metal",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "sealant",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|2|sealant",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3555048560,
+			"rng_seed_string": "salvage_cargo|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "biomatter_tangle",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|1|biomatter_tangle",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "sealant",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|sealant",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|2|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3491632335,
+			"rng_seed_string": "salvage_cargo|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "biomatter_tangle",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|2|biomatter_tangle",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "x|0|scrap_metal",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "sealant",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "x|1|sealant",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2653660393,
+			"rng_seed_string": "salvage_cargo|x|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "x",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "biomatter_tangle",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|2|biomatter_tangle",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "oxygen_filter",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|oxygen_filter",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "sealant",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "x|1|sealant",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 161810728,
+			"rng_seed_string": "salvage_cargo|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "biomatter_tangle",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|biomatter_tangle",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "scrap_metal",
+					"quantity": 4,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|2|scrap_metal",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "industrial_crate",
+					"depth": 0,
+					"item_id": "web_chart",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|1|web_chart",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3709963414,
+			"rng_seed_string": "salvage_cargo|derelict_42|cargo|0|abyssal_synaptic_sea|0|industrial_crate",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "oxygen_filter",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|0|oxygen_filter",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "scrap_metal",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|2|scrap_metal",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "sealant",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|1|sealant",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 4090196533,
+			"rng_seed_string": "salvage_cargo|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "a|0|circuit_board",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "fuel_canister",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "a|1|fuel_canister",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3873081018,
+			"rng_seed_string": "salvage_engineering|a|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "a",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 4,
+					"rarity": "common",
+					"seed_key": "a|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2899957776,
+			"rng_seed_string": "salvage_engineering|a|dead_fleet|3|salvage_objective",
+			"seed_source": "a",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "fuel_canister",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "salvage|m1|c1|0|fuel_canister",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1173311526,
+			"rng_seed_string": "salvage_engineering|salvage|m1|c1|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "capacitor_cell",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|1|capacitor_cell",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "power_cell",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "power_cell",
+					"quantity": 2,
+					"rarity": "uncommon",
+					"seed_key": "salvage|m1|c1|0|power_cell",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1558424188,
+			"rng_seed_string": "salvage_engineering|salvage|m1|c1|dead_fleet|3|salvage_objective",
+			"seed_source": "salvage|m1|c1",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "fuel_line",
+					"quantity": 3,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|0|fuel_line",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2421063256,
+			"rng_seed_string": "salvage_engineering|marker_7|room_3|crate_2|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "capacitor_cell",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "marker_7|room_3|crate_2|0|capacitor_cell",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "fuel_canister",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "marker_7|room_3|crate_2|1|fuel_canister",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1960841774,
+			"rng_seed_string": "salvage_engineering|marker_7|room_3|crate_2|dead_fleet|3|salvage_objective",
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "circuit_board",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "circuit_board",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "x|0|circuit_board",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "power_cell",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "power_cell",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "x|1|power_cell",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3800018097,
+			"rng_seed_string": "salvage_engineering|x|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "x",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"codex_entry_id": "circuit_board",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "circuit_board",
+					"quantity": 2,
+					"rarity": "common",
+					"seed_key": "x|0|circuit_board",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 3361590599,
+			"rng_seed_string": "salvage_engineering|x|dead_fleet|3|salvage_objective",
+			"seed_source": "x",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "default",
+			"result": [
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "fire_extinguisher",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|1|fire_extinguisher",
+					"world_unique": false
+				},
+				{
+					"biome_id": "abyssal_synaptic_sea",
+					"codex_entry_id": "power_cell",
+					"condition": "damaged",
+					"container_kind": "maintenance_cache",
+					"depth": 0,
+					"item_id": "power_cell",
+					"quantity": 2,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|0|power_cell",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 2867010494,
+			"rng_seed_string": "salvage_engineering|derelict_42|cargo|0|abyssal_synaptic_sea|0|maintenance_cache",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"context_id": "dead_fleet_wrecked_depth3",
+			"result": [
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "fire_extinguisher",
+					"quantity": 1,
+					"rarity": "uncommon",
+					"seed_key": "derelict_42|cargo|0|0|fire_extinguisher",
+					"world_unique": false
+				},
+				{
+					"biome_id": "dead_fleet",
+					"condition": "wrecked",
+					"container_kind": "salvage_objective",
+					"depth": 3,
+					"item_id": "fuel_line",
+					"quantity": 1,
+					"rarity": "common",
+					"seed_key": "derelict_42|cargo|0|1|fuel_line",
+					"world_unique": false
+				}
+			],
+			"rng_seed": 1363122196,
+			"rng_seed_string": "salvage_engineering|derelict_42|cargo|0|dead_fleet|3|salvage_objective",
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "salvage_engineering"
+		}
+	],
+	"loot_roller_rolls": [
+		{
+			"result": [],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "_schema"
+		},
+		{
+			"result": [],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "_schema"
+		},
+		{
+			"result": [],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "_schema"
+		},
+		{
+			"result": [],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "_schema"
+		},
+		{
+			"result": [],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "_schema"
+		},
+		{
+			"result": [
+				{
+					"item_id": "scrap_metal",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "scrap_metal",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "scrap_metal",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "flare_round",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "fuel_canister",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "combat_drop_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "scrap_metal",
+					"quantity": 5
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "generic_crate"
+		},
+		{
+			"result": [
+				{
+					"item_id": "scrap_metal",
+					"quantity": 3
+				},
+				{
+					"item_id": "wiring_spool",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "generic_crate"
+		},
+		{
+			"result": [
+				{
+					"item_id": "scrap_metal",
+					"quantity": 3
+				},
+				{
+					"item_id": "wiring_spool",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "generic_crate"
+		},
+		{
+			"result": [
+				{
+					"item_id": "frayed_cable_coil",
+					"quantity": 1
+				},
+				{
+					"item_id": "scrap_metal",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "generic_crate"
+		},
+		{
+			"result": [
+				{
+					"item_id": "contaminated_water",
+					"quantity": 1
+				},
+				{
+					"item_id": "wiring_spool",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "generic_crate"
+		},
+		{
+			"result": [
+				{
+					"item_id": "ration_pack",
+					"quantity": 5
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "generic_locker"
+		},
+		{
+			"result": [
+				{
+					"item_id": "medkit",
+					"quantity": 1
+				},
+				{
+					"item_id": "ration_pack",
+					"quantity": 3
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "generic_locker"
+		},
+		{
+			"result": [
+				{
+					"item_id": "medkit",
+					"quantity": 1
+				},
+				{
+					"item_id": "ration_pack",
+					"quantity": 3
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "generic_locker"
+		},
+		{
+			"result": [
+				{
+					"item_id": "corroded_data_shard",
+					"quantity": 1
+				},
+				{
+					"item_id": "fire_extinguisher",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "generic_locker"
+		},
+		{
+			"result": [
+				{
+					"item_id": "flare_round",
+					"quantity": 1
+				},
+				{
+					"item_id": "medkit",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "generic_locker"
+		},
+		{
+			"result": [
+				{
+					"item_id": "medkit",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "hidden_cache"
+		},
+		{
+			"result": [
+				{
+					"item_id": "flare_pistol",
+					"quantity": 1
+				},
+				{
+					"item_id": "medkit",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "hidden_cache"
+		},
+		{
+			"result": [
+				{
+					"item_id": "flare_pistol",
+					"quantity": 1
+				},
+				{
+					"item_id": "medkit",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "hidden_cache"
+		},
+		{
+			"result": [
+				{
+					"item_id": "web_chart",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "hidden_cache"
+		},
+		{
+			"result": [
+				{
+					"item_id": "flare_pistol",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "hidden_cache"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 4
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 3
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 4
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "data_core",
+					"quantity": 1
+				},
+				{
+					"item_id": "sensor_module",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "hull_sealant",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_parts_common"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_parts_starter"
+		},
+		{
+			"result": [
+				{
+					"item_id": "welder",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "repair_tools"
+		},
+		{
+			"result": [
+				{
+					"item_id": "welder",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "repair_tools"
+		},
+		{
+			"result": [
+				{
+					"item_id": "welder",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "repair_tools"
+		},
+		{
+			"result": [
+				{
+					"item_id": "welder",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "repair_tools"
+		},
+		{
+			"result": [
+				{
+					"item_id": "plasma_cutter",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "repair_tools"
+		},
+		{
+			"result": [
+				{
+					"item_id": "scrap_metal",
+					"quantity": 6
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"result": [
+				{
+					"item_id": "hull_sealant",
+					"quantity": 1
+				},
+				{
+					"item_id": "scrap_metal",
+					"quantity": 2
+				},
+				{
+					"item_id": "sealant",
+					"quantity": 3
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"result": [
+				{
+					"item_id": "oxygen_filter",
+					"quantity": 2
+				},
+				{
+					"item_id": "scrap_metal",
+					"quantity": 4
+				},
+				{
+					"item_id": "sealant",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"result": [
+				{
+					"item_id": "oxygen_filter",
+					"quantity": 2
+				},
+				{
+					"item_id": "scrap_metal",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"result": [
+				{
+					"item_id": "hull_sealant",
+					"quantity": 2
+				},
+				{
+					"item_id": "sealant",
+					"quantity": 3
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "salvage_cargo"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 4
+				}
+			],
+			"rng_seed": 177670,
+			"seed_source": "a",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 2
+				},
+				{
+					"item_id": "fuel_line",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2051858546,
+			"seed_source": "salvage|m1|c1",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"result": [
+				{
+					"item_id": "circuit_board",
+					"quantity": 2
+				},
+				{
+					"item_id": "fuel_line",
+					"quantity": 2
+				}
+			],
+			"rng_seed": 430862116,
+			"seed_source": "marker_7|room_3|crate_2",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"result": [
+				{
+					"item_id": "fire_extinguisher",
+					"quantity": 1
+				},
+				{
+					"item_id": "fuel_canister",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 177693,
+			"seed_source": "x",
+			"table_id": "salvage_engineering"
+		},
+		{
+			"result": [
+				{
+					"item_id": "shock_probe",
+					"quantity": 1
+				},
+				{
+					"item_id": "welding_lance",
+					"quantity": 1
+				}
+			],
+			"rng_seed": 2888689226,
+			"seed_source": "derelict_42|cargo|0",
+			"table_id": "salvage_engineering"
+		}
+	],
+	"notes": [
+		"LootDistribution seeds RandomNumberGenerator with abs(\"<table>|<seed_source>|<biome_id>|<depth>|<container_kind>\".hash()); LootRoller seeds with abs(seed_source.hash()).",
+		"unique_state is null in every roll (no world-unique claim filtering).",
+		"Results are post-merge (by unique_id or item_id) and sorted by that key."
+	],
+	"schema": "parity.loot.rolls.v1",
+	"seed_sources": [
+		"a",
+		"salvage|m1|c1",
+		"marker_7|room_3|crate_2",
+		"x",
+		"derelict_42|cargo|0"
+	],
+	"sources": {
+		"distribution": "res://scripts/systems/loot_distribution.gd LootDistribution.roll(table_key, seed_source, tables, context)",
+		"item_definitions": "ItemDefs.load_definitions() (merged; dumped to loot/inputs/item_definitions_resolved.json)",
+		"roller": "res://scripts/systems/loot_roller.gd LootRoller.roll(table_key, seed_source, tables)",
+		"tables": "res://data/items/loot_tables.json",
+		"tables_copy": "loot/inputs/loot_tables.json"
+	},
+	"table_ids": [
+		"_schema",
+		"combat_drop_common",
+		"generic_crate",
+		"generic_locker",
+		"hidden_cache",
+		"repair_parts_common",
+		"repair_parts_starter",
+		"repair_tools",
+		"salvage_cargo",
+		"salvage_engineering"
+	]
+}

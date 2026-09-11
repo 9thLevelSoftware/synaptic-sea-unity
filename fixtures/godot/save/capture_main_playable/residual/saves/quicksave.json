@@ -1,0 +1,1603 @@
+{
+	"addiction_summary": {
+		"profiles": {}
+	},
+	"ammo_summary": {
+		"magazines": {},
+		"reload_active": false,
+		"reload_remaining": 0.0,
+		"reload_target": 0,
+		"reload_weapon_id": "",
+		"total_fired": 0
+	},
+	"audio_summary": {
+		"ambient": {
+			"crossfade_active": false,
+			"crossfade_seconds": 1.5,
+			"crossfade_time": 0.0,
+			"current_intensity": 0.6,
+			"current_role": "docking",
+			"current_track_id": "amb.docking",
+			"kind": "ambient_zone_state",
+			"previous_intensity": 0.0,
+			"previous_role": "",
+			"previous_track_id": "",
+			"threat_boost": 0.25,
+			"threat_level": 0.0,
+			"threat_threshold": 0.5
+		},
+		"bus_config": {
+			"kind": "audio_bus_config",
+			"mutes": {
+				"ambient": false,
+				"master": false,
+				"meta": false,
+				"music": false,
+				"sfx": false,
+				"ui": false,
+				"voice": false
+			},
+			"volumes": {
+				"ambient": -9.0,
+				"master": 0.0,
+				"meta": -6.0,
+				"music": -6.0,
+				"sfx": -3.0,
+				"ui": -6.0,
+				"voice": -3.0
+			}
+		},
+		"current_voice_log_id": "",
+		"listener_attached": false,
+		"meta_event": {
+			"elapsed": 0.0,
+			"fired": [],
+			"kind": "meta_event_state",
+			"pending": [
+				{
+					"id": "beacon_distress",
+					"trigger_time": 12.0,
+					"voice_log_id": "log.beacon_01",
+					"volume_db": -3.0
+				},
+				{
+					"id": "biomatter_pulse",
+					"trigger_time": 30.0,
+					"voice_log_id": "log.pulse_01",
+					"volume_db": -6.0
+				},
+				{
+					"id": "hull_groan",
+					"trigger_time": 55.0,
+					"voice_log_id": "",
+					"volume_db": -6.0
+				}
+			],
+			"run_seed": 0
+		},
+		"music": {
+			"crossfade_seconds": 2.0,
+			"engagement_flag": false,
+			"hazard_active": false,
+			"kind": "dynamic_music_state",
+			"layer_gains": {
+				"layer.base": 1.0,
+				"layer.combat_percussion": 0.0,
+				"layer.critical_pad": 0.0,
+				"layer.tension_drone": 0.0
+			},
+			"state": "EXPLORATION",
+			"target_gains": {
+				"layer.base": 1.0,
+				"layer.combat_percussion": 0.0,
+				"layer.critical_pad": 0.0,
+				"layer.tension_drone": 0.0
+			},
+			"vitals_critical": false
+		},
+		"sfx_router": {
+			"caption_duration": 2.5,
+			"caption_queue_size": 1,
+			"captions_enabled": true,
+			"cooldown_clock": {
+				"ui.objective.advance": 0.0
+			},
+			"dropped_count": 3,
+			"kind": "sfx_event_router",
+			"routed_count": {
+				"ui.objective.advance": 1
+			}
+		},
+		"spatial": {
+			"kind": "spatial_audio_resolver",
+			"max_attenuation_db": -36.0,
+			"max_distance": 25.0,
+			"occlusion_penalty_db": -6.0,
+			"ref_distance": 2.0
+		}
+	},
+	"component_placement_summary": {
+		"count": 14,
+		"placed": [
+			{
+				"against_wall": true,
+				"cell": [
+					1,
+					0
+				],
+				"component_id": "locker_wall",
+				"component_instance_id": "airlock_01_wall_1",
+				"condition": 1.0,
+				"item_form": "wall_locker",
+				"linked_subcomponent": "reactor_core",
+				"linked_system": "power",
+				"mass": 8.0,
+				"mounted": true,
+				"room_id": "airlock_01",
+				"slot_index": 1,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					0,
+					1
+				],
+				"component_id": "locker_wall",
+				"component_instance_id": "airlock_01_wall_2",
+				"condition": 1.0,
+				"item_form": "wall_locker",
+				"linked_subcomponent": "battery_cells",
+				"linked_system": "power",
+				"mass": 8.0,
+				"mounted": true,
+				"room_id": "airlock_01",
+				"slot_index": 2,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					2,
+					0
+				],
+				"component_id": "conduit_run",
+				"component_instance_id": "corridor_01_wall_0",
+				"condition": 1.0,
+				"item_form": "conduit_segment",
+				"linked_subcomponent": "air_recycler",
+				"linked_system": "life_support",
+				"mass": 6.0,
+				"mounted": true,
+				"room_id": "corridor_01",
+				"slot_index": 0,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					3,
+					0
+				],
+				"component_id": "conduit_run",
+				"component_instance_id": "corridor_01_wall_1",
+				"condition": 1.0,
+				"item_form": "conduit_segment",
+				"linked_subcomponent": "co2_scrubber",
+				"linked_system": "life_support",
+				"mass": 6.0,
+				"mounted": true,
+				"room_id": "corridor_01",
+				"slot_index": 1,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					4,
+					0
+				],
+				"component_id": "conduit_run",
+				"component_instance_id": "ramp_01_wall_0",
+				"condition": 1.0,
+				"item_form": "conduit_segment",
+				"linked_subcomponent": "oxygen_tanks",
+				"linked_system": "life_support",
+				"mass": 6.0,
+				"mounted": true,
+				"room_id": "ramp_01",
+				"slot_index": 0,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					4,
+					0
+				],
+				"component_id": "console_generic",
+				"component_instance_id": "spine_01_wall_0",
+				"condition": 1.0,
+				"item_form": "console_unit",
+				"linked_subcomponent": "gravity_plating",
+				"linked_system": "gravity",
+				"mass": 12.0,
+				"mounted": true,
+				"room_id": "spine_01",
+				"slot_index": 0,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					5,
+					0
+				],
+				"component_id": "console_generic",
+				"component_instance_id": "spine_01_wall_1",
+				"condition": 1.0,
+				"item_form": "console_unit",
+				"linked_subcomponent": "field_emitter",
+				"linked_system": "gravity",
+				"mass": 12.0,
+				"mounted": true,
+				"room_id": "spine_01",
+				"slot_index": 1,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					6,
+					0
+				],
+				"component_id": "conduit_run",
+				"component_instance_id": "spine_01_wall_2",
+				"condition": 1.0,
+				"item_form": "conduit_segment",
+				"linked_subcomponent": "inertial_dampeners",
+				"linked_system": "gravity",
+				"mass": 6.0,
+				"mounted": true,
+				"room_id": "spine_01",
+				"slot_index": 2,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					5,
+					-1
+				],
+				"component_id": "console_generic",
+				"component_instance_id": "cargo_01_wall_0",
+				"condition": 1.0,
+				"item_form": "console_unit",
+				"linked_subcomponent": "star_charts",
+				"linked_system": "navigation",
+				"mass": 12.0,
+				"mounted": true,
+				"room_id": "cargo_01",
+				"slot_index": 0,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					5,
+					-2
+				],
+				"component_id": "locker_wall",
+				"component_instance_id": "cargo_01_wall_2",
+				"condition": 1.0,
+				"item_form": "wall_locker",
+				"linked_subcomponent": "nav_computer",
+				"linked_system": "navigation",
+				"mass": 8.0,
+				"mounted": true,
+				"room_id": "cargo_01",
+				"slot_index": 2,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					8,
+					-1
+				],
+				"component_id": "console_generic",
+				"component_instance_id": "medbay_01_wall_1",
+				"condition": 1.0,
+				"item_form": "console_unit",
+				"linked_subcomponent": "sensor_array",
+				"linked_system": "navigation",
+				"mass": 12.0,
+				"mounted": true,
+				"room_id": "medbay_01",
+				"slot_index": 1,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					5,
+					1
+				],
+				"component_id": "console_generic",
+				"component_instance_id": "maintenance_01_wall_0",
+				"condition": 1.0,
+				"item_form": "console_unit",
+				"linked_subcomponent": "thruster_array",
+				"linked_system": "propulsion",
+				"mass": 12.0,
+				"mounted": true,
+				"room_id": "maintenance_01",
+				"slot_index": 0,
+				"slot_kind": "wall",
+				"soft_linked": true
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					9,
+					0
+				],
+				"component_id": "reactor_console",
+				"component_instance_id": "reactor_01_wall_0",
+				"condition": 0.6,
+				"item_form": "reactor_console",
+				"linked_subcomponent": "power_distribution",
+				"linked_system": "power",
+				"mass": 15.0,
+				"mounted": true,
+				"room_id": "reactor_01",
+				"slot_index": 0,
+				"slot_kind": "wall"
+			},
+			{
+				"against_wall": true,
+				"cell": [
+					10,
+					0
+				],
+				"component_id": "reactor_console",
+				"component_instance_id": "reactor_01_wall_1",
+				"condition": 0.6,
+				"item_form": "reactor_console",
+				"linked_subcomponent": "power_distribution",
+				"linked_system": "power",
+				"mass": 15.0,
+				"mounted": true,
+				"room_id": "reactor_01",
+				"slot_index": 1,
+				"slot_kind": "wall"
+			}
+		],
+		"schema": "component_placement_v1",
+		"seed": 1
+	},
+	"consumable_summary": {
+		"hotbar_slots": [
+			"",
+			"",
+			""
+		],
+		"last_result": {}
+	},
+	"crafting_summary": {
+		"active_craft": {},
+		"field_crafting": {
+			"active_craft": {},
+			"recipe_count": 60,
+			"station_summaries": {}
+		},
+		"recipe_count": 60,
+		"station_summaries": {}
+	},
+	"current_location": "home",
+	"current_objective_sequence": 2,
+	"electrical_arc_summary": {
+		"arcing": false,
+		"arcing_duration": 2.5,
+		"cycle_duration": 4.0,
+		"discharged_duration": 1.5,
+		"hazard_kind": "electrical_arc",
+		"passability_blocked": false,
+		"phase": 0,
+		"remaining_in_state": 1.5,
+		"state": "DISCHARGED",
+		"time_in_state": 0.0,
+		"zone_ids": []
+	},
+	"fire_summary": {},
+	"gameplay_slice_path": "res://data/procgen/golden/coherent_ship_001/gameplay_slice.json",
+	"godot_version": "4.7.1-stable (official)",
+	"hallucination_summary": {
+		"active_events": [],
+		"current_tier": 0,
+		"health_drain_per_second": 0.5,
+		"pool_loaded": true,
+		"seed": 17,
+		"spawn_timers": {},
+		"stamina_recovery_mult": 0.5,
+		"step": 0
+	},
+	"hydroponics_summary": {
+		"crop_id": "",
+		"crop_name": "",
+		"growth_seconds": 120.0,
+		"power_cost": 3.0,
+		"produce_item_id": "",
+		"produce_quantity": 0,
+		"progress_ratio": 0.0,
+		"progress_seconds": 0.0,
+		"required_skill_level": 0,
+		"state": 0,
+		"water_cost": 2.0
+	},
+	"inventory_summary": {
+		"active_effects": [],
+		"combat_hotbar_text": "Weapon: unarmed | Threat: 0.00 | Hostiles: 5",
+		"drain_multiplier": 1.0,
+		"items": {},
+		"max_weight": 50.0,
+		"threat_summary": {
+			"awareness_indicator": 0.0,
+			"combat_engaged": false,
+			"damage_pipeline": {
+				"armor_resolver": {
+					"armor_profile": {
+						"durability": 0.0,
+						"flat_reduction": {},
+						"max_durability": 0.0,
+						"resistance": {},
+						"wear_factor": 0.35
+					},
+					"last_resolution": {}
+				},
+				"last_result": {},
+				"processed_hits": 0,
+				"total_damage_applied": 0.0,
+				"total_noise_generated": 0.0
+			},
+			"detection": {
+				"awareness_score": 0.0,
+				"crouching": false,
+				"detect_threshold": 0.75,
+				"detected": false,
+				"heard": false,
+				"last_reason": "idle",
+				"light_level": 0.0,
+				"memory_remaining": 0.0,
+				"memory_seconds": 5.0,
+				"noise_level": 0.0,
+				"room_id": "",
+				"seen": false,
+				"sight_level": 0.0
+			},
+			"encounter_markers": [
+				{
+					"cell": [
+						0,
+						0
+					],
+					"count": 1,
+					"encounter_kind": "biomatter_swarm",
+					"id": "fallback_0",
+					"room_id": "airlock_01"
+				},
+				{
+					"cell": [
+						1,
+						0
+					],
+					"count": 1,
+					"encounter_kind": "puppet_corpse",
+					"id": "fallback_1",
+					"room_id": "corridor_01"
+				},
+				{
+					"cell": [
+						2,
+						0
+					],
+					"count": 1,
+					"encounter_kind": "stalker",
+					"id": "fallback_2",
+					"room_id": "ramp_01"
+				},
+				{
+					"cell": [
+						3,
+						0
+					],
+					"count": 1,
+					"encounter_kind": "mimic",
+					"id": "fallback_3",
+					"room_id": "spine_01"
+				},
+				{
+					"cell": [
+						4,
+						0
+					],
+					"count": 1,
+					"encounter_kind": "hull_tendril",
+					"id": "fallback_4",
+					"room_id": "cargo_01"
+				}
+			],
+			"last_attack_result": {},
+			"threats": [
+				{
+					"ambush_hold": false,
+					"anchored": false,
+					"archetype_id": "biomatter_swarm",
+					"armor_profile": {
+						"durability": 18.0,
+						"flat_reduction": {
+							"physical": 1.0
+						},
+						"resistance": {
+							"biomatter": 0.1,
+							"fire": 0.0
+						}
+					},
+					"attack_cooldown": 0.0,
+					"attack_damage": 6.0,
+					"attack_interval": 1.1,
+					"attack_noise": 0.45,
+					"attack_range": 1.4,
+					"attack_type": "biomatter",
+					"awareness_score": 0.0,
+					"cell": [
+						0,
+						0
+					],
+					"display_name": "Biomatter Swarm",
+					"flee_speed_mult": 1.35,
+					"flee_threshold": 0.1,
+					"health": 24.0,
+					"hunt_speed_mult": 1.0,
+					"instance_id": "fallback_0_0",
+					"investigate_speed_mult": 0.7,
+					"last_known_position": [],
+					"last_known_room": "",
+					"light_sensitivity": 0.7,
+					"max_health": 24.0,
+					"memory_remaining": 0.0,
+					"memory_seconds": 6.0,
+					"move_speed": 2.5,
+					"noise_sensitivity": 1.1,
+					"player_verb": "burn_or_scatter",
+					"previous_state": "idle",
+					"room_id": "airlock_01",
+					"sight_sensitivity": 0.8,
+					"stalk_range": 0.0,
+					"state": "idle",
+					"status_on_hit": "infected",
+					"stunned_remaining": 0.0,
+					"swarm_split": true,
+					"tags": [
+						"swarm",
+						"biomatter"
+					],
+					"telegraph_remaining": 0.0,
+					"telegraph_seconds": 0.25,
+					"world_position": [
+						4.0,
+						0.0,
+						0.0
+					]
+				},
+				{
+					"ambush_hold": false,
+					"anchored": false,
+					"archetype_id": "puppet_corpse",
+					"armor_profile": {
+						"durability": 28.0,
+						"flat_reduction": {
+							"physical": 2.0
+						},
+						"resistance": {
+							"fire": -0.15,
+							"physical": 0.15
+						}
+					},
+					"attack_cooldown": 0.0,
+					"attack_damage": 10.0,
+					"attack_interval": 1.5,
+					"attack_noise": 0.55,
+					"attack_range": 1.4,
+					"attack_type": "physical",
+					"awareness_score": 0.0,
+					"cell": [
+						1,
+						0
+					],
+					"display_name": "Puppet Corpse",
+					"flee_speed_mult": 1.35,
+					"flee_threshold": 0.18,
+					"health": 42.0,
+					"hunt_speed_mult": 1.0,
+					"instance_id": "fallback_1_0",
+					"investigate_speed_mult": 0.7,
+					"last_known_position": [],
+					"last_known_room": "",
+					"light_sensitivity": 0.8,
+					"max_health": 42.0,
+					"memory_remaining": 0.0,
+					"memory_seconds": 7.0,
+					"move_speed": 2.5,
+					"noise_sensitivity": 0.9,
+					"player_verb": "keep_distance",
+					"previous_state": "idle",
+					"room_id": "corridor_01",
+					"sight_sensitivity": 0.9,
+					"stalk_range": 0.0,
+					"state": "idle",
+					"status_on_hit": "bleed",
+					"stunned_remaining": 0.0,
+					"swarm_split": false,
+					"tags": [
+						"melee",
+						"corpse"
+					],
+					"telegraph_remaining": 0.0,
+					"telegraph_seconds": 0.6,
+					"world_position": [
+						2.16120922347256,
+						0.0,
+						3.36588393923159
+					]
+				},
+				{
+					"ambush_hold": false,
+					"anchored": false,
+					"archetype_id": "stalker",
+					"armor_profile": {
+						"durability": 16.0,
+						"flat_reduction": {
+							"physical": 1.0
+						},
+						"resistance": {
+							"electric": -0.2,
+							"fire": -0.1
+						}
+					},
+					"attack_cooldown": 0.0,
+					"attack_damage": 12.0,
+					"attack_interval": 1.2,
+					"attack_noise": 0.25,
+					"attack_range": 1.4,
+					"attack_type": "physical",
+					"awareness_score": 0.0,
+					"cell": [
+						2,
+						0
+					],
+					"display_name": "Stalker",
+					"flee_speed_mult": 1.5,
+					"flee_threshold": 0.12,
+					"health": 30.0,
+					"hunt_speed_mult": 1.15,
+					"instance_id": "fallback_2_0",
+					"investigate_speed_mult": 0.85,
+					"last_known_position": [],
+					"last_known_room": "",
+					"light_sensitivity": 1.0,
+					"max_health": 30.0,
+					"memory_remaining": 0.0,
+					"memory_seconds": 10.0,
+					"move_speed": 2.5,
+					"noise_sensitivity": 1.3,
+					"player_verb": "break_los",
+					"previous_state": "idle",
+					"room_id": "ramp_01",
+					"sight_sensitivity": 1.2,
+					"stalk_range": 3.5,
+					"state": "idle",
+					"status_on_hit": "bleed",
+					"stunned_remaining": 0.0,
+					"swarm_split": false,
+					"tags": [
+						"stealth",
+						"hunter"
+					],
+					"telegraph_remaining": 0.0,
+					"telegraph_seconds": 0.35,
+					"world_position": [
+						-1.66458734618857,
+						0.0,
+						3.63718970730273
+					]
+				},
+				{
+					"ambush_hold": true,
+					"anchored": false,
+					"archetype_id": "mimic",
+					"armor_profile": {
+						"durability": 20.0,
+						"flat_reduction": {
+							"acid": 2.0
+						},
+						"resistance": {
+							"acid": 0.3,
+							"fire": -0.25
+						}
+					},
+					"attack_cooldown": 0.0,
+					"attack_damage": 11.0,
+					"attack_interval": 1.4,
+					"attack_noise": 0.35,
+					"attack_range": 1.4,
+					"attack_type": "acid",
+					"awareness_score": 0.0,
+					"cell": [
+						3,
+						0
+					],
+					"display_name": "Mimic",
+					"flee_speed_mult": 1.35,
+					"flee_threshold": 0.15,
+					"health": 36.0,
+					"hunt_speed_mult": 1.0,
+					"instance_id": "fallback_3_0",
+					"investigate_speed_mult": 0.7,
+					"last_known_position": [],
+					"last_known_room": "",
+					"light_sensitivity": 1.2,
+					"max_health": 36.0,
+					"memory_remaining": 0.0,
+					"memory_seconds": 8.0,
+					"move_speed": 2.5,
+					"noise_sensitivity": 0.8,
+					"player_verb": "probe_before_loot",
+					"previous_state": "idle",
+					"room_id": "spine_01",
+					"sight_sensitivity": 1.0,
+					"stalk_range": 0.0,
+					"state": "idle",
+					"status_on_hit": "exposed",
+					"stunned_remaining": 0.0,
+					"swarm_split": false,
+					"tags": [
+						"ambush",
+						"acid"
+					],
+					"telegraph_remaining": 0.0,
+					"telegraph_seconds": 0.5,
+					"world_position": [
+						-3.95996998640178,
+						0.0,
+						0.564480032239469
+					]
+				},
+				{
+					"ambush_hold": false,
+					"anchored": true,
+					"archetype_id": "hull_tendril",
+					"armor_profile": {
+						"durability": 32.0,
+						"flat_reduction": {
+							"electric": 3.0
+						},
+						"resistance": {
+							"electric": 0.45,
+							"fire": -0.1
+						}
+					},
+					"attack_cooldown": 0.0,
+					"attack_damage": 8.0,
+					"attack_interval": 1.8,
+					"attack_noise": 0.4,
+					"attack_range": 2.2,
+					"attack_type": "electric",
+					"awareness_score": 0.0,
+					"cell": [
+						4,
+						0
+					],
+					"display_name": "Hull Tendril",
+					"flee_speed_mult": 1.0,
+					"flee_threshold": 0.08,
+					"health": 48.0,
+					"hunt_speed_mult": 1.0,
+					"instance_id": "fallback_4_0",
+					"investigate_speed_mult": 0.1,
+					"last_known_position": [],
+					"last_known_room": "",
+					"light_sensitivity": 1.1,
+					"max_health": 48.0,
+					"memory_remaining": 0.0,
+					"memory_seconds": 9.0,
+					"move_speed": 0.1,
+					"noise_sensitivity": 0.7,
+					"player_verb": "cut_structure",
+					"previous_state": "idle",
+					"room_id": "cargo_01",
+					"sight_sensitivity": 0.9,
+					"stalk_range": 0.0,
+					"state": "idle",
+					"status_on_hit": "stun",
+					"stunned_remaining": 0.0,
+					"swarm_split": false,
+					"tags": [
+						"anchored",
+						"electric"
+					],
+					"telegraph_remaining": 0.0,
+					"telegraph_seconds": 0.9,
+					"world_position": [
+						-2.61457448345445,
+						0.0,
+						-3.02720998123171
+					]
+				}
+			]
+		},
+		"tool_ids": [],
+		"total_weight": 0.0
+	},
+	"is_autosave": false,
+	"is_quicksave": true,
+	"kit_path": "res://data/kits/ship_structural_v0.json",
+	"layout_path": "res://data/procgen/golden/coherent_ship_001/layout.json",
+	"material_summary": {
+		"defined_count": 33,
+		"material_quality": {}
+	},
+	"medicine_summary": {
+		"last_cured_statuses": [],
+		"last_item_id": "",
+		"last_results": []
+	},
+	"module_integrity_summary": {
+		"deltas": [],
+		"registered": 100,
+		"schema": "module_integrity_map_v1"
+	},
+	"objective_progress_summary": {
+		"2": {
+			"calibrator_applied": false,
+			"complete": false,
+			"completed_step_ids": [],
+			"completed_steps": 0,
+			"objective_type": "restore_systems",
+			"required_steps": 2
+		}
+	},
+	"oxygen_summary": {
+		"breach_open": true,
+		"breach_sealed": false,
+		"breach_zone_ids": [
+			"corridor_to_reactor"
+		],
+		"drain_multiplier": 1.0,
+		"drain_rate": 6.0,
+		"effective_drain_rate": 6.0,
+		"equipment_drain_multiplier": 1.0,
+		"hazard_kind": "oxygen",
+		"max_oxygen": 100.0,
+		"oxygen": 100.0,
+		"passability_blocked": false,
+		"player_in_breach_zone": false,
+		"recovery_threshold": 30.0,
+		"regen_rate": 3.5,
+		"safe_threshold": 35.0
+	},
+	"parent_world_slot": "",
+	"play_time_seconds": 0.0,
+	"player_position": [
+		24.0,
+		4.11999988555908,
+		-4.0
+	],
+	"player_progression_summary": {
+		"books_read": {},
+		"class_id": "engineer",
+		"cross_training": {
+			"astrogation": 0,
+			"biomatter_diagnostics": 0,
+			"comms": 0,
+			"construction": 0,
+			"cooking": 0,
+			"diagnostics": 0,
+			"fabrication": 0,
+			"first_aid": 0,
+			"intimidation": 0,
+			"leadership": 0,
+			"negotiation": 0,
+			"pharmacology": 0,
+			"piloting": 0,
+			"quarantine": 0,
+			"repair": 0,
+			"resource_management": 0,
+			"scanner_operation": 0,
+			"scavenging": 0,
+			"signal_analysis": 0,
+			"surgery": 0,
+			"welding": 0,
+			"welding_mastery": 0
+		},
+		"schema": "progression-2",
+		"skill_xp": {
+			"astrogation": 0,
+			"biomatter_diagnostics": 0,
+			"comms": 0,
+			"construction": 0,
+			"cooking": 0,
+			"diagnostics": 0,
+			"fabrication": 0,
+			"first_aid": 0,
+			"intimidation": 0,
+			"leadership": 0,
+			"negotiation": 0,
+			"pharmacology": 0,
+			"piloting": 0,
+			"quarantine": 0,
+			"repair": 0,
+			"resource_management": 0,
+			"scanner_operation": 0,
+			"scavenging": 0,
+			"signal_analysis": 0,
+			"surgery": 0,
+			"welding": 0,
+			"welding_mastery": 0
+		},
+		"skill_xp_fractional": {
+			"astrogation": 0.0,
+			"biomatter_diagnostics": 0.0,
+			"comms": 0.0,
+			"construction": 0.0,
+			"cooking": 0.0,
+			"diagnostics": 0.0,
+			"fabrication": 0.0,
+			"first_aid": 0.0,
+			"intimidation": 0.0,
+			"leadership": 0.0,
+			"negotiation": 0.0,
+			"pharmacology": 0.0,
+			"piloting": 0.0,
+			"quarantine": 0.0,
+			"repair": 0.0,
+			"resource_management": 0.0,
+			"scanner_operation": 0.0,
+			"scavenging": 0.0,
+			"signal_analysis": 0.0,
+			"surgery": 0.0,
+			"welding": 0.0,
+			"welding_mastery": 0.0
+		},
+		"skills": {
+			"astrogation": 0,
+			"biomatter_diagnostics": 0,
+			"comms": 0,
+			"construction": 0,
+			"cooking": 0,
+			"diagnostics": 2,
+			"fabrication": 1,
+			"first_aid": 0,
+			"intimidation": 0,
+			"leadership": 0,
+			"negotiation": 0,
+			"pharmacology": 0,
+			"piloting": 0,
+			"quarantine": 0,
+			"repair": 3,
+			"resource_management": 0,
+			"scanner_operation": 0,
+			"scavenging": 0,
+			"signal_analysis": 0,
+			"surgery": 0,
+			"welding": 2,
+			"welding_mastery": 0
+		}
+	},
+	"radiation_summary": {
+		"accumulation_rate": 2.0,
+		"decay_rate": 0.5,
+		"health_drain_active": false,
+		"health_drain_per_second": 0.0,
+		"health_drain_rate": 1.0,
+		"in_radiation_zone": false,
+		"max_radiation": 100.0,
+		"radiation": 0.0
+	},
+	"route_control_summary": {
+		"active_blocker_count": 1,
+		"extraction_unlocked": false,
+		"gate_ids": [
+			"powered_route_gate_01"
+		],
+		"gate_records": {
+			"powered_route_gate_01": {
+				"id": "powered_route_gate_01",
+				"open": false,
+				"required_system": "main_power_restored"
+			}
+		},
+		"opened_gate_count": 0,
+		"powered_gates_open": false,
+		"route_gate_collision_enabled_count": 1,
+		"route_gate_count": 1
+	},
+	"run_id": "1647935-c8a8",
+	"sanity_summary": {
+		"drain_rate": 1.5,
+		"in_safe_zone": false,
+		"max_sanity": 100.0,
+		"perception_pressure_active": false,
+		"recovery_rate": 3.0,
+		"sanity": 100.0
+	},
+	"saved_at": "2026-09-11T05:21:11",
+	"saved_at_epoch": 1789104071,
+	"settings_summary": {
+		"captions": true,
+		"colorblind_mode": "none",
+		"difficulty": "standard",
+		"glyph_scheme": "auto",
+		"hold_to_tap": false,
+		"motion_reduce": false,
+		"preset_id": "default",
+		"schema": "settings-state-1",
+		"text_scale": 1.0
+	},
+	"ship_modification_summary": {
+		"hull_plating_bonus": 0.0,
+		"installed": [],
+		"min_operational_ratio": 0.5,
+		"power_demand_baseline": 82.0,
+		"power_draw": 82.0,
+		"power_ok": true,
+		"power_supply": 100.0,
+		"schema": "ship_modification_v1"
+	},
+	"ship_systems_summary": {
+		"completed_objective_types": [
+			"recover_supplies"
+		],
+		"extinguisher_summary": {
+			"charge": 100.0,
+			"charge_cost_per_use": 34.0,
+			"max_charge": 100.0,
+			"recharge_per_second": 5.0
+		},
+		"fire_suppression_summary": {
+			"active_fires": {
+				"bridge": 1.0,
+				"engineering": 1.0
+			},
+			"adjacency": {
+				"bridge": [
+					"engineering"
+				],
+				"cargo": [
+					"engineering"
+				],
+				"engineering": [
+					"bridge",
+					"hydroponics",
+					"cargo"
+				],
+				"hydroponics": [
+					"engineering"
+				]
+			},
+			"arc_compartment": "engineering",
+			"cascade_progress": 0.0,
+			"cascade_rate_per_second": 0.5,
+			"closed_links": [],
+			"compartments": [
+				"bridge",
+				"engineering",
+				"hydroponics",
+				"cargo"
+			],
+			"ignition_progress": {},
+			"ignition_rate_per_second": 0.2,
+			"power_threshold": 0.5,
+			"spread_progress": {},
+			"spread_rate_per_second": 0.15,
+			"suppressant_units": 100.0,
+			"suppression_rate_per_second": 25.0,
+			"vented_compartments": []
+		},
+		"hull_integrity_summary": {
+			"compartments": {
+				"bridge": {
+					"breach_open": false,
+					"health": 1.0,
+					"isolation_rating": 0.9
+				},
+				"cargo": {
+					"breach_open": true,
+					"health": 0.3,
+					"isolation_rating": 0.6
+				},
+				"engineering": {
+					"breach_open": false,
+					"health": 1.0,
+					"isolation_rating": 0.8
+				},
+				"hydroponics": {
+					"breach_open": false,
+					"health": 1.0,
+					"isolation_rating": 0.7
+				}
+			}
+		},
+		"life_support_state_summary": {
+			"atmosphere_safe_co2": 15.0,
+			"atmosphere_safe_oxygen": 50.0,
+			"atmosphere_temp_comfort_band": 8.0,
+			"breach_oxygen_leak_per_second": 1.5,
+			"co2_percent": 2.0,
+			"life_support_power_threshold": 0.5,
+			"max_atmosphere_health_drain": 5.0,
+			"max_atmosphere_thirst_mult": 1.5,
+			"nominal_temperature_c": 21.0,
+			"offline_co2_gain_per_second": 3.5,
+			"offline_oxygen_drain_per_second": 4.0,
+			"offline_temp_drift_per_second": 0.3,
+			"online_co2_scrub_per_second": 2.0,
+			"online_oxygen_recovery_per_second": 2.0,
+			"oxygen_percent": 100.0,
+			"temperature_c": 21.0,
+			"water_liters": 40.0,
+			"water_use_per_second": 0.2
+		},
+		"power_grid_summary": {
+			"available_supply_units": 100.0,
+			"baseline_demand_units": {
+				"life_support": 22.0,
+				"lights": 8.0,
+				"propulsion": 30.0,
+				"stations": 12.0,
+				"sustenance": 10.0
+			},
+			"blackout_subsystems": [],
+			"effective_routes_units": {
+				"life_support": 22.0,
+				"lights": 8.0,
+				"propulsion": 30.0,
+				"stations": 12.0,
+				"sustenance": 10.0
+			},
+			"manager_broken_systems": [],
+			"manual_routes_units": {
+				"life_support": 22.0,
+				"lights": 8.0,
+				"propulsion": 30.0,
+				"stations": 12.0,
+				"sustenance": 10.0
+			},
+			"min_operational_ratio": 0.5,
+			"overloaded": false,
+			"subsystem_order": [
+				"life_support",
+				"propulsion",
+				"stations",
+				"lights",
+				"sustenance"
+			],
+			"total_supply_units": 100.0
+		},
+		"propulsion_state_summary": {
+			"engine_temperature_c": 28.0,
+			"fuel_efficiency": 1.0,
+			"operational": true,
+			"power_threshold": 0.5,
+			"thrust_percent": 100.0
+		},
+		"sustenance_state_summary": {
+			"facilities": {
+				"hydroponics": {
+					"power_band": "sustenance",
+					"upgrade_slots": 2.0
+				},
+				"synthesizer": {
+					"power_band": "sustenance",
+					"upgrade_slots": 2.0
+				},
+				"water_recycler": {
+					"power_band": "sustenance",
+					"upgrade_slots": 1.0
+				}
+			},
+			"harvest_ready": 0,
+			"meals_ready": 0,
+			"purified_water_ready": 0,
+			"total_materials_consumed": 0.0,
+			"total_power_consumed": 0.0
+		},
+		"system_order": [
+			"power",
+			"life_support",
+			"gravity",
+			"navigation",
+			"propulsion",
+			"scanners"
+		],
+		"systems": {
+			"gravity": {
+				"dependency_ids": [
+					"power"
+				],
+				"subcomponents": [
+					{
+						"health": 1.0,
+						"min_skill": 3,
+						"operational_threshold": 0.5,
+						"repair_seconds": 14.0,
+						"required_parts": [
+							"plating"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "gravity_plating"
+					},
+					{
+						"health": 0.2,
+						"min_skill": 3,
+						"operational_threshold": 0.5,
+						"repair_seconds": 12.0,
+						"required_parts": [
+							"circuit_board"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "field_emitter"
+					},
+					{
+						"health": 1.0,
+						"min_skill": 2,
+						"operational_threshold": 0.5,
+						"repair_seconds": 9.0,
+						"required_parts": [
+							"circuit_board"
+						],
+						"required_tools": [],
+						"subcomponent_id": "inertial_dampeners"
+					}
+				],
+				"system_id": "gravity"
+			},
+			"life_support": {
+				"dependency_ids": [
+					"power"
+				],
+				"oxygen": {
+					"breach_open": true,
+					"breach_sealed": false,
+					"breach_zone_ids": [
+						"life_support"
+					],
+					"drain_multiplier": 1.0,
+					"drain_rate": 6.0,
+					"effective_drain_rate": 6.0,
+					"equipment_drain_multiplier": 1.0,
+					"hazard_kind": "oxygen",
+					"max_oxygen": 100.0,
+					"oxygen": 100.0,
+					"passability_blocked": false,
+					"player_in_breach_zone": false,
+					"recovery_threshold": 30.0,
+					"regen_rate": 3.5,
+					"safe_threshold": 35.0
+				},
+				"subcomponents": [
+					{
+						"health": 1.0,
+						"min_skill": 2,
+						"operational_threshold": 0.5,
+						"repair_seconds": 12.0,
+						"required_parts": [
+							"oxygen_filter"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "air_recycler"
+					},
+					{
+						"health": 1.0,
+						"min_skill": 1,
+						"operational_threshold": 0.5,
+						"repair_seconds": 8.0,
+						"required_parts": [
+							"oxygen_filter"
+						],
+						"required_tools": [],
+						"subcomponent_id": "co2_scrubber"
+					},
+					{
+						"health": 1.0,
+						"min_skill": 2,
+						"operational_threshold": 0.5,
+						"repair_seconds": 10.0,
+						"required_parts": [
+							"sealant"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "oxygen_tanks"
+					}
+				],
+				"system_id": "life_support"
+			},
+			"navigation": {
+				"dependency_ids": [
+					"power"
+				],
+				"subcomponents": [
+					{
+						"health": 0.2,
+						"min_skill": 1,
+						"operational_threshold": 0.5,
+						"repair_seconds": 6.0,
+						"required_parts": [
+							"data_core"
+						],
+						"required_tools": [],
+						"subcomponent_id": "star_charts"
+					},
+					{
+						"health": 0.2,
+						"min_skill": 3,
+						"operational_threshold": 0.5,
+						"repair_seconds": 12.0,
+						"required_parts": [
+							"circuit_board"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "nav_computer"
+					},
+					{
+						"health": 1.0,
+						"min_skill": 2,
+						"operational_threshold": 0.5,
+						"repair_seconds": 10.0,
+						"required_parts": [
+							"sensor_module"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "sensor_array"
+					}
+				],
+				"system_id": "navigation"
+			},
+			"power": {
+				"dependency_ids": [],
+				"subcomponents": [
+					{
+						"health": 0.2,
+						"min_skill": 4,
+						"operational_threshold": 0.5,
+						"repair_seconds": 20.0,
+						"required_parts": [
+							"reactor_core"
+						],
+						"required_tools": [
+							"plasma_cutter"
+						],
+						"subcomponent_id": "reactor_core"
+					},
+					{
+						"health": 0.2,
+						"min_skill": 2,
+						"operational_threshold": 0.5,
+						"repair_seconds": 10.0,
+						"required_parts": [
+							"power_cell"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "power_distribution"
+					},
+					{
+						"health": 0.2,
+						"min_skill": 1,
+						"operational_threshold": 0.5,
+						"repair_seconds": 6.0,
+						"required_parts": [
+							"power_cell"
+						],
+						"required_tools": [],
+						"subcomponent_id": "battery_cells"
+					}
+				],
+				"system_id": "power"
+			},
+			"propulsion": {
+				"dependency_ids": [
+					"power",
+					"navigation"
+				],
+				"subcomponents": [
+					{
+						"health": 1.0,
+						"min_skill": 4,
+						"operational_threshold": 0.5,
+						"repair_seconds": 18.0,
+						"required_parts": [
+							"thruster_nozzle"
+						],
+						"required_tools": [
+							"plasma_cutter"
+						],
+						"subcomponent_id": "thruster_array"
+					},
+					{
+						"health": 1.0,
+						"min_skill": 3,
+						"operational_threshold": 0.5,
+						"repair_seconds": 12.0,
+						"required_parts": [
+							"fuel_line"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "fuel_injection"
+					},
+					{
+						"health": 0.2,
+						"min_skill": 2,
+						"operational_threshold": 0.5,
+						"repair_seconds": 8.0,
+						"required_parts": [
+							"circuit_board"
+						],
+						"required_tools": [],
+						"subcomponent_id": "nav_linkage"
+					}
+				],
+				"system_id": "propulsion"
+			},
+			"scanners": {
+				"dependency_ids": [
+					"power",
+					"navigation"
+				],
+				"subcomponents": [
+					{
+						"health": 0.2,
+						"min_skill": 3,
+						"operational_threshold": 0.5,
+						"repair_seconds": 12.0,
+						"required_parts": [
+							"sensor_module"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "scanner_dish"
+					},
+					{
+						"health": 1.0,
+						"min_skill": 3,
+						"operational_threshold": 0.5,
+						"repair_seconds": 11.0,
+						"required_parts": [
+							"circuit_board"
+						],
+						"required_tools": [
+							"welder"
+						],
+						"subcomponent_id": "signal_processor"
+					},
+					{
+						"health": 0.2,
+						"min_skill": 2,
+						"operational_threshold": 0.5,
+						"repair_seconds": 7.0,
+						"required_parts": [
+							"power_cell"
+						],
+						"required_tools": [],
+						"subcomponent_id": "power_coupling"
+					}
+				],
+				"system_id": "scanners"
+			}
+		},
+		"web_infestation_summary": {
+			"attached_to_web": true,
+			"coverage": 0.0,
+			"hazard_kind": "web_infestation"
+		}
+	},
+	"skill_tree_summary": {
+		"unlocked": {}
+	},
+	"slice_version": "gate2-current-run-4",
+	"slot_id": "quicksave",
+	"slot_kind": "quick",
+	"spoilage_summary": {
+		"foods": {},
+		"rotten_present": false,
+		"transition_count": 0
+	},
+	"status_effects_summary": {
+		"count": 0,
+		"effects": []
+	},
+	"stimulant_summary": {
+		"active_stims": [],
+		"last_used_item": ""
+	},
+	"temperature_summary": {
+		"drain_rate": 0.5,
+		"hunger_multiplier": 1.0,
+		"in_extreme_zone": false,
+		"is_safe": true,
+		"recovery_rate": 1.0,
+		"safe_max": 32.0,
+		"safe_min": 18.0,
+		"temperature": 22.0,
+		"thirst_multiplier": 1.0
+	},
+	"utility_summary": {
+		"active_flags": {},
+		"last_item_id": "",
+		"last_note": ""
+	},
+	"vitals_summary": {
+		"health": 100.0,
+		"health_drain_rate": 0.0,
+		"health_recovery_rate": 0.0,
+		"hunger": 100.0,
+		"hunger_drain_rate": 0.5,
+		"hunger_stamina_cascade_active": false,
+		"hunger_stamina_recovery_mult": 1.0,
+		"max_health": 100.0,
+		"max_hunger": 100.0,
+		"max_stamina": 100.0,
+		"max_thirst": 100.0,
+		"move_mult": 1.0,
+		"stamina": 100.0,
+		"stamina_drain_rate": 2.0,
+		"stamina_recovery_rate": 5.0,
+		"starvation_health_drain": 0.0,
+		"thirst": 100.0,
+		"thirst_drain_rate": 0.8,
+		"thirst_stamina_drain_mult": 1.0,
+		"thirst_vision_warning_active": false,
+		"vision_mult": 1.0
+	},
+	"water_recycler_summary": {
+		"conversion_ratio": 1.0,
+		"input_item_id": "",
+		"input_quantity": 0,
+		"output_item_id": "purified_water",
+		"output_ready": 0,
+		"power_cost": 5.0,
+		"progress_ratio": 0.0,
+		"progress_seconds": 0.0,
+		"recycle_time_seconds": 30.0,
+		"state": 0
+	},
+	"work_action_summary": {},
+	"world_seed": 17
+}

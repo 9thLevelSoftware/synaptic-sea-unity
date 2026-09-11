@@ -1,0 +1,380 @@
+{
+	"config": {},
+	"configure_call": "configure({})",
+	"construct": "res://scripts/systems/web_infestation_state.gd.new()",
+	"model": "web_infestation_state",
+	"notes": [
+		"contact=false except group 2 (3.0s steps) where contact=true; cut_free() before the first 5.0s step so coverage recedes."
+	],
+	"reference_smoke": "res://scripts/validation/web_infestation_state_smoke.gd",
+	"round_trip": {
+		"apply_summary_return": true,
+		"description": "source = get_summary() after the last step; fresh = res://scripts/systems/web_infestation_state.gd.new(); configure with the same config; fresh.apply_summary(source); restored = fresh.get_summary()",
+		"differences_source_vs_restored": [],
+		"equal": true,
+		"restored_summary": {
+			"attached_to_web": false,
+			"coverage": 0.0,
+			"hazard_kind": "web_infestation"
+		},
+		"source_summary": {
+			"attached_to_web": false,
+			"coverage": 0.0,
+			"hazard_kind": "web_infestation"
+		}
+	},
+	"schema": "parity.models.tick.v1",
+	"script": "res://scripts/systems/web_infestation_state.gd",
+	"setup": [],
+	"step_groups": [
+		[
+			"0.016666666666666666",
+			10
+		],
+		[
+			"0.35",
+			5
+		],
+		[
+			"3.0",
+			3
+		],
+		[
+			"5.0",
+			2
+		]
+	],
+	"steps": [
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 0,
+			"return": 1.6666666666666665e-07,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.0003333333333333333,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 1,
+			"return": 3.333333333333333e-07,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.0006666666666666666,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 2,
+			"return": 5e-07,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.001,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 3,
+			"return": 6.666666666666666e-07,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.0013333333333333333,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 4,
+			"return": 8.333333333333332e-07,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.0016666666666666666,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 5,
+			"return": 1e-06,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.002,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 6,
+			"return": 1.1666666666666668e-06,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.0023333333333333335,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 7,
+			"return": 1.3333333333333334e-06,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.002666666666666667,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 8,
+			"return": 1.5e-06,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.0030000000000000005,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 9,
+			"return": 1.6666666666666669e-06,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.003333333333333334,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 10,
+			"return": 0.0001085,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.010333333333333333,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 11,
+			"return": 0.00018199999999999998,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.017333333333333333,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 12,
+			"return": 0.0002555,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.024333333333333332,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 13,
+			"return": 0.0003289999999999999,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.03133333333333333,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 14,
+			"return": 0.0004024999999999999,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.03833333333333333,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": true
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 15,
+			"return": 0.01695,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.18833333333333335,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": true
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 16,
+			"return": 0.030450000000000005,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.3383333333333334,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": true
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 17,
+			"return": 0.04395,
+			"summary": {
+				"attached_to_web": true,
+				"coverage": 0.4883333333333334,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 18,
+			"pre_ops": [
+				{
+					"args": {},
+					"op": "cut_free"
+				}
+			],
+			"return": 0.03575000000000001,
+			"summary": {
+				"attached_to_web": false,
+				"coverage": 0.2383333333333334,
+				"hazard_kind": "web_infestation"
+			}
+		},
+		{
+			"args": {
+				"contact": false
+			},
+			"call": "tick(delta, contact) -> hull damage",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 19,
+			"return": 0.0,
+			"summary": {
+				"attached_to_web": false,
+				"coverage": 0.0,
+				"hazard_kind": "web_infestation"
+			}
+		}
+	],
+	"summary_after_configure": {
+		"attached_to_web": true,
+		"coverage": 0.0,
+		"hazard_kind": "web_infestation"
+	}
+}

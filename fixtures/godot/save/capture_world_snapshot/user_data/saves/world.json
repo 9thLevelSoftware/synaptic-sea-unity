@@ -1,0 +1,57 @@
+{
+	"aboard_ship_id": "",
+	"current_location": "3:1:0",
+	"dock_edges": [],
+	"godot_version": "4.7.1-stable (official)",
+	"home_breach_environment": {},
+	"home_looted_containers": [],
+	"home_ship": {
+		"player_position": [
+			5.0,
+			1.0,
+			5.0
+		],
+		"slice_version": "gate2-current-run-1"
+	},
+	"home_ship_carts": [],
+	"home_ship_inventory": {},
+	"meta_progression_summary": {},
+	"opened_ports": [],
+	"piloted_ship_id": "",
+	"player_equipment": {},
+	"player_position_in_ship": [
+		10.0,
+		2.0,
+		3.0
+	],
+	"run_id": "",
+	"saved_at": "2026-06-21T00:00:00",
+	"slice_version": "world-4",
+	"unique_item_summary": {},
+	"visited_ships": {
+		"3:1:0": {
+			"blueprint": {
+				"condition": 2,
+				"seed": 7,
+				"size": 1
+			},
+			"marker_id": "3:1:0",
+			"ship_id": "ship_3:1:0",
+			"systems": {
+				"k": "v"
+			}
+		}
+	},
+	"world_summary": {
+		"generated_marker_ids": [
+			"3:1:0"
+		],
+		"player_position": [
+			1.0,
+			0.0,
+			2.0
+		],
+		"world_seed": 99
+	},
+	"world_time": 0.0
+}

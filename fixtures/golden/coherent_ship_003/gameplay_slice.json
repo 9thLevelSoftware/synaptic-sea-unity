@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.1.0",
+  "document_kind": "ship_gameplay_slice",
+  "program_id": "coherent-proof-ship-003",
+  "start_room": "airlock_03",
+  "goal_room": "reactor_03",
+  "critical_path": [
+    "airlock_03",
+    "corridor_03",
+    "lower_hub_03",
+    "ramp_03",
+    "upper_hub_03",
+    "elevator_03",
+    "reactor_access_03",
+    "reactor_03"
+  ],
+  "fire_zones": [
+    {
+      "id": "lower_hub_to_storage_fire",
+      "from_room": "lower_hub_03",
+      "to_room": "storage_03",
+      "from_cell": [
+        5,
+        1,
+        0
+      ],
+      "to_cell": [
+        6,
+        1,
+        0
+      ],
+      "module_id": "doorway_frame_open_1x1",
+      "kind": "timed_fire",
+      "rationale": "non-critical side link to optional loot room (objective 1); fire cannot trap the player or block any main objective"
+    }
+  ],
+  "arc_zones": [
+    {
+      "id": "lower_hub_to_tool_storage_arc",
+      "from_room": "lower_hub_03",
+      "to_room": "tool_storage_03",
+      "from_cell": [
+        5,
+        -1,
+        0
+      ],
+      "to_cell": [
+        6,
+        -1,
+        0
+      ],
+      "module_id": "doorway_frame_open_1x1",
+      "kind": "electrical_arc",
+      "rationale": "non-critical side link to the optional portable oxygen pump pickup room; arc cannot trap the player or block any main objective"
+    }
+  ],
+  "breach_zones": [
+    {
+      "id": "upper_hub_to_elevator_breach",
+      "from_room": "upper_hub_03",
+      "to_room": "elevator_03",
+      "from_cell": [
+        8,
+        0,
+        1
+      ],
+      "to_cell": [
+        8,
+        0,
+        0
+      ],
+      "module_id": "doorway_frame_open_1x1",
+      "kind": "oxygen_breach",
+      "rationale": "obj4-to-obj5 traversal corridor; sealed when main power is restored (sequence 2)"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "storage_03:supply_cache",
+      "sequence": 1,
+      "type": "recover_supplies",
+      "room_id": "storage_03",
+      "room_role": "storage",
+      "placement_id": "supply_cache",
+      "semantic": "loot_container",
+      "cell": [
+        7,
+        2,
+        0
+      ],
+      "approach_cell": [
+        7,
+        1,
+        0
+      ],
+      "approach_distance_cells": 1,
+      "interactable": true
+    },
+    {
+      "id": "maintenance_03:junction_beta",
+      "sequence": 2,
+      "type": "restore_systems",
+      "kind": "repair_junction",
+      "room_id": "maintenance_03",
+      "room_role": "maintenance",
+      "placement_id": "maintenance_breaker_panel",
+      "semantic": "junction_box",
+      "cell": [
+        10,
+        2,
+        1
+      ],
+      "approach_cell": [
+        10,
+        1,
+        1
+      ],
+      "approach_distance_cells": 1,
+      "interactable": true,
+      "steps": [
+        {
+          "step_id": "primary_coupling",
+          "approach_cell": [
+            10,
+            1,
+            1
+          ]
+        },
+        {
+          "step_id": "secondary_coupling",
+          "approach_cell": [
+            9,
+            2,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "medbay_03:medbay_terminal",
+      "sequence": 3,
+      "type": "download_logs",
+      "room_id": "medbay_03",
+      "room_role": "medical",
+      "placement_id": "medbay_terminal",
+      "semantic": "command_console",
+      "cell": [
+        10,
+        -2,
+        1
+      ],
+      "approach_cell": [
+        10,
+        -1,
+        1
+      ],
+      "approach_distance_cells": 1,
+      "interactable": true
+    },
+    {
+      "id": "upper_hub_03:life_support_console",
+      "sequence": 4,
+      "type": "restore_systems",
+      "room_id": "upper_hub_03",
+      "room_role": "main_hub",
+      "placement_id": "life_support_console",
+      "semantic": "command_console",
+      "cell": [
+        7,
+        0,
+        1
+      ],
+      "approach_cell": [
+        7,
+        0,
+        1
+      ],
+      "approach_distance_cells": 1,
+      "interactable": true
+    },
+    {
+      "id": "reactor_03:reactor_control_panel",
+      "sequence": 5,
+      "type": "stabilize_reactor",
+      "room_id": "reactor_03",
+      "room_role": "reactor",
+      "placement_id": "reactor_control_panel",
+      "semantic": "reactor_control_panel",
+      "cell": [
+        12,
+        0,
+        0
+      ],
+      "approach_cell": [
+        11,
+        0,
+        0
+      ],
+      "approach_distance_cells": 1,
+      "interactable": true
+    }
+  ],
+  "summary": {
+    "objective_count": 5,
+    "role_count": 5,
+    "roles": [
+      "medical",
+      "reactor",
+      "storage",
+      "maintenance",
+      "main_hub"
+    ],
+    "has_goal_room_objective": true,
+    "passes": true
+  }
+}

@@ -1,0 +1,127 @@
+{
+	"arc_zones": [
+		{
+			"from_cell": [
+				3,
+				0,
+				0
+			],
+			"from_room": "corridor_01",
+			"id": "corridor_01_to_corridor_05_arc",
+			"kind": "electrical_arc",
+			"rationale": "generated: non-critical side link off the objective spine; arc cannot trap the player or block an objective",
+			"to_cell": [
+				3,
+				-1,
+				0
+			],
+			"to_room": "corridor_05"
+		}
+	],
+	"breach_zones": [],
+	"fire_zones": [],
+	"goal_room": "engineering_01",
+	"loot_containers": [
+		{
+			"approach_cell": [
+				8,
+				0,
+				0
+			],
+			"id": "loot_bridge_01",
+			"kind": "generic_crate",
+			"loot_table": "generic_crate",
+			"room_id": "bridge_01",
+			"slot_index": 2,
+			"slot_kind": "wall"
+		},
+		{
+			"approach_cell": [
+				3,
+				4,
+				0
+			],
+			"id": "loot_crew_quarters_01",
+			"kind": "generic_locker",
+			"loot_table": "generic_locker",
+			"room_id": "crew_quarters_01",
+			"slot_index": 1,
+			"slot_kind": "wall"
+		},
+		{
+			"approach_cell": [
+				6,
+				4,
+				0
+			],
+			"id": "loot_armory_01",
+			"kind": "generic_crate",
+			"loot_table": "generic_crate",
+			"room_id": "armory_01",
+			"slot_index": 1,
+			"slot_kind": "wall"
+		}
+	],
+	"objectives": [
+		{
+			"approach_cell": [
+				8,
+				1,
+				0
+			],
+			"id": "obj_salvage_bridge_01",
+			"kind": "single",
+			"loot_table": "salvage_cargo",
+			"room_id": "bridge_01",
+			"sequence": 1,
+			"slot_index": 0,
+			"slot_kind": "center",
+			"type": "salvage"
+		},
+		{
+			"approach_cell": [
+				4,
+				3,
+				0
+			],
+			"id": "obj_salvage_crew_quarters_01",
+			"kind": "single",
+			"loot_table": "salvage_cargo",
+			"room_id": "crew_quarters_01",
+			"sequence": 2,
+			"slot_index": 0,
+			"slot_kind": "center",
+			"type": "salvage"
+		},
+		{
+			"approach_cell": [
+				5,
+				4,
+				0
+			],
+			"id": "obj_salvage_armory_01",
+			"kind": "single",
+			"loot_table": "salvage_cargo",
+			"room_id": "armory_01",
+			"sequence": 3,
+			"slot_index": 0,
+			"slot_kind": "center",
+			"type": "salvage"
+		},
+		{
+			"approach_cell": [
+				-1,
+				0,
+				0
+			],
+			"id": "obj_reach_goal",
+			"kind": "single",
+			"room_id": "engineering_01",
+			"sequence": 4,
+			"slot_index": 1,
+			"slot_kind": "center",
+			"type": "interact"
+		}
+	],
+	"start_room": "airlock_01"
+}

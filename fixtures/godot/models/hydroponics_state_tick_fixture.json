@@ -1,0 +1,556 @@
+{
+	"config": null,
+	"configure_call": "none (the smoke notes plant() calls configure() internally; do not pre-configure)",
+	"construct": "res://scripts/systems/hydroponics_state.gd.new()",
+	"model": "hydroponics_state",
+	"notes": [
+		"Total simulated time is 20.9s < growth_seconds 120, so the crop stays PLANTED (smoke config kept verbatim)."
+	],
+	"reference_smoke": "res://scripts/validation/hydroponics_state_smoke.gd",
+	"round_trip": {
+		"apply_summary_return": true,
+		"description": "source = get_summary() after the last step; fresh = res://scripts/systems/hydroponics_state.gd.new(); no configure (the smoke restores into a bare HydroponicsState.new()); fresh.apply_summary(source); restored = fresh.get_summary()",
+		"differences_source_vs_restored": [],
+		"equal": true,
+		"restored_summary": {
+			"crop_id": "hydroponic_greens",
+			"crop_name": "Hydroponic Greens",
+			"growth_seconds": 120.0,
+			"power_cost": 3.0,
+			"produce_item_id": "hydroponic_greens",
+			"produce_quantity": 3,
+			"progress_ratio": 0.174305555555556,
+			"progress_seconds": 20.9166666666667,
+			"required_skill_level": 0,
+			"state": 1,
+			"water_cost": 2.0
+		},
+		"source_summary": {
+			"crop_id": "hydroponic_greens",
+			"crop_name": "Hydroponic Greens",
+			"growth_seconds": 120.0,
+			"power_cost": 3.0,
+			"produce_item_id": "hydroponic_greens",
+			"produce_quantity": 3,
+			"progress_ratio": 0.174305555555556,
+			"progress_seconds": 20.9166666666667,
+			"required_skill_level": 0,
+			"state": 1,
+			"water_cost": 2.0
+		}
+	},
+	"schema": "parity.models.tick.v1",
+	"script": "res://scripts/systems/hydroponics_state.gd",
+	"setup": [
+		{
+			"args": {
+				"available_power": 5.0,
+				"available_water": 5.0,
+				"crop_config": {
+					"crop_id": "hydroponic_greens",
+					"display_name": "Hydroponic Greens",
+					"growth_seconds": 120.0,
+					"power_cost": 3.0,
+					"produce_item_id": "hydroponic_greens",
+					"produce_quantity": 3,
+					"required_skill_level": 0,
+					"water_cost": 2.0
+				},
+				"skill_level": 0
+			},
+			"op": "plant",
+			"return": {
+				"ok": true,
+				"power_consumed": 3.0,
+				"reason": "",
+				"water_consumed": 2.0
+			},
+			"summary_after": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.0,
+				"progress_seconds": 0.0,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		}
+	],
+	"step_groups": [
+		[
+			"0.016666666666666666",
+			10
+		],
+		[
+			"0.35",
+			5
+		],
+		[
+			"3.0",
+			3
+		],
+		[
+			"5.0",
+			2
+		]
+	],
+	"steps": [
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 0,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.000138888888888889,
+				"progress_seconds": 0.0166666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 1,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.000277777777777778,
+				"progress_seconds": 0.0333333333333333,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 2,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.000416666666666667,
+				"progress_seconds": 0.05,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 3,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.000555555555555556,
+				"progress_seconds": 0.0666666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 4,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.000694444444444444,
+				"progress_seconds": 0.0833333333333333,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 5,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.000833333333333333,
+				"progress_seconds": 0.1,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 6,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.000972222222222222,
+				"progress_seconds": 0.116666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 7,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.00111111111111111,
+				"progress_seconds": 0.133333333333333,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 8,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.00125,
+				"progress_seconds": 0.15,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 9,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.00138888888888889,
+				"progress_seconds": 0.166666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 10,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.00430555555555555,
+				"progress_seconds": 0.516666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 11,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.00722222222222222,
+				"progress_seconds": 0.866666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 12,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.0101388888888889,
+				"progress_seconds": 1.21666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 13,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.0130555555555556,
+				"progress_seconds": 1.56666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 14,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.0159722222222222,
+				"progress_seconds": 1.91666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 15,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.0409722222222222,
+				"progress_seconds": 4.91666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 16,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.0659722222222222,
+				"progress_seconds": 7.91666666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 17,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.0909722222222222,
+				"progress_seconds": 10.9166666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 18,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.132638888888889,
+				"progress_seconds": 15.9166666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 19,
+			"return": false,
+			"summary": {
+				"crop_id": "hydroponic_greens",
+				"crop_name": "Hydroponic Greens",
+				"growth_seconds": 120.0,
+				"power_cost": 3.0,
+				"produce_item_id": "hydroponic_greens",
+				"produce_quantity": 3,
+				"progress_ratio": 0.174305555555556,
+				"progress_seconds": 20.9166666666667,
+				"required_skill_level": 0,
+				"state": 1,
+				"water_cost": 2.0
+			}
+		}
+	],
+	"summary_after_configure": {
+		"crop_id": "",
+		"crop_name": "",
+		"growth_seconds": 120.0,
+		"power_cost": 3.0,
+		"produce_item_id": "",
+		"produce_quantity": 0,
+		"progress_ratio": 0.0,
+		"progress_seconds": 0.0,
+		"required_skill_level": 0,
+		"state": 0,
+		"water_cost": 2.0
+	}
+}

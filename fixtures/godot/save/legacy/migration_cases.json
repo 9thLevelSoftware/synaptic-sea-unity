@@ -1,0 +1,546 @@
+{
+	"known_versions": [
+		"gate2-current-run-1",
+		"gate2-current-run-2",
+		"gate2-current-run-3",
+		"gate2-current-run-4"
+	],
+	"migrate_run": [
+		{
+			"case": "run_from_gate2-current-run-1",
+			"input": {
+				"current_objective_sequence": 4,
+				"electrical_arc_summary": {
+					"state": "DISCHARGED"
+				},
+				"fire_summary": {
+					"state": "CLEARED"
+				},
+				"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+				"godot_version": "4.7.1-stable (official)",
+				"inventory_summary": {
+					"tools": []
+				},
+				"kit_path": "res://data/kits/ship_structural_v0.json",
+				"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+				"objective_progress_summary": {
+					"current": 4
+				},
+				"oxygen_summary": {
+					"oxygen": 75.0
+				},
+				"player_position": [
+					1.0,
+					0.0,
+					2.0
+				],
+				"route_control_summary": {
+					"active_blockers": 0,
+					"extraction_unlocked": false
+				},
+				"saved_at": "2026-06-20T00:00:00",
+				"ship_systems_summary": {
+					"systems": {
+						"power": {
+							"health": 0.5
+						}
+					}
+				},
+				"slice_version": "gate2-current-run-1"
+			},
+			"result": {
+				"dict": {
+					"current_location": "",
+					"current_objective_sequence": 4,
+					"electrical_arc_summary": {
+						"state": "DISCHARGED"
+					},
+					"fire_summary": {
+						"state": "CLEARED"
+					},
+					"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+					"godot_version": "4.7.1-stable (official)",
+					"inventory_summary": {
+						"tools": []
+					},
+					"is_autosave": false,
+					"is_quicksave": false,
+					"kit_path": "res://data/kits/ship_structural_v0.json",
+					"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+					"objective_progress_summary": {
+						"current": 4
+					},
+					"oxygen_summary": {
+						"oxygen": 75.0
+					},
+					"parent_world_slot": "",
+					"play_time_seconds": 0.0,
+					"player_position": [
+						1.0,
+						0.0,
+						2.0
+					],
+					"player_progression_summary": {
+						"class_id": "",
+						"level": 1,
+						"xp": {}
+					},
+					"route_control_summary": {
+						"active_blockers": 0,
+						"extraction_unlocked": false
+					},
+					"saved_at": "2026-06-20T00:00:00",
+					"ship_systems_summary": {
+						"systems": {
+							"power": {
+								"health": 0.5
+							}
+						}
+					},
+					"slice_version": "gate2-current-run-4",
+					"slot_id": "",
+					"slot_kind": "",
+					"world_seed": 0
+				},
+				"from_version": "gate2-current-run-1",
+				"migrated": true,
+				"to_version": "gate2-current-run-4"
+			}
+		},
+		{
+			"case": "run_from_gate2-current-run-2",
+			"input": {
+				"current_objective_sequence": 4,
+				"electrical_arc_summary": {
+					"state": "DISCHARGED"
+				},
+				"fire_summary": {
+					"state": "CLEARED"
+				},
+				"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+				"godot_version": "4.7.1-stable (official)",
+				"inventory_summary": {
+					"tools": []
+				},
+				"kit_path": "res://data/kits/ship_structural_v0.json",
+				"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+				"objective_progress_summary": {
+					"current": 4
+				},
+				"oxygen_summary": {
+					"oxygen": 75.0
+				},
+				"player_position": [
+					1.0,
+					0.0,
+					2.0
+				],
+				"route_control_summary": {
+					"active_blockers": 0,
+					"extraction_unlocked": false
+				},
+				"saved_at": "2026-06-20T00:00:00",
+				"ship_systems_summary": {
+					"systems": {
+						"power": {
+							"health": 0.5
+						}
+					}
+				},
+				"slice_version": "gate2-current-run-2"
+			},
+			"result": {
+				"dict": {
+					"current_location": "",
+					"current_objective_sequence": 4,
+					"electrical_arc_summary": {
+						"state": "DISCHARGED"
+					},
+					"fire_summary": {
+						"state": "CLEARED"
+					},
+					"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+					"godot_version": "4.7.1-stable (official)",
+					"inventory_summary": {
+						"tools": []
+					},
+					"is_autosave": false,
+					"is_quicksave": false,
+					"kit_path": "res://data/kits/ship_structural_v0.json",
+					"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+					"objective_progress_summary": {
+						"current": 4
+					},
+					"oxygen_summary": {
+						"oxygen": 75.0
+					},
+					"parent_world_slot": "",
+					"play_time_seconds": 0.0,
+					"player_position": [
+						1.0,
+						0.0,
+						2.0
+					],
+					"route_control_summary": {
+						"active_blockers": 0,
+						"extraction_unlocked": false
+					},
+					"saved_at": "2026-06-20T00:00:00",
+					"ship_systems_summary": {
+						"systems": {
+							"power": {
+								"health": 0.5
+							}
+						}
+					},
+					"slice_version": "gate2-current-run-4",
+					"slot_id": "",
+					"slot_kind": "",
+					"world_seed": 0
+				},
+				"from_version": "gate2-current-run-2",
+				"migrated": true,
+				"to_version": "gate2-current-run-4"
+			}
+		},
+		{
+			"case": "run_from_gate2-current-run-3",
+			"input": {
+				"current_objective_sequence": 4,
+				"electrical_arc_summary": {
+					"state": "DISCHARGED"
+				},
+				"fire_summary": {
+					"state": "CLEARED"
+				},
+				"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+				"godot_version": "4.7.1-stable (official)",
+				"inventory_summary": {
+					"tools": []
+				},
+				"kit_path": "res://data/kits/ship_structural_v0.json",
+				"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+				"objective_progress_summary": {
+					"current": 4
+				},
+				"oxygen_summary": {
+					"oxygen": 75.0
+				},
+				"player_position": [
+					1.0,
+					0.0,
+					2.0
+				],
+				"route_control_summary": {
+					"active_blockers": 0,
+					"extraction_unlocked": false
+				},
+				"saved_at": "2026-06-20T00:00:00",
+				"ship_systems_summary": {
+					"systems": {
+						"power": {
+							"health": 0.5
+						}
+					}
+				},
+				"slice_version": "gate2-current-run-3"
+			},
+			"result": {
+				"dict": {
+					"current_location": "",
+					"current_objective_sequence": 4,
+					"electrical_arc_summary": {
+						"state": "DISCHARGED"
+					},
+					"fire_summary": {
+						"state": "CLEARED"
+					},
+					"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+					"godot_version": "4.7.1-stable (official)",
+					"inventory_summary": {
+						"tools": []
+					},
+					"kit_path": "res://data/kits/ship_structural_v0.json",
+					"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+					"objective_progress_summary": {
+						"current": 4
+					},
+					"oxygen_summary": {
+						"oxygen": 75.0
+					},
+					"play_time_seconds": 0.0,
+					"player_position": [
+						1.0,
+						0.0,
+						2.0
+					],
+					"route_control_summary": {
+						"active_blockers": 0,
+						"extraction_unlocked": false
+					},
+					"saved_at": "2026-06-20T00:00:00",
+					"ship_systems_summary": {
+						"systems": {
+							"power": {
+								"health": 0.5
+							}
+						}
+					},
+					"slice_version": "gate2-current-run-4",
+					"world_seed": 0
+				},
+				"from_version": "gate2-current-run-3",
+				"migrated": true,
+				"to_version": "gate2-current-run-4"
+			}
+		},
+		{
+			"case": "run_from_gate2-current-run-4",
+			"input": {
+				"current_objective_sequence": 4,
+				"electrical_arc_summary": {
+					"state": "DISCHARGED"
+				},
+				"fire_summary": {
+					"state": "CLEARED"
+				},
+				"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+				"godot_version": "4.7.1-stable (official)",
+				"inventory_summary": {
+					"tools": []
+				},
+				"kit_path": "res://data/kits/ship_structural_v0.json",
+				"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+				"objective_progress_summary": {
+					"current": 4
+				},
+				"oxygen_summary": {
+					"oxygen": 75.0
+				},
+				"player_position": [
+					1.0,
+					0.0,
+					2.0
+				],
+				"route_control_summary": {
+					"active_blockers": 0,
+					"extraction_unlocked": false
+				},
+				"saved_at": "2026-06-20T00:00:00",
+				"ship_systems_summary": {
+					"systems": {
+						"power": {
+							"health": 0.5
+						}
+					}
+				},
+				"slice_version": "gate2-current-run-4"
+			},
+			"result": {
+				"dict": {
+					"current_objective_sequence": 4,
+					"electrical_arc_summary": {
+						"state": "DISCHARGED"
+					},
+					"fire_summary": {
+						"state": "CLEARED"
+					},
+					"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+					"godot_version": "4.7.1-stable (official)",
+					"inventory_summary": {
+						"tools": []
+					},
+					"kit_path": "res://data/kits/ship_structural_v0.json",
+					"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+					"objective_progress_summary": {
+						"current": 4
+					},
+					"oxygen_summary": {
+						"oxygen": 75.0
+					},
+					"player_position": [
+						1.0,
+						0.0,
+						2.0
+					],
+					"route_control_summary": {
+						"active_blockers": 0,
+						"extraction_unlocked": false
+					},
+					"saved_at": "2026-06-20T00:00:00",
+					"ship_systems_summary": {
+						"systems": {
+							"power": {
+								"health": 0.5
+							}
+						}
+					},
+					"slice_version": "gate2-current-run-4"
+				},
+				"from_version": "gate2-current-run-4",
+				"migrated": false,
+				"to_version": "gate2-current-run-4"
+			}
+		},
+		{
+			"case": "run_newer_than_current",
+			"input": {
+				"current_objective_sequence": 4,
+				"electrical_arc_summary": {
+					"state": "DISCHARGED"
+				},
+				"fire_summary": {
+					"state": "CLEARED"
+				},
+				"gameplay_slice_path": "res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+				"godot_version": "4.7.1-stable (official)",
+				"inventory_summary": {
+					"tools": []
+				},
+				"kit_path": "res://data/kits/ship_structural_v0.json",
+				"layout_path": "res://data/procgen/smoke/seed_000017/layout.json",
+				"objective_progress_summary": {
+					"current": 4
+				},
+				"oxygen_summary": {
+					"oxygen": 75.0
+				},
+				"player_position": [
+					1.0,
+					0.0,
+					2.0
+				],
+				"route_control_summary": {
+					"active_blockers": 0,
+					"extraction_unlocked": false
+				},
+				"saved_at": "2026-06-20T00:00:00",
+				"ship_systems_summary": {
+					"systems": {
+						"power": {
+							"health": 0.5
+						}
+					}
+				},
+				"slice_version": "gate2-current-run-99",
+				"some_future_field": {
+					"magic": 1
+				}
+			},
+			"result": {
+				"dict": null,
+				"from_version": "gate2-current-run-99",
+				"migrated": false,
+				"to_version": "gate2-current-run-4"
+			}
+		}
+	],
+	"migrate_world": [
+		{
+			"case": "world_future_passthrough",
+			"input": {
+				"home_ship": {
+					"slice_version": "gate2-current-run-99"
+				},
+				"sentinel_field": "keep_me",
+				"slice_version": "world-99"
+			},
+			"result": {
+				"dict": {
+					"home_ship": {
+						"slice_version": "gate2-current-run-99"
+					},
+					"sentinel_field": "keep_me",
+					"slice_version": "world-99"
+				},
+				"from_version": "world-99",
+				"migrated": false,
+				"newer_than_current": true,
+				"to_version": "world-4"
+			}
+		},
+		{
+			"case": "world_legacy_world_2",
+			"input": {
+				"home_ship": {
+					"player_position": [
+						1.0,
+						0.0,
+						2.0
+					],
+					"slice_version": "gate2-current-run-1"
+				},
+				"slice_version": "world-2"
+			},
+			"result": {
+				"dict": {
+					"home_ship": {
+						"current_location": "",
+						"is_autosave": false,
+						"is_quicksave": false,
+						"parent_world_slot": "",
+						"play_time_seconds": 0.0,
+						"player_position": [
+							1.0,
+							0.0,
+							2.0
+						],
+						"player_progression_summary": {
+							"class_id": "",
+							"level": 1,
+							"xp": {}
+						},
+						"slice_version": "gate2-current-run-4",
+						"slot_id": "",
+						"slot_kind": "",
+						"world_seed": 0
+					},
+					"slice_version": "world-4"
+				},
+				"from_version": "world-2",
+				"migrated": true,
+				"to_version": "world-4"
+			}
+		},
+		{
+			"case": "world_current_with_old_home_ship",
+			"input": {
+				"home_ship": {
+					"player_position": [
+						4.0,
+						0.0,
+						8.0
+					],
+					"slice_version": "gate2-current-run-3"
+				},
+				"slice_version": "world-4"
+			},
+			"result": {
+				"dict": {
+					"home_ship": {
+						"current_location": "",
+						"play_time_seconds": 0.0,
+						"player_position": [
+							4.0,
+							0.0,
+							8.0
+						],
+						"slice_version": "gate2-current-run-4",
+						"world_seed": 0
+					},
+					"slice_version": "world-4"
+				},
+				"from_version": "world-4",
+				"migrated": true,
+				"to_version": "world-4"
+			}
+		}
+	],
+	"notes": [
+		"Inputs are the inline dicts from save_migration_service_smoke.gd (_make_v1_dict, restamped per known version) and save_migration_world_smoke.gd; godot_version is the capturing engine's version string."
+	],
+	"schema": "parity.save.migration_cases.v1",
+	"source": "res://scripts/systems/save_migration_service.gd",
+	"target_version": "gate2-current-run-4",
+	"world_target_version": "world-4"
+}

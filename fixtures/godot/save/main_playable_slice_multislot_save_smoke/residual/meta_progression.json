@@ -1,0 +1,18 @@
+{
+	"highest_skill_level_seen": 3,
+	"last_payout_currency": 40,
+	"last_payout_reason": "completion",
+	"meta_currency": 40,
+	"saved_at": "2026-09-11T05:21:09",
+	"schema": "meta-progression-1",
+	"selected_class_id": "",
+	"total_runs_completed": 1,
+	"total_runs_deaths": 0,
+	"unlocked_class_ids": {
+		"salvage_captain": true
+	},
+	"unlocked_codex_entry_ids": {
+		"circuit_board": true
+	},
+	"unlocked_hub_upgrade_ids": {}
+}

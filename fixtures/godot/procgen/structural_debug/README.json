@@ -1,0 +1,37 @@
+{
+	"notes": [
+		"Unmodified procgen_structural_debug_export.gd output (compact JSON + trailing newline, its own canonical record sorting) for the same seeds as procgen/layout_s<seed>_small_wrecked_ext.json."
+	],
+	"runs": [
+		{
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/procgen_structural_debug_export.gd -- --seed 42 --output-dir F:/synaptic-sea/fixtures/godot/procgen/structural_debug/seed_42",
+			"exit_code": 0,
+			"pass": true,
+			"seed": 42,
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/procgen_structural_debug_export.gd -- --seed 777 --output-dir F:/synaptic-sea/fixtures/godot/procgen/structural_debug/seed_777",
+			"exit_code": 0,
+			"pass": true,
+			"seed": 777,
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/procgen_structural_debug_export.gd -- --seed 999 --output-dir F:/synaptic-sea/fixtures/godot/procgen/structural_debug/seed_999",
+			"exit_code": 0,
+			"pass": true,
+			"seed": 999,
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/procgen_structural_debug_export.gd -- --seed 7777 --output-dir F:/synaptic-sea/fixtures/godot/procgen/structural_debug/seed_7777",
+			"exit_code": 0,
+			"pass": true,
+			"seed": 7777,
+			"unexpected_error_or_warning_lines": []
+		}
+	],
+	"schema": "parity.procgen.structural_debug.v1",
+	"source": "res://scripts/validation/procgen_structural_debug_export.gd"
+}

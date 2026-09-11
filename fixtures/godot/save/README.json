@@ -1,0 +1,155 @@
+{
+	"notes": [
+		"Each run starts with user://saves deleted and every user:// root *.json removed (the user's real data is moved aside and restored afterwards).",
+		"'<dest>/…' files marked residual were copied from user:// AFTER the process exited. The stock main-scene smokes delete their run saves on completion, so their residual set is small; parity_capture_saves_main replays the same flow and copies files mid-run (mid_run/) and after run completion (after_completion/).",
+		"save/legacy/migration_cases.json holds in-process SaveMigrationService.migrate_run/migrate_world input/output pairs built from the dicts in save_migration_service_smoke.gd and save_migration_world_smoke.gd.",
+		"No legacy/migration save fixture FILES are checked into the repo (tests/, tools/fixtures/, scripts/validation/ only embed legacy dicts inline in the migration smokes)."
+	],
+	"runs": [
+		{
+			"captured_files": [],
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/main_playable_slice_save_load_smoke.gd",
+			"exit_code": 0,
+			"id": "main_playable_slice_save_load_smoke",
+			"marker_line": "MAIN PLAYABLE SAVE LOAD PASS saved_sequence=2 loaded_sequence=2 position_match=true supplies=true",
+			"output_log": "save/main_playable_slice_save_load_smoke/process_output.txt",
+			"pass": true,
+			"pass_marker": "MAIN PLAYABLE SAVE LOAD PASS",
+			"residual_files": [
+				"save/main_playable_slice_save_load_smoke/residual/saves/index.json",
+				"save/main_playable_slice_save_load_smoke/residual/meta_progression.json",
+				"save/main_playable_slice_save_load_smoke/residual/unlock_registry.json"
+			],
+			"script": "res://scripts/validation/main_playable_slice_save_load_smoke.gd",
+			"unexpected_error_or_warning_lines": [
+				"SCRIPT ERROR: Invalid access to property or key 'global_position' on a base object of type 'previously freed'."
+			]
+		},
+		{
+			"captured_files": [],
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/world_snapshot_smoke.gd",
+			"exit_code": 0,
+			"id": "world_snapshot_smoke",
+			"marker_line": "WORLD SNAPSHOT PASS round_trip=true version_gated=true",
+			"output_log": "save/world_snapshot_smoke/process_output.txt",
+			"pass": true,
+			"pass_marker": "WORLD SNAPSHOT PASS",
+			"residual_files": [],
+			"script": "res://scripts/validation/world_snapshot_smoke.gd",
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"captured_files": [],
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/main_playable_slice_multislot_save_smoke.gd",
+			"exit_code": 0,
+			"id": "main_playable_slice_multislot_save_smoke",
+			"marker_line": "MAIN PLAYABLE MULTISLOT SAVE PASS manual=1 quick=1 world=1 corruption_backed_up=true",
+			"output_log": "save/main_playable_slice_multislot_save_smoke/process_output.txt",
+			"pass": true,
+			"pass_marker": "MAIN PLAYABLE MULTISLOT SAVE PASS",
+			"residual_files": [
+				"save/main_playable_slice_multislot_save_smoke/residual/saves/index.json",
+				"save/main_playable_slice_multislot_save_smoke/residual/saves/.corrupt/slot_01.1789104069.slot_01.json.bak",
+				"save/main_playable_slice_multislot_save_smoke/residual/meta_progression.json",
+				"save/main_playable_slice_multislot_save_smoke/residual/unlock_registry.json"
+			],
+			"script": "res://scripts/validation/main_playable_slice_multislot_save_smoke.gd",
+			"unexpected_error_or_warning_lines": [
+				"ERROR: Parse JSON failed. Error at line 0: Expected 'true', 'false', or 'null', got 'not'",
+				"WARNING: SaveLoadService: slot file is not valid JSON object, slot_id=slot_01"
+			]
+		},
+		{
+			"captured_files": [
+				"save/capture_main_playable/after_completion/meta_progression.json",
+				"save/capture_main_playable/after_completion/unlock_registry.json",
+				"save/capture_main_playable/after_completion/saves/index.json",
+				"save/capture_main_playable/after_completion/saves/quicksave.json",
+				"save/capture_main_playable/after_completion/saves/slot_01.json",
+				"save/capture_main_playable/after_completion/saves/.cloud/autosave_active.manifest.json",
+				"save/capture_main_playable/after_completion/saves/.cloud/quicksave.manifest.json",
+				"save/capture_main_playable/after_completion/saves/.cloud/slot_01.manifest.json",
+				"save/capture_main_playable/mid_run/saves/current_run.json",
+				"save/capture_main_playable/mid_run/saves/index.json",
+				"save/capture_main_playable/mid_run/saves/quicksave.json",
+				"save/capture_main_playable/mid_run/saves/slot_01.json",
+				"save/capture_main_playable/mid_run/saves/world.json",
+				"save/capture_main_playable/mid_run/saves/.cloud/autosave_active.manifest.json",
+				"save/capture_main_playable/mid_run/saves/.cloud/quicksave.manifest.json",
+				"save/capture_main_playable/mid_run/saves/.cloud/slot_01.manifest.json",
+				"save/capture_main_playable/mid_run/saves/.cloud/world.manifest.json"
+			],
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/parity_fixtures/parity_capture_saves.gd -- --mode main --out F:/synaptic-sea/fixtures/godot/save/capture_main_playable",
+			"exit_code": 0,
+			"id": "parity_capture_saves_main",
+			"marker_line": "PARITY CAPTURE SAVES PASS mode=main files=17",
+			"output_log": "save/capture_main_playable/process_output.txt",
+			"pass": true,
+			"pass_marker": "PARITY CAPTURE SAVES PASS mode=main",
+			"residual_files": [
+				"save/capture_main_playable/residual/saves/index.json",
+				"save/capture_main_playable/residual/saves/quicksave.json",
+				"save/capture_main_playable/residual/saves/slot_01.json",
+				"save/capture_main_playable/residual/saves/.cloud/autosave_active.manifest.json",
+				"save/capture_main_playable/residual/saves/.cloud/quicksave.manifest.json",
+				"save/capture_main_playable/residual/saves/.cloud/slot_01.manifest.json",
+				"save/capture_main_playable/residual/meta_progression.json",
+				"save/capture_main_playable/residual/unlock_registry.json"
+			],
+			"script": "res://scripts/validation/parity_fixtures/parity_capture_saves.gd",
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"captured_files": [
+				"save/capture_world_snapshot/world_snapshot_to_dict.json",
+				"save/capture_world_snapshot/user_data/saves/index.json",
+				"save/capture_world_snapshot/user_data/saves/world.json",
+				"save/capture_world_snapshot/user_data/saves/.cloud/world.manifest.json"
+			],
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/parity_fixtures/parity_capture_saves.gd -- --mode world --out F:/synaptic-sea/fixtures/godot/save/capture_world_snapshot",
+			"exit_code": 0,
+			"id": "parity_capture_saves_world",
+			"marker_line": "PARITY CAPTURE SAVES PASS mode=world files=4",
+			"output_log": "save/capture_world_snapshot/process_output.txt",
+			"pass": true,
+			"pass_marker": "PARITY CAPTURE SAVES PASS mode=world",
+			"residual_files": [
+				"save/capture_world_snapshot/residual/saves/index.json",
+				"save/capture_world_snapshot/residual/saves/world.json",
+				"save/capture_world_snapshot/residual/saves/.cloud/world.manifest.json"
+			],
+			"script": "res://scripts/validation/parity_fixtures/parity_capture_saves.gd",
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"captured_files": [],
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/save_migration_service_smoke.gd",
+			"exit_code": 0,
+			"id": "save_migration_service_smoke",
+			"marker_line": "SAVE MIGRATION SERVICE PASS",
+			"output_log": "save/legacy/save_migration_service_smoke/process_output.txt",
+			"pass": true,
+			"pass_marker": "SAVE MIGRATION SERVICE PASS",
+			"residual_files": [
+				"save/legacy/save_migration_service_smoke/residual/saves/index.json",
+				"save/legacy/save_migration_service_smoke/residual/saves/slot_legacy.migrated.json"
+			],
+			"script": "res://scripts/validation/save_migration_service_smoke.gd",
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"captured_files": [],
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/save_migration_world_smoke.gd",
+			"exit_code": 0,
+			"id": "save_migration_world_smoke",
+			"marker_line": "SAVE MIGRATION WORLD PASS unknown_version_passthrough=true legacy_home_ship_migrated=true current_world_home_ship_migrated=true",
+			"output_log": "save/legacy/save_migration_world_smoke/process_output.txt",
+			"pass": true,
+			"pass_marker": "SAVE MIGRATION WORLD PASS",
+			"residual_files": [],
+			"script": "res://scripts/validation/save_migration_world_smoke.gd",
+			"unexpected_error_or_warning_lines": []
+		}
+	],
+	"schema": "parity.save.readme.v1"
+}

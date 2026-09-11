@@ -1,0 +1,60 @@
+{
+	"arc_zones_copied_to_layout": false,
+	"archetype": {
+		"blueprint": {
+			"condition": 2.0,
+			"room_count_range": {
+				"max": 10.0,
+				"min": 5.0
+			},
+			"seed_value": 0.0,
+			"size": 1.0
+		},
+		"description": "Dead ship shell — randomized exploration space with dock for life boat attachment",
+		"guaranteed_roles": [
+			"dock"
+		],
+		"max_duplicates": 3.0,
+		"name": "Derelict",
+		"role_weights": {
+			"bridge": 3.0,
+			"cargo": 4.0,
+			"corridor": 3.0,
+			"crew_quarters": 2.0,
+			"dock": 1.0,
+			"engineering": 2.0,
+			"hangar": 2.0
+		},
+		"type": "derelict"
+	},
+	"archetype_source": "res://data/procgen/archetypes/derelict.json",
+	"biome_id": "abyssal_synaptic_sea",
+	"biome_source": "res://data/procgen/biomes/abyssal_synaptic_sea.json",
+	"blueprint": {
+		"condition": 1,
+		"condition_name": "DAMAGED",
+		"room_count_range": [
+			4,
+			8
+		],
+		"seed_value": 42,
+		"size": 1,
+		"size_name": "SMALL"
+	},
+	"difficulty_id": "deep_dive",
+	"difficulty_source": "res://data/procgen/difficulty/deep_dive.json",
+	"extended_templates": true,
+	"fingerprints": {
+		"layout_fnv1a_64_raw_stringify_2space": -4743237178145132400,
+		"layout_raw_stringify_2space_length": 790968,
+		"note": "fnv1a_64 over JSON.stringify(layout, \"  \") BEFORE canonicalization (Vector2i values render as \"(x, y)\" strings there)."
+	},
+	"generator_call": "ShipLayoutGenerator.new().generate_with_options(blueprint, derelict_archetype, biome_id, difficulty_id, extended_templates)",
+	"post_steps": [
+		"production slice step (ShipGenerator._load_layout_as_scene data path): recompile structural plan only if structural_plan_validated is not true; gameplay = GameplaySliceBuilder.new().build(layout); copy gameplay.arc_zones to layout when layout.arc_zones is empty"
+	],
+	"recipe_source": "res://scripts/procgen/ship_generator.gd generate() data path (configure_run_context(biome, difficulty) then generate(blueprint, {})); blueprint size/condition as procgen_variation_smoke.gd (Blueprint.new(1, 1, seed))",
+	"recompiled_plan": false,
+	"serialization": "canonical (Vector2i/Vector3 -> arrays, sorted keys), JSON.stringify(value, \"\\t\")",
+	"tag": "s42_abyssal_synaptic_sea_deep_dive"
+}

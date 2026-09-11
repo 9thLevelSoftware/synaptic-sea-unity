@@ -1,0 +1,280 @@
+{
+	"files": [
+		{
+			"fnv1a_64": 5009349018254311051,
+			"fnv1a_64_hex": "4584c86434fffe8b",
+			"hashed_text": "file text decoded as UTF-8 with CRLF normalized to LF (= the git blob bytes; copies live in fixtures/golden/)",
+			"label": "res://data/procgen/smoke/seed_000017/layout.json file text (LF)",
+			"length_code_points": 332275,
+			"source": "res://data/procgen/smoke/seed_000017/layout.json"
+		},
+		{
+			"fnv1a_64": -5528559405685419395,
+			"fnv1a_64_hex": "b3469c831879d27d",
+			"hashed_text_file": "kernel/fnv1a_inputs/seed_000017_reserialized_2space.json",
+			"label": "res://data/procgen/smoke/seed_000017/layout.json JSON.stringify(JSON.parse_string(text), \"  \")",
+			"length_code_points": 337565,
+			"source": "res://data/procgen/smoke/seed_000017/layout.json"
+		},
+		{
+			"fnv1a_64": 1324980609156939056,
+			"fnv1a_64_hex": "126346d80f147d30",
+			"hashed_text": "file text decoded as UTF-8 with CRLF normalized to LF (= the git blob bytes; copies live in fixtures/golden/)",
+			"label": "res://data/procgen/golden/coherent_ship_001/layout.json file text (LF)",
+			"length_code_points": 191197,
+			"source": "res://data/procgen/golden/coherent_ship_001/layout.json"
+		},
+		{
+			"fnv1a_64": 1526268483907494688,
+			"fnv1a_64_hex": "152e65197f2e2320",
+			"hashed_text_file": "kernel/fnv1a_inputs/coherent_ship_001_reserialized_2space.json",
+			"label": "res://data/procgen/golden/coherent_ship_001/layout.json JSON.stringify(JSON.parse_string(text), \"  \")",
+			"length_code_points": 194168,
+			"source": "res://data/procgen/golden/coherent_ship_001/layout.json"
+		},
+		{
+			"fnv1a_64": 6948659560087194854,
+			"fnv1a_64_hex": "606e990de81e8ce6",
+			"hashed_text": "file text decoded as UTF-8 with CRLF normalized to LF (= the git blob bytes; copies live in fixtures/golden/)",
+			"label": "res://data/procgen/golden/coherent_ship_002/layout.json file text (LF)",
+			"length_code_points": 267838,
+			"source": "res://data/procgen/golden/coherent_ship_002/layout.json"
+		},
+		{
+			"fnv1a_64": 7057741221587871652,
+			"fnv1a_64_hex": "61f2223f5d6067a4",
+			"hashed_text_file": "kernel/fnv1a_inputs/coherent_ship_002_reserialized_2space.json",
+			"label": "res://data/procgen/golden/coherent_ship_002/layout.json JSON.stringify(JSON.parse_string(text), \"  \")",
+			"length_code_points": 272001,
+			"source": "res://data/procgen/golden/coherent_ship_002/layout.json"
+		},
+		{
+			"fnv1a_64": 5040176315543492299,
+			"fnv1a_64_hex": "45f24da7ad4e96cb",
+			"hashed_text": "file text decoded as UTF-8 with CRLF normalized to LF (= the git blob bytes; copies live in fixtures/golden/)",
+			"label": "res://data/procgen/golden/coherent_ship_003/layout.json file text (LF)",
+			"length_code_points": 329437,
+			"source": "res://data/procgen/golden/coherent_ship_003/layout.json"
+		},
+		{
+			"fnv1a_64": -6240656826432397949,
+			"fnv1a_64_hex": "a964bbae47615d83",
+			"hashed_text_file": "kernel/fnv1a_inputs/coherent_ship_003_reserialized_2space.json",
+			"label": "res://data/procgen/golden/coherent_ship_003/layout.json JSON.stringify(JSON.parse_string(text), \"  \")",
+			"length_code_points": 334562,
+			"source": "res://data/procgen/golden/coherent_ship_003/layout.json"
+		}
+	],
+	"notes": [
+		"SeedDeterminismContract.fnv1a_64(text) iterates text.unicode_at(i) (UTF-32 code points, NOT UTF-8 bytes): h ^= code_point; h *= 0x100000001b3 (mod 2^64). Offset basis 0xcbf29ce484222325.",
+		"fnv1a_64 is the signed int64 reinterpretation; fnv1a_64_hex is the unsigned 64-bit value.",
+		"record_golden / assert_layout_match hash JSON.stringify(layout, \"  \") of SeedDeterminismContract._run_pipeline (template/room/cell/wall/serializer + optional EncounterInjector with the contract's built-in biome/difficulty defaults) - a DIFFERENT pipeline than ShipLayoutGenerator.generate_with_options."
+	],
+	"pipeline_goldens": [
+		{
+			"assert_layout_match": {
+				"biome_id": "",
+				"byte_equal": true,
+				"diff_first_char": -1,
+				"difficulty_id": "",
+				"hash_a": -5679263531033674312,
+				"hash_b": -5679263531033674312,
+				"length_a": 1059660,
+				"length_b": 1059660,
+				"match": true
+			},
+			"golden_hash_hex": "b12f33e896e83db8",
+			"hashed_text_file": "kernel/fnv1a_inputs/s17_medium_pristine_contract_pipeline_2space.json",
+			"hashed_text_note": "exact JSON.stringify(layout, \"  \") text (engine Vector2i/Vector3 values appear as \"(x, y)\" strings, as Godot's JSON writer emits them).",
+			"inputs": {
+				"archetype": "{}",
+				"archetype_dict": {},
+				"biome_id": "",
+				"condition": 0,
+				"difficulty_id": "",
+				"seed": 17,
+				"size": 2
+			},
+			"record_golden": {
+				"biome_id": "",
+				"byte_equal": true,
+				"diff_first_char": -1,
+				"difficulty_id": "",
+				"golden_hash": -5679263531033674312,
+				"golden_text_length": 1059660,
+				"hash_a": -5679263531033674312,
+				"hash_b": -5679263531033674312,
+				"length_a": 1059660,
+				"length_b": 1059660,
+				"match": true
+			},
+			"tag": "s17_medium_pristine"
+		},
+		{
+			"assert_layout_match": {
+				"biome_id": "abyssal_synaptic_sea",
+				"byte_equal": true,
+				"diff_first_char": -1,
+				"difficulty_id": "standard",
+				"hash_a": 3827083824738521622,
+				"hash_b": 3827083824738521622,
+				"length_a": 747123,
+				"length_b": 747123,
+				"match": true
+			},
+			"golden_hash_hex": "351c88763b2ed216",
+			"hashed_text_file": "kernel/fnv1a_inputs/s42_small_wrecked_abyssal_standard_contract_pipeline_2space.json",
+			"hashed_text_note": "exact JSON.stringify(layout, \"  \") text (engine Vector2i/Vector3 values appear as \"(x, y)\" strings, as Godot's JSON writer emits them).",
+			"inputs": {
+				"archetype": "{}",
+				"archetype_dict": {},
+				"biome_id": "abyssal_synaptic_sea",
+				"condition": 2,
+				"difficulty_id": "standard",
+				"seed": 42,
+				"size": 1
+			},
+			"record_golden": {
+				"biome_id": "abyssal_synaptic_sea",
+				"byte_equal": true,
+				"diff_first_char": -1,
+				"difficulty_id": "standard",
+				"golden_hash": 3827083824738521622,
+				"golden_text_length": 747123,
+				"hash_a": 3827083824738521622,
+				"hash_b": 3827083824738521622,
+				"length_a": 747123,
+				"length_b": 747123,
+				"match": true
+			},
+			"tag": "s42_small_wrecked_abyssal_standard"
+		},
+		{
+			"assert_layout_match": {
+				"biome_id": "dead_fleet",
+				"byte_equal": true,
+				"diff_first_char": -1,
+				"difficulty_id": "deep_dive",
+				"hash_a": 4902446493175906352,
+				"hash_b": 4902446493175906352,
+				"length_a": 667865,
+				"length_b": 667865,
+				"match": true
+			},
+			"golden_hash_hex": "4408fd1c7c1c0030",
+			"hashed_text_file": "kernel/fnv1a_inputs/s42_small_damaged_derelict_a_dead_fleet_deep_dive_contract_pipeline_2space.json",
+			"hashed_text_note": "exact JSON.stringify(layout, \"  \") text (engine Vector2i/Vector3 values appear as \"(x, y)\" strings, as Godot's JSON writer emits them).",
+			"inputs": {
+				"archetype": "procgen_structural_debug_export.gd _derelict_archetype() (template derelict_a, no guaranteed roles)",
+				"archetype_dict": {
+					"guaranteed_roles": [],
+					"max_duplicates": 3,
+					"name": "Derelict",
+					"role_weights": {},
+					"template": "derelict_a",
+					"type": "derelict"
+				},
+				"biome_id": "dead_fleet",
+				"condition": 1,
+				"difficulty_id": "deep_dive",
+				"seed": 42,
+				"size": 1
+			},
+			"record_golden": {
+				"biome_id": "dead_fleet",
+				"byte_equal": true,
+				"diff_first_char": -1,
+				"difficulty_id": "deep_dive",
+				"golden_hash": 4902446493175906352,
+				"golden_text_length": 667865,
+				"hash_a": 4902446493175906352,
+				"hash_b": 4902446493175906352,
+				"length_a": 667865,
+				"length_b": 667865,
+				"match": true
+			},
+			"tag": "s42_small_damaged_derelict_a_dead_fleet_deep_dive"
+		}
+	],
+	"schema": "parity.kernel.fnv1a.v1",
+	"source": "res://scripts/procgen/seed_determinism_contract.gd",
+	"strings": [
+		{
+			"fnv1a_64": -3750763034362895579,
+			"fnv1a_64_hex": "cbf29ce484222325",
+			"input": "",
+			"label": "",
+			"length_code_points": 0
+		},
+		{
+			"fnv1a_64": -5808556873153909620,
+			"fnv1a_64_hex": "af63dc4c8601ec8c",
+			"input": "a",
+			"label": "a",
+			"length_code_points": 1
+		},
+		{
+			"fnv1a_64": -5808553574619024987,
+			"fnv1a_64_hex": "af63df4c8601f1a5",
+			"input": "b",
+			"label": "b",
+			"length_code_points": 1
+		},
+		{
+			"fnv1a_64": -1792535898324117685,
+			"fnv1a_64_hex": "e71fa2190541574b",
+			"input": "abc",
+			"label": "abc",
+			"length_code_points": 3
+		},
+		{
+			"fnv1a_64": -8821353812377114648,
+			"fnv1a_64_hex": "85944171f73967e8",
+			"input": "foobar",
+			"label": "foobar",
+			"length_code_points": 6
+		},
+		{
+			"fnv1a_64": -5303731851460333299,
+			"fnv1a_64_hex": "b6655bfb41c8310d",
+			"input": "salvage_cargo",
+			"label": "salvage_cargo",
+			"length_code_points": 13
+		},
+		{
+			"fnv1a_64": -4196380259940593475,
+			"fnv1a_64_hex": "c5c376630fc790bd",
+			"input": "seed_000017",
+			"label": "seed_000017",
+			"length_code_points": 11
+		},
+		{
+			"fnv1a_64": 7432048212490378516,
+			"fnv1a_64_hex": "6723f078fb10dd14",
+			"input": "Ünïcødé",
+			"label": "Ünïcødé",
+			"length_code_points": 7
+		},
+		{
+			"fnv1a_64": -3934833499863001554,
+			"fnv1a_64_hex": "c964a9c78e5bd62e",
+			"input": "日本語",
+			"label": "日本語",
+			"length_code_points": 3
+		},
+		{
+			"fnv1a_64": -6035370087065883515,
+			"fnv1a_64_hex": "ac3e0ee1f06b6c85",
+			"input": "emoji 🚀",
+			"label": "emoji 🚀",
+			"length_code_points": 7
+		},
+		{
+			"fnv1a_64": 8121092157653688863,
+			"fnv1a_64_hex": "70b3ea4a3d28a21f",
+			"input": "{\n  \"a\": 1\n}",
+			"label": "{\n  \"a\": 1\n}",
+			"length_code_points": 12
+		}
+	]
+}

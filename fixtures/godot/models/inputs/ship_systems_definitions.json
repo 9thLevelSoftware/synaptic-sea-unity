@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "systems": [
+    {
+      "system_id": "power",
+      "dependency_ids": [],
+      "subcomponents": [
+        {"subcomponent_id": "reactor_core", "required_parts": ["reactor_core"], "required_tools": ["plasma_cutter"], "min_skill": 4, "repair_seconds": 20.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "power_distribution", "required_parts": ["power_cell"], "required_tools": ["welder"], "min_skill": 2, "repair_seconds": 10.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "battery_cells", "required_parts": ["power_cell"], "required_tools": [], "min_skill": 1, "repair_seconds": 6.0, "operational_threshold": 0.5}
+      ]
+    },
+    {
+      "system_id": "life_support",
+      "dependency_ids": ["power"],
+      "subcomponents": [
+        {"subcomponent_id": "air_recycler", "required_parts": ["oxygen_filter"], "required_tools": ["welder"], "min_skill": 2, "repair_seconds": 12.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "co2_scrubber", "required_parts": ["oxygen_filter"], "required_tools": [], "min_skill": 1, "repair_seconds": 8.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "oxygen_tanks", "required_parts": ["sealant"], "required_tools": ["welder"], "min_skill": 2, "repair_seconds": 10.0, "operational_threshold": 0.5}
+      ]
+    },
+    {
+      "system_id": "gravity",
+      "dependency_ids": ["power"],
+      "subcomponents": [
+        {"subcomponent_id": "gravity_plating", "required_parts": ["plating"], "required_tools": ["welder"], "min_skill": 3, "repair_seconds": 14.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "field_emitter", "required_parts": ["circuit_board"], "required_tools": ["welder"], "min_skill": 3, "repair_seconds": 12.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "inertial_dampeners", "required_parts": ["circuit_board"], "required_tools": [], "min_skill": 2, "repair_seconds": 9.0, "operational_threshold": 0.5}
+      ]
+    },
+    {
+      "system_id": "navigation",
+      "dependency_ids": ["power"],
+      "subcomponents": [
+        {"subcomponent_id": "star_charts", "required_parts": ["data_core"], "required_tools": [], "min_skill": 1, "repair_seconds": 6.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "nav_computer", "required_parts": ["circuit_board"], "required_tools": ["welder"], "min_skill": 3, "repair_seconds": 12.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "sensor_array", "required_parts": ["sensor_module"], "required_tools": ["welder"], "min_skill": 2, "repair_seconds": 10.0, "operational_threshold": 0.5}
+      ]
+    },
+    {
+      "system_id": "propulsion",
+      "dependency_ids": ["power", "navigation"],
+      "subcomponents": [
+        {"subcomponent_id": "thruster_array", "required_parts": ["thruster_nozzle"], "required_tools": ["plasma_cutter"], "min_skill": 4, "repair_seconds": 18.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "fuel_injection", "required_parts": ["fuel_line"], "required_tools": ["welder"], "min_skill": 3, "repair_seconds": 12.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "nav_linkage", "required_parts": ["circuit_board"], "required_tools": [], "min_skill": 2, "repair_seconds": 8.0, "operational_threshold": 0.5}
+      ]
+    },
+    {
+      "system_id": "scanners",
+      "dependency_ids": ["power", "navigation"],
+      "subcomponents": [
+        {"subcomponent_id": "scanner_dish", "required_parts": ["sensor_module"], "required_tools": ["welder"], "min_skill": 3, "repair_seconds": 12.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "signal_processor", "required_parts": ["circuit_board"], "required_tools": ["welder"], "min_skill": 3, "repair_seconds": 11.0, "operational_threshold": 0.5},
+        {"subcomponent_id": "power_coupling", "required_parts": ["power_cell"], "required_tools": [], "min_skill": 2, "repair_seconds": 7.0, "operational_threshold": 0.5}
+      ]
+    }
+  ]
+}

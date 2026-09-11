@@ -1,0 +1,12 @@
+{
+	"build_id": "",
+	"cloud_provider": "stub",
+	"created_at": "2026-09-11T05:21:12",
+	"device_id": "34c3cbac21de73f9",
+	"manifest_version": "cloud-manifest-1",
+	"payload_sha256": "7569cb446667a607d3a2e60ee1d5d1cdffaadfef98b0bea19527e5ba2d2dd547",
+	"payload_size_bytes": 35353,
+	"schema_version": "gate2-current-run-4",
+	"slot_id": "autosave_active",
+	"sync_eligible": true
+}

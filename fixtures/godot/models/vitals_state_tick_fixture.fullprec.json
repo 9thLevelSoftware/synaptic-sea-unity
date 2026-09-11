@@ -1,0 +1,840 @@
+{
+	"config": {},
+	"configure_call": "configure({})",
+	"construct": "res://scripts/systems/vitals_state.gd.new()",
+	"model": "vitals_state",
+	"notes": [
+		"Context keys per group are the ones the smoke exercises (moving, temperature_thirst_mult, radiation_health_drain, fire_health_drain, sanity_stamina_recovery_mult)."
+	],
+	"reference_smoke": "res://scripts/validation/vitals_state_smoke.gd",
+	"round_trip": {
+		"apply_summary_return": true,
+		"description": "source = get_summary() after the last step; fresh = res://scripts/systems/vitals_state.gd.new(); configure with the same config; fresh.apply_summary(source); restored = fresh.get_summary()",
+		"differences_source_vs_restored": [],
+		"equal": true,
+		"restored_summary": {
+			"health": 42.0,
+			"health_drain_rate": 0.0,
+			"health_recovery_rate": 0.0,
+			"hunger": 89.54166666666661,
+			"hunger_drain_rate": 0.5,
+			"hunger_stamina_cascade_active": false,
+			"hunger_stamina_recovery_mult": 1.0,
+			"max_health": 100.0,
+			"max_hunger": 100.0,
+			"max_stamina": 100.0,
+			"max_thirst": 100.0,
+			"move_mult": 1.0,
+			"stamina": 100.0,
+			"stamina_drain_rate": 2.0,
+			"stamina_recovery_rate": 5.0,
+			"starvation_health_drain": 0.0,
+			"thirst": 82.56666666666662,
+			"thirst_drain_rate": 0.8,
+			"thirst_stamina_drain_mult": 1.0,
+			"thirst_vision_warning_active": false,
+			"vision_mult": 1.0
+		},
+		"source_summary": {
+			"health": 42.0,
+			"health_drain_rate": 0.0,
+			"health_recovery_rate": 0.0,
+			"hunger": 89.54166666666661,
+			"hunger_drain_rate": 0.5,
+			"hunger_stamina_cascade_active": false,
+			"hunger_stamina_recovery_mult": 1.0,
+			"max_health": 100.0,
+			"max_hunger": 100.0,
+			"max_stamina": 100.0,
+			"max_thirst": 100.0,
+			"move_mult": 1.0,
+			"stamina": 100.0,
+			"stamina_drain_rate": 2.0,
+			"stamina_recovery_rate": 5.0,
+			"starvation_health_drain": 0.0,
+			"thirst": 82.56666666666662,
+			"thirst_drain_rate": 0.8,
+			"thirst_stamina_drain_mult": 1.0,
+			"thirst_vision_warning_active": false,
+			"vision_mult": 1.0
+		}
+	},
+	"schema": "parity.models.tick.v1",
+	"script": "res://scripts/systems/vitals_state.gd",
+	"setup": [],
+	"step_groups": [
+		[
+			"0.016666666666666666",
+			10
+		],
+		[
+			"0.35",
+			5
+		],
+		[
+			"3.0",
+			3
+		],
+		[
+			"5.0",
+			2
+		]
+	],
+	"steps": [
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 0,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.99166666666666,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.96666666666667,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.98666666666666,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 1,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.98333333333332,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.93333333333334,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.97333333333333,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 2,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.97499999999998,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.9,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.96,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 3,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.96666666666664,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.86666666666667,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.94666666666666,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 4,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.9583333333333,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.83333333333334,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.93333333333332,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 5,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.94999999999996,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.80000000000001,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.91999999999999,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 6,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.94166666666662,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.76666666666668,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.90666666666665,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 7,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.93333333333328,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.73333333333335,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.89333333333332,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 8,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.92499999999994,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.70000000000002,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.87999999999998,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 9,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.9166666666666,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 99.66666666666669,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.86666666666665,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": false,
+					"temperature_thirst_mult": 1.5
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 10,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.7416666666666,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 100.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.44666666666664,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": false,
+					"temperature_thirst_mult": 1.5
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 11,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.5666666666666,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 100.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 99.02666666666664,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": false,
+					"temperature_thirst_mult": 1.5
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 12,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.39166666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 100.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 98.60666666666664,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": false,
+					"temperature_thirst_mult": 1.5
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 13,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.21666666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 100.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 98.18666666666664,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": false,
+					"temperature_thirst_mult": 1.5
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 14,
+			"return": true,
+			"summary": {
+				"health": 100.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 99.04166666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 100.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 97.76666666666664,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true,
+					"radiation_health_drain": 2.0
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 15,
+			"return": true,
+			"summary": {
+				"health": 94.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 97.54166666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 94.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 95.36666666666663,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true,
+					"radiation_health_drain": 2.0
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 16,
+			"return": true,
+			"summary": {
+				"health": 88.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 96.04166666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 88.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 92.96666666666663,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"moving": true,
+					"radiation_health_drain": 2.0
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 17,
+			"return": true,
+			"summary": {
+				"health": 82.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 94.54166666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 82.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 90.56666666666662,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"fire_health_drain": 4.0,
+					"moving": false,
+					"sanity_stamina_recovery_mult": 0.5
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 18,
+			"return": true,
+			"summary": {
+				"health": 62.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 92.04166666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 94.5,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 86.56666666666662,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"fire_health_drain": 4.0,
+					"moving": false,
+					"sanity_stamina_recovery_mult": 0.5
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 19,
+			"return": true,
+			"summary": {
+				"health": 42.0,
+				"health_drain_rate": 0.0,
+				"health_recovery_rate": 0.0,
+				"hunger": 89.54166666666661,
+				"hunger_drain_rate": 0.5,
+				"hunger_stamina_cascade_active": false,
+				"hunger_stamina_recovery_mult": 1.0,
+				"max_health": 100.0,
+				"max_hunger": 100.0,
+				"max_stamina": 100.0,
+				"max_thirst": 100.0,
+				"move_mult": 1.0,
+				"stamina": 100.0,
+				"stamina_drain_rate": 2.0,
+				"stamina_recovery_rate": 5.0,
+				"starvation_health_drain": 0.0,
+				"thirst": 82.56666666666662,
+				"thirst_drain_rate": 0.8,
+				"thirst_stamina_drain_mult": 1.0,
+				"thirst_vision_warning_active": false,
+				"vision_mult": 1.0
+			}
+		}
+	],
+	"summary_after_configure": {
+		"health": 100.0,
+		"health_drain_rate": 0.0,
+		"health_recovery_rate": 0.0,
+		"hunger": 100.0,
+		"hunger_drain_rate": 0.5,
+		"hunger_stamina_cascade_active": false,
+		"hunger_stamina_recovery_mult": 1.0,
+		"max_health": 100.0,
+		"max_hunger": 100.0,
+		"max_stamina": 100.0,
+		"max_thirst": 100.0,
+		"move_mult": 1.0,
+		"stamina": 100.0,
+		"stamina_drain_rate": 2.0,
+		"stamina_recovery_rate": 5.0,
+		"starvation_health_drain": 0.0,
+		"thirst": 100.0,
+		"thirst_drain_rate": 0.8,
+		"thirst_stamina_drain_mult": 1.0,
+		"thirst_vision_warning_active": false,
+		"vision_mult": 1.0
+	}
+}

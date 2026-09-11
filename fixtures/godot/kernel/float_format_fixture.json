@@ -1,0 +1,322 @@
+{
+	"each": [
+		{
+			"json": "0",
+			"json_full_precision": "0",
+			"str": "0",
+			"type": "int",
+			"var_to_str": "0"
+		},
+		{
+			"json": "1",
+			"json_full_precision": "1",
+			"str": "1",
+			"type": "int",
+			"var_to_str": "1"
+		},
+		{
+			"json": "-1",
+			"json_full_precision": "-1",
+			"str": "-1",
+			"type": "int",
+			"var_to_str": "-1"
+		},
+		{
+			"json": "42",
+			"json_full_precision": "42",
+			"str": "42",
+			"type": "int",
+			"var_to_str": "42"
+		},
+		{
+			"json": "9007199254740993",
+			"json_full_precision": "9007199254740993",
+			"str": "9007199254740993",
+			"type": "int",
+			"var_to_str": "9007199254740993"
+		},
+		{
+			"float64_bits": "0000000000000000",
+			"json": "0.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "0.0",
+			"negative_zero_signbit": false,
+			"str": "0.0",
+			"type": "float",
+			"var_to_str": "0.0",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3ff0000000000000",
+			"json": "1.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "1.0",
+			"str": "1.0",
+			"type": "float",
+			"var_to_str": "1.0",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "0000000000000000",
+			"json": "0.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "0.0",
+			"negative_zero_signbit": false,
+			"str": "0.0",
+			"type": "float",
+			"var_to_str": "0.0",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3fb999999999999a",
+			"json": "0.1",
+			"json_default_roundtrips": true,
+			"json_full_precision": "0.1",
+			"str": "0.1",
+			"type": "float",
+			"var_to_str": "0.1",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3fc999999999999a",
+			"json": "0.2",
+			"json_default_roundtrips": true,
+			"json_full_precision": "0.2",
+			"str": "0.2",
+			"type": "float",
+			"var_to_str": "0.2",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3fd3333333333334",
+			"json": "0.3",
+			"json_default_roundtrips": false,
+			"json_full_precision": "0.30000000000000004",
+			"str": "0.3",
+			"type": "float",
+			"var_to_str": "0.30000000000000004",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3fd5555555555555",
+			"json": "0.333333333333333",
+			"json_default_roundtrips": false,
+			"json_full_precision": "0.3333333333333333",
+			"str": "0.33333333333333",
+			"type": "float",
+			"var_to_str": "0.3333333333333333",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3fe5555555555555",
+			"json": "0.666666666666667",
+			"json_default_roundtrips": false,
+			"json_full_precision": "0.6666666666666666",
+			"str": "0.66666666666667",
+			"type": "float",
+			"var_to_str": "0.6666666666666666",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3ff5555555555555",
+			"json": "1.33333333333333",
+			"json_default_roundtrips": false,
+			"json_full_precision": "1.3333333333333333",
+			"str": "1.33333333333333",
+			"type": "float",
+			"var_to_str": "1.3333333333333333",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "c004000000000000",
+			"json": "-2.5",
+			"json_default_roundtrips": true,
+			"json_full_precision": "-2.5",
+			"str": "-2.5",
+			"type": "float",
+			"var_to_str": "-2.5",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3e7ad7f29abcaf48",
+			"json": "0.0000001",
+			"json_default_roundtrips": true,
+			"json_full_precision": "1e-07",
+			"str": "0.0000001",
+			"type": "float",
+			"var_to_str": "1e-07",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3eef75104d551d69",
+			"json": "0.000015",
+			"json_default_roundtrips": true,
+			"json_full_precision": "1.5e-05",
+			"str": "0.000015",
+			"type": "float",
+			"var_to_str": "1.5e-05",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "419d6f34547df3b6",
+			"json": "123456789.123",
+			"json_default_roundtrips": true,
+			"json_full_precision": "123456789.123",
+			"str": "123456789.123",
+			"type": "float",
+			"var_to_str": "123456789.123",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "430c6bf526340000",
+			"json": "1000000000000000.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "1e+15",
+			"str": "1000000000000000.0",
+			"type": "float",
+			"var_to_str": "1e+15",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "4341c37937e08000",
+			"json": "10000000000000000.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "1e+16",
+			"str": "10000000000000000.0",
+			"type": "float",
+			"var_to_str": "1e+16",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "444b1ae4d6e2ef50",
+			"json": "1000000000000000000000.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "1e+21",
+			"str": "1000000000000000000000.0",
+			"type": "float",
+			"var_to_str": "1e+21",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "4480f0cf064dd592",
+			"json": "10000000000000000000000.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "1e+22",
+			"str": "10000000000000000000000.0",
+			"type": "float",
+			"var_to_str": "1e+22",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "400921fb54442d11",
+			"json": "3.14159265358979",
+			"json_default_roundtrips": true,
+			"json_full_precision": "3.14159265358979",
+			"str": "3.14159265358979",
+			"type": "float",
+			"var_to_str": "3.14159265358979",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "4059000000000000",
+			"json": "100.0",
+			"json_default_roundtrips": true,
+			"json_full_precision": "100.0",
+			"str": "100.0",
+			"type": "float",
+			"var_to_str": "100.0",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3fe0000000000000",
+			"json": "0.5",
+			"json_default_roundtrips": true,
+			"json_full_precision": "0.5",
+			"str": "0.5",
+			"type": "float",
+			"var_to_str": "0.5",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "4028b0fcd32f707a",
+			"json": "12.3456789012346",
+			"json_default_roundtrips": false,
+			"json_full_precision": "12.345678901234567",
+			"str": "12.3456789012346",
+			"type": "float",
+			"var_to_str": "12.345678901234567",
+			"var_to_str_roundtrips": true
+		},
+		{
+			"float64_bits": "3feffffffffffffc",
+			"json": "1.0",
+			"json_default_roundtrips": false,
+			"json_full_precision": "0.9999999999999996",
+			"str": "1.0",
+			"type": "float",
+			"var_to_str": "0.9999999999999996",
+			"var_to_str_roundtrips": true
+		}
+	],
+	"float32_representable_probe": {
+		"float64_bits": "3fbe4d8240000000",
+		"json": "0.118370190262794",
+		"json_full_precision": "0.1183701902627945",
+		"note": "value exactly representable as float32 (first randf() of a RandomNumberGenerator seeded with 42)",
+		"var_to_str": "0.11837019",
+		"var_to_str_roundtrips": false
+	},
+	"notes": [
+		"values_stringified_tab = JSON.stringify(values, \"\\t\"); values_stringified_compact = JSON.stringify(values). Same text is written raw to float_format_raw.json.",
+		"Godot JSON default (full_precision=false) prints floats with ~15 significant digits and always keeps a '.0' on integral floats; ints are printed exactly.",
+		"JSON.parse_string returns EVERY number as float (TYPE_FLOAT=3), including integer literals.",
+		"Negative zero loses its sign in var_to_str, str and JSON (both precisions) - see runtime_negative_zero.",
+		"var_to_str on a float64 that is exactly representable as float32 prints the shortest float32 text, which does not round-trip as float64 - see float32_representable_probe."
+	],
+	"parse_source": "{\"i\": 17, \"f\": 17.0, \"e\": 1e3, \"n\": -0, \"big\": 12345678901234}",
+	"parse_types": {
+		"big": {
+			"type_name": "float",
+			"typeof": 3,
+			"var_to_str": "12345678901234.0"
+		},
+		"e": {
+			"type_name": "float",
+			"typeof": 3,
+			"var_to_str": "1000.0"
+		},
+		"f": {
+			"type_name": "float",
+			"typeof": 3,
+			"var_to_str": "17.0"
+		},
+		"i": {
+			"type_name": "float",
+			"typeof": 3,
+			"var_to_str": "17.0"
+		},
+		"n": {
+			"type_name": "float",
+			"typeof": 3,
+			"var_to_str": "0.0"
+		}
+	},
+	"runtime_negative_zero": {
+		"expression": "0.0 * -1.0",
+		"float64_bits": "0000000000000000",
+		"json": "0.0",
+		"json_full_precision": "0.0",
+		"negative_zero_signbit": false,
+		"str": "0.0",
+		"var_to_str": "0.0"
+	},
+	"schema": "parity.kernel.float_format.v1",
+	"typeof_constants": {
+		"TYPE_FLOAT": 3,
+		"TYPE_INT": 2,
+		"TYPE_STRING": 4
+	},
+	"values_stringified_compact": "[0,1,-1,42,9007199254740993,0.0,1.0,0.0,0.1,0.2,0.3,0.333333333333333,0.666666666666667,1.33333333333333,-2.5,0.0000001,0.000015,123456789.123,1000000000000000.0,10000000000000000.0,1000000000000000000000.0,10000000000000000000000.0,3.14159265358979,100.0,0.5,12.3456789012346,1.0]",
+	"values_stringified_full_precision": "[0,1,-1,42,9007199254740993,0.0,1.0,0.0,0.1,0.2,0.30000000000000004,0.3333333333333333,0.6666666666666666,1.3333333333333333,-2.5,1e-07,1.5e-05,123456789.123,1e+15,1e+16,1e+21,1e+22,3.14159265358979,100.0,0.5,12.345678901234567,0.9999999999999996]",
+	"values_stringified_tab": "[\n\t0,\n\t1,\n\t-1,\n\t42,\n\t9007199254740993,\n\t0.0,\n\t1.0,\n\t0.0,\n\t0.1,\n\t0.2,\n\t0.3,\n\t0.333333333333333,\n\t0.666666666666667,\n\t1.33333333333333,\n\t-2.5,\n\t0.0000001,\n\t0.000015,\n\t123456789.123,\n\t1000000000000000.0,\n\t10000000000000000.0,\n\t1000000000000000000000.0,\n\t10000000000000000000000.0,\n\t3.14159265358979,\n\t100.0,\n\t0.5,\n\t12.3456789012346,\n\t1.0\n]"
+}

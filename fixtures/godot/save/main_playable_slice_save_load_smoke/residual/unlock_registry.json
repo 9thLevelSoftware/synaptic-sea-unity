@@ -1,0 +1,10 @@
+{
+	"saved_at": "2026-09-11T05:21:07",
+	"schema": "unlock-registry-1",
+	"unlocked": {
+		"class_unlock_salvage_captain": true,
+		"codex_leadership_intro": true,
+		"codex_repair_intro": true,
+		"codex_scavenging_intro": true
+	}
+}

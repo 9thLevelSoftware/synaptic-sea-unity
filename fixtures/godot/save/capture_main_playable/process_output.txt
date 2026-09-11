@@ -1,0 +1,26 @@
+Initialize godot-rust (API v4.6.stable.official, runtime v4.7.1.stable.official, safeguards balanced)
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+The Synaptic Sea coherent proof ship bootstrap loaded.
+PLAYABLE SHIP READY player_spawned=true camera_spawned=true objectives=5 collision_shapes=112
+ACHIEVEMENT UNLOCKED trigger=objective_completed target=objectives[0] id=objective_complete
+SHIP SYSTEM UPDATED sequence=1 type=recover_supplies power=20 reactor=20 extraction=false route_opened=0 blockers=1
+PLAYABLE INTERACTION interaction=objective:01:cargo_01:cargo_supply_cache objective=cargo_01:cargo_supply_cache sequence=1 type=recover_supplies room=cargo_01
+PLAYABLE SHIP SAVED location= sequence=2
+ACHIEVEMENT UNLOCKED trigger=loot_searched target=start_supply_a id=first_loot
+LOOT CONTAINER SEARCHED marker= container=start_supply_a granted=1
+OBJECTIVE STEP COMPLETED sequence=2 step=primary_coupling progress=1/2
+OBJECTIVE STEP COMPLETED sequence=2 step=secondary_coupling progress=2/2
+ACHIEVEMENT UNLOCKED trigger=objective_completed target=restore_systems id=all_systems_restored
+SHIP SYSTEM UPDATED sequence=2 type=restore_systems power=20 reactor=20 extraction=false route_opened=1 blockers=0
+PLAYABLE INTERACTION interaction=objective:02:maintenance_01:junction_alpha:secondary_coupling objective=maintenance_01:junction_alpha sequence=2 type=restore_systems room=maintenance_01
+LOOT CONTAINER SEARCHED marker= container=start_supply_b granted=2
+SHIP SYSTEM UPDATED sequence=3 type=download_logs power=20 reactor=20 extraction=false route_opened=1 blockers=0
+PLAYABLE INTERACTION interaction=objective:03:medbay_01:medbay_terminal objective=medbay_01:medbay_terminal sequence=3 type=download_logs room=medbay_01
+ACHIEVEMENT UNLOCKED trigger=reactor_stabilized target=reactor id=reactor_stabilized
+SHIP SYSTEM UPDATED sequence=4 type=stabilize_reactor power=100 reactor=100 extraction=true route_opened=1 blockers=0
+PLAYABLE INTERACTION interaction=objective:04:reactor_01:reactor_control_panel objective=reactor_01:reactor_control_panel sequence=4 type=stabilize_reactor room=reactor_01
+ACHIEVEMENT UNLOCKED trigger=run_complete target=complete id=extracted
+PLAYABLE SLICE COMPLETE objectives_completed=4
+META PAYOUT reason=completion payout=40 meta_currency=40 runs_completed=1
+PARITY CAPTURE SAVES PASS mode=main files=17

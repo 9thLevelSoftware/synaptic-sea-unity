@@ -1,0 +1,427 @@
+{
+	"config": {},
+	"configure_call": "configure({})",
+	"construct": "res://scripts/systems/sanity_state.gd.new()",
+	"model": "sanity_state",
+	"notes": [
+		"in_safe_zone=false (drain) for groups 0-2, true (recovery) from the first 5.0s step."
+	],
+	"reference_smoke": "res://scripts/validation/sanity_state_smoke.gd",
+	"round_trip": {
+		"apply_summary_return": true,
+		"description": "source = get_summary() after the last step; fresh = res://scripts/systems/sanity_state.gd.new(); configure with the same config; fresh.apply_summary(source); restored = fresh.get_summary()",
+		"differences_source_vs_restored": [],
+		"equal": true,
+		"restored_summary": {
+			"drain_rate": 1.5,
+			"in_safe_zone": true,
+			"max_sanity": 100.0,
+			"perception_pressure_active": false,
+			"recovery_rate": 3.0,
+			"sanity": 100.0
+		},
+		"source_summary": {
+			"drain_rate": 1.5,
+			"in_safe_zone": true,
+			"max_sanity": 100.0,
+			"perception_pressure_active": false,
+			"recovery_rate": 3.0,
+			"sanity": 100.0
+		}
+	},
+	"schema": "parity.models.tick.v1",
+	"script": "res://scripts/systems/sanity_state.gd",
+	"setup": [
+		{
+			"args": {
+				"in_safe_zone": false
+			},
+			"op": "set in_safe_zone",
+			"return": null,
+			"summary_after": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 100.0
+			}
+		}
+	],
+	"step_groups": [
+		[
+			"0.016666666666666666",
+			10
+		],
+		[
+			"0.35",
+			5
+		],
+		[
+			"3.0",
+			3
+		],
+		[
+			"5.0",
+			2
+		]
+	],
+	"steps": [
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 0,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.975
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 1,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.94999999999999
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 2,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.92499999999998
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 3,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.89999999999998
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 4,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.87499999999997
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 5,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.84999999999997
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 6,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.82499999999996
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 7,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.79999999999995
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 8,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.77499999999995
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.016666666666666666,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 9,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.74999999999994
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 10,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 99.22499999999994
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 11,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 98.69999999999993
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 12,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 98.17499999999993
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 13,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 97.64999999999992
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 14,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 97.12499999999991
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 15,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 92.62499999999991
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 16,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 88.12499999999991
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 17,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": false,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 83.62499999999991
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 18,
+			"pre_ops": [
+				{
+					"args": {
+						"in_safe_zone": true
+					},
+					"op": "set in_safe_zone"
+				}
+			],
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": true,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 98.62499999999991
+			}
+		},
+		{
+			"args": {},
+			"call": "tick(delta)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 19,
+			"return": true,
+			"summary": {
+				"drain_rate": 1.5,
+				"in_safe_zone": true,
+				"max_sanity": 100.0,
+				"perception_pressure_active": false,
+				"recovery_rate": 3.0,
+				"sanity": 100.0
+			}
+		}
+	],
+	"summary_after_configure": {
+		"drain_rate": 1.5,
+		"in_safe_zone": false,
+		"max_sanity": 100.0,
+		"perception_pressure_active": false,
+		"recovery_rate": 3.0,
+		"sanity": 100.0
+	}
+}

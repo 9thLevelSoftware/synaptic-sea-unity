@@ -1,0 +1,45 @@
+{
+	"arc_zones_copied_to_layout": false,
+	"archetype": {
+		"guaranteed_roles": [],
+		"max_duplicates": 3,
+		"name": "Derelict",
+		"role_weights": {},
+		"template": "derelict_a",
+		"type": "derelict"
+	},
+	"biome_id": "",
+	"blueprint": {
+		"condition": 2,
+		"condition_name": "WRECKED",
+		"room_count_range": [
+			5,
+			8
+		],
+		"seed_value": 777,
+		"size": 1,
+		"size_name": "SMALL"
+	},
+	"blueprint_overrides": {
+		"room_count_range": [
+			5,
+			8
+		]
+	},
+	"difficulty_id": "",
+	"extended_templates": true,
+	"fingerprints": {
+		"layout_fnv1a_64_raw_stringify_2space": -7456533264804186164,
+		"layout_raw_stringify_2space_length": 806139,
+		"note": "fnv1a_64 over JSON.stringify(layout, \"  \") BEFORE canonicalization (Vector2i values render as \"(x, y)\" strings there)."
+	},
+	"generator_call": "ShipLayoutGenerator.new().generate_with_options(blueprint, archetype, \"\", \"\", true)",
+	"post_steps": [
+		"layout written as returned by generate_with_options (NOT the debug exporter's sorted/canonicalized compiler input; see procgen/structural_debug/seed_<n>/ for the exporter's own documents)",
+		"production slice step (ShipGenerator._load_layout_as_scene data path): recompile structural plan only if structural_plan_validated is not true; gameplay = GameplaySliceBuilder.new().build(layout); copy gameplay.arc_zones to layout when layout.arc_zones is empty"
+	],
+	"recipe_source": "res://scripts/validation/procgen_structural_debug_export.gd (_export_seed generation inputs)",
+	"recompiled_plan": false,
+	"serialization": "canonical (Vector2i/Vector3 -> arrays, sorted keys), JSON.stringify(value, \"\\t\")",
+	"tag": "s777_small_wrecked_ext"
+}

@@ -1,0 +1,1120 @@
+{
+	"adhesive_paste": {
+		"base_quality": 0.5,
+		"category": "consumable",
+		"description": "Structural epoxy. Bonds metal to ceramic under vacuum.",
+		"display_name": "Adhesive Paste",
+		"icon": "res://assets/icons/materials/adhesive_paste.png",
+		"max_stack": 30.0,
+		"weight": 0.2
+	},
+	"alien_flora": {
+		"category": "food",
+		"display_name": "Alien Flora",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 10.0,
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"rotten_multiplier": 0.1,
+		"rotten_sickness_risk": 0.4,
+		"sanity_restore": -2.0,
+		"spoilage_seconds": 600.0,
+		"stale_multiplier": 0.5,
+		"thirst_restore": 2.0,
+		"weight": 0.5
+	},
+	"antique_relay": {
+		"category": "trade",
+		"display_name": "Antique Relay",
+		"icon": "res://assets/placeholder/antique_relay.png",
+		"max_stack": 6.0,
+		"trade_value": 45.0,
+		"weight": 1.2
+	},
+	"antiseptic_vial": {
+		"base_quality": 0.6,
+		"category": "consumable",
+		"description": "Broad-spectrum disinfectant. Irritating to bare skin.",
+		"display_name": "Antiseptic Vial",
+		"icon": "res://assets/icons/materials/antiseptic_vial.png",
+		"max_stack": 15.0,
+		"weight": 0.15
+	},
+	"antitoxin": {
+		"category": "medicine",
+		"display_name": "Antitoxin",
+		"effects": [
+			"cure_food_poisoning",
+			"restore_sanity_small"
+		],
+		"icon": "res://assets/placeholder/antitoxin.png",
+		"max_stack": 8.0,
+		"weight": 0.3
+	},
+	"bandage_kit": {
+		"category": "medicine",
+		"display_name": "Bandage Kit",
+		"effects": [
+			"heal_small"
+		],
+		"icon": "res://assets/placeholder/bandage_kit.png",
+		"max_stack": 10.0,
+		"weight": 0.4
+	},
+	"biomatter_filter": {
+		"category": "part",
+		"display_name": "Biomatter Filter",
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 0.6
+	},
+	"biomatter_residue": {
+		"base_quality": 0.2,
+		"category": "raw",
+		"description": "Dried slurry from the Synaptic Sea web. Potentially reactive.",
+		"display_name": "Biomatter Residue",
+		"icon": "res://assets/icons/materials/biomatter_residue.png",
+		"max_stack": 40.0,
+		"weight": 0.3
+	},
+	"biomatter_sample": {
+		"category": "trade",
+		"display_name": "Biomatter Sample",
+		"icon": "res://assets/placeholder/biomatter_sample.png",
+		"max_stack": 12.0,
+		"trade_value": 18.0,
+		"weight": 0.6
+	},
+	"biomatter_tangle": {
+		"base_rarity": "common",
+		"category": "junk",
+		"display_name": "Biomatter Tangle",
+		"junk_yields": [
+			{
+				"material_id": "biomatter_residue",
+				"quantity": 2.0
+			},
+			{
+				"material_id": "reactive_gel",
+				"quantity": 1.0
+			}
+		],
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 1.1,
+		"yields": [
+			{
+				"material_id": "biomatter_residue",
+				"quantity": 2.0
+			},
+			{
+				"material_id": "reactive_gel",
+				"quantity": 1.0
+			}
+		]
+	},
+	"breather_mask": {
+		"category": "supply",
+		"display_name": "Breather Mask",
+		"max_stack": 3.0,
+		"rarity": "uncommon",
+		"weight": 0.8
+	},
+	"calm_patch": {
+		"category": "stimulant",
+		"dependence_gain": 0.35,
+		"display_name": "Calm Patch",
+		"effects": [
+			"stim_steady",
+			"restore_sanity_small"
+		],
+		"icon": "res://assets/placeholder/calm_patch.png",
+		"max_stack": 6.0,
+		"stim_duration": 24.0,
+		"tolerance_gain": 0.18,
+		"weight": 0.2,
+		"withdrawal_duration": 24.0,
+		"withdrawal_effects": [
+			"withdrawal_fatigue"
+		]
+	},
+	"capacitor_cell": {
+		"category": "ammo",
+		"display_name": "Capacitor Cell",
+		"max_stack": 10.0,
+		"weapon_ids": [
+			"shock_probe"
+		],
+		"weight": 0.3
+	},
+	"captains_black_box": {
+		"category": "part",
+		"codex_entry_id": "captains_black_box",
+		"display_name": "Captain's Black Box",
+		"icon": "res://assets/icons/loot/captains_black_box.png",
+		"item_id": "captains_black_box",
+		"max_stack": 1.0,
+		"rarity": "legendary",
+		"unique_id": "captains_black_box",
+		"weight": 1.5
+	},
+	"ceramic_plate": {
+		"base_quality": 0.5,
+		"category": "raw",
+		"description": "Heat-resistant tiling from an engine manifold.",
+		"display_name": "Ceramic Plate",
+		"icon": "res://assets/icons/materials/ceramic_plate.png",
+		"max_stack": 20.0,
+		"weight": 0.7
+	},
+	"circuit_board": {
+		"category": "part",
+		"codex_entry_id": "circuit_board",
+		"display_name": "Circuit Board",
+		"max_stack": 15.0,
+		"rarity": "common",
+		"weight": 1.0
+	},
+	"combat_stim": {
+		"category": "stimulant",
+		"dependence_gain": 0.5,
+		"display_name": "Combat Stim",
+		"effects": [
+			"stim_haste",
+			"restore_stamina_large"
+		],
+		"icon": "res://assets/placeholder/combat_stim.png",
+		"max_stack": 6.0,
+		"stim_duration": 18.0,
+		"tolerance_gain": 0.3,
+		"weight": 0.3,
+		"withdrawal_duration": 32.0,
+		"withdrawal_effects": [
+			"withdrawal_shakes",
+			"withdrawal_fatigue"
+		]
+	},
+	"contaminated_water": {
+		"category": "supply",
+		"display_name": "Contaminated Water",
+		"max_stack": 20.0,
+		"rarity": "common",
+		"weight": 0.25
+	},
+	"cooked_meal": {
+		"category": "food",
+		"display_name": "Cooked Meal",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 25.0,
+		"max_stack": 10.0,
+		"rarity": "common",
+		"rotten_multiplier": 0.3,
+		"rotten_sickness_risk": 0.15,
+		"sanity_restore": 5.0,
+		"spoilage_seconds": 1800.0,
+		"stale_multiplier": 0.7,
+		"thirst_restore": 8.0,
+		"weight": 0.8
+	},
+	"coolant_fluid": {
+		"base_quality": 0.5,
+		"category": "fluid",
+		"description": "Thermal regulation medium from a ruptured radiator loop.",
+		"display_name": "Coolant Fluid",
+		"icon": "res://assets/icons/materials/coolant_fluid.png",
+		"max_stack": 10.0,
+		"weight": 0.6
+	},
+	"corroded_data_shard": {
+		"base_rarity": "uncommon",
+		"category": "junk",
+		"display_name": "Corroded Data Shard",
+		"junk_yields": [
+			{
+				"material_id": "memory_crystal",
+				"quantity": 1.0
+			},
+			{
+				"material_id": "circuit_board",
+				"quantity": 1.0
+			}
+		],
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 0.8,
+		"yields": [
+			{
+				"material_id": "memory_crystal",
+				"quantity": 1.0
+			},
+			{
+				"material_id": "circuit_board",
+				"quantity": 1.0
+			}
+		]
+	},
+	"cracked_pressure_valve": {
+		"base_rarity": "uncommon",
+		"category": "junk",
+		"display_name": "Cracked Pressure Valve",
+		"junk_yields": [
+			{
+				"material_id": "pneumatic_valve",
+				"quantity": 1.0
+			},
+			{
+				"material_id": "scrap_metal",
+				"quantity": 1.0
+			}
+		],
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 1.0,
+		"yields": [
+			{
+				"material_id": "pneumatic_valve",
+				"quantity": 1.0
+			},
+			{
+				"material_id": "scrap_metal",
+				"quantity": 1.0
+			}
+		]
+	},
+	"crowbar": {
+		"category": "tool",
+		"display_name": "Crowbar",
+		"equip_slot": "primary_hand",
+		"max_stack": 1.0,
+		"rarity": "common",
+		"weight": 2.8
+	},
+	"cryo_stabilizer": {
+		"base_quality": 0.7,
+		"category": "part",
+		"description": "Thermal inertia core. Keeps systems from overheating.",
+		"display_name": "Cryo Stabilizer",
+		"icon": "res://assets/icons/materials/cryo_stabilizer.png",
+		"max_stack": 8.0,
+		"weight": 0.7
+	},
+	"cryo_unit": {
+		"category": "part",
+		"display_name": "Cryo Unit",
+		"max_stack": 2.0,
+		"rarity": "rare",
+		"weight": 3.0
+	},
+	"data_core": {
+		"category": "part",
+		"display_name": "Data Core",
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 2.0
+	},
+	"docking_brace": {
+		"category": "part",
+		"display_name": "Docking Brace",
+		"max_stack": 4.0,
+		"rarity": "uncommon",
+		"weight": 2.5
+	},
+	"emergency_beacon": {
+		"category": "supply",
+		"display_name": "Emergency Beacon",
+		"max_stack": 3.0,
+		"rarity": "rare",
+		"weight": 1.2
+	},
+	"emergency_patch": {
+		"category": "supply",
+		"display_name": "Emergency Patch",
+		"max_stack": 15.0,
+		"rarity": "common",
+		"weight": 0.3
+	},
+	"enzyme_catalyst": {
+		"base_quality": 0.5,
+		"category": "consumable",
+		"description": "Bio-engineered catalyst. Accelerates chemical reactions.",
+		"display_name": "Enzyme Catalyst",
+		"icon": "res://assets/icons/materials/enzyme_catalyst.png",
+		"max_stack": 20.0,
+		"weight": 0.1
+	},
+	"eva_backpack": {
+		"category": "equipment",
+		"container_capacity": 40.0,
+		"display_name": "EVA Backpack",
+		"equip_slot": "back",
+		"max_stack": 1.0,
+		"weight": 3.0,
+		"weight_reduction": 0.3
+	},
+	"ferrous_shard": {
+		"base_quality": 0.5,
+		"category": "raw",
+		"description": "Magnetic fragment stripped from a dead ship's spine.",
+		"display_name": "Ferrous Shard",
+		"icon": "res://assets/icons/materials/ferrous_shard.png",
+		"max_stack": 99.0,
+		"weight": 0.3
+	},
+	"fiber_strand": {
+		"category": "part",
+		"display_name": "Fiber Strand",
+		"max_stack": 50.0,
+		"rarity": "common",
+		"weight": 0.1
+	},
+	"field_bandage": {
+		"category": "supply",
+		"display_name": "Field Bandage",
+		"max_stack": 20.0,
+		"rarity": "common",
+		"weight": 0.2
+	},
+	"field_medkit": {
+		"category": "medicine",
+		"display_name": "Field Medkit",
+		"effects": [
+			"heal_medium",
+			"restore_stamina_small"
+		],
+		"icon": "res://assets/placeholder/field_medkit.png",
+		"max_stack": 4.0,
+		"weight": 1.2
+	},
+	"field_pack": {
+		"category": "equipment",
+		"container_capacity": 15.0,
+		"display_name": "Field Pack",
+		"equip_slot": "back",
+		"max_stack": 1.0,
+		"weight": 1.5,
+		"weight_reduction": 0.15
+	},
+	"filament_spool": {
+		"base_quality": 0.5,
+		"category": "raw",
+		"description": "3D-print stock recovered from a fabrication bay.",
+		"display_name": "Filament Spool",
+		"icon": "res://assets/icons/materials/filament_spool.png",
+		"max_stack": 20.0,
+		"weight": 0.3
+	},
+	"filter_cartridge": {
+		"category": "part",
+		"display_name": "Filter Cartridge",
+		"max_stack": 15.0,
+		"rarity": "common",
+		"weight": 0.3
+	},
+	"filter_mask": {
+		"category": "supply",
+		"display_name": "Filter Mask",
+		"max_stack": 5.0,
+		"rarity": "common",
+		"weight": 0.5
+	},
+	"fire_extinguisher": {
+		"category": "tool",
+		"display_name": "Fire Extinguisher",
+		"max_stack": 1.0,
+		"rarity": "uncommon",
+		"weight": 3.0
+	},
+	"fishing_line": {
+		"category": "supply",
+		"display_name": "Fishing Line",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 0.2
+	},
+	"flare": {
+		"category": "utility",
+		"display_name": "Flare",
+		"effects": [
+			"utility_flare"
+		],
+		"icon": "res://assets/placeholder/flare.png",
+		"max_stack": 10.0,
+		"use_note": "Flares mark routes and steady the player in dark corridors.",
+		"utility_flag": "flare",
+		"weight": 0.2
+	},
+	"flare_pistol": {
+		"category": "tool",
+		"display_name": "Flare Pistol",
+		"equip_slot": "primary_hand",
+		"max_stack": 1.0,
+		"rarity": "uncommon",
+		"weight": 1.6
+	},
+	"flare_round": {
+		"category": "ammo",
+		"display_name": "Flare Round",
+		"max_stack": 12.0,
+		"weapon_ids": [
+			"flare_pistol"
+		],
+		"weight": 0.2
+	},
+	"focus_ampoule": {
+		"category": "stimulant",
+		"dependence_gain": 0.4,
+		"display_name": "Focus Ampoule",
+		"effects": [
+			"stim_focus",
+			"restore_stamina_small"
+		],
+		"icon": "res://assets/placeholder/focus_ampoule.png",
+		"max_stack": 6.0,
+		"stim_duration": 20.0,
+		"tolerance_gain": 0.2,
+		"weight": 0.2,
+		"withdrawal_duration": 28.0,
+		"withdrawal_effects": [
+			"withdrawal_shakes"
+		]
+	},
+	"frayed_cable_coil": {
+		"base_rarity": "common",
+		"category": "junk",
+		"display_name": "Frayed Cable Coil",
+		"junk_yields": [
+			{
+				"material_id": "wiring_bundle",
+				"quantity": 2.0
+			},
+			{
+				"material_id": "polymer_pellet",
+				"quantity": 1.0
+			}
+		],
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 1.2,
+		"yields": [
+			{
+				"material_id": "wiring_bundle",
+				"quantity": 2.0
+			},
+			{
+				"material_id": "polymer_pellet",
+				"quantity": 1.0
+			}
+		]
+	},
+	"fuel_canister": {
+		"category": "ammo",
+		"display_name": "Fuel Canister",
+		"max_stack": 8.0,
+		"weapon_ids": [
+			"welding_lance"
+		],
+		"weight": 0.5
+	},
+	"fuel_line": {
+		"category": "part",
+		"display_name": "Fuel Line",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 3.0
+	},
+	"fusion_igniter": {
+		"base_quality": 0.8,
+		"category": "part",
+		"description": "Plasma-initiation coil. Rare and volatile.",
+		"display_name": "Fusion Igniter",
+		"icon": "res://assets/icons/materials/fusion_igniter.png",
+		"max_stack": 5.0,
+		"weight": 0.9
+	},
+	"graphene_ink": {
+		"category": "part",
+		"display_name": "Graphene Ink",
+		"max_stack": 20.0,
+		"rarity": "uncommon",
+		"weight": 0.2
+	},
+	"graphene_sheet": {
+		"base_quality": 0.7,
+		"category": "raw",
+		"description": "Mono-layer carbon lattice. Stronger than steel per gram.",
+		"display_name": "Graphene Sheet",
+		"icon": "res://assets/icons/materials/graphene_sheet.png",
+		"max_stack": 50.0,
+		"weight": 0.05
+	},
+	"graphene_weave": {
+		"category": "part",
+		"display_name": "Graphene Weave",
+		"max_stack": 30.0,
+		"rarity": "uncommon",
+		"weight": 0.15
+	},
+	"hack_chip": {
+		"category": "utility",
+		"display_name": "Hack Chip",
+		"effects": [
+			"utility_hack_chip"
+		],
+		"icon": "res://assets/placeholder/hack_chip.png",
+		"max_stack": 8.0,
+		"use_note": "Hack chips prep a terminal bypass window.",
+		"utility_flag": "hack_chip",
+		"weight": 0.1
+	},
+	"hardsuit": {
+		"category": "equipment",
+		"display_name": "Salvage Hardsuit",
+		"effects": [
+			{
+				"type": "oxygen_drain",
+				"value": 0.75
+			}
+		],
+		"equip_slot": "suit",
+		"max_stack": 1.0,
+		"weight": 6.0
+	},
+	"heat_pack": {
+		"category": "utility",
+		"display_name": "Heat Pack",
+		"effects": [
+			"heatpack"
+		],
+		"icon": "res://assets/placeholder/repair_foam.png",
+		"max_stack": 6.0,
+		"use_note": "A chemical heat pack pushes back the cold of a dead ship.",
+		"weight": 0.3
+	},
+	"hull_sealant": {
+		"category": "part",
+		"display_name": "Hull Sealant",
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 1.0
+	},
+	"hydraulic_clamp": {
+		"category": "part",
+		"display_name": "Hydraulic Clamp",
+		"max_stack": 6.0,
+		"rarity": "uncommon",
+		"weight": 1.8
+	},
+	"hydraulic_piston": {
+		"base_quality": 0.6,
+		"category": "part",
+		"description": "Compact actuator salvaged from a docking clamp.",
+		"display_name": "Hydraulic Piston",
+		"icon": "res://assets/icons/materials/hydraulic_piston.png",
+		"max_stack": 8.0,
+		"weight": 1.2
+	},
+	"hydroponic_greens": {
+		"category": "food",
+		"display_name": "Hydroponic Greens",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 12.0,
+		"max_stack": 15.0,
+		"rarity": "common",
+		"rotten_multiplier": 0.2,
+		"rotten_sickness_risk": 0.2,
+		"sanity_restore": 1.0,
+		"spoilage_seconds": 2400.0,
+		"stale_multiplier": 0.6,
+		"thirst_restore": 3.0,
+		"weight": 0.4
+	},
+	"improvised_splint": {
+		"category": "supply",
+		"display_name": "Improvised Splint",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 0.4
+	},
+	"improvised_torch": {
+		"category": "supply",
+		"display_name": "Improvised Torch",
+		"max_stack": 8.0,
+		"rarity": "common",
+		"weight": 0.6
+	},
+	"junction_calibrator": {
+		"category": "tool",
+		"display_name": "Junction Calibrator",
+		"effect": {
+			"type": "junction_step_reduction",
+			"value": 1.0
+		},
+		"weight": 2.0
+	},
+	"junction_calibrator_mk2": {
+		"category": "tool",
+		"display_name": "Junction Calibrator Mk2",
+		"max_stack": 1.0,
+		"rarity": "rare",
+		"weight": 1.0
+	},
+	"lockpick_set": {
+		"category": "utility",
+		"display_name": "Lockpick Set",
+		"effects": [
+			"utility_lockpick"
+		],
+		"icon": "res://assets/placeholder/lockpick_set.png",
+		"max_stack": 6.0,
+		"use_note": "Lockpicks prime the next sealed hatch bypass.",
+		"utility_flag": "lockpick",
+		"weight": 0.2
+	},
+	"medical_gauze": {
+		"base_quality": 0.6,
+		"category": "consumable",
+		"description": "Sterile dressing from a med-bay emergency kit.",
+		"display_name": "Medical Gauze",
+		"icon": "res://assets/icons/materials/medical_gauze.png",
+		"max_stack": 20.0,
+		"weight": 0.1
+	},
+	"medkit": {
+		"category": "supply",
+		"display_name": "Medkit",
+		"max_stack": 5.0,
+		"rarity": "uncommon",
+		"weight": 1.5
+	},
+	"memory_crystal": {
+		"base_quality": 0.8,
+		"category": "part",
+		"description": "High-density data storage medium. Blank or wiped.",
+		"display_name": "Memory Crystal",
+		"icon": "res://assets/icons/materials/memory_crystal.png",
+		"max_stack": 15.0,
+		"weight": 0.1
+	},
+	"memory_drive": {
+		"category": "part",
+		"display_name": "Memory Drive",
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 0.2
+	},
+	"nanite_patch": {
+		"category": "supply",
+		"display_name": "Nanite Patch",
+		"max_stack": 10.0,
+		"rarity": "rare",
+		"weight": 0.2
+	},
+	"nanite_slurry": {
+		"base_quality": 0.8,
+		"category": "part",
+		"description": "Micro-repair swarm in suspension. Expensive to produce.",
+		"display_name": "Nanite Slurry",
+		"icon": "res://assets/icons/materials/nanite_slurry.png",
+		"max_stack": 10.0,
+		"weight": 0.5
+	},
+	"nav_chip": {
+		"category": "part",
+		"display_name": "Nav Chip",
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 0.1
+	},
+	"nutrient_paste": {
+		"category": "food",
+		"display_name": "Nutrient Paste",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 20.0,
+		"max_stack": 20.0,
+		"rarity": "common",
+		"rotten_multiplier": 0.4,
+		"rotten_sickness_risk": 0.1,
+		"sanity_restore": 0.0,
+		"spoilage_seconds": 7200.0,
+		"stale_multiplier": 0.8,
+		"thirst_restore": 10.0,
+		"weight": 0.3
+	},
+	"optical_lens": {
+		"base_quality": 0.6,
+		"category": "part",
+		"description": "Precision-ground glass from a dead sensor array.",
+		"display_name": "Optical Lens",
+		"icon": "res://assets/icons/materials/optical_lens.png",
+		"max_stack": 15.0,
+		"weight": 0.1
+	},
+	"oxygen_filter": {
+		"category": "part",
+		"display_name": "Oxygen Filter",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 1.5
+	},
+	"plasma_cutter": {
+		"category": "tool",
+		"display_name": "Plasma Cutter",
+		"max_stack": 1.0,
+		"rarity": "rare",
+		"weight": 5.0
+	},
+	"plating": {
+		"category": "part",
+		"display_name": "Hull Plating",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 8.0
+	},
+	"pneumatic_actuator": {
+		"category": "part",
+		"display_name": "Pneumatic Actuator",
+		"max_stack": 6.0,
+		"rarity": "uncommon",
+		"weight": 1.5
+	},
+	"pneumatic_valve": {
+		"base_quality": 0.5,
+		"category": "part",
+		"description": "Pressure-regulating valve from life-support plumbing.",
+		"display_name": "Pneumatic Valve",
+		"icon": "res://assets/icons/materials/pneumatic_valve.png",
+		"max_stack": 12.0,
+		"weight": 0.5
+	},
+	"polymer_pellet": {
+		"base_quality": 0.4,
+		"category": "raw",
+		"description": "Recycled thermoplastic beads. Malleable when heated.",
+		"display_name": "Polymer Pellet",
+		"icon": "res://assets/icons/materials/polymer_pellet.png",
+		"max_stack": 99.0,
+		"weight": 0.1
+	},
+	"portable_oxygen_pump": {
+		"category": "tool",
+		"display_name": "Portable Oxygen Pump",
+		"effect": {
+			"type": "oxygen_drain_multiplier",
+			"value": 0.5
+		},
+		"weight": 2.0
+	},
+	"portable_oxygen_pump_mk2": {
+		"category": "tool",
+		"display_name": "Portable Oxygen Pump Mk2",
+		"max_stack": 1.0,
+		"rarity": "rare",
+		"weight": 2.0
+	},
+	"power_cell": {
+		"category": "part",
+		"codex_entry_id": "power_cell",
+		"display_name": "Power Cell",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 1.0
+	},
+	"propulsion_coupling": {
+		"category": "part",
+		"display_name": "Propulsion Coupling",
+		"max_stack": 4.0,
+		"rarity": "uncommon",
+		"weight": 2.0
+	},
+	"purified_water": {
+		"category": "supply",
+		"display_name": "Purified Water",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 0.0,
+		"max_stack": 20.0,
+		"rarity": "common",
+		"rotten_multiplier": 0.5,
+		"rotten_sickness_risk": 0.05,
+		"sanity_restore": 1.0,
+		"spoilage_seconds": 86400.0,
+		"stale_multiplier": 0.9,
+		"thirst_restore": 15.0,
+		"weight": 0.2
+	},
+	"rad_patch": {
+		"category": "medicine",
+		"display_name": "Rad Patch",
+		"effects": [
+			"reduce_radiation_minor",
+			"cure_radiation_sickness"
+		],
+		"icon": "res://assets/placeholder/rad_patch.png",
+		"max_stack": 8.0,
+		"weight": 0.3
+	},
+	"radiation_badge": {
+		"category": "supply",
+		"display_name": "Radiation Badge",
+		"max_stack": 5.0,
+		"rarity": "uncommon",
+		"weight": 0.1
+	},
+	"radiation_shielding": {
+		"base_quality": 0.6,
+		"category": "raw",
+		"description": "Lead-polymer composite tile. Blocks hard rads.",
+		"display_name": "Radiation Shielding",
+		"icon": "res://assets/icons/materials/radiation_shielding.png",
+		"max_stack": 5.0,
+		"weight": 2.0
+	},
+	"radiation_suit_lining": {
+		"category": "supply",
+		"display_name": "Radiation Suit Lining",
+		"max_stack": 3.0,
+		"rarity": "rare",
+		"weight": 1.5
+	},
+	"ration_pack": {
+		"category": "supply",
+		"display_name": "Ration Pack",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 15.0,
+		"max_stack": 20.0,
+		"rarity": "common",
+		"rotten_multiplier": 0.2,
+		"rotten_sickness_risk": 0.25,
+		"sanity_restore": 2.0,
+		"spoilage_seconds": 3600.0,
+		"stale_multiplier": 0.6,
+		"thirst_restore": 5.0,
+		"weight": 0.5
+	},
+	"reactive_gel": {
+		"base_quality": 0.4,
+		"category": "raw",
+		"description": "Thick catalytic paste. Handle with care.",
+		"display_name": "Reactive Gel",
+		"icon": "res://assets/icons/materials/reactive_gel.png",
+		"max_stack": 20.0,
+		"weight": 0.4
+	},
+	"reactor_core": {
+		"category": "part",
+		"display_name": "Reactor Core",
+		"max_stack": 2.0,
+		"rarity": "epic",
+		"weight": 12.0
+	},
+	"repair_foam": {
+		"category": "utility",
+		"display_name": "Repair Foam",
+		"effects": [
+			"heal_small"
+		],
+		"icon": "res://assets/placeholder/repair_foam.png",
+		"max_stack": 6.0,
+		"use_note": "Repair foam patches suit tears and field wounds.",
+		"utility_flag": "repair_foam",
+		"weight": 0.5
+	},
+	"scavenged_protein": {
+		"category": "food",
+		"display_name": "Scavenged Protein",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 18.0,
+		"max_stack": 10.0,
+		"rarity": "common",
+		"rotten_multiplier": 0.1,
+		"rotten_sickness_risk": 0.35,
+		"sanity_restore": 0.0,
+		"spoilage_seconds": 1200.0,
+		"stale_multiplier": 0.5,
+		"thirst_restore": 0.0,
+		"weight": 0.6
+	},
+	"scrap_metal": {
+		"category": "part",
+		"display_name": "Scrap Metal",
+		"junk_value": 1.0,
+		"max_stack": 20.0,
+		"rarity": "common",
+		"weight": 5.0
+	},
+	"sealant": {
+		"category": "part",
+		"display_name": "Sealant",
+		"max_stack": 20.0,
+		"rarity": "common",
+		"weight": 1.0
+	},
+	"sensor_array": {
+		"base_quality": 0.7,
+		"category": "part",
+		"description": "Multi-band detection cluster. Fragile but precise.",
+		"display_name": "Sensor Array",
+		"icon": "res://assets/icons/materials/sensor_array.png",
+		"max_stack": 8.0,
+		"weight": 0.6
+	},
+	"sensor_module": {
+		"category": "part",
+		"display_name": "Sensor Module",
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 2.5
+	},
+	"shock_probe": {
+		"category": "tool",
+		"display_name": "Shock Probe",
+		"equip_slot": "secondary_hand",
+		"max_stack": 1.0,
+		"rarity": "uncommon",
+		"weight": 2.2
+	},
+	"solenoid_coil": {
+		"base_quality": 0.6,
+		"category": "part",
+		"description": "Electromagnetic coil wound for high-current switching.",
+		"display_name": "Solenoid Coil",
+		"icon": "res://assets/icons/materials/solenoid_coil.png",
+		"max_stack": 12.0,
+		"weight": 0.4
+	},
+	"solenoid_rig": {
+		"category": "part",
+		"display_name": "Solenoid Rig",
+		"max_stack": 8.0,
+		"rarity": "uncommon",
+		"weight": 1.0
+	},
+	"stimulant": {
+		"category": "supply",
+		"display_name": "Stimulant",
+		"max_stack": 10.0,
+		"rarity": "uncommon",
+		"weight": 0.1
+	},
+	"survival_tent": {
+		"category": "supply",
+		"display_name": "Survival Tent",
+		"max_stack": 2.0,
+		"rarity": "uncommon",
+		"weight": 3.0
+	},
+	"synaptic_sea_reliquary": {
+		"category": "part",
+		"codex_entry_id": "synaptic_sea_reliquary",
+		"display_name": "Synaptic Sea Reliquary",
+		"icon": "res://assets/icons/loot/synaptic_sea_reliquary.png",
+		"item_id": "synaptic_sea_reliquary",
+		"max_stack": 1.0,
+		"rarity": "epic",
+		"unique_id": "synaptic_sea_reliquary",
+		"weight": 2.2
+	},
+	"synth_fiber": {
+		"base_quality": 0.5,
+		"category": "raw",
+		"description": "Woven polymer from a shredded EVA suit liner.",
+		"display_name": "Synth Fiber",
+		"icon": "res://assets/icons/materials/synth_fiber.png",
+		"max_stack": 99.0,
+		"weight": 0.1
+	},
+	"synthesized_paste": {
+		"category": "food",
+		"display_name": "Synthesized Nutrient Paste",
+		"fresh_multiplier": 1.0,
+		"hunger_restore": 12.0,
+		"max_stack": 30.0,
+		"rarity": "common",
+		"rotten_multiplier": 0.5,
+		"rotten_sickness_risk": 0.05,
+		"sanity_restore": -2.0,
+		"spoilage_seconds": 5400.0,
+		"stale_multiplier": 0.8,
+		"thirst_restore": 3.0,
+		"weight": 0.3
+	},
+	"synthesizer_base": {
+		"base_quality": 0.5,
+		"category": "consumable",
+		"description": "Neutral nutrient substrate for chemical synthesizers.",
+		"display_name": "Synthesizer Base",
+		"icon": "res://assets/icons/materials/synthesizer_base.png",
+		"max_stack": 20.0,
+		"weight": 0.3
+	},
+	"thermal_pad": {
+		"category": "supply",
+		"display_name": "Thermal Pad",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 0.5
+	},
+	"thruster_nozzle": {
+		"category": "part",
+		"display_name": "Thruster Nozzle",
+		"max_stack": 5.0,
+		"rarity": "rare",
+		"weight": 9.0
+	},
+	"titanium_ingot": {
+		"base_quality": 0.7,
+		"category": "raw",
+		"description": "High-grade alloy bar. Standard hull reinforcement stock.",
+		"display_name": "Titanium Ingot",
+		"icon": "res://assets/icons/materials/titanium_ingot.png",
+		"max_stack": 10.0,
+		"weight": 1.5
+	},
+	"tool_belt": {
+		"category": "equipment",
+		"container_capacity": 12.0,
+		"display_name": "Tool Belt",
+		"equip_slot": "waist",
+		"max_stack": 1.0,
+		"weight": 1.0,
+		"weight_reduction": 0.1
+	},
+	"web_chart": {
+		"category": "chart",
+		"display_name": "Web Chart",
+		"icon": "res://assets/placeholder/repair_foam.png",
+		"max_stack": 1.0,
+		"use_note": "A paper chart of nearby ship positions in the web. Possessing one records scanner contacts; each new chart found imports its own recorded markers.",
+		"weight": 0.4
+	},
+	"welder": {
+		"category": "tool",
+		"display_name": "Welder",
+		"max_stack": 1.0,
+		"rarity": "uncommon",
+		"weight": 3.0
+	},
+	"welding_lance": {
+		"category": "tool",
+		"display_name": "Welding Lance",
+		"equip_slot": "primary_hand",
+		"max_stack": 1.0,
+		"rarity": "uncommon",
+		"weight": 3.6
+	},
+	"wiring_bundle": {
+		"base_quality": 0.4,
+		"category": "raw",
+		"description": "Insulated cable harvested from a ruptured conduit.",
+		"display_name": "Wiring Bundle",
+		"icon": "res://assets/icons/materials/wiring_bundle.png",
+		"max_stack": 30.0,
+		"weight": 0.4
+	},
+	"wiring_spool": {
+		"category": "part",
+		"display_name": "Wiring Spool",
+		"max_stack": 10.0,
+		"rarity": "common",
+		"weight": 2.0
+	}
+}

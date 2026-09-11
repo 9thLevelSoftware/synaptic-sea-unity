@@ -1,0 +1,1429 @@
+{
+	"config": {
+		"adjacency": {
+			"bridge": [
+				"engineering"
+			],
+			"cargo": [
+				"engineering"
+			],
+			"engineering": [
+				"bridge",
+				"hydroponics",
+				"cargo"
+			],
+			"hydroponics": [
+				"engineering"
+			]
+		},
+		"arc_compartment": "engineering",
+		"cascade_rate_per_second": 0.5,
+		"compartments": [
+			"bridge",
+			"engineering",
+			"hydroponics",
+			"cargo"
+		],
+		"ignition_rate_per_second": 0.2,
+		"power_threshold": 0.5,
+		"spread_rate_per_second": 0.15,
+		"suppressant_units": 100.0,
+		"suppression_rate_per_second": 25.0
+	},
+	"configure_call": "configure(config)",
+	"construct": "res://scripts/systems/fire_suppression_state.gd.new()",
+	"model": "fire_suppression_state",
+	"notes": [
+		"There is no fire_state.gd any more: playable_generated_ship.gd says the timer-based FireState is retired and FireSuppressionState (ADR-0041) is the single fire model.",
+		"Contexts per step group: idle/persist -> spread with cargo vented -> hydroponics damaged + arc cascade -> powered auto-suppression (all shapes from the smoke)."
+	],
+	"reference_smoke": "res://scripts/validation/fire_suppression_state_smoke.gd",
+	"round_trip": {
+		"apply_summary_return": true,
+		"description": "source = get_summary() after the last step; fresh = res://scripts/systems/fire_suppression_state.gd.new(); configure with the same config; fresh.apply_summary(source); restored = fresh.get_summary()",
+		"differences_source_vs_restored": [],
+		"equal": true,
+		"restored_summary": {
+			"active_fires": {},
+			"adjacency": {
+				"bridge": [
+					"engineering"
+				],
+				"cargo": [
+					"engineering"
+				],
+				"engineering": [
+					"bridge",
+					"hydroponics",
+					"cargo"
+				],
+				"hydroponics": [
+					"engineering"
+				]
+			},
+			"arc_compartment": "engineering",
+			"cascade_progress": 0.0,
+			"cascade_rate_per_second": 0.5,
+			"closed_links": [],
+			"compartments": [
+				"bridge",
+				"engineering",
+				"hydroponics",
+				"cargo"
+			],
+			"ignition_progress": {},
+			"ignition_rate_per_second": 0.2,
+			"power_threshold": 0.5,
+			"spread_progress": {},
+			"spread_rate_per_second": 0.15,
+			"suppressant_units": 90.0,
+			"suppression_rate_per_second": 25.0,
+			"vented_compartments": []
+		},
+		"source_summary": {
+			"active_fires": {},
+			"adjacency": {
+				"bridge": [
+					"engineering"
+				],
+				"cargo": [
+					"engineering"
+				],
+				"engineering": [
+					"bridge",
+					"hydroponics",
+					"cargo"
+				],
+				"hydroponics": [
+					"engineering"
+				]
+			},
+			"arc_compartment": "engineering",
+			"cascade_progress": 0.0,
+			"cascade_rate_per_second": 0.5,
+			"closed_links": [],
+			"compartments": [
+				"bridge",
+				"engineering",
+				"hydroponics",
+				"cargo"
+			],
+			"ignition_progress": {},
+			"ignition_rate_per_second": 0.2,
+			"power_threshold": 0.5,
+			"spread_progress": {},
+			"spread_rate_per_second": 0.15,
+			"suppressant_units": 90.0,
+			"suppression_rate_per_second": 25.0,
+			"vented_compartments": []
+		}
+	},
+	"schema": "parity.models.tick.v1",
+	"script": "res://scripts/systems/fire_suppression_state.gd",
+	"setup": [
+		{
+			"args": {
+				"compartment_id": "engineering",
+				"intensity": 1.0
+			},
+			"op": "ignite",
+			"return": true,
+			"summary_after": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		}
+	],
+	"step_groups": [
+		[
+			"0.016666666666666666",
+			10
+		],
+		[
+			"0.35",
+			5
+		],
+		[
+			"3.0",
+			3
+		],
+		[
+			"5.0",
+			2
+		]
+	],
+	"steps": [
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 0,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.0025,
+					"cargo": 0.0025,
+					"hydroponics": 0.0025
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 1,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.005,
+					"cargo": 0.005,
+					"hydroponics": 0.005
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 2,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.0075,
+					"cargo": 0.0075,
+					"hydroponics": 0.0075
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 3,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.01,
+					"cargo": 0.01,
+					"hydroponics": 0.01
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 4,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.0125,
+					"cargo": 0.0125,
+					"hydroponics": 0.0125
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 5,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.015,
+					"cargo": 0.015,
+					"hydroponics": 0.015
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 6,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.0175,
+					"cargo": 0.0175,
+					"hydroponics": 0.0175
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 7,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.02,
+					"cargo": 0.02,
+					"hydroponics": 0.02
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 8,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.0225,
+					"cargo": 0.0225,
+					"hydroponics": 0.0225
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.0166666666666667,
+			"delta_str": "0.016666666666666666",
+			"group": 0,
+			"index": 9,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.025,
+					"cargo": 0.025,
+					"hydroponics": 0.025
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [
+						"cargo"
+					],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 10,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.0775,
+					"hydroponics": 0.0775
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [
+						"cargo"
+					],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 11,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.13,
+					"hydroponics": 0.13
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [
+						"cargo"
+					],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 12,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.1825,
+					"hydroponics": 0.1825
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [
+						"cargo"
+					],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 13,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.235,
+					"hydroponics": 0.235
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [
+						"cargo"
+					],
+					"damaged_compartments": [],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 0.35,
+			"delta_str": "0.35",
+			"group": 1,
+			"index": 14,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.2875,
+					"hydroponics": 0.2875
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": true,
+					"breached_compartments": [],
+					"damaged_compartments": [
+						"hydroponics"
+					],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 15,
+			"return": false,
+			"summary": {
+				"active_fires": {
+					"engineering": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {
+					"hydroponics": 0.6
+				},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"bridge": 0.7375,
+					"cargo": 0.45,
+					"hydroponics": 0.7375
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": true,
+					"breached_compartments": [],
+					"damaged_compartments": [
+						"hydroponics"
+					],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 16,
+			"return": true,
+			"summary": {
+				"active_fires": {
+					"bridge": 1.0,
+					"engineering": 1.0,
+					"hydroponics": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {
+					"cargo": 0.9
+				},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": true,
+					"breached_compartments": [],
+					"damaged_compartments": [
+						"hydroponics"
+					],
+					"powered_ratio": 0.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 3.0,
+			"delta_str": "3.0",
+			"group": 2,
+			"index": 17,
+			"return": true,
+			"summary": {
+				"active_fires": {
+					"bridge": 1.0,
+					"cargo": 1.0,
+					"engineering": 1.0,
+					"hydroponics": 1.0
+				},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 100.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 1.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 18,
+			"return": true,
+			"summary": {
+				"active_fires": {},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 90.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		},
+		{
+			"args": {
+				"context": {
+					"arc_arcing": false,
+					"breached_compartments": [],
+					"damaged_compartments": [],
+					"powered_ratio": 1.0,
+					"ship_oxygen_present": true
+				}
+			},
+			"call": "tick(delta, context)",
+			"delta": 5.0,
+			"delta_str": "5.0",
+			"group": 3,
+			"index": 19,
+			"return": false,
+			"summary": {
+				"active_fires": {},
+				"adjacency": {
+					"bridge": [
+						"engineering"
+					],
+					"cargo": [
+						"engineering"
+					],
+					"engineering": [
+						"bridge",
+						"hydroponics",
+						"cargo"
+					],
+					"hydroponics": [
+						"engineering"
+					]
+				},
+				"arc_compartment": "engineering",
+				"cascade_progress": 0.0,
+				"cascade_rate_per_second": 0.5,
+				"closed_links": [],
+				"compartments": [
+					"bridge",
+					"engineering",
+					"hydroponics",
+					"cargo"
+				],
+				"ignition_progress": {},
+				"ignition_rate_per_second": 0.2,
+				"power_threshold": 0.5,
+				"spread_progress": {},
+				"spread_rate_per_second": 0.15,
+				"suppressant_units": 90.0,
+				"suppression_rate_per_second": 25.0,
+				"vented_compartments": []
+			}
+		}
+	],
+	"summary_after_configure": {
+		"active_fires": {},
+		"adjacency": {
+			"bridge": [
+				"engineering"
+			],
+			"cargo": [
+				"engineering"
+			],
+			"engineering": [
+				"bridge",
+				"hydroponics",
+				"cargo"
+			],
+			"hydroponics": [
+				"engineering"
+			]
+		},
+		"arc_compartment": "engineering",
+		"cascade_progress": 0.0,
+		"cascade_rate_per_second": 0.5,
+		"closed_links": [],
+		"compartments": [
+			"bridge",
+			"engineering",
+			"hydroponics",
+			"cargo"
+		],
+		"ignition_progress": {},
+		"ignition_rate_per_second": 0.2,
+		"power_threshold": 0.5,
+		"spread_progress": {},
+		"spread_rate_per_second": 0.15,
+		"suppressant_units": 100.0,
+		"suppression_rate_per_second": 25.0,
+		"vented_compartments": []
+	}
+}

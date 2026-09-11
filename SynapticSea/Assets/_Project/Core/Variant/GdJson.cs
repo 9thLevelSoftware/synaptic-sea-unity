@@ -156,9 +156,16 @@ namespace SynapticSea.Core.Variant
         }
 
         /// <summary>Parses JSON text; throws <see cref="ParseError"/> on malformed input.</summary>
-        public static object Parse(string text)
+        public static object Parse(string text) => Parse(text, integersAsLong: false);
+
+        /// <summary>
+        /// Parses JSON text. <paramref name="integersAsLong"/> = true keeps integer literals (no '.', no exponent)
+        /// as exact <c>long</c> values. That is NOT Godot behaviour; use it only for reading test fixtures that
+        /// carry 64-bit integers (RNG states, hashes). Game data must use the default Godot-faithful parse.
+        /// </summary>
+        public static object Parse(string text, bool integersAsLong)
         {
-            var p = new Parser(text ?? string.Empty);
+            var p = new Parser(text ?? string.Empty) { IntegersAsLong = integersAsLong };
             return p.ParseDocument();
         }
 
@@ -170,6 +177,7 @@ namespace SynapticSea.Core.Variant
             readonly string _s;
             int _i;
             int _line = 1;
+            public bool IntegersAsLong;
 
             public Parser(string s)
             {
@@ -215,7 +223,11 @@ namespace SynapticSea.Core.Variant
                 {
                     double number = GodotStrtod.Parse(_s, _i, out int end);
                     if (end == _i) throw new ParseError("Invalid number", _line);
+                    string lexeme = _s.Substring(_i, end - _i);
                     _i = end;
+                    if (IntegersAsLong && lexeme.IndexOfAny(new[] { '.', 'e', 'E' }) < 0 &&
+                        long.TryParse(lexeme, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out long exact))
+                        return exact;
                     return number;
                 }
                 if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
