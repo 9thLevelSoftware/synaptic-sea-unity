@@ -63,6 +63,7 @@ Wave 1 introduced interfaces that later ports must implement instead of inventin
 - `ModuleDamageRouter`: `IModuleIntegrityMap`. `DockingManager`: `IShipSceneRoot`, `IDockableShip`. `ScannerState`/`TravelController`: `IMarkerWorld`, `IShipGenerator`.
 - `SkillEffectsResolver`: `ISkillLevelSource`. `TitleSaveQuery`: `ITitleSaveService`, `IDeathRecordQuery`. `SettingsState`: `IAccessibilitySettingsSink`. `HubUpgradeState`: `IHubUpgradeWallet`. `DifficultyProfile`: `IModifierSource`.
 - Wave 2: `IItemAcceptor` (InventoryState.cs; CraftingState's `can_accept` check), `ConsumableState.ISpoilageFoodSource` (`GetFood(string) -> FoodState`; SpoilageState implements it), `ComponentMountResolver.IComponentPlacement` (`Dismount`, `Mount`; ComponentPlacementState implements it). `InventoryState` implements `ICargoPlayer`/`ICargoHold`; `ShipInventory` implements `ICargoHold`. `LootDistribution.Roll(table, seed, tables, context)` plus `RollWithUniqueState(...)`.
+- Wave 2 combat: `DamagePipeline.IDamageVitalsTarget { double Health { get; set; } }` (VitalsState implements it); `StatusEffectsState` implements `EffectDispatcher.IStatusEffectsTarget`. `PlayerProgressionState` implements `ISkillLevelSource`; `ModuleIntegrityMap` implements `IModuleIntegrityMap`.
 - `PhaseTimer` exposes `CurrentPhaseValue` (not `phase`); `ShipBlueprint` exposes `ShipSize`, `ShipCondition`, `SeedValue`.
 
 ## Numeric rules
