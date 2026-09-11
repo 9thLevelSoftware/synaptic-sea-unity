@@ -75,7 +75,7 @@ namespace SynapticSea.Tests.Unity
         [Test]
         public void PrefabSockets_MatchGodotPlacementMath_AtAllYaws([Values(0, 90, 180, 270)] int yaw)
         {
-            var catalog = AssetDatabase.LoadAssetAtPath<KitCatalog>($"Assets/Resources/Catalogs/KitCatalog_{Kit}.asset");
+            var catalog = AssetDatabase.LoadAssetAtPath<KitPrefabCatalog>($"Assets/Resources/Catalogs/KitCatalog_{Kit}.asset");
             Assert.IsNotNull(catalog, "run the StructuralPrefabBuilder first");
             var godotPlacement = new Vec3(12f, 0f, -8f);
             int compared = 0;
@@ -106,7 +106,7 @@ namespace SynapticSea.Tests.Unity
         [Test]
         public void EveryKitModuleHasAPrefabWithCollision()
         {
-            var catalog = AssetDatabase.LoadAssetAtPath<KitCatalog>($"Assets/Resources/Catalogs/KitCatalog_{Kit}.asset");
+            var catalog = AssetDatabase.LoadAssetAtPath<KitPrefabCatalog>($"Assets/Resources/Catalogs/KitCatalog_{Kit}.asset");
             Assert.IsNotNull(catalog);
             Assert.AreEqual(15, catalog.modules.Count);
             foreach (var entry in catalog.modules)

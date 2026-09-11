@@ -32,10 +32,19 @@ namespace SynapticSea.Runtime
         public GameObject damagedVisual;
         public GameObject breachedVisual;
 
-        [Header("Placement metadata (set by the ship scene builder)")]
+        [Header("Placement metadata (set by the ship scene builder; replaces Godot set_meta keys)")]
         public string moduleKey;
         public string structuralKind;
         public string roomId;
+        public string[] roomIds;
+        public string placementId;
+        /// <summary>Edge key (walls/portals) or cell key (floors/ceilings) from the structural plan.</summary>
+        public string placementKey;
+        /// <summary>"edge", "floor" or "ceiling".</summary>
+        public string layer;
+        /// <summary>Placement in Godot's frame (metres) and Godot yaw degrees, as authored in layout.json.</summary>
+        public Vector3 godotPosition;
+        public float godotYawDegrees;
         public string integrityState = IntegrityIntact;
 
         /// <summary>Port of IntegrityVisualResolver.apply_visual_state: exactly one variant is visible.</summary>

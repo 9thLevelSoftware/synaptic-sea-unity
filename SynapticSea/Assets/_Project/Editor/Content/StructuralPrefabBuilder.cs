@@ -81,7 +81,7 @@ namespace SynapticSea.EditorTools.Content
             string prefabDir = $"Assets/Content/Prefabs/Structural/{kitId}";
             Directory.CreateDirectory(prefabDir);
 
-            var catalogEntries = new List<KitCatalog.Entry>();
+            var catalogEntries = new List<KitPrefabCatalog.Entry>();
             foreach (object m in kit.GetArrayOrEmpty("modules"))
             {
                 if (!(m is GdDict module)) continue;
@@ -89,7 +89,7 @@ namespace SynapticSea.EditorTools.Content
                 try
                 {
                     var prefab = BuildModule(kitId, module, prefabDir, report);
-                    if (prefab != null) catalogEntries.Add(new KitCatalog.Entry { moduleId = moduleId, prefab = prefab });
+                    if (prefab != null) catalogEntries.Add(new KitPrefabCatalog.Entry { moduleId = moduleId, prefab = prefab });
                 }
                 catch (Exception e)
                 {
@@ -345,15 +345,15 @@ namespace SynapticSea.EditorTools.Content
             name.StartsWith("Collision_", StringComparison.Ordinal) || name.EndsWith("-col", StringComparison.Ordinal) ||
             name.EndsWith("-colonly", StringComparison.Ordinal) || name.EndsWith("-convcol", StringComparison.Ordinal);
 
-        static KitCatalog WriteCatalog(string kitId, double gridStep, List<KitCatalog.Entry> entries)
+        static KitPrefabCatalog WriteCatalog(string kitId, double gridStep, List<KitPrefabCatalog.Entry> entries)
         {
             const string dir = "Assets/Resources/Catalogs";
             Directory.CreateDirectory(dir);
             string path = $"{dir}/KitCatalog_{kitId}.asset";
-            var catalog = AssetDatabase.LoadAssetAtPath<KitCatalog>(path);
+            var catalog = AssetDatabase.LoadAssetAtPath<KitPrefabCatalog>(path);
             if (catalog == null)
             {
-                catalog = ScriptableObject.CreateInstance<KitCatalog>();
+                catalog = ScriptableObject.CreateInstance<KitPrefabCatalog>();
                 AssetDatabase.CreateAsset(catalog, path);
             }
             catalog.kitId = kitId;
@@ -364,7 +364,7 @@ namespace SynapticSea.EditorTools.Content
             return catalog;
         }
 
-        static void Finish(string kitId, Report report, bool strict, bool exitWhenDone, KitCatalog catalog)
+        static void Finish(string kitId, Report report, bool strict, bool exitWhenDone, KitPrefabCatalog catalog)
         {
             var doc = new GdDict
             {
