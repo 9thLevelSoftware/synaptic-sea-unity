@@ -1,0 +1,45 @@
+# ---- Unity (project lives in SynapticSea/) ----
+SynapticSea/[Ll]ibrary/
+SynapticSea/[Tt]emp/
+SynapticSea/[Oo]bj/
+SynapticSea/[Bb]uild/
+SynapticSea/[Bb]uilds/
+SynapticSea/[Ll]ogs/
+SynapticSea/[Uu]serSettings/
+SynapticSea/[Mm]emoryCaptures/
+SynapticSea/[Rr]ecordings/
+SynapticSea/*.csproj
+SynapticSea/*.sln
+SynapticSea/*.slnx
+SynapticSea/*.suo
+SynapticSea/*.user
+SynapticSea/*.pidb
+SynapticSea/*.booproj
+SynapticSea/*.svd
+SynapticSea/*.pdb
+SynapticSea/*.mdb
+SynapticSea/*.opendb
+SynapticSea/*.VC.db
+SynapticSea/*.pidb.meta
+SynapticSea/*.pdb.meta
+SynapticSea/*.mdb.meta
+SynapticSea/sysinfo.txt
+SynapticSea/crashlytics-build.properties
+SynapticSea/Assets/[Ss]treamingAssets/aa/
+.vs/
+.vscode/
+.idea/
+
+# ---- Repo-level outputs ----
+builds/
+artifacts/
+*.log
+
+# ---- Local-only art library (1.8 GB third-party pack) ----
+art-library/
+
+# ---- Tooling ----
+tools/dotnet/**/bin/
+tools/dotnet/**/obj/
+__pycache__/
+*.pyc
