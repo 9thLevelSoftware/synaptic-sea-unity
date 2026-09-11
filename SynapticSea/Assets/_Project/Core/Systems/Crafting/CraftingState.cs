@@ -297,6 +297,23 @@ namespace SynapticSea.Core.Systems
                 _stationOrder.Remove(stationKind);
         }
 
+        /// <summary>
+        /// FieldCraftingState seam: GDScript assigns <c>_crafting_state._station_states[kind] = station</c> directly
+        /// (an existing key keeps its insertion position).
+        /// </summary>
+        internal void SetStationState(string stationKind, StationState station)
+        {
+            if (!_stationStates.ContainsKey(stationKind))
+                _stationOrder.Add(stationKind);
+            _stationStates[stationKind] = station;
+        }
+
+        /// <summary>FieldCraftingState seam: GDScript assigns <c>_crafting_state._active_craft = {...}</c> directly.</summary>
+        internal void SetActiveCraft(GdDict activeCraft)
+        {
+            _activeCraft = activeCraft;
+        }
+
         // --- crafting execution ---
 
         /// <summary>

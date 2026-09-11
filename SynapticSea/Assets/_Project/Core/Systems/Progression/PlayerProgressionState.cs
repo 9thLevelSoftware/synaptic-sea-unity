@@ -16,7 +16,7 @@ namespace SynapticSea.Core.Systems
     /// (progression-1) load with empty defaults and <see cref="ApplySummary"/> never overwrites an existing
     /// cross_training entry with empty data unless the source explicitly says so.
     /// </remarks>
-    public class PlayerProgressionState : ISkillLevelSource
+    public class PlayerProgressionState : ISkillLevelSource, SkillTreeState.IBookReadSource
     {
         public const long MAX_SKILL_LEVEL = 10;
         public const string DEFAULT_SKILLS_PATH = "res://data/player/skills.json";

@@ -12,7 +12,7 @@ namespace SynapticSea.Core.Systems
     /// <c>user://meta_progression.json</c> (through an injected <see cref="IStorage"/>) independent of RunSnapshot.
     /// Owns meta-currency, hub upgrade / class / codex unlock sets, and run counters.
     /// </summary>
-    public class MetaProgressionState : ISimModel, IDiskPersisted, IHubUpgradeWallet, IStatusLineProvider
+    public class MetaProgressionState : ISimModel, IDiskPersisted, IHubUpgradeWallet, IStatusLineProvider, SkillTreeState.ICodexEntrySource
     {
         public const string SchemaVersion = "meta-progression-1";
         public const string SavePath = "user://meta_progression.json";
