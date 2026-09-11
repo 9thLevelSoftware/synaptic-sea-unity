@@ -15,7 +15,7 @@ namespace SynapticSea.Core.Systems
     /// The GDScript <c>foods</c> Dictionary holds FoodState objects, which a <see cref="GdDict"/> cannot, so it is an
     /// insertion-ordered map here (same iteration order as the Godot Dictionary, including after erase).
     /// </remarks>
-    public sealed class SpoilageState : ISimModel, IStatusLineProvider,
+    public sealed class SpoilageState : ISimModel, IStatusLineProvider, ConsumableState.ISpoilageFoodSource,
         FoodTravelPlanner.ITravelRangeSource, FoodTravelPlanner.IFoodRegistry, FoodTravelPlanner.IFoodLookup
     {
         readonly List<string> _foodOrder = new List<string>();

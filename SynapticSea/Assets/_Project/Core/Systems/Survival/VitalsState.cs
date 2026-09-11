@@ -11,7 +11,7 @@ namespace SynapticSea.Core.Systems
     /// PKG-C3.1b: response curves (not cliffs) + cross-coupling (each stat feeds at least two others).
     /// Implements <see cref="EffectDispatcher.IVitalsTarget"/> (<c>apply_delta</c>) for the consumable pipeline.
     /// </summary>
-    public sealed class VitalsState : ISimModel, ITickable, IStatusLineProvider, EffectDispatcher.IVitalsTarget
+    public sealed class VitalsState : ISimModel, ITickable, IStatusLineProvider, EffectDispatcher.IVitalsTarget, IDamageVitalsTarget
     {
         public const double DEFAULT_MAX_HEALTH = 100.0;
         public const double DEFAULT_MAX_STAMINA = 100.0;
@@ -40,6 +40,13 @@ namespace SynapticSea.Core.Systems
         public double HealthRecoveryRate = DEFAULT_HEALTH_RECOVERY;
 
         public double Health = DEFAULT_MAX_HEALTH;
+
+        /// <summary>DamagePipeline writes health through this (the GDScript assigned <c>vitals.health</c> directly).</summary>
+        double IDamageVitalsTarget.Health
+        {
+            get => Health;
+            set => Health = value;
+        }
         public double Stamina = DEFAULT_MAX_STAMINA;
         public double Hunger = DEFAULT_MAX_HUNGER;
         public double Thirst = DEFAULT_MAX_THIRST;
