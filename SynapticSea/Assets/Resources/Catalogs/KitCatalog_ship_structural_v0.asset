@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91bced3ceac6ab04baf147d8c1ef449e, type: 3}
+  m_Name: KitCatalog_ship_structural_v0
+  m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.KitCatalog
+  kitId: ship_structural_v0
+  gridStepMetres: 4
+  modules:
+  - moduleId: floor_1x1
+    prefab: {fileID: 7738648422252816914, guid: 3e9f64d22e8d83141842b4257799160f, type: 3}
+  - moduleId: floor_2x1
+    prefab: {fileID: 3782649287734554217, guid: 393bd7244975d184ab09e925af3e7f98, type: 3}
+  - moduleId: corridor_floor_1x1
+    prefab: {fileID: 9206808414872444817, guid: b04f9a1010e9b8b479a0ea1dd3db31e9, type: 3}
+  - moduleId: corridor_floor_1x2
+    prefab: {fileID: 7095194429872537219, guid: c6b6afea9c898564998e094f88eb8ddf, type: 3}
+  - moduleId: wall_straight_1x1
+    prefab: {fileID: 3467328825322962205, guid: 41b196f59ec02dd49b42bab5ba56fb51, type: 3}
+  - moduleId: wall_end_cap
+    prefab: {fileID: 7983608060724830868, guid: 8a2be28874ec61f418a35ccbd91146db, type: 3}
+  - moduleId: wall_inner_corner
+    prefab: {fileID: 4647790073907417558, guid: 36a9ce925de7f404abb2c3bd236d2ec5, type: 3}
+  - moduleId: wall_outer_corner
+    prefab: {fileID: 5347638251458718586, guid: 85cb655b84584c948ab174eaedb952c4, type: 3}
+  - moduleId: wall_t_junction
+    prefab: {fileID: 5676343455530776343, guid: ae0bedfdca413b04ba47d97cbe813b9a, type: 3}
+  - moduleId: doorway_frame_open_1x1
+    prefab: {fileID: 72909460490811595, guid: e8f116fb77051b44d8f75783c26fc243, type: 3}
+  - moduleId: bulkhead_portal_2x1
+    prefab: {fileID: 1515552223562223510, guid: 59f9efb8cc90ca34d88de60b7da0e3aa, type: 3}
+  - moduleId: doorway_frame_blocked_1x1
+    prefab: {fileID: 4085123821675070107, guid: a0668de5dcf7d994ba1951e6924caf49, type: 3}
+  - moduleId: ramp_up_1x2
+    prefab: {fileID: 5209133316751267098, guid: 92c7d183b48d2434685736d738d0f667, type: 3}
+  - moduleId: pillar_support_1x1
+    prefab: {fileID: 7228408796856561746, guid: bfcf007d5096f744bbf2c9654d8a6969, type: 3}
+  - moduleId: ceiling_cap_1x1
+    prefab: {fileID: 7905612254175969908, guid: 89046a607970d464ba86c01cb7350ae2, type: 3}

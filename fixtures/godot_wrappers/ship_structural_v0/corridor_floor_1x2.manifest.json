@@ -1,0 +1,77 @@
+{
+  "asset": {
+    "anchors": {
+      "exposed": [
+        {
+          "kind": "floor-center",
+          "name": "Anchor_FloorCenter",
+          "surface": "floor"
+        },
+        {
+          "kind": "attachment",
+          "name": "Anchor_SOCK_floor_edge_north_01",
+          "surface": "custom"
+        },
+        {
+          "kind": "attachment",
+          "name": "Anchor_SOCK_floor_edge_south_01",
+          "surface": "custom"
+        },
+        {
+          "kind": "attachment",
+          "name": "Anchor_SOCK_floor_edge_east_01",
+          "surface": "custom"
+        },
+        {
+          "kind": "attachment",
+          "name": "Anchor_SOCK_floor_edge_west_01",
+          "surface": "custom"
+        }
+      ],
+      "policy": "required"
+    },
+    "category": "structural",
+    "collision_policy": {
+      "kind": "static-body-proxy",
+      "nav_blocker": false,
+      "notes": "authored simple proxy, never decorative collision",
+      "proxy_shape": "box"
+    },
+    "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/corridor_floor_1x2_contract.tres",
+    "display_name": "Corridor Floor 1x2",
+    "id": "corridor_floor_1x2",
+    "inspection_path": null,
+    "notes": null,
+    "relations": {
+      "affordances": [
+        "on_floor"
+      ],
+      "orientation_bias": "any"
+    },
+    "source_asset_path": "assets/_processed/ship_structural_v0/corridor_floor_1x2/corridor_floor_1x2.glb",
+    "support": {
+      "clearance_radius_m": 0.0,
+      "load_bearing": false,
+      "required_surfaces": [
+        "floor"
+      ]
+    },
+    "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/corridor_floor_1x2.tscn"
+  },
+  "document_kind": "godot_wrapper_scene",
+  "generated": {
+    "collision_root_type": "StaticBody3D",
+    "proxy_shape": "box",
+    "root_transform": "identity",
+    "scene_lines": 29,
+    "scene_root": "Corridor_Floor_1x2",
+    "visual_child": true,
+    "visual_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "visual_scene_path": "res://assets/imported/structural/ship_structural_v0/corridor_floor_1x2/corridor_floor_1x2.glb"
+  },
+  "schema_version": "1.0.0"
+}

@@ -1,18 +1,15 @@
 {
-    "name": "SynapticSea.Editor",
-    "rootNamespace": "SynapticSea.EditorTools",
+    "name": "SynapticSea.Runtime",
+    "rootNamespace": "SynapticSea.Runtime",
     "references": [
-        "SynapticSea.Core",
-        "SynapticSea.Runtime"
+        "SynapticSea.Core"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

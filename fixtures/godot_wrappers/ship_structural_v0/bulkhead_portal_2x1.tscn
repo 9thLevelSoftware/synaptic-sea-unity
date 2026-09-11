@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3]
+[ext_resource type="PackedScene" path="res://assets/imported/structural/ship_structural_v0/bulkhead_portal_2x1/bulkhead_portal_2x1.glb" id="1_visual"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(1, 1, 1)
+
+[node name="Bulkhead_Portal_2x1" type="Node3D"]
+
+[node name="Anchor_FloorCenter" type="Marker3D" parent="."]
+
+[node name="Anchor_SOCK_portal_edge_west_01" type="Marker3D" parent="."]
+
+[node name="Anchor_SOCK_portal_edge_east_01" type="Marker3D" parent="."]
+
+[node name="Anchor_SOCK_portal_center_internal_01" type="Marker3D" parent="."]
+
+[node name="CollisionRoot" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CollisionRoot"]
+shape = SubResource("BoxShape3D_1")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="VisualInstance" parent="Visual" instance=ExtResource("1_visual")]
+position = Vector3(0, 0, 0)

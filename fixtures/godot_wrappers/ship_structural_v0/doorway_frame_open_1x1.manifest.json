@@ -1,0 +1,72 @@
+{
+  "asset": {
+    "anchors": {
+      "exposed": [
+        {
+          "kind": "floor-center",
+          "name": "Anchor_FloorCenter",
+          "surface": "floor"
+        },
+        {
+          "kind": "attachment",
+          "name": "Anchor_SOCK_portal_edge_west_01",
+          "surface": "custom"
+        },
+        {
+          "kind": "attachment",
+          "name": "Anchor_SOCK_portal_edge_east_01",
+          "surface": "custom"
+        },
+        {
+          "kind": "attachment",
+          "name": "Anchor_SOCK_portal_center_internal_01",
+          "surface": "custom"
+        }
+      ],
+      "policy": "required"
+    },
+    "category": "structural",
+    "collision_policy": {
+      "kind": "static-body-proxy",
+      "nav_blocker": true,
+      "notes": "authored simple proxy, never decorative collision",
+      "proxy_shape": "box"
+    },
+    "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/doorway_frame_open_1x1_contract.tres",
+    "display_name": "Doorway Frame Open 1x1",
+    "id": "doorway_frame_open_1x1",
+    "inspection_path": null,
+    "notes": null,
+    "relations": {
+      "affordances": [
+        "against_wall"
+      ],
+      "orientation_bias": "wall-facing"
+    },
+    "source_asset_path": "assets/_processed/ship_structural_v0/doorway_frame_open_1x1/doorway_frame_open_1x1.glb",
+    "support": {
+      "clearance_radius_m": 0.0,
+      "load_bearing": true,
+      "required_surfaces": [
+        "floor"
+      ]
+    },
+    "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/doorway_frame_open_1x1.tscn"
+  },
+  "document_kind": "godot_wrapper_scene",
+  "generated": {
+    "collision_root_type": "StaticBody3D",
+    "proxy_shape": "box",
+    "root_transform": "identity",
+    "scene_lines": 27,
+    "scene_root": "Doorway_Frame_Open_1x1",
+    "visual_child": true,
+    "visual_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "visual_scene_path": "res://assets/imported/structural/ship_structural_v0/doorway_frame_open_1x1/doorway_frame_open_1x1.glb"
+  },
+  "schema_version": "1.0.0"
+}
