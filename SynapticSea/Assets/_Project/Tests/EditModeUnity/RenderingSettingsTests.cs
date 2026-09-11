@@ -15,7 +15,7 @@ namespace SynapticSea.Tests.Unity
             var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
             Assert.IsNotNull(pipeline);
             Assert.AreSame(pipeline, GraphicsSettings.defaultRenderPipeline);
-            Assert.IsTrue(pipeline.supportsHDR, "HDR is required for ACES tonemapping and emissive bloom");
+            Assert.IsTrue(pipeline.supportsHDR, "HDR is required for tonemapping and emissive bloom");
             Assert.AreEqual(4, pipeline.msaaSampleCount);
             Assert.AreEqual(2, pipeline.shadowCascadeCount);
 
@@ -30,7 +30,8 @@ namespace SynapticSea.Tests.Unity
         {
             var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/Settings/Volumes/SS_GlobalVolume.asset");
             Assert.IsNotNull(profile);
-            Assert.IsTrue(profile.TryGet(out Tonemapping tone) && tone.mode.overrideState && tone.mode.value == TonemappingMode.ACES);
+            Assert.IsTrue(profile.TryGet(out Tonemapping tone) && tone.mode.overrideState && tone.mode.value == TonemappingMode.Neutral,
+                "Neutral matches the Godot light level (ACES crushed it; docs/port-status.md)");
             Assert.IsTrue(profile.TryGet(out Bloom bloom) && bloom.intensity.overrideState);
             Assert.IsTrue(profile.TryGet(out Vignette vignette) && vignette.intensity.overrideState);
             Assert.IsTrue(profile.TryGet(out ColorAdjustments color) && color.contrast.overrideState);
