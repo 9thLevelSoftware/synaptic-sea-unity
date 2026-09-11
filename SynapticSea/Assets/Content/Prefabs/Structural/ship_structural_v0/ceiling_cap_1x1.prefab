@@ -347,6 +347,12 @@ MonoBehaviour:
   moduleKey: 
   structuralKind: 
   roomId: 
+  roomIds: []
+  placementId: 
+  placementKey: 
+  layer: 
+  godotPosition: {x: 0, y: 0, z: 0}
+  godotYawDegrees: 0
   integrityState: intact
 --- !u!1 &8524583641147111694
 GameObject:
@@ -765,10 +771,6 @@ PrefabInstance:
     - target: {fileID: 8771091787928289351, guid: e9be34cfac5ee4242871c332f1dd252f, type: 3}
       propertyPath: m_Layer
       value: 13
-      objectReference: {fileID: 0}
-    - target: {fileID: 8771091787928289351, guid: e9be34cfac5ee4242871c332f1dd252f, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8771091787928289351, guid: e9be34cfac5ee4242871c332f1dd252f, type: 3}
       propertyPath: m_StaticEditorFlags

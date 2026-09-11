@@ -1,5 +1,20 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-5045345313329079329
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac59931a160b7bc4a8c7b143473d7e22, type: 3}
+  m_Name: Hallucination
+  m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.HallucinationRendererFeature
+  m_Active: 1
+  shader: {fileID: 4800000, guid: 2dd5238079484d046a537b638be7c289, type: 3}
+  injectionPoint: 600
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27,7 +42,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
   - {fileID: 6084234276625522940}
-  m_RendererFeatureMap: ad6b866f10d7b46cfc2085c4d68a6f54l
+  - {fileID: -5045345313329079329}
+  m_RendererFeatureMap: ad6b866f10d7b46cfc2085c4d68a6f54df9bd63d2b55fbb9l
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
