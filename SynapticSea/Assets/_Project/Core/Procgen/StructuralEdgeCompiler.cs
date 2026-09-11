@@ -63,7 +63,7 @@ namespace SynapticSea.Core.Procgen
         static readonly Vec2i CellSentinel = new Vec2i(-99999, -99999);
 
         /// <summary>GDScript <c>_read_cell()</c> result (<c>{"ok", "cell", "deck"}</c>).</summary>
-        struct CellInfo
+        internal struct CellInfo
         {
             public bool Ok;
             public Vec2i Cell;
@@ -894,7 +894,7 @@ namespace SynapticSea.Core.Procgen
             return DEFAULT_PORTAL_MODULE;
         }
 
-        CellInfo ReadCell(object value, long defaultDeck)
+        internal static CellInfo ReadCell(object value, long defaultDeck)
         {
             if (value is Vec2i v) return new CellInfo { Ok = defaultDeck >= 0, Cell = v, Deck = defaultDeck };
             if (!(value is GdArray values))
@@ -923,7 +923,7 @@ namespace SynapticSea.Core.Procgen
             return new CellInfo { Ok = true, Cell = new Vec2i(V.I32(values[0]), V.I32(values[1])), Deck = deck };
         }
 
-        static List<double> ParseVectorString(string value, int expected)
+        internal static List<double> ParseVectorString(string value, int expected)
         {
             string text = GdString.StripEdges(value);
             if (GdString.BeginsWith(text, "(") && GdString.EndsWith(text, ")"))
@@ -952,7 +952,7 @@ namespace SynapticSea.Core.Procgen
         /// Godot 4.7 <c>String.is_valid_float()</c>: optional leading sign, digits with at most one '.', an optional
         /// 'e' exponent (after digits) with an optional sign; at least one mantissa digit.
         /// </summary>
-        static bool IsValidFloat(string s)
+        internal static bool IsValidFloat(string s)
         {
             int len = s.Length;
             if (len == 0) return false;
@@ -991,7 +991,7 @@ namespace SynapticSea.Core.Procgen
             return numbersFound;
         }
 
-        static bool IsInteger(object value)
+        internal static bool IsInteger(object value)
         {
             if (value is long) return true;
             if (value is double d) return GdMath.IsEqualApprox(d, GdMath.Round(d));
