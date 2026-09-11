@@ -7,7 +7,7 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Core.Systems
 {
     /// <summary>Pure registry for active status effects (REQ-SV-005): id, remaining duration, stacks.</summary>
-    public sealed class StatusEffectsState : ISimModel, ITickable, IStatusLineProvider
+    public sealed class StatusEffectsState : ISimModel, ITickable, IStatusLineProvider, EffectDispatcher.IStatusEffectsTarget
     {
         /// <summary>Array of { "id": String, "duration": float, "stacks": int }.</summary>
         public GdArray Effects = new GdArray();
