@@ -52,7 +52,17 @@ All of it is in `Assets/_Project/Core`. Read the source; this is a summary.
 | `signal x(a, b)` + `emit_signal` | `public event Action<A, B> X;` + `X?.Invoke(a, b)` |
 | `has_method("m")` / `.call("m", ...)` | an interface, or `as ISomething` plus a null check where the call is genuinely optional. Put small shared interfaces next to the implementing class |
 | `StringName` / `&"x"` | `string` |
+| `s.find/contains/begins_with/strip_edges/trim_prefix/is_valid_int/capitalize/path_join/split`, `"%.2f" % v`, `"%d" % i`, `sha256_text` | `GdString.*` (Godot semantics; never `string.Trim`, `IndexOf("")`, culture formatting). Do **not** add new `*Compat` helpers for these |
 | `PackedStringArray` | `List<string>` when internal; `GdArray` when it reaches a summary |
+
+## Cross-wave interfaces
+
+Wave 1 introduced interfaces that later ports must implement instead of inventing new ones. Search `Core/Systems` for `interface I` before adding one. Known obligations:
+- `EffectDispatcher` targets: `IVitalsTarget`, `ISanityTarget`, `IRadiationTarget`, `IBodyTemperatureTarget`, `IStatusEffectsTarget`.
+- `CargoTransfer`: `ICargoStore`, `ICargoPlayer`, `ICargoHold`. `FoodTravelPlanner`: `ITravelRangeSource`, `IFoodRegistry`, `IFoodLookup`.
+- `ModuleDamageRouter`: `IModuleIntegrityMap`. `DockingManager`: `IShipSceneRoot`, `IDockableShip`. `ScannerState`/`TravelController`: `IMarkerWorld`, `IShipGenerator`.
+- `SkillEffectsResolver`: `ISkillLevelSource`. `TitleSaveQuery`: `ITitleSaveService`, `IDeathRecordQuery`. `SettingsState`: `IAccessibilitySettingsSink`. `HubUpgradeState`: `IHubUpgradeWallet`. `DifficultyProfile`: `IModifierSource`.
+- `PhaseTimer` exposes `CurrentPhaseValue` (not `phase`); `ShipBlueprint` exposes `ShipSize`, `ShipCondition`, `SeedValue`.
 
 ## Numeric rules
 
