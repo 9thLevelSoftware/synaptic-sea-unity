@@ -17,7 +17,7 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 9 Rendering | In progress (ceiling fade, VFX, hallucination FX, calibration) | URP Forward+, SSAO, decals, global volume; first renders match Godot's silhouette and orientation |
 | 10 UI | In progress | 29 panels plus MenuCoordinator on UI Toolkit |
 | 11 Audio and input | Done (first pass) | AudioManager port with per-bus volumes; input actions mirror the Godot InputMap; typed wrapper generated |
-| 12 Tooling | Started | `tools/test.ps1`, `tools/sync-godot-data.ps1`, fixture exporter on the local `unity/parity-fixtures` Godot branch |
+| 12 Builds and tooling | Started | Windows dev (Mono) and release (IL2CPP) and macOS dev (Mono, unsigned) builds pass; `tools/verify-headless.ps1` smoke-launches the Windows player clean; `tools/test.ps1 -Mode All` runs dotnet, EditMode and PlayMode; fixture exporter on the local `unity/parity-fixtures` Godot branch. Real scenes are not in Build Settings yet (SampleScene only). |
 
 Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMode).
 
