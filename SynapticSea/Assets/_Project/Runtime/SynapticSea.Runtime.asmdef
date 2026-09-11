@@ -2,7 +2,8 @@
     "name": "SynapticSea.Runtime",
     "rootNamespace": "SynapticSea.Runtime",
     "references": [
-        "SynapticSea.Core"
+        "SynapticSea.Core",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
