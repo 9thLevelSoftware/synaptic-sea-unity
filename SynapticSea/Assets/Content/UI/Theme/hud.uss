@@ -1,0 +1,57 @@
+/*
+ * HUD zoning (ui_presentation_program.md "Persistent HUD and disclosure"):
+ * one lower-left primary cluster (health, personal O2, stamina, urgent status, weapon/quick-use) and one small
+ * upper-left objective chip. Persistent UI must stay out of the central 40% x 45% play area and the lower-middle
+ * traversal corridor (x 35–65%, y 70–100%). Target coverage <= 20% at 1x (ceiling 25%), <= 30% at 1.5x/2x.
+ */
+
+.hud-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.hud-cluster {
+    position: absolute;
+    left: var(--ss-safe-inset);
+    bottom: var(--ss-safe-inset);
+    width: 22%;
+    min-width: 280px;
+    max-width: 34%;
+}
+
+.hud-status-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: var(--ss-space-1);
+}
+
+.hud-status-chip {
+    font-size: var(--ss-font-meta);
+    padding-left: var(--ss-space-2);
+    padding-right: var(--ss-space-2);
+    margin-right: var(--ss-space-1);
+    margin-bottom: var(--ss-space-1);
+    border-width: var(--ss-border-width);
+    border-radius: var(--ss-radius);
+    border-color: var(--ss-color-seam);
+}
+
+.hud-status-chip--caution {
+    color: var(--ss-color-caution);
+    border-color: var(--ss-color-caution);
+}
+
+.hud-status-chip--danger {
+    color: var(--ss-color-danger);
+    border-color: var(--ss-color-danger);
+}
+
+.hud-objective-chip {
+    position: absolute;
+    left: var(--ss-safe-inset);
+    top: var(--ss-safe-inset);
+    max-width: 34%;
+}

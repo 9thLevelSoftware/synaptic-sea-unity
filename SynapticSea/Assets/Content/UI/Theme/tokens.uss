@@ -1,0 +1,68 @@
+/*
+ * Synaptic Sea UI design tokens — from docs/game/features/ui_presentation_program.md (2026-09-05), "Visual system".
+ * Worn industrial instrumentation: restrained cyan information, amber/red warnings, desaturated alloy panels.
+ * Text scale 1x/1.5x/2x is applied by REFLOW: the .scale-150/.scale-200 classes (set on the panel root) redefine the
+ * size variables; layouts use flex/percent so content wraps instead of whole rectangles being multiplied.
+ */
+
+:root {
+    /* colour */
+    --ss-color-backing: #0D151C;
+    --ss-color-panel: #17232C;
+    --ss-color-panel-opaque: rgba(13, 21, 28, 0.92);
+    --ss-color-text: #E8EEE9;
+    --ss-color-text-secondary: #B6C4C9;
+    --ss-color-info: #69D2DF;
+    --ss-color-focus: #69D2DF;
+    --ss-color-caution: #F2BE62;
+    --ss-color-danger: #F17B72;
+    --ss-color-success: #9CCB9B;
+    --ss-color-seam: #2B3A45;
+    --ss-color-meter-track: #0A1117;
+
+    /* spacing (logical px) */
+    --ss-space-1: 4px;
+    --ss-space-2: 8px;
+    --ss-space-3: 12px;
+    --ss-space-4: 16px;
+    --ss-space-5: 24px;
+    --ss-space-6: 32px;
+    --ss-safe-inset: 18px;
+
+    /* type (1x) */
+    --ss-font-body: 18px;
+    --ss-font-meta: 16px;
+    --ss-font-h2: 24px;
+    --ss-font-h1: 32px;
+
+    /* controls */
+    --ss-row-height: 44px;
+    --ss-meter-height: 10px;
+    --ss-border-width: 1px;
+    --ss-focus-width: 2px;
+    --ss-radius: 3px;
+
+    /* motion (120–180 ms; no idle pulsing on the ordinary HUD) */
+    --ss-motion-fast: 120ms;
+    --ss-motion-base: 180ms;
+}
+
+/* 1.5x text: never smaller text, reflow instead */
+.scale-150 {
+    --ss-font-body: 27px;
+    --ss-font-meta: 24px;
+    --ss-font-h2: 36px;
+    --ss-font-h1: 48px;
+    --ss-row-height: 56px;
+    --ss-meter-height: 14px;
+}
+
+/* 2x text */
+.scale-200 {
+    --ss-font-body: 36px;
+    --ss-font-meta: 32px;
+    --ss-font-h2: 48px;
+    --ss-font-h1: 64px;
+    --ss-row-height: 72px;
+    --ss-meter-height: 18px;
+}

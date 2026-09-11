@@ -1,0 +1,105 @@
+/* Base component styles. Fonts: Inter (prose/actions), JetBrains Mono (quantities, ids, readings). SIL OFL 1.1. */
+
+.ss-root {
+    -unity-font-definition: initial;
+    -unity-font: url("project://database/Assets/Content/UI/Fonts/Inter/Inter-Regular.ttf");
+    color: var(--ss-color-text);
+    font-size: var(--ss-font-body);
+}
+
+.ss-panel {
+    background-color: var(--ss-color-panel-opaque);
+    border-color: var(--ss-color-seam);
+    border-width: var(--ss-border-width);
+    border-radius: var(--ss-radius);
+    padding: var(--ss-space-3);
+}
+
+.ss-panel--raised {
+    background-color: var(--ss-color-panel);
+}
+
+.ss-label {
+    color: var(--ss-color-text);
+    font-size: var(--ss-font-body);
+    white-space: normal;
+}
+
+.ss-label--secondary {
+    color: var(--ss-color-text-secondary);
+    font-size: var(--ss-font-meta);
+}
+
+.ss-label--mono {
+    -unity-font: url("project://database/Assets/Content/UI/Fonts/JetBrainsMono/JetBrainsMono-Medium.ttf");
+}
+
+.ss-label--heading {
+    font-size: var(--ss-font-h2);
+    -unity-font-style: bold;
+}
+
+.ss-info { color: var(--ss-color-info); }
+.ss-caution { color: var(--ss-color-caution); }
+.ss-danger { color: var(--ss-color-danger); }
+.ss-success { color: var(--ss-color-success); }
+
+/* Focus is an outline, never hue alone. */
+.ss-focusable:focus {
+    border-color: var(--ss-color-focus);
+    border-width: var(--ss-focus-width);
+}
+
+Button.ss-button {
+    min-height: var(--ss-row-height);
+    font-size: var(--ss-font-body);
+    color: var(--ss-color-text);
+    background-color: var(--ss-color-panel);
+    border-color: var(--ss-color-seam);
+    border-width: var(--ss-border-width);
+    border-radius: var(--ss-radius);
+    transition-property: border-color, background-color;
+    transition-duration: var(--ss-motion-fast);
+}
+
+Button.ss-button:hover {
+    background-color: #1E2E39;
+}
+
+Button.ss-button:focus {
+    border-color: var(--ss-color-focus);
+    border-width: var(--ss-focus-width);
+}
+
+Button.ss-button:disabled {
+    color: #7C8B91;
+}
+
+/* Meter: a labelled bar (health / O2 / stamina). Text always accompanies the bar. */
+.ss-meter {
+    flex-direction: column;
+    margin-bottom: var(--ss-space-2);
+}
+
+.ss-meter__header {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.ss-meter__track {
+    height: var(--ss-meter-height);
+    background-color: var(--ss-color-meter-track);
+    border-color: var(--ss-color-seam);
+    border-width: var(--ss-border-width);
+    margin-top: var(--ss-space-1);
+}
+
+.ss-meter__fill {
+    height: 100%;
+    background-color: var(--ss-color-info);
+    transition-property: width;
+    transition-duration: var(--ss-motion-base);
+}
+
+.ss-meter--caution .ss-meter__fill { background-color: var(--ss-color-caution); }
+.ss-meter--danger .ss-meter__fill { background-color: var(--ss-color-danger); }

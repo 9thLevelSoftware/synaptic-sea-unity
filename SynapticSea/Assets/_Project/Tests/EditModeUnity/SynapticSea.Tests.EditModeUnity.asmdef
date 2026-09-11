@@ -4,6 +4,7 @@
     "references": [
         "SynapticSea.Core",
         "SynapticSea.Runtime",
+        "SynapticSea.UI",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
