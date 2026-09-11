@@ -63,6 +63,7 @@ Wave 1 introduced interfaces that later ports must implement instead of inventin
 - `ModuleDamageRouter`: `IModuleIntegrityMap`. `DockingManager`: `IShipSceneRoot`, `IDockableShip`. `ScannerState`/`TravelController`: `IMarkerWorld`, `IShipGenerator`.
 - `SkillEffectsResolver`: `ISkillLevelSource`. `TitleSaveQuery`: `ITitleSaveService`, `IDeathRecordQuery`. `SettingsState`: `IAccessibilitySettingsSink`. `HubUpgradeState`: `IHubUpgradeWallet`. `DifficultyProfile`: `IModifierSource`.
 - `PhaseTimer` exposes `CurrentPhaseValue` (not `phase`); `ShipBlueprint` exposes `ShipSize`, `ShipCondition`, `SeedValue`.
+- Procgen stages (Wave 2): `RoomAssigner.AssignWithSelector` takes the variant selector as `object` (`RoomVariantSelector` or `IRoomVariantPicker`); `EncounterInjector.Inject` takes `IModifierSource` biome/difficulty (normally `BiomeProfile`/`DifficultyProfile`); `StructuralPlacer.PlaceStructure` returns a `StructuralPlacer.Placement` record tree (RUNTIME builder input) instead of a `Node3D`.
 
 ## Numeric rules
 
