@@ -21,10 +21,11 @@ namespace SynapticSea.Core.Systems
     {
         /// <summary>
         /// RUNTIME: <c>ProjectSettings.get_setting("application/config/version", "0.0.0")</c>.
-        /// project.godot @ 96ecb2b0 does not set it, so Godot returns the "0.0.0" fallback.
+        /// In Godot 4 <c>application/config/version</c> is a built-in setting defaulting to "", so the "0.0.0"
+        /// fallback never applies; project.godot @ 96ecb2b0 does not set it and Godot's manifests carry "".
         /// The Runtime bootstrap may overwrite this with Application.version.
         /// </summary>
-        public static string ProjectVersion = "0.0.0";
+        public static string ProjectVersion = "";
 
         /// <summary>Godot <c>typeof(x)</c> (Variant.Type ids) for the Variant leaf set.</summary>
         public static int TypeOf(object v)

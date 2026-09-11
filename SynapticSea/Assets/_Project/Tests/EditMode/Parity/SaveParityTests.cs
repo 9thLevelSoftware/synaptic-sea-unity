@@ -366,7 +366,7 @@ namespace SynapticSea.Tests.Parity
             // ProjectSettings "application/config/version": Godot returns "" (the setting is registered with an ""
             // default, so the "0.0.0" fallback in cloud_manifest_state.gd never applies), while the Wave 1 port
             // (InfraCompat.ProjectVersion) uses "0.0.0". Reported, not changed here.
-            AssertTree(godot, port, "manifest", new TreeDiff.Options { IgnoreKeys = { "device_id", "created_at", "build_id", "payload_sha256", "payload_size_bytes" } });
+            AssertTree(godot, port, "manifest", new TreeDiff.Options { IgnoreKeys = { "device_id", "created_at", "payload_sha256", "payload_size_bytes" } });
             string written = s.Storage.ReadText("user://saves/slot_01.json");
             Assert.AreEqual(GdString.Sha256Text(written), port.GetString("payload_sha256"));
             Assert.AreEqual((double)Encoding.UTF8.GetByteCount(written), port.GetFloat("payload_size_bytes"));

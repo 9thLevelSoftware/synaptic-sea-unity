@@ -204,7 +204,7 @@ namespace SynapticSea.Tests.Systems
             Assert.AreEqual("015abd7f5cc57a2dd94b7590f04ad8084273905ee33ec5cebeae62276a97f862", m.PayloadSha256);
             Assert.AreEqual(7L, m.PayloadSizeBytes);
             Assert.AreEqual(16, m.DeviceId.Length);
-            Assert.AreEqual("0.0.0", m.BuildId);
+            Assert.AreEqual("", m.BuildId, "Godot 4 application/config/version defaults to \"\"");
             Assert.AreEqual(m.PayloadSha256, CloudManifestState.RecomputeSha256("user://saves/slot_02.json", storage));
             Assert.AreEqual("", CloudManifestState.RecomputeSha256("user://saves/missing.json", storage));
             var back = CloudManifestState.FromDict(m.ToDict());
