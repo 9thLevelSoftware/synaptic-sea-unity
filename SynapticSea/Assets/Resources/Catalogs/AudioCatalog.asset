@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34d30e2883928734b910ce00f486aed4, type: 3}
+  m_Name: AudioCatalog
+  m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.AudioCatalog
+  entries:
+  - resPath: res://data/audio/music/critical_pad.wav
+    clip: {fileID: 8300000, guid: bce76de00e83c1a4380e8be2e2d58740, type: 3}
+  - resPath: res://data/audio/music/exploration_base.wav
+    clip: {fileID: 8300000, guid: 790006c168498c3498415fff22214880, type: 3}
+  - resPath: res://data/audio/music/tension_drone.wav
+    clip: {fileID: 8300000, guid: e00be98468b238148bb9f638e5b89f80, type: 3}
+  - resPath: res://data/audio/sfx/breach_alarm.wav
+    clip: {fileID: 8300000, guid: 4e1470660e8ff3d49867321758bbb255, type: 3}
+  - resPath: res://data/audio/sfx/combat_hit.wav
+    clip: {fileID: 8300000, guid: a9ca576efd361d94094f87c68ffe1eb9, type: 3}
+  - resPath: res://data/audio/sfx/dock_land.wav
+    clip: {fileID: 8300000, guid: 4f26d38a1f18d38429548177f6fa05ff, type: 3}
+  - resPath: res://data/audio/sfx/door_close.wav
+    clip: {fileID: 8300000, guid: b45d7c8e79aab044781888d19ff2225e, type: 3}
+  - resPath: res://data/audio/sfx/door_open.wav
+    clip: {fileID: 8300000, guid: a39fc78973e5c6445bf43527db447b78, type: 3}
+  - resPath: res://data/audio/sfx/fire_crackle.wav
+    clip: {fileID: 8300000, guid: 2a1ca1ef784ec36419c9e6835c973a55, type: 3}
+  - resPath: res://data/audio/sfx/footstep.wav
+    clip: {fileID: 8300000, guid: 018ffae8ab94abe46b326fcb9dfa81a1, type: 3}
+  - resPath: res://data/audio/sfx/threat_alert.wav
+    clip: {fileID: 8300000, guid: 75b33bad8f6cce74c9b37db3dd6562aa, type: 3}
+  - resPath: res://data/audio/sfx/tool_pickup.wav
+    clip: {fileID: 8300000, guid: c6771027a1e49e543a7d77bc3db50cb3, type: 3}
+  - resPath: res://data/audio/sfx/vitals_low.wav
+    clip: {fileID: 8300000, guid: 515d29b6504a00c47821186beef01954, type: 3}
+  - resPath: res://data/audio/ui/panel_close.wav
+    clip: {fileID: 8300000, guid: f81e2460d84307645a84b7e5ffe24052, type: 3}
+  - resPath: res://data/audio/ui/panel_open.wav
+    clip: {fileID: 8300000, guid: cb97b491424eece469c90cb5f14e74cb, type: 3}
