@@ -1,19 +1,33 @@
+using System.Collections.Generic;
+using System.Linq;
+using SynapticSea.UI.Presenters;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace SynapticSea.UI
 {
     /// <summary>
-    /// HUD document root: applies the theme root class and the accessibility text scale (1x / 1.5x / 2x by reflow),
-    /// and hosts the persistent HUD pieces.
+    /// HUD document root (ui_presentation_program.md "Persistent HUD and disclosure"): applies the theme root class and
+    /// the text scale (1x / 1.5x / 2x by reflow), and zones the persistent HUD:
+    /// <list type="bullet">
+    /// <item>upper-left: one small objective chip (<see cref="Objective"/>);</item>
+    /// <item>lower-left column: transient stack (tutorial, context prompt / tooltip, active work) directly above the
+    /// primary cluster (health · O2 · stamina, urgent states, quick use).</item>
+    /// </list>
+    /// No minimap or radar (ADR-0045). Nothing persistent is placed in the protected centre or the lower-middle corridor.
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     public sealed class HudRoot : MonoBehaviour
     {
         public enum TextScale { X100, X150, X200 }
 
-        public HudVitalsCluster Vitals { get; private set; }
         public VisualElement Root { get; private set; }
+        public HudVitalsCluster Vitals { get; private set; }
+        public ObjectiveChip Objective { get; private set; }
+        public WorkActionStrip Work { get; private set; }
+        public VisualElement LeftColumn { get; private set; }
+        public VisualElement Transients { get; private set; }
+        public Label ContextPrompt { get; private set; }
 
         [SerializeField] TextScale textScale = TextScale.X100;
 
@@ -24,22 +38,131 @@ namespace SynapticSea.UI
         {
             documentRoot.Clear();
             Root = new VisualElement { name = "hud-root" };
-            Root.AddToClassList("ss-root");
+            Root.AddToClassList(UiClasses.Root);
             Root.AddToClassList("hud-root");
             Root.pickingMode = PickingMode.Ignore;
             documentRoot.Add(Root);
+
+            Objective = new ObjectiveChip();
+            Root.Add(Objective);
+
+            LeftColumn = UiFactory.Box("hud-left-column");
+            LeftColumn.name = "hud-left-column";
+            LeftColumn.pickingMode = PickingMode.Ignore;
+            Transients = UiFactory.Box("hud-transients");
+            Transients.name = "hud-transients";
+            Transients.pickingMode = PickingMode.Ignore;
+            ContextPrompt = UiFactory.Text("", "hud-context-prompt");
+            ContextPrompt.name = "hud-context-prompt";
+            UiFactory.SetShown(ContextPrompt, false);
+            Work = new WorkActionStrip();
+            _slots.Clear();
             Vitals = new HudVitalsCluster();
-            Root.Add(Vitals);
+            LeftColumn.Add(Transients);
+            LeftColumn.Add(Vitals);
+            Root.Add(LeftColumn);
+            AddTransient(ContextPrompt, PriorityPrompt);
+            AddTransient(Work, PriorityWork);
+
+            Objective.PromptChanged += SetContextPrompt;
+            SetContextPrompt(Objective.InteractionPrompt);
             ApplyTextScale(textScale);
+            Root.schedule.Execute(RefreshTransients).Every(100);
             return Root;
+        }
+
+        // Feedback priority (spec "Feedback, tutorials, and horror"): active work > contextual instruction > detail
+        // tooltip > tutorial. Critical danger lives in the cluster itself and is never suppressed.
+        public const int PriorityWork = 0;
+        public const int PriorityPrompt = 1;
+        public const int PriorityTooltip = 2;
+        public const int PriorityTutorial = 3;
+
+        readonly List<(VisualElement slot, VisualElement content, int priority)> _slots = new List<(VisualElement, VisualElement, int)>();
+
+        /// <summary>How many transients may show at once: 2 at 1x, 1 at 1.5x and 2x (disclosure instead of smaller text;
+        /// measured by HudLayoutTests so the column never reaches the objective chip).</summary>
+        public int TransientLimit => textScale == TextScale.X100 ? 2 : 1;
+
+        /// <summary>Adds a transient (it controls its own display; the HUD arbitrates by priority). Slots are ordered
+        /// top→bottom by descending priority number, so active work sits directly above the cluster.</summary>
+        public void AddTransient(VisualElement content, int priority)
+        {
+            var slot = UiFactory.Box("hud-transient-slot");
+            slot.pickingMode = PickingMode.Ignore;
+            slot.Add(content);
+            int index = 0;
+            while (index < _slots.Count && _slots[index].priority > priority) index++;
+            _slots.Insert(index, (slot, content, priority));
+            Transients.Insert(index, slot);
+            RefreshTransients();
+        }
+
+        /// <summary>Shows the highest-priority transients that want to show, up to <see cref="TransientLimit"/>.</summary>
+        public void RefreshTransients()
+        {
+            int shown = 0;
+            int limit = TransientLimit;
+            foreach (var entry in _slots.OrderBy(s => s.priority))
+            {
+                bool wants = UiFactory.IsShown(entry.content);
+                bool show = wants && shown < limit;
+                UiFactory.SetShown(entry.slot, show);
+                if (show) shown++;
+            }
+            Vitals?.SetWorkLineSuppressed(Work != null && Work.IsOpen());
+        }
+
+        /// <summary>Short transient context prompt above the cluster (bound glyph, verb, target, blocker).</summary>
+        public void SetContextPrompt(string text)
+        {
+            if (ContextPrompt == null) return;
+            ContextPrompt.text = text ?? "";
+            UiFactory.SetShown(ContextPrompt, !string.IsNullOrEmpty(text));
+            RefreshTransients();
+        }
+
+        /// <summary>Mounts the coordinator-owned HUD pieces (tutorial, tooltip, hotbar) into their zones and lets the
+        /// coordinator drive this root's text scale.</summary>
+        public void Mount(MenuCoordinator coordinator)
+        {
+            if (Root == null || coordinator == null) return;
+            AddTransient(coordinator.TutorialBanner, PriorityTutorial);
+            AddTransient(coordinator.TooltipCard, PriorityTooltip);
+            Vitals.QuickUseSlot.Clear();
+            Vitals.QuickUseSlot.Add(coordinator.HotbarStrip);
+            coordinator.RegisterScaleRoot(Root);
+            ApplyDisclosure();
         }
 
         public void ApplyTextScale(TextScale scale)
         {
             textScale = scale;
             if (Root == null) return;
-            Root.EnableInClassList("scale-150", scale == TextScale.X150);
-            Root.EnableInClassList("scale-200", scale == TextScale.X200);
+            Root.EnableInClassList(AccessibilitySettings.ClassScale150, scale == TextScale.X150);
+            Root.EnableInClassList(AccessibilitySettings.ClassScale200, scale == TextScale.X200);
+            ApplyDisclosure();
+        }
+
+        /// <summary>Large-text disclosure (reflow, never smaller text): compact status chips, quick-use names and work
+        /// hint at 1.5x/2x, plus the transient limit.</summary>
+        void ApplyDisclosure()
+        {
+            bool compact = textScale != TextScale.X100;
+            Vitals?.SetCompact(compact, textScale == TextScale.X200 ? 1 : 2);
+            Work?.SetCompact(compact);
+            Vitals?.QuickUseSlot.Query<HotbarStrip>().ForEach(h => h.SetCompact(compact));
+            RefreshTransients();
+        }
+
+        /// <summary>Applies the reflow step, reduced motion and colour-blind classes from the settings sink.</summary>
+        public void ApplyAccessibility(AccessibilitySettings settings)
+        {
+            if (Root == null || settings == null) return;
+            MenuCoordinator.ApplyAccessibilityClasses(Root, settings);
+            int step = settings.ReflowStep();
+            textScale = step == 200 ? TextScale.X200 : step == 150 ? TextScale.X150 : TextScale.X100;
+            ApplyDisclosure();
         }
     }
 }

@@ -15,8 +15,11 @@ namespace SynapticSea.UI
         public Severity CurrentSeverity { get; private set; }
         public string ValueText => _value.text;
 
+        readonly string _baseName;
+
         public Meter(string name)
         {
+            _baseName = name;
             AddToClassList("ss-meter");
             var header = new VisualElement();
             header.AddToClassList("ss-meter__header");
@@ -46,6 +49,10 @@ namespace SynapticSea.UI
             EnableInClassList("ss-meter--caution", severity == Severity.Caution);
             EnableInClassList("ss-meter--danger", severity == Severity.Danger);
             CurrentSeverity = severity;
+            // Severity is never hue alone: the name carries the caution/danger symbol (the status chips carry the wording).
+            _name.text = severity == Severity.Danger ? "⚠ " + _baseName : severity == Severity.Caution ? "▲ " + _baseName : _baseName;
         }
+
+        public string NameText => _name.text;
     }
 }
