@@ -65,6 +65,7 @@ Wave 1 introduced interfaces that later ports must implement instead of inventin
 - Wave 2: `IItemAcceptor` (InventoryState.cs; CraftingState's `can_accept` check), `ConsumableState.ISpoilageFoodSource` (`GetFood(string) -> FoodState`; SpoilageState implements it), `ComponentMountResolver.IComponentPlacement` (`Dismount`, `Mount`; ComponentPlacementState implements it). `InventoryState` implements `ICargoPlayer`/`ICargoHold`; `ShipInventory` implements `ICargoHold`. `LootDistribution.Roll(table, seed, tables, context)` plus `RollWithUniqueState(...)`.
 - Wave 2 combat: `DamagePipeline.IDamageVitalsTarget { double Health { get; set; } }` (VitalsState implements it); `StatusEffectsState` implements `EffectDispatcher.IStatusEffectsTarget`. `PlayerProgressionState` implements `ISkillLevelSource`; `ModuleIntegrityMap` implements `IModuleIntegrityMap`.
 - `PhaseTimer` exposes `CurrentPhaseValue` (not `phase`); `ShipBlueprint` exposes `ShipSize`, `ShipCondition`, `SeedValue`.
+- Procgen stages (Wave 2): `RoomAssigner.AssignWithSelector` takes the variant selector as `object` (`RoomVariantSelector` or `IRoomVariantPicker`); `EncounterInjector.Inject` takes `IModifierSource` biome/difficulty (normally `BiomeProfile`/`DifficultyProfile`); `StructuralPlacer.PlaceStructure` returns a `StructuralPlacer.Placement` record tree (RUNTIME builder input) instead of a `Node3D`.
 
 ## Numeric rules
 
