@@ -110,44 +110,7 @@ namespace SynapticSea.Tests.Unity
                 Assert.IsFalse(loaded, name);
                 Assert.IsFalse(summaryEmitted, name);
                 Assert.AreEqual(0, builder.View.transform.childCount, name + ": nothing is published on failure");
-                if (name == "unknown_structural_module")
-                {
-                    // Godot's StructuralPlanValidator (not yet ported; see ShipSceneBuilder.StructuralPlanValidator)
-                    // rejects this first. Without it the wrapper preflight rejects the unknown module.
-                    StringAssert.StartsWith("layout structural plan validation failed", expected.GetString("reason"));
-                    Assert.AreEqual("structural wrapper preflight failed", reason, name);
-                }
-                else
-                {
-                    Assert.AreEqual(expected.GetString("reason"), reason, name);
-                }
-            }
-        }
-
-        [Test]
-        public void ValidatorSeamReproducesGodotReasonFormat()
-        {
-            LogAssert.ignoreFailingMessages = true;
-            GdDict layout = LoaderParity.LoadInput("data/procgen/golden/coherent_ship_001/layout.json");
-            GdDict gameplay = LoaderParity.LoadInput("data/procgen/golden/coherent_ship_001/gameplay_slice.json");
-            GdDict kit = LoaderParity.LoadInput(LoaderParity.Kit);
-            var previous = ShipSceneBuilder.StructuralPlanValidator;
-            try
-            {
-                ShipSceneBuilder.StructuralPlanValidator = (plan, doc) => new GdDict
-                {
-                    { "ok", false },
-                    { "errors", GdArray.Of("floor placement module mismatch: 0|1|1", "unsupported floor placement module: no_such_module") },
-                };
-                string reason = null;
-                var builder = NewBuilder();
-                builder.LoadFailed += r => reason = r;
-                Assert.IsFalse(builder.LoadFromDocuments(layout, kit, gameplay));
-                Assert.AreEqual("layout structural plan validation failed: [\"floor placement module mismatch: 0|1|1\", \"unsupported floor placement module: no_such_module\"]", reason);
-            }
-            finally
-            {
-                ShipSceneBuilder.StructuralPlanValidator = previous;
+                Assert.AreEqual(expected.GetString("reason"), reason, name);
             }
         }
 

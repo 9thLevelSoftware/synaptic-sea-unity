@@ -42,13 +42,6 @@ namespace SynapticSea.Runtime
         /// <summary><c>load_failed(reason)</c>.</summary>
         public event Action<string> LoadFailed;
 
-        /// <summary>
-        /// Seam for the (not yet ported) <c>StructuralPlanValidator.validate(plan, layout)</c>, returning
-        /// <c>{ok: bool, errors: [...]}</c>. When null only the "structural_plan is an object" check runs; the wrapper
-        /// preflight and StructuralLayoutBuilder still reject unknown modules.
-        /// </summary>
-        public static Func<GdDict, GdDict, GdDict> StructuralPlanValidator { get; set; }
-
         public ShipView View { get; }
 
         /// <summary>Kit prefab catalog override; by default <c>Resources/Catalogs/KitCatalog_&lt;kit_id&gt;</c>.</summary>
@@ -244,9 +237,7 @@ namespace SynapticSea.Runtime
         {
             if (!(layout.Get("structural_plan", null) is GdDict plan))
                 return new GdDict { { "ok", false }, { "errors", GdArray.Of("layout missing validated structural_plan") } };
-            // RUNTIME: Godot ran StructuralPlanValidator.validate(plan, layout) here; wire the Core port through
-            // StructuralPlanValidator once it lands (Phase 4).
-            return StructuralPlanValidator != null ? StructuralPlanValidator(plan, layout) ?? new GdDict { { "ok", false } } : new GdDict { { "ok", true } };
+            return new StructuralPlanValidator().Validate(plan, layout);
         }
 
         KitPrefabCatalog ResolveKitCatalog(GdDict kit)
