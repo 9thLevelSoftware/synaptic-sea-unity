@@ -1,0 +1,1258 @@
+{
+	"arc_zone_markers": [],
+	"arc_zone_specs": [],
+	"authored_atmosphere_specs": [],
+	"authored_portal_specs": [
+		{
+			"edge_key": "0|v|0|1",
+			"exterior": false,
+			"from_cell": [
+				1.0,
+				0.0,
+				0.0
+			],
+			"from_position": [
+				4.0,
+				0.11999999731779099,
+				0.0
+			],
+			"from_room": "airlock_01",
+			"id": "edge:0|v|0|1",
+			"kind": "DOOR",
+			"runtime_position": [
+				6.0,
+				0.11999999731779099,
+				0.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				2.0,
+				0.0,
+				0.0
+			],
+			"to_position": [
+				8.0,
+				0.11999999731779099,
+				0.0
+			],
+			"to_room": "corridor_01",
+			"yaw_degrees": 270.0
+		},
+		{
+			"edge_key": "0|v|0|3",
+			"exterior": false,
+			"from_cell": [
+				3.0,
+				0.0,
+				0.0
+			],
+			"from_position": [
+				12.0,
+				0.11999999731779099,
+				0.0
+			],
+			"from_room": "corridor_01",
+			"id": "edge:0|v|0|3",
+			"kind": "DOOR",
+			"runtime_position": [
+				14.0,
+				0.11999999731779099,
+				0.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				4.0,
+				0.0,
+				0.0
+			],
+			"to_position": [
+				16.0,
+				0.11999999731779099,
+				0.0
+			],
+			"to_room": "ramp_01",
+			"yaw_degrees": 270.0
+		},
+		{
+			"edge_key": "1|h|-1|5",
+			"exterior": false,
+			"from_cell": [
+				5.0,
+				0.0,
+				1.0
+			],
+			"from_position": [
+				20.0,
+				4.119999885559082,
+				0.0
+			],
+			"from_room": "spine_01",
+			"id": "edge:1|h|-1|5",
+			"kind": "DOOR",
+			"runtime_position": [
+				20.0,
+				4.119999885559082,
+				-2.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				5.0,
+				-1.0,
+				1.0
+			],
+			"to_position": [
+				20.0,
+				4.119999885559082,
+				-4.0
+			],
+			"to_room": "cargo_01",
+			"yaw_degrees": 180.0
+		},
+		{
+			"edge_key": "1|h|-1|7",
+			"exterior": false,
+			"from_cell": [
+				7.0,
+				0.0,
+				1.0
+			],
+			"from_position": [
+				28.0,
+				4.119999885559082,
+				0.0
+			],
+			"from_room": "spine_01",
+			"id": "edge:1|h|-1|7",
+			"kind": "DOOR",
+			"runtime_position": [
+				28.0,
+				4.119999885559082,
+				-2.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				7.0,
+				-1.0,
+				1.0
+			],
+			"to_position": [
+				28.0,
+				4.119999885559082,
+				-4.0
+			],
+			"to_room": "medbay_01",
+			"yaw_degrees": 180.0
+		},
+		{
+			"edge_key": "1|h|0|5",
+			"exterior": false,
+			"from_cell": [
+				5.0,
+				0.0,
+				1.0
+			],
+			"from_position": [
+				20.0,
+				4.119999885559082,
+				0.0
+			],
+			"from_room": "spine_01",
+			"id": "edge:1|h|0|5",
+			"kind": "DOOR",
+			"runtime_position": [
+				20.0,
+				4.119999885559082,
+				2.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				5.0,
+				1.0,
+				1.0
+			],
+			"to_position": [
+				20.0,
+				4.119999885559082,
+				4.0
+			],
+			"to_room": "maintenance_01",
+			"yaw_degrees": 0.0
+		},
+		{
+			"edge_key": "1|v|0|8",
+			"exterior": false,
+			"from_cell": [
+				8.0,
+				0.0,
+				1.0
+			],
+			"from_position": [
+				32.0,
+				4.119999885559082,
+				0.0
+			],
+			"from_room": "spine_01",
+			"id": "edge:1|v|0|8",
+			"kind": "DOOR",
+			"runtime_position": [
+				34.0,
+				4.119999885559082,
+				0.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				9.0,
+				0.0,
+				1.0
+			],
+			"to_position": [
+				36.0,
+				4.119999885559082,
+				0.0
+			],
+			"to_room": "reactor_01",
+			"yaw_degrees": 270.0
+		}
+	],
+	"blocked_links": [
+		{
+			"from_cell": [
+				8.0,
+				1.0,
+				1.0
+			],
+			"from_room": "spine_01",
+			"id": "spine_to_reactor_blocked_shortcut",
+			"module_id": "doorway_frame_blocked_1x1",
+			"reason": "biomatter blockage",
+			"to_cell": [
+				9.0,
+				1.0,
+				1.0
+			],
+			"to_room": "reactor_01"
+		}
+	],
+	"breach_zone_markers": [],
+	"breach_zone_specs": [],
+	"case": "coherent_ship_001_home",
+	"count_collision_shapes": 112,
+	"critical_path": [
+		"airlock_01",
+		"corridor_01",
+		"ramp_01",
+		"spine_01",
+		"reactor_01"
+	],
+	"encounter_markers": [],
+	"fire_zone_markers": [
+		[
+			24.0,
+			4.119999885559082,
+			-2.0
+		]
+	],
+	"fire_zone_specs": [
+		{
+			"from_cell": [
+				6.0,
+				0.0,
+				1.0
+			],
+			"from_room": "spine_01",
+			"id": "side_corridor_fire",
+			"kind": "timed_fire",
+			"module_id": "doorway_frame_open_1x1",
+			"rationale": "non-critical side link off the spine; cargo is optional loot (objective 1) so fire here cannot trap the player or block any main objective",
+			"to_cell": [
+				6.0,
+				-1.0,
+				1.0
+			],
+			"to_room": "cargo_01",
+			"zone_id": "side_corridor_fire"
+		}
+	],
+	"goal_position": [
+		38.0,
+		4.119999885559082,
+		2.0
+	],
+	"has_loaded_ship": true,
+	"inputs": {
+		"gameplay_slice": "data/procgen/golden/coherent_ship_001/gameplay_slice.json",
+		"kit": "data/kits/ship_structural_v0.json",
+		"layout": "data/procgen/golden/coherent_ship_001/layout.json"
+	},
+	"is_away": false,
+	"landmark_specs": [
+		{
+			"color": "blue",
+			"id": "spine_blue_beacon",
+			"kind": "orientation_beacon",
+			"position": [
+				24.0,
+				4.15,
+				0.0
+			],
+			"room_id": "spine_01"
+		},
+		{
+			"color": "green",
+			"id": "reactor_green_core",
+			"kind": "destination_core",
+			"position": [
+				38.0,
+				4.15,
+				2.0
+			],
+			"room_id": "reactor_01"
+		}
+	],
+	"load_failed_reason": "",
+	"loaded": true,
+	"loot_container_specs": [
+		{
+			"approach_cell": [
+				6.0,
+				1.0,
+				1.0
+			],
+			"id": "start_supply_a",
+			"kind": "generic_crate",
+			"loot_table": "repair_parts_starter",
+			"position": [
+				24.0,
+				4.119999885559082,
+				4.0
+			],
+			"room_id": "maintenance_01"
+		},
+		{
+			"approach_cell": [
+				7.0,
+				-1.0,
+				1.0
+			],
+			"id": "start_supply_b",
+			"kind": "generic_locker",
+			"loot_table": "salvage_engineering",
+			"position": [
+				28.0,
+				4.119999885559082,
+				-4.0
+			],
+			"room_id": "medbay_01"
+		}
+	],
+	"nodes": {
+		"atmosphere": {},
+		"authored_portals": [
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_edge_0|v|0|1",
+				"portal_id": "edge:0|v|0|1",
+				"portal_kind": "DOOR",
+				"position": [
+					6.0,
+					0.11999999731779099,
+					0.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_edge_0|v|0|3",
+				"portal_id": "edge:0|v|0|3",
+				"portal_kind": "DOOR",
+				"position": [
+					14.0,
+					0.11999999731779099,
+					0.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						-1.0,
+						0.0,
+						8.742277657347586e-08
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-8.742277657347586e-08,
+						0.0,
+						-1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_edge_1|h|-1|5",
+				"portal_id": "edge:1|h|-1|5",
+				"portal_kind": "DOOR",
+				"position": [
+					20.0,
+					4.119999885559082,
+					-2.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						-1.0,
+						0.0,
+						8.742277657347586e-08
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-8.742277657347586e-08,
+						0.0,
+						-1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_edge_1|h|-1|7",
+				"portal_id": "edge:1|h|-1|7",
+				"portal_kind": "DOOR",
+				"position": [
+					28.0,
+					4.119999885559082,
+					-2.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_edge_1|h|0|5",
+				"portal_id": "edge:1|h|0|5",
+				"portal_kind": "DOOR",
+				"position": [
+					20.0,
+					4.119999885559082,
+					2.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_edge_1|v|0|8",
+				"portal_id": "edge:1|v|0|8",
+				"portal_kind": "DOOR",
+				"position": [
+					34.0,
+					4.119999885559082,
+					0.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			}
+		],
+		"blocked_routes": [
+			{
+				"basis": [
+					[
+						-0.3162277638912201,
+						0.0,
+						0.9486833214759827
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-0.9486833214759827,
+						0.0,
+						-0.3162277638912201
+					]
+				],
+				"name": "BlockedRoute_spine_to_reactor_blocked_shortcut",
+				"position": [
+					30.0,
+					4.119999885559082,
+					2.0
+				]
+			}
+		],
+		"dressing": [],
+		"integrity_states": {},
+		"landmarks": [
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"name": "Landmark_spine_blue_beacon",
+				"position": [
+					24.0,
+					4.150000095367432,
+					0.0
+				]
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"name": "Landmark_reactor_green_core",
+				"position": [
+					38.0,
+					4.150000095367432,
+					2.0
+				]
+			}
+		],
+		"module_keys": [
+			"edge/0|h|-1|0",
+			"edge/0|v|0|-1",
+			"edge/0|h|-1|1",
+			"edge/0|v|0|1",
+			"edge/0|h|1|0",
+			"edge/0|v|1|-1",
+			"edge/0|v|1|1",
+			"edge/0|h|1|1",
+			"edge/0|h|-1|2",
+			"edge/0|h|0|2",
+			"edge/0|h|-1|3",
+			"edge/0|v|0|3",
+			"edge/0|h|0|3",
+			"edge/0|h|-1|4",
+			"edge/0|v|0|4",
+			"edge/0|h|0|4",
+			"edge/1|h|-1|4",
+			"edge/1|h|0|4",
+			"edge/1|v|0|3",
+			"edge/1|h|-1|5",
+			"edge/1|h|0|5",
+			"edge/1|h|-1|6",
+			"edge/1|h|0|6",
+			"edge/1|h|-1|7",
+			"edge/1|h|0|7",
+			"edge/1|h|-1|8",
+			"edge/1|v|0|8",
+			"edge/1|h|0|8",
+			"edge/1|v|-1|4",
+			"edge/1|v|-1|6",
+			"edge/1|h|-3|5",
+			"edge/1|v|-2|4",
+			"edge/1|h|-3|6",
+			"edge/1|v|-2|6",
+			"edge/1|h|-2|7",
+			"edge/1|h|-2|8",
+			"edge/1|v|-1|8",
+			"edge/1|v|1|4",
+			"edge/1|v|1|6",
+			"edge/1|h|2|5",
+			"edge/1|v|2|4",
+			"edge/1|v|2|6",
+			"edge/1|h|2|6",
+			"edge/1|h|-1|9",
+			"edge/1|h|-1|10",
+			"edge/1|v|0|10",
+			"edge/1|h|1|9",
+			"edge/1|v|1|8",
+			"edge/1|v|1|10",
+			"edge/1|h|1|10",
+			"floor/0|0|0",
+			"floor/0|1|0",
+			"floor/0|0|1",
+			"floor/0|1|1",
+			"floor/0|2|0",
+			"floor/0|3|0",
+			"floor/0|4|0",
+			"floor/1|4|0",
+			"floor/1|5|0",
+			"floor/1|6|0",
+			"floor/1|7|0",
+			"floor/1|8|0",
+			"floor/1|5|-1",
+			"floor/1|6|-1",
+			"floor/1|5|-2",
+			"floor/1|6|-2",
+			"floor/1|7|-1",
+			"floor/1|8|-1",
+			"floor/1|5|1",
+			"floor/1|6|1",
+			"floor/1|5|2",
+			"floor/1|6|2",
+			"floor/1|9|0",
+			"floor/1|10|0",
+			"floor/1|9|1",
+			"floor/1|10|1",
+			"ceiling/0|0|0",
+			"ceiling/0|1|0",
+			"ceiling/0|0|1",
+			"ceiling/0|1|1",
+			"ceiling/0|2|0",
+			"ceiling/0|3|0",
+			"ceiling/1|5|0",
+			"ceiling/1|6|0",
+			"ceiling/1|7|0",
+			"ceiling/1|8|0",
+			"ceiling/1|5|-1",
+			"ceiling/1|6|-1",
+			"ceiling/1|5|-2",
+			"ceiling/1|6|-2",
+			"ceiling/1|7|-1",
+			"ceiling/1|8|-1",
+			"ceiling/1|5|1",
+			"ceiling/1|6|1",
+			"ceiling/1|5|2",
+			"ceiling/1|6|2",
+			"ceiling/1|9|0",
+			"ceiling/1|10|0",
+			"ceiling/1|9|1",
+			"ceiling/1|10|1"
+		],
+		"objective_volumes": [
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"name": "ObjectiveVolume_seq1_recover_supplies_cargo_01_cargo_supply_cache",
+				"objective_id": "cargo_01:cargo_supply_cache",
+				"objective_type": "recover_supplies",
+				"position": [
+					24.0,
+					4.119999885559082,
+					-4.0
+				],
+				"room_id": "cargo_01",
+				"sequence": 1
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"name": "ObjectiveVolume_seq2_restore_systems_maintenance_01_junction_alpha",
+				"objective_id": "maintenance_01:junction_alpha",
+				"objective_type": "restore_systems",
+				"position": [
+					24.0,
+					4.119999885559082,
+					4.0
+				],
+				"room_id": "maintenance_01",
+				"sequence": 2
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"name": "ObjectiveVolume_seq3_download_logs_medbay_01_medbay_terminal",
+				"objective_id": "medbay_01:medbay_terminal",
+				"objective_type": "download_logs",
+				"position": [
+					28.0,
+					4.119999885559082,
+					-4.0
+				],
+				"room_id": "medbay_01",
+				"sequence": 3
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"name": "ObjectiveVolume_seq4_stabilize_reactor_reactor_01_reactor_control_panel",
+				"objective_id": "reactor_01:reactor_control_panel",
+				"objective_type": "stabilize_reactor",
+				"position": [
+					36.0,
+					4.119999885559082,
+					4.0
+				],
+				"room_id": "reactor_01",
+				"sequence": 4
+			}
+		],
+		"placed_props": [],
+		"trigger_volumes": [],
+		"vertical_links": [
+			{
+				"end": [
+					16.0,
+					4.119999885559082,
+					0.0
+				],
+				"name": "VerticalLink_ramp_01_to_spine_01",
+				"start": [
+					16.0,
+					0.11999999731779099,
+					0.0
+				]
+			}
+		],
+		"vertical_transitions": [
+			{
+				"basis": [
+					[
+						-1.0,
+						0.0,
+						8.742277657347586e-08
+					],
+					[
+						-8.742277657347586e-08,
+						-4.371138828673793e-08,
+						-1.0
+					],
+					[
+						3.82137093032941e-15,
+						-1.0,
+						4.371138828673793e-08
+					]
+				],
+				"name": "VisibleVerticalTransition_ramp_01_to_spine_01",
+				"position": [
+					16.0,
+					2.119999885559082,
+					0.0
+				]
+			}
+		]
+	},
+	"objective_specs": [
+		{
+			"approach_cell": [
+				6.0,
+				-1.0,
+				1.0
+			],
+			"id": "cargo_01:cargo_supply_cache",
+			"kind": "single",
+			"position": [
+				24.0,
+				4.119999885559082,
+				-4.0
+			],
+			"radius": 1.5,
+			"room_id": "cargo_01",
+			"sequence": 1,
+			"steps": [],
+			"type": "recover_supplies"
+		},
+		{
+			"approach_cell": [
+				6.0,
+				1.0,
+				1.0
+			],
+			"id": "maintenance_01:junction_alpha",
+			"kind": "repair_junction",
+			"position": [
+				24.0,
+				4.119999885559082,
+				4.0
+			],
+			"radius": 1.5,
+			"room_id": "maintenance_01",
+			"sequence": 2,
+			"steps": [
+				{
+					"approach_cell": [
+						6.0,
+						1.0,
+						1.0
+					],
+					"position": [
+						24.0,
+						4.119999885559082,
+						4.0
+					],
+					"step_id": "primary_coupling"
+				},
+				{
+					"approach_cell": [
+						5.0,
+						2.0,
+						1.0
+					],
+					"position": [
+						20.0,
+						4.119999885559082,
+						8.0
+					],
+					"step_id": "secondary_coupling"
+				}
+			],
+			"type": "restore_systems"
+		},
+		{
+			"approach_cell": [
+				7.0,
+				-1.0,
+				1.0
+			],
+			"id": "medbay_01:medbay_terminal",
+			"kind": "single",
+			"position": [
+				28.0,
+				4.119999885559082,
+				-4.0
+			],
+			"radius": 1.5,
+			"room_id": "medbay_01",
+			"sequence": 3,
+			"steps": [],
+			"type": "download_logs"
+		},
+		{
+			"approach_cell": [
+				9.0,
+				1.0,
+				1.0
+			],
+			"id": "reactor_01:reactor_control_panel",
+			"kind": "single",
+			"position": [
+				36.0,
+				4.119999885559082,
+				4.0
+			],
+			"radius": 1.5,
+			"room_id": "reactor_01",
+			"sequence": 4,
+			"steps": [],
+			"type": "stabilize_reactor"
+		}
+	],
+	"placed_prop_errors": [],
+	"placed_prop_specs": [],
+	"probes": [
+		{
+			"authored_atmosphere_at": {},
+			"drain_multiplier": 1.0,
+			"point": [
+				1000.0,
+				0.0,
+				1000.0
+			],
+			"radiation_zone_at": {}
+		}
+	],
+	"radiation_zone_markers": [],
+	"radiation_zone_segments": [],
+	"radiation_zone_specs": [],
+	"room_links": [
+		{
+			"from_cell": [
+				1.0,
+				0.0,
+				0.0
+			],
+			"from_room": "airlock_01",
+			"id": "airlock_to_corridor",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				2.0,
+				0.0,
+				0.0
+			],
+			"to_room": "corridor_01"
+		},
+		{
+			"from_cell": [
+				3.0,
+				0.0,
+				0.0
+			],
+			"from_room": "corridor_01",
+			"id": "corridor_to_ramp",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				4.0,
+				0.0,
+				0.0
+			],
+			"to_room": "ramp_01"
+		},
+		{
+			"from_cell": [
+				4.0,
+				0.0,
+				0.0
+			],
+			"from_room": "ramp_01",
+			"id": "ramp_to_spine",
+			"module_id": "ramp_up_1x2",
+			"to_cell": [
+				4.0,
+				0.0,
+				1.0
+			],
+			"to_room": "spine_01"
+		},
+		{
+			"from_cell": [
+				5.0,
+				0.0,
+				1.0
+			],
+			"from_room": "spine_01",
+			"id": "spine_to_cargo",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				5.0,
+				-1.0,
+				1.0
+			],
+			"to_room": "cargo_01"
+		},
+		{
+			"from_cell": [
+				7.0,
+				0.0,
+				1.0
+			],
+			"from_room": "spine_01",
+			"id": "spine_to_medbay",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				7.0,
+				-1.0,
+				1.0
+			],
+			"to_room": "medbay_01"
+		},
+		{
+			"from_cell": [
+				5.0,
+				0.0,
+				1.0
+			],
+			"from_room": "spine_01",
+			"id": "spine_to_maintenance",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				5.0,
+				1.0,
+				1.0
+			],
+			"to_room": "maintenance_01"
+		},
+		{
+			"from_cell": [
+				8.0,
+				0.0,
+				1.0
+			],
+			"from_room": "spine_01",
+			"id": "spine_to_reactor_main",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				9.0,
+				0.0,
+				1.0
+			],
+			"to_room": "reactor_01"
+		}
+	],
+	"room_variant_descriptors": {},
+	"rooms": {
+		"airlock_01": {
+			"center": [
+				2.0,
+				0.11999999731779099,
+				2.0
+			],
+			"deck": 0,
+			"role": "airlock"
+		},
+		"cargo_01": {
+			"center": [
+				22.0,
+				4.119999885559082,
+				-6.0
+			],
+			"deck": 1,
+			"role": "cargo"
+		},
+		"corridor_01": {
+			"center": [
+				10.0,
+				0.11999999731779099,
+				0.0
+			],
+			"deck": 0,
+			"role": "corridor"
+		},
+		"maintenance_01": {
+			"center": [
+				22.0,
+				4.119999885559082,
+				6.0
+			],
+			"deck": 1,
+			"role": "maintenance"
+		},
+		"medbay_01": {
+			"center": [
+				30.0,
+				4.119999885559082,
+				-4.0
+			],
+			"deck": 1,
+			"role": "medical"
+		},
+		"ramp_01": {
+			"center": [
+				16.0,
+				0.11999999731779099,
+				0.0
+			],
+			"deck": 0,
+			"role": "ramp"
+		},
+		"reactor_01": {
+			"center": [
+				38.0,
+				4.119999885559082,
+				2.0
+			],
+			"deck": 1,
+			"role": "reactor"
+		},
+		"spine_01": {
+			"center": [
+				24.0,
+				4.119999885559082,
+				0.0
+			],
+			"deck": 1,
+			"role": "main_spine"
+		}
+	},
+	"start_transform_origin": [
+		2.0,
+		0.11999999731779099,
+		2.0
+	],
+	"summary": {
+		"gameplay_slice_path": "data/procgen/golden/coherent_ship_001/gameplay_slice.json",
+		"goal_position": [
+			38.0,
+			4.119999885559082,
+			2.0
+		],
+		"instantiated_count": 100,
+		"kit_path": "data/kits/ship_structural_v0.json",
+		"layout_path": "data/procgen/golden/coherent_ship_001/layout.json",
+		"objective_count": 4,
+		"start_position": [
+			2.0,
+			0.11999999731779099,
+			2.0
+		],
+		"vertical_link_count": 1
+	},
+	"unknown_room": {
+		"deck": -1,
+		"role": ""
+	}
+}

@@ -47,5 +47,29 @@ namespace SynapticSea.Runtime
 
         /// <summary>Converts a Godot <c>[x, y, z]</c> array (as stored in layouts and contracts).</summary>
         public static Vector3 ToUnity(object godotArray) => ToUnity(Vec3.FromArray(godotArray));
+
+        /// <summary>
+        /// A Godot node <c>Basis</c> (given by its columns: the node's local X, Y, Z axes in the Godot parent frame)
+        /// to a Unity local rotation for a non-light node. Mirroring X conjugates the rotation (M·R·M): the Unity
+        /// local Y and Z axes are the mirrored Godot Y and Z columns, and local X follows from handedness.
+        /// Orthonormal (unscaled) bases only.
+        /// </summary>
+        public static Quaternion BasisRotation(Vec3 godotX, Vec3 godotY, Vec3 godotZ)
+        {
+            _ = godotX;
+            return Quaternion.LookRotation(ToUnity(godotZ), ToUnity(godotY));
+        }
+
+        /// <summary>Inverse of <see cref="BasisRotation"/>: the Godot basis columns of a Unity local rotation.</summary>
+        public static void ToGodotBasis(Quaternion unityRotation, out Vec3 godotX, out Vec3 godotY, out Vec3 godotZ)
+        {
+            Vector3 ux = unityRotation * Vector3.right;
+            Vector3 uy = unityRotation * Vector3.up;
+            Vector3 uz = unityRotation * Vector3.forward;
+            // Columns of M·R'·M: x = −M(x'), y = M(y'), z = M(z').
+            godotX = new Vec3(ux.x, -ux.y, -ux.z);
+            godotY = ToGodot(uy);
+            godotZ = ToGodot(uz);
+        }
     }
 }
