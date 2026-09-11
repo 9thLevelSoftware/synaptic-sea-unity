@@ -28,6 +28,19 @@ namespace SynapticSea.Runtime
         public static Quaternion YawRotation(double godotYawDegrees) => Quaternion.Euler(0f, ToUnityYaw(godotYawDegrees), 0f);
 
         /// <summary>
+        /// A Godot node rotation (<c>rotation_degrees</c>, YXZ order) for a non-light node: mirroring X keeps pitch and
+        /// negates yaw and roll (M·R·M), with the same YXZ composition Unity's <c>Quaternion.Euler</c> uses.
+        /// </summary>
+        public static Quaternion Rotation(Vec3 godotEulerDegrees) =>
+            Quaternion.Euler(godotEulerDegrees.X, -godotEulerDegrees.Y, -godotEulerDegrees.Z);
+
+        /// <summary>
+        /// A Godot light or camera rotation: Godot lights/cameras face their local −Z, Unity's face +Z, so after the
+        /// frame conversion the forward axis is flipped with a 180° turn about local Y.
+        /// </summary>
+        public static Quaternion LightRotation(Vec3 godotEulerDegrees) => Rotation(godotEulerDegrees) * Quaternion.Euler(0f, 180f, 0f);
+
+        /// <summary>
         /// Box extents are unsigned, so a Godot box size maps to the same Unity size; only its center moves.
         /// </summary>
         public static Vector3 SizeToUnity(Vec3 godotSize) => new Vector3(godotSize.X, godotSize.Y, godotSize.Z);
