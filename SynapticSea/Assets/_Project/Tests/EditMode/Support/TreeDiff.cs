@@ -56,7 +56,7 @@ namespace SynapticSea.Tests
                 }
                 double de = V.F64(e), da = V.F64(a);
                 bool equal = o.FloatTolerance > 0
-                    ? Math.Abs(de - da) <= o.FloatTolerance || (double.IsNaN(de) && double.IsNaN(da))
+                    ? Math.Abs(de - da) <= o.FloatTolerance || de == da || (double.IsNaN(de) && double.IsNaN(da))
                     : BitConverter.DoubleToInt64Bits(de) == BitConverter.DoubleToInt64Bits(da) || de == da || (double.IsNaN(de) && double.IsNaN(da));
                 if (!equal) diffs.Add($"{path}: expected {Show(de)}, got {Show(da)} (delta {Show(da - de)})");
                 return;

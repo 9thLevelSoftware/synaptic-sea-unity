@@ -1,0 +1,60 @@
+{
+	"cases": [
+		{
+			"case": "layout_missing_rooms",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "layout missing rooms array: ",
+			"summary_emitted": false
+		},
+		{
+			"case": "layout_missing_prototype",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "layout missing prototype object: ",
+			"summary_emitted": false
+		},
+		{
+			"case": "no_objectives",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "gameplay slice contains no valid objectives: ",
+			"summary_emitted": false
+		},
+		{
+			"case": "objective_sequence_mismatch",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "gameplay slice contains no valid objectives: ",
+			"summary_emitted": false
+		},
+		{
+			"case": "unknown_start_room",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "start room not found in layout: no_such_room",
+			"summary_emitted": false
+		},
+		{
+			"case": "missing_goal_room",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "gameplay slice missing goal_room: ",
+			"summary_emitted": false
+		},
+		{
+			"case": "kit_without_modules",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "kit contains no usable module wrapper scenes: ",
+			"summary_emitted": false
+		},
+		{
+			"case": "unknown_structural_module",
+			"child_count": 0,
+			"loaded": false,
+			"reason": "layout structural plan validation failed: [\"floor placement module mismatch: 0|1|1\", \"unsupported floor placement module: no_such_module\"]",
+			"summary_emitted": false
+		}
+	]
+}

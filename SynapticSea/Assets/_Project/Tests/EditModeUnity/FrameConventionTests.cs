@@ -117,6 +117,29 @@ namespace SynapticSea.Tests.Unity
             }
         }
 
+        /// <summary>
+        /// A Godot basis applied to a Godot-local point, converted, must equal the Unity rotation from
+        /// <see cref="Frame.BasisRotation"/> applied to the converted point; yaw bases must agree with YawRotation, and
+        /// ToGodotBasis must invert BasisRotation.
+        /// </summary>
+        [Test]
+        public void BasisRotation_MapsPointsLikeGodot([Values(0, 37, 90, 180, 270)] int yaw)
+        {
+            double a = yaw * Math.PI / 180.0;
+            var yawX = new Vec3(Math.Cos(a), 0.0, -Math.Sin(a));
+            var yawZ = new Vec3(Math.Sin(a), 0.0, Math.Cos(a));
+            Assert.That(Quaternion.Angle(Frame.BasisRotation(yawX, Vec3.Up, yawZ), Frame.YawRotation(yaw)), Is.LessThan(1e-2f));
+
+            SynapticSea.Core.Procgen.GeneratedShipLayout.LookingAt(new Vec3(3f, -1f, 2f).RotatedY((float)a), Vec3.Up, out Vec3 x, out Vec3 y, out Vec3 z);
+            Quaternion q = Frame.BasisRotation(x, y, z);
+            var local = new Vec3(0.7f, 1.3f, -2.1f);
+            Vec3 godotWorld = x * local.X + y * local.Y + z * local.Z;
+            Assert.That(Vector3.Distance(q * Frame.ToUnity(local), Frame.ToUnity(godotWorld)), Is.LessThan(Eps));
+
+            Frame.ToGodotBasis(q, out Vec3 bx, out Vec3 by, out Vec3 bz);
+            Assert.That(bx.DistanceTo(x) + by.DistanceTo(y) + bz.DistanceTo(z), Is.LessThan(Eps));
+        }
+
         /// <summary>Godot <c>v.rotated(Vector3.UP, angle)</c> for a unit Y axis (right-handed).</summary>
         static Vec3 GodotRotatedAboutUp(Vec3 v, int yawDegrees)
         {
