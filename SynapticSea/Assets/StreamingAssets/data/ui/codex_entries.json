@@ -1,0 +1,131 @@
+{
+  "version": "codex-entries-1",
+  "entries": [
+    {
+      "id": "first_move",
+      "topic": "Survival",
+      "title": "Movement",
+      "body": "Use WASD (keyboard) or the left stick (gamepad) to walk. Hold SHIFT to walk quietly so the biomatter does not hear you."
+    },
+    {
+      "id": "first_interact",
+      "topic": "Survival",
+      "title": "Interaction",
+      "body": "Walk up to an interactable and press E (keyboard) or A (gamepad). Hold-to-tap players should release the button within 0.5s."
+    },
+    {
+      "id": "first_inventory_open",
+      "topic": "Items",
+      "title": "Inventory",
+      "body": "Press I (keyboard) or TAB (gamepad) to open the inventory. Drag rows to move items. Equip a tool to use it on the next interact."
+    },
+    {
+      "id": "first_save",
+      "topic": "Survival",
+      "title": "Saving",
+      "body": "Auto-saves happen at every objective. Press F5 to save manually and F9 to load."
+    },
+    {
+      "id": "first_travel",
+      "topic": "Ship Systems",
+      "title": "Travel",
+      "body": "Once propulsion is online, the lifeboat can jump to a new derelict. Each jump costs oxygen and exposes you to the Synaptic Sea."
+    },
+    {
+      "id": "first_objective_complete",
+      "topic": "Exploration",
+      "title": "Objectives",
+      "body": "Each derelict has a sequence of objectives. The top-left tracker shows the current one. Completing objectives unlocks new areas."
+    },
+    {
+      "id": "first_hazard_fire",
+      "topic": "Combat",
+      "title": "Fire Hazard",
+      "body": "Fire spreads to adjacent rooms every tick. Use a fire extinguisher or vent the room to space to clear it."
+    },
+    {
+      "id": "first_low_oxygen",
+      "topic": "Survival",
+      "title": "Low Oxygen",
+      "body": "Your suit's oxygen drains continuously. Refill at the lifeboat or a refill station. Below 0.0 you suffocate."
+    },
+    {
+      "id": "first_breach",
+      "topic": "Ship Systems",
+      "title": "Breach Seal",
+      "body": "An open breach drains oxygen and weakens the ship. Use sealant at the breach point to restore a safe compartment."
+    },
+    {
+      "id": "first_threat_spotted",
+      "topic": "Combat",
+      "title": "Threat Spotted",
+      "body": "Threats react to noise, light, and visibility. Crouch to stay quiet, or attack when you are ready."
+    },
+    {
+      "id": "first_loot_search",
+      "topic": "Exploration",
+      "title": "Search for Loot",
+      "body": "Search containers and corpses to collect parts, tools, and supplies. Loot is recorded per ship once searched."
+    },
+    {
+      "id": "first_scanner_open",
+      "topic": "Exploration",
+      "title": "Scanner",
+      "body": "The scanner lists nearby derelicts and their range. Select a target and confirm to travel when propulsion is online."
+    },
+    {
+      "id": "first_death",
+      "topic": "Survival",
+      "title": "Death and Saving",
+      "body": "Death ends the current run and freezes its saved slots for review. Save before a risky trip so you understand what progress is recoverable."
+    },
+    {
+      "id": "save_and_exit_failed",
+      "topic": "Survival",
+      "title": "Save Failed",
+      "body": "If saving fails, leaving would discard your progress. Resolve the problem before exiting; the run remains active."
+    },
+    {
+      "id": "circuit_board",
+      "topic": "Items",
+      "title": "Circuit Board",
+      "body": "Required to repair the junction that unlocks the lifeboat's propulsion. Found in derelict loot containers."
+    },
+    {
+      "id": "portable_oxygen_pump",
+      "topic": "Items",
+      "title": "Portable Oxygen Pump",
+      "body": "Carried in the player inventory. Reduces the suit's oxygen drain multiplier to 0.5x."
+    },
+    {
+      "id": "fire_extinguisher",
+      "topic": "Items",
+      "title": "Fire Extinguisher",
+      "body": "Use on a burning room to clear the fire in one tick. Single-use."
+    },
+    {
+      "id": "biomatter_membrane",
+      "topic": "Combat",
+      "title": "Biomatter Membrane",
+      "body": "A membrane blocking a doorway. Cut it with a knife tool or wait for it to dissolve."
+    },
+    {
+      "id": "junction_calibrator",
+      "topic": "Ship Systems",
+      "title": "Junction Calibrator",
+      "body": "Reduces the number of repair steps required on a junction by 1. Consumed on use."
+    },
+    {
+      "id": "scanner",
+      "topic": "Exploration",
+      "title": "Scanner",
+      "body": "Press TAB to toggle the scanner. Lists nearby derelicts and their range. Pick a target and press Enter to travel."
+    },
+    {
+      "id": "codex",
+      "topic": "Survival",
+      "title": "Codex",
+      "body": "Every tutorial you see unlocks its matching codex entry here. Press F1 (keyboard) or Back (gamepad) to open."
+    }
+  ]
+}

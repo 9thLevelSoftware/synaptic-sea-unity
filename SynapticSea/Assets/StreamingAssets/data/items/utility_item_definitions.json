@@ -1,0 +1,59 @@
+{
+  "flare": {
+    "display_name": "Flare",
+    "category": "utility",
+    "weight": 0.2,
+    "max_stack": 10,
+    "effects": ["utility_flare"],
+    "utility_flag": "flare",
+    "use_note": "Flares mark routes and steady the player in dark corridors.",
+    "icon": "res://assets/placeholder/flare.png"
+  },
+  "lockpick_set": {
+    "display_name": "Lockpick Set",
+    "category": "utility",
+    "weight": 0.2,
+    "max_stack": 6,
+    "effects": ["utility_lockpick"],
+    "utility_flag": "lockpick",
+    "use_note": "Lockpicks prime the next sealed hatch bypass.",
+    "icon": "res://assets/placeholder/lockpick_set.png"
+  },
+  "hack_chip": {
+    "display_name": "Hack Chip",
+    "category": "utility",
+    "weight": 0.1,
+    "max_stack": 8,
+    "effects": ["utility_hack_chip"],
+    "utility_flag": "hack_chip",
+    "use_note": "Hack chips prep a terminal bypass window.",
+    "icon": "res://assets/placeholder/hack_chip.png"
+  },
+  "repair_foam": {
+    "display_name": "Repair Foam",
+    "category": "utility",
+    "weight": 0.5,
+    "max_stack": 6,
+    "effects": ["heal_small"],
+    "utility_flag": "repair_foam",
+    "use_note": "Repair foam patches suit tears and field wounds.",
+    "icon": "res://assets/placeholder/repair_foam.png"
+  },
+  "heat_pack": {
+    "display_name": "Heat Pack",
+    "category": "utility",
+    "weight": 0.3,
+    "max_stack": 6,
+    "effects": ["heatpack"],
+    "use_note": "A chemical heat pack pushes back the cold of a dead ship.",
+    "icon": "res://assets/placeholder/repair_foam.png"
+  },
+  "web_chart": {
+    "display_name": "Web Chart",
+    "category": "chart",
+    "weight": 0.4,
+    "max_stack": 1,
+    "use_note": "A paper chart of nearby ship positions in the web. Possessing one records scanner contacts; each new chart found imports its own recorded markers.",
+    "icon": "res://assets/placeholder/repair_foam.png"
+  }
+}

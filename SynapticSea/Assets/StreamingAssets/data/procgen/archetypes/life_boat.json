@@ -1,0 +1,22 @@
+{
+    "name": "Life Boat",
+    "description": "Small emergency vessel with minimal systems",
+    "blueprint": {
+        "size": 0,
+        "condition": 1,
+        "seed_value": 0,
+        "room_count_range": {
+            "min": 2,
+            "max": 4
+        }
+    },
+    "role_weights": {
+        "maintenance": 3,
+        "corridor": 2,
+        "cargo": 1,
+        "medical": 1,
+        "crew_quarters": 0
+    },
+    "guaranteed_roles": [],
+    "max_duplicates": 1
+}

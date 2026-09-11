@@ -1,0 +1,34 @@
+{
+  "bandage_kit": {
+    "display_name": "Bandage Kit",
+    "category": "medicine",
+    "weight": 0.4,
+    "max_stack": 10,
+    "effects": ["heal_small"],
+    "icon": "res://assets/placeholder/bandage_kit.png"
+  },
+  "rad_patch": {
+    "display_name": "Rad Patch",
+    "category": "medicine",
+    "weight": 0.3,
+    "max_stack": 8,
+    "effects": ["reduce_radiation_minor", "cure_radiation_sickness"],
+    "icon": "res://assets/placeholder/rad_patch.png"
+  },
+  "antitoxin": {
+    "display_name": "Antitoxin",
+    "category": "medicine",
+    "weight": 0.3,
+    "max_stack": 8,
+    "effects": ["cure_food_poisoning", "restore_sanity_small"],
+    "icon": "res://assets/placeholder/antitoxin.png"
+  },
+  "field_medkit": {
+    "display_name": "Field Medkit",
+    "category": "medicine",
+    "weight": 1.2,
+    "max_stack": 4,
+    "effects": ["heal_medium", "restore_stamina_small"],
+    "icon": "res://assets/placeholder/field_medkit.png"
+  }
+}

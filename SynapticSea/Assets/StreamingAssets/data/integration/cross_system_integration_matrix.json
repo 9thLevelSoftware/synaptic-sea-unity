@@ -1,0 +1,686 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "package_id": "task14_cross_system_integration_review",
+    "generated_by": "synaptic_seareview/gpt-5.5",
+    "source_plan": "docs/game/build-plans/14-cross-system-integration-review-e2e.md",
+    "required_loop_stages": [
+      "prepare",
+      "derelict",
+      "survive",
+      "loot",
+      "craft",
+      "return",
+      "upgrade"
+    ]
+  },
+  "systems": [
+    {
+      "package_id": "kickoff",
+      "task_id": "t_0228a857",
+      "title": "Staged E2E systems implementation kickoff",
+      "status": "done",
+      "package_type": "governance",
+      "requires_smoke": false,
+      "loop_stages": [
+        "prepare"
+      ],
+      "requirements": [],
+      "code_files": [],
+      "docs_files": [
+        "docs/game/build-plans/14-cross-system-integration-review-e2e.md",
+        "docs/game/build-plans/README.md",
+        ".omh/kanban/synaptic-sea-e2e-systems-task-graph.json"
+      ],
+      "data_files": [],
+      "smoke_files": [],
+      "smoke_markers": [],
+      "dependencies": []
+    },
+    {
+      "package_id": "task01_survival_vitals",
+      "task_id": "t_34d0483b",
+      "title": "Survival vitals",
+      "status": "validated",
+      "loop_stages": [
+        "survive"
+      ],
+      "requirements": [
+        "REQ-SV-001",
+        "REQ-SV-007",
+        "REQ-SV-008"
+      ],
+      "code_files": [
+        "scripts/systems/vitals_state.gd",
+        "scripts/systems/sanity_state.gd",
+        "scripts/systems/radiation_state.gd",
+        "scripts/systems/body_temperature_state.gd",
+        "scripts/systems/status_effects_state.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/survival_vitals.md",
+        "docs/game/adr/0034-survival-vitals-architecture.md"
+      ],
+      "data_files": [],
+      "smoke_files": [
+        "scripts/validation/vitals_state_smoke.gd",
+        "scripts/validation/main_playable_slice_vitals_full_smoke.gd",
+        "scripts/validation/vitals_state_save_load_smoke.gd"
+      ],
+      "smoke_markers": [
+        "VITALS STATE PASS",
+        "MAIN PLAYABLE VITALS FULL PASS",
+        "VITALS SAVE LOAD PASS"
+      ],
+      "dependencies": []
+    },
+    {
+      "package_id": "task02_food_cooking_spoilage",
+      "task_id": "t_d569eba2",
+      "title": "Food, cooking, spoilage, and sustenance inputs",
+      "status": "validated",
+      "loop_stages": [
+        "survive",
+        "craft"
+      ],
+      "requirements": [
+        "REQ-FC-001",
+        "REQ-FC-004",
+        "REQ-FC-008"
+      ],
+      "code_files": [
+        "scripts/systems/food_state.gd",
+        "scripts/systems/spoilage_state.gd",
+        "scripts/systems/hydroponics_state.gd",
+        "scripts/systems/water_recycler_state.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/food_cooking_spoilage.md",
+        "docs/game/adr/0034-food-cooking-spoilage-architecture.md",
+        "docs/game/balance/food_cooking_spoilage_tuning.md"
+      ],
+      "data_files": [
+        "data/items/item_definitions.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/food_state_smoke.gd",
+        "scripts/validation/food_save_load_smoke.gd",
+        "scripts/validation/main_playable_food_consumption_smoke.gd"
+      ],
+      "smoke_markers": [
+        "FOOD STATE PASS",
+        "FOOD SAVE LOAD PASS",
+        "MAIN PLAYABLE FOOD CONSUMPTION PASS"
+      ],
+      "dependencies": [
+        "task01_survival_vitals"
+      ]
+    },
+    {
+      "package_id": "task03_crafting_materials",
+      "task_id": "t_be88f847",
+      "title": "Crafting, materials, recipes, and stations",
+      "status": "validated",
+      "loop_stages": [
+        "prepare",
+        "craft",
+        "upgrade"
+      ],
+      "requirements": [
+        "REQ-CS-001",
+        "REQ-CS-005",
+        "REQ-CS-014"
+      ],
+      "code_files": [
+        "scripts/systems/material_state.gd",
+        "scripts/systems/crafting_state.gd",
+        "scripts/systems/station_state.gd",
+        "scripts/systems/field_crafting_state.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/crafting_materials_recipes.md",
+        "docs/game/adr/0038-crafting-materials-stations-architecture.md",
+        "docs/game/balance/crafting_materials_tuning.md"
+      ],
+      "data_files": [
+        "data/materials/material_definitions.json",
+        "data/recipes/recipe_definitions.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/material_state_smoke.gd",
+        "scripts/validation/crafting_state_smoke.gd",
+        "scripts/validation/main_playable_slice_crafting_smoke.gd"
+      ],
+      "smoke_markers": [
+        "MATERIAL STATE PASS",
+        "CRAFTING STATE PASS",
+        "MAIN PLAYABLE CRAFTING PASS"
+      ],
+      "dependencies": [
+        "task02_food_cooking_spoilage"
+      ]
+    },
+    {
+      "package_id": "task04_loot_ecosystem",
+      "task_id": "t_af66b721",
+      "title": "Loot ecosystem",
+      "status": "validated",
+      "loop_stages": [
+        "derelict",
+        "loot",
+        "craft"
+      ],
+      "requirements": [
+        "REQ-LE-001",
+        "REQ-LE-002",
+        "REQ-LE-005"
+      ],
+      "code_files": [
+        "scripts/systems/loot_distribution.gd",
+        "scripts/systems/rarity_tier.gd",
+        "scripts/systems/unique_item_state.gd",
+        "scripts/tools/loot_container.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/loot_ecosystem.md",
+        "docs/game/adr/0037-loot-ecosystem-rarity-container-architecture.md",
+        "docs/game/balance/loot_ecosystem_tuning.md"
+      ],
+      "data_files": [
+        "data/items/loot_tables.json",
+        "data/items/unique_items.json",
+        "data/items/junk_items.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/loot_distribution_smoke.gd",
+        "scripts/validation/unique_item_state_smoke.gd",
+        "scripts/validation/main_playable_slice_loot_ecosystem_smoke.gd"
+      ],
+      "smoke_markers": [
+        "LOOT DISTRIBUTION PASS",
+        "UNIQUE ITEM STATE PASS",
+        "MAIN PLAYABLE LOOT ECOSYSTEM PASS"
+      ],
+      "dependencies": [
+        "task03_crafting_materials"
+      ]
+    },
+    {
+      "package_id": "task05_consumables",
+      "task_id": "t_67389b76",
+      "title": "Consumables, medicine, stimulants, ammo, utility",
+      "status": "validated",
+      "loop_stages": [
+        "prepare",
+        "survive",
+        "loot"
+      ],
+      "requirements": [
+        "REQ-CN-001",
+        "REQ-CN-004",
+        "REQ-CN-009"
+      ],
+      "code_files": [
+        "scripts/systems/consumable_state.gd",
+        "scripts/systems/medicine_state.gd",
+        "scripts/systems/stimulant_state.gd",
+        "scripts/systems/addiction_state.gd",
+        "scripts/systems/ammo_state.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/consumables_medicine_stimulants.md",
+        "docs/game/adr/0036-consumable-effect-pipeline-architecture.md"
+      ],
+      "data_files": [
+        "data/items/medicine_definitions.json",
+        "data/items/stimulant_definitions.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/consumable_state_smoke.gd",
+        "scripts/validation/medicine_state_smoke.gd",
+        "scripts/validation/main_playable_consumables_smoke.gd",
+        "scripts/validation/ammo_magazine_state_smoke.gd",
+        "scripts/validation/ammo_magazine_smoke.gd",
+        "scripts/validation/consumables_away_tick_smoke.gd",
+        "scripts/validation/thermal_consumable_smoke.gd",
+        "scripts/validation/sealed_hatch_node_smoke.gd",
+        "scripts/validation/sealed_hatch_smoke.gd",
+        "scripts/validation/flare_steady_smoke.gd"
+      ],
+      "smoke_markers": [
+        "CONSUMABLE STATE PASS",
+        "MEDICINE STATE PASS",
+        "MAIN PLAYABLE CONSUMABLES PASS",
+        "AMMO MAGAZINE STATE PASS",
+        "AMMO MAGAZINE PASS",
+        "CONSUMABLES AWAY TICK PASS",
+        "THERMAL CONSUMABLE PASS",
+        "SEALED HATCH NODE PASS",
+        "SEALED HATCH PASS away_ticks=3 seeded=true mechanical_open=true flag_consumed=true",
+        "FLARE STEADY PASS"
+      ],
+      "dependencies": [
+        "task01_survival_vitals"
+      ]
+    },
+    {
+      "package_id": "task06_combat_threat",
+      "task_id": "t_cbe56420",
+      "title": "Combat, threat AI, damage, armor, status",
+      "status": "validated",
+      "loop_stages": [
+        "derelict",
+        "survive",
+        "loot"
+      ],
+      "requirements": [
+        "REQ-D-001",
+        "REQ-D-006",
+        "REQ-D-010"
+      ],
+      "code_files": [
+        "scripts/systems/damage_pipeline.gd",
+        "scripts/systems/threat_ai_state.gd",
+        "scripts/systems/detection_state.gd",
+        "scripts/systems/armor_resolver.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/combat_threat_ai.md",
+        "docs/game/adr/0037-combat-threat-architecture.md",
+        "docs/game/balance/combat_threat_ai.md"
+      ],
+      "data_files": [
+        "data/combat/threat_archetypes.json",
+        "data/combat/weapon_definitions.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/damage_pipeline_smoke.gd",
+        "scripts/validation/threat_ai_state_smoke.gd",
+        "scripts/validation/main_playable_slice_combat_encounter_smoke.gd"
+      ],
+      "smoke_markers": [
+        "DAMAGE PIPELINE PASS",
+        "THREAT AI STATE PASS",
+        "MAIN PLAYABLE COMBAT ENCOUNTER PASS"
+      ],
+      "dependencies": [
+        "task05_consumables"
+      ]
+    },
+    {
+      "package_id": "task07_ship_systems_sustenance",
+      "task_id": "t_290ec958",
+      "title": "Expanded ship systems and sustenance infrastructure",
+      "status": "validated",
+      "loop_stages": [
+        "survive",
+        "return",
+        "upgrade"
+      ],
+      "requirements": [
+        "REQ-SS-001",
+        "REQ-SS-002",
+        "REQ-SS-006"
+      ],
+      "code_files": [
+        "scripts/systems/power_grid_state.gd",
+        "scripts/systems/life_support_state.gd",
+        "scripts/systems/sustenance_state.gd",
+        "scripts/procgen/playable_generated_ship.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/ship_systems_sustenance_infrastructure.md",
+        "docs/game/adr/0035-ship-systems-sustenance-expansion-architecture.md"
+      ],
+      "data_files": [
+        "data/ship_systems/power_budget_tables.json",
+        "data/ship_systems/subsystem_tuning.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/power_grid_state_smoke.gd",
+        "scripts/validation/sustenance_state_smoke.gd",
+        "scripts/validation/main_playable_slice_ship_systems_expanded_smoke.gd"
+      ],
+      "smoke_markers": [
+        "POWER GRID STATE PASS",
+        "SUSTENANCE STATE PASS",
+        "MAIN PLAYABLE SHIP SYSTEMS EXPANDED PASS"
+      ],
+      "dependencies": [
+        "task02_food_cooking_spoilage"
+      ]
+    },
+    {
+      "package_id": "task08_player_progression_meta",
+      "task_id": "t_02146c59",
+      "title": "Player progression and meta progression",
+      "status": "validated",
+      "loop_stages": [
+        "prepare",
+        "return",
+        "upgrade"
+      ],
+      "requirements": [
+        "REQ-PM-001",
+        "REQ-PM-006",
+        "REQ-PM-007"
+      ],
+      "code_files": [
+        "scripts/systems/player_progression_state.gd",
+        "scripts/systems/meta_progression_state.gd",
+        "scripts/systems/hub_upgrade_state.gd",
+        "scripts/systems/skill_tree_state.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/player_progression.md",
+        "docs/game/adr/0033-player-progression-meta-architecture.md"
+      ],
+      "data_files": [
+        "data/player/classes.json",
+        "data/player/hub_upgrades.json",
+        "data/player/skill_tree.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/player_progression_state_smoke.gd",
+        "scripts/validation/meta_progression_state_smoke.gd",
+        "scripts/validation/player_progression_full_smoke.gd"
+      ],
+      "smoke_markers": [
+        "PLAYER PROGRESSION PASS",
+        "META PROGRESSION STATE PASS",
+        "PLAYER PROGRESSION FULL PASS"
+      ],
+      "dependencies": [
+        "task03_crafting_materials",
+        "task07_ship_systems_sustenance"
+      ]
+    },
+    {
+      "package_id": "task09_ui_ux_accessibility",
+      "task_id": "t_7a6849cb",
+      "title": "UI, HUD, tutorial, controller, accessibility",
+      "status": "validated",
+      "loop_stages": [
+        "prepare",
+        "derelict",
+        "survive",
+        "loot",
+        "craft",
+        "return",
+        "upgrade"
+      ],
+      "requirements": [
+        "REQ-UI-001",
+        "REQ-UI-003",
+        "REQ-UI-006"
+      ],
+      "code_files": [
+        "scripts/systems/menu_state.gd",
+        "scripts/systems/settings_state.gd",
+        "scripts/systems/tutorial_state.gd",
+        "scripts/systems/web_chart_state.gd",
+        "scripts/ui/chart_panel.gd",
+        "scripts/ui/hotbar_panel.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/ui_ux_accessibility.md",
+        "docs/game/adr/0033-ui-ux-accessibility-architecture.md"
+      ],
+      "data_files": [
+        "data/ui/tooltip_catalog.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/menu_state_smoke.gd",
+        "scripts/validation/settings_state_smoke.gd",
+        "scripts/validation/main_playable_slice_ui_shell_smoke.gd"
+      ],
+      "smoke_markers": [
+        "MENU STATE PASS",
+        "SETTINGS STATE PASS",
+        "MAIN PLAYABLE UI SHELL PASS"
+      ],
+      "dependencies": []
+    },
+    {
+      "package_id": "task10_audio_music_spatial",
+      "task_id": "t_9e328a9f",
+      "title": "Audio, music, spatial audio, voice, meta events",
+      "status": "validated",
+      "loop_stages": [
+        "derelict",
+        "survive",
+        "loot"
+      ],
+      "requirements": [
+        "REQ-AU-001",
+        "REQ-AU-004",
+        "REQ-AU-010"
+      ],
+      "code_files": [
+        "scripts/systems/audio_bus_config.gd",
+        "scripts/systems/sfx_event_router.gd",
+        "scripts/systems/dynamic_music_state.gd",
+        "scripts/audio/audio_manager.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/audio-music-spatial.md",
+        "docs/game/adr/0029-audio-music-spatial-architecture.md"
+      ],
+      "data_files": [
+        "data/audio/audio_bus_config.tres"
+      ],
+      "smoke_files": [
+        "scripts/validation/audio_bus_config_smoke.gd",
+        "scripts/validation/dynamic_music_state_smoke.gd",
+        "scripts/validation/main_playable_slice_audio_smoke.gd"
+      ],
+      "smoke_markers": [
+        "AUDIO BUS CONFIG PASS",
+        "DYNAMIC MUSIC STATE PASS",
+        "MAIN PLAYABLE AUDIO PASS"
+      ],
+      "dependencies": [
+        "task06_combat_threat"
+      ]
+    },
+    {
+      "package_id": "task11_save_load",
+      "task_id": "t_2d267b26",
+      "title": "Multi-slot save, autosave, migration, corruption, cloud manifest",
+      "status": "validated",
+      "loop_stages": [
+        "prepare",
+        "return",
+        "upgrade"
+      ],
+      "requirements": [
+        "REQ-SL-001",
+        "REQ-SL-007",
+        "REQ-SL-012"
+      ],
+      "code_files": [
+        "scripts/systems/save_slot_state.gd",
+        "scripts/systems/save_migration_service.gd",
+        "scripts/systems/autosave_policy.gd",
+        "scripts/systems/save_load_service.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/save_load.md",
+        "docs/game/adr/0031-multi-slot-save-architecture.md",
+        "docs/game/adr/0032-migration-permadeath-cloud-manifest.md"
+      ],
+      "data_files": [],
+      "smoke_files": [
+        "scripts/validation/save_slot_state_smoke.gd",
+        "scripts/validation/save_migration_service_smoke.gd",
+        "scripts/validation/main_playable_slice_multislot_save_smoke.gd"
+      ],
+      "smoke_markers": [
+        "SAVE SLOT STATE PASS",
+        "SAVE MIGRATION SERVICE PASS",
+        "MAIN PLAYABLE MULTISLOT SAVE PASS"
+      ],
+      "dependencies": []
+    },
+    {
+      "package_id": "task12_procgen_expansion",
+      "task_id": "t_4faf58cf",
+      "title": "Procedural generation expansion",
+      "status": "validated",
+      "loop_stages": [
+        "derelict",
+        "loot",
+        "survive"
+      ],
+      "requirements": [
+        "REQ-PG-001",
+        "REQ-PG-007",
+        "REQ-PG-012"
+      ],
+      "code_files": [
+        "scripts/procgen/room_variant_selector.gd",
+        "scripts/procgen/kit_catalog.gd",
+        "scripts/procgen/biome_profile.gd",
+        "scripts/procgen/encounter_injector.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/procedural_generation_expansion.md",
+        "docs/game/adr/0029-procedural-generation-expansion-architecture.md"
+      ],
+      "data_files": [
+        "data/procgen/templates/stacked_v2.json",
+        "data/procgen/biomes/dead_fleet.json",
+        "data/procgen/difficulty/deep_dive.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/room_variant_selector_smoke.gd",
+        "scripts/validation/encounter_injector_smoke.gd",
+        "scripts/validation/seed_determinism_smoke.gd"
+      ],
+      "smoke_markers": [
+        "ROOM VARIANT SELECTOR PASS",
+        "ENCOUNTER INJECTOR PASS",
+        "SEED DETERMINISM PASS"
+      ],
+      "dependencies": []
+    },
+    {
+      "package_id": "task13_release_distribution",
+      "task_id": "t_3b217838",
+      "title": "Distribution, store, achievements, demo, localization, post-launch ops",
+      "status": "validated",
+      "loop_stages": [
+        "prepare",
+        "upgrade"
+      ],
+      "requirements": [
+        "REQ-RL-001",
+        "REQ-RL-003",
+        "REQ-RL-008"
+      ],
+      "code_files": [
+        "scripts/systems/achievement_state.gd",
+        "scripts/systems/localization_catalog.gd",
+        "scripts/systems/release_readiness_ledger.gd",
+        "scripts/release/export_presets_validator.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/release_distribution.md",
+        "docs/game/adr/0029-release-distribution-architecture.md",
+        "docs/game/adr/0030-achievement-catalog-and-triggers.md"
+      ],
+      "data_files": [
+        "data/release/achievement_catalog.json",
+        "data/release/localization_catalog.json",
+        "data/release/release_checklist.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/export_presets_smoke.gd",
+        "scripts/validation/achievement_state_smoke.gd",
+        "scripts/validation/release_readiness_ledger_smoke.gd"
+      ],
+      "smoke_markers": [
+        "EXPORT PRESETS PASS",
+        "ACHIEVEMENT STATE PASS",
+        "RELEASE READINESS LEDGER PASS"
+      ],
+      "dependencies": []
+    },
+    {
+      "package_id": "task14_cross_system_integration_review",
+      "task_id": "t_12bf9f4a",
+      "title": "Cross-system integration, balance, product audit, and gap closure",
+      "status": "in_review",
+      "loop_stages": [
+        "prepare",
+        "derelict",
+        "survive",
+        "loot",
+        "craft",
+        "return",
+        "upgrade"
+      ],
+      "requirements": [
+        "REQ-INT-001",
+        "REQ-INT-002",
+        "REQ-INT-003",
+        "REQ-INT-004",
+        "REQ-INT-005",
+        "REQ-INT-006",
+        "REQ-INT-007",
+        "REQ-INT-008",
+        "REQ-INT-009",
+        "REQ-INT-010"
+      ],
+      "code_files": [
+        "scripts/systems/integration_matrix.gd",
+        "scripts/systems/dependency_validator.gd",
+        "scripts/systems/balance_ledger.gd",
+        "scripts/systems/automated_playtest_rubric.gd",
+        "scripts/systems/product_audit_report.gd"
+      ],
+      "docs_files": [
+        "docs/game/features/cross_system_integration_review.md",
+        "docs/game/adr/0039-cross-system-integration-audit-architecture.md",
+        "docs/game/build-plans/evidence/cross-system-integration-review-contract-review.md",
+        "docs/game/balance/cross_system_balance_ledger.md"
+      ],
+      "data_files": [
+        "data/integration/cross_system_integration_matrix.json",
+        "data/integration/balance_ledger.json",
+        "data/integration/known_issue_fix_manifest.json",
+        "data/integration/product_audit_report.json",
+        "data/integration/automated_playtest_rubric.json"
+      ],
+      "smoke_files": [
+        "scripts/validation/cross_system_dependency_smoke.gd",
+        "scripts/validation/e2e_survival_loop_smoke.gd",
+        "scripts/validation/e2e_combat_loot_craft_smoke.gd",
+        "scripts/validation/e2e_ship_meta_loop_smoke.gd",
+        "scripts/validation/product_audit_smoke.gd"
+      ],
+      "smoke_markers": [
+        "CROSS SYSTEM DEPENDENCY PASS",
+        "E2E SURVIVAL LOOP PASS",
+        "E2E COMBAT LOOT CRAFT PASS",
+        "E2E SHIP META LOOP PASS",
+        "PRODUCT AUDIT PASS"
+      ],
+      "dependencies": [
+        "task01_survival_vitals",
+        "task02_food_cooking_spoilage",
+        "task03_crafting_materials",
+        "task04_loot_ecosystem",
+        "task05_consumables",
+        "task06_combat_threat",
+        "task07_ship_systems_sustenance",
+        "task08_player_progression_meta",
+        "task09_ui_ux_accessibility",
+        "task10_audio_music_spatial",
+        "task11_save_load",
+        "task12_procgen_expansion",
+        "task13_release_distribution"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "id": "stacked_v2",
+  "description": "Three-deck vertical with an auxiliary service deck between the main upper and lower decks. Bridge on top, service deck middle, reactor at the bottom. Tests multi-deck traversal and three vertical transitions.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "lower_hub",
+      "role_pool": ["hub"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "entry"
+    },
+    {
+      "id": "ramp_1",
+      "role_pool": ["ramp"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "lower_hub"
+    },
+    {
+      "id": "service_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": "ramp_1"
+    },
+    {
+      "id": "service_room",
+      "role_pool": ["maintenance", "storage", "tool_storage"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 1,
+      "layout": "clustered",
+      "attach_to": "service_corridor"
+    },
+    {
+      "id": "ramp_2",
+      "role_pool": ["ramp"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": "service_corridor"
+    },
+    {
+      "id": "elevator",
+      "role_pool": ["elevator"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": "service_corridor"
+    },
+    {
+      "id": "upper_hub",
+      "role_pool": ["hub"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 2,
+      "layout": "single",
+      "attach_to": "ramp_2"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["bridge"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 2,
+      "layout": "single",
+      "attach_to": "upper_hub"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "lower_hub", "distribution": "adjacent"},
+    {"from": "lower_hub", "to": "ramp_1", "distribution": "adjacent"},
+    {"from": "ramp_1", "to": "service_corridor", "distribution": "adjacent"},
+    {"from": "service_corridor", "to": "service_room", "distribution": "spread"},
+    {"from": "service_corridor", "to": "ramp_2", "distribution": "adjacent"},
+    {"from": "service_corridor", "to": "elevator", "distribution": "adjacent"},
+    {"from": "ramp_2", "to": "upper_hub", "distribution": "adjacent"},
+    {"from": "elevator", "to": "upper_hub", "distribution": "adjacent"},
+    {"from": "upper_hub", "to": "destination", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 3,
+    "vertical_transition_probability": 1.0
+  }
+}

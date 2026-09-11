@@ -1,0 +1,61 @@
+{
+  "id": "dispersed",
+  "description": "Wide single-deck layout where rooms spread out laterally rather than along a spine. Bridge forward-center, cargo starboard, medical port, engineering aft. Tests lateral-spread topology.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "central_hub",
+      "role_pool": ["hub"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "entry"
+    },
+    {
+      "id": "starboard_branch",
+      "role_pool": ["cargo", "engineering", "maintenance"],
+      "count": [2, 3],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "central_hub"
+    },
+    {
+      "id": "port_branch",
+      "role_pool": ["medical", "crew_quarters", "mess_hall"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "central_hub"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["bridge"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "central_hub"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "central_hub", "distribution": "adjacent"},
+    {"from": "central_hub", "to": "starboard_branch", "distribution": "spread"},
+    {"from": "central_hub", "to": "port_branch", "distribution": "spread"},
+    {"from": "central_hub", "to": "destination", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

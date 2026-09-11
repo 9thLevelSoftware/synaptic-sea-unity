@@ -1,0 +1,60 @@
+{
+  "version": "accessibility-presets-1",
+  "presets": [
+    {
+      "id": "default",
+      "label": "Default",
+      "text_scale": 1.0,
+      "colorblind_mode": "none",
+      "motion_reduce": false,
+      "captions": true,
+      "hold_to_tap": false,
+      "difficulty": "standard",
+      "glyph_scheme": "auto"
+    },
+    {
+      "id": "high_contrast",
+      "label": "High Contrast",
+      "text_scale": 1.5,
+      "colorblind_mode": "deuteranopia",
+      "motion_reduce": false,
+      "captions": true,
+      "hold_to_tap": false,
+      "difficulty": "standard",
+      "glyph_scheme": "auto"
+    },
+    {
+      "id": "low_motion",
+      "label": "Reduced Motion",
+      "text_scale": 1.5,
+      "colorblind_mode": "none",
+      "motion_reduce": true,
+      "captions": true,
+      "hold_to_tap": false,
+      "difficulty": "standard",
+      "glyph_scheme": "auto"
+    },
+    {
+      "id": "easy_hold",
+      "label": "Easy Input",
+      "text_scale": 1.5,
+      "colorblind_mode": "none",
+      "motion_reduce": false,
+      "captions": true,
+      "hold_to_tap": true,
+      "difficulty": "standard",
+      "glyph_scheme": "auto"
+    },
+    {
+      "id": "deep_dive",
+      "label": "Deep Dive (Hard)",
+      "text_scale": 1.0,
+      "colorblind_mode": "none",
+      "motion_reduce": false,
+      "captions": true,
+      "hold_to_tap": false,
+      "difficulty": "deep_dive",
+      "glyph_scheme": "auto"
+    }
+  ]
+}

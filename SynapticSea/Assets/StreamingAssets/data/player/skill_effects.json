@@ -1,0 +1,172 @@
+{
+  "schema": "skill_effects_v1",
+  "version": "1.0.0",
+  "notes": "PKG-D7: every catalog skill maps to at least one live gameplay consumer. Levels 0..10; formulas use level as int.",
+  "effects": {
+    "repair": {
+      "display_name": "Repair",
+      "consumers": ["work_speed", "repair_duration", "craft_quality"],
+      "work_verbs": ["splice", "weld", "patch", "mount"],
+      "work_speed_per_level": 0.04,
+      "repair_duration_factor_per_level": 0.08,
+      "craft_quality_bonus_per_level": 0.02
+    },
+    "diagnostics": {
+      "display_name": "Diagnostics",
+      "consumers": ["scan_detail", "work_speed"],
+      "work_verbs": ["splice"],
+      "scan_detail_bonus_per_level": 0.1,
+      "work_speed_per_level": 0.02
+    },
+    "fabrication": {
+      "display_name": "Fabrication",
+      "consumers": ["craft_quality", "craft_speed", "recipe_gate"],
+      "work_verbs": ["craft", "mount"],
+      "craft_quality_bonus_per_level": 0.035,
+      "craft_speed_per_level": 0.03,
+      "recipe_skill_id": "fabrication"
+    },
+    "welding": {
+      "display_name": "Welding",
+      "consumers": ["work_speed", "salvage_yield"],
+      "work_verbs": ["weld", "cut", "patch"],
+      "work_speed_per_level": 0.05,
+      "salvage_yield_per_level": 0.03
+    },
+    "welding_mastery": {
+      "display_name": "Welding Mastery",
+      "consumers": ["work_speed", "craft_quality", "salvage_yield"],
+      "work_verbs": ["weld", "cut"],
+      "work_speed_per_level": 0.06,
+      "craft_quality_bonus_per_level": 0.04,
+      "salvage_yield_per_level": 0.04
+    },
+    "first_aid": {
+      "display_name": "First Aid",
+      "consumers": ["heal_mult", "wound_treat"],
+      "heal_mult_per_level": 0.05,
+      "wound_treat_bonus_per_level": 0.04
+    },
+    "surgery": {
+      "display_name": "Surgery",
+      "consumers": ["heal_mult", "wound_treat"],
+      "heal_mult_per_level": 0.08,
+      "wound_treat_bonus_per_level": 0.07
+    },
+    "pharmacology": {
+      "display_name": "Pharmacology",
+      "consumers": ["medicine_duration", "stim_efficiency"],
+      "medicine_duration_per_level": 0.05,
+      "stim_efficiency_per_level": 0.04
+    },
+    "quarantine": {
+      "display_name": "Quarantine",
+      "consumers": ["infection_resist", "sanity_resist"],
+      "infection_resist_per_level": 0.06,
+      "sanity_resist_per_level": 0.03
+    },
+    "piloting": {
+      "display_name": "Piloting",
+      "consumers": ["travel_fuel", "dock_speed"],
+      "travel_fuel_save_per_level": 0.03,
+      "dock_speed_per_level": 0.04
+    },
+    "astrogation": {
+      "display_name": "Astrogation",
+      "consumers": ["travel_fuel", "scan_detail"],
+      "travel_fuel_save_per_level": 0.04,
+      "scan_detail_bonus_per_level": 0.05
+    },
+    "scanner_operation": {
+      "display_name": "Scanner Operation",
+      "consumers": ["scan_detail", "scan_range"],
+      "scan_detail_bonus_per_level": 0.08,
+      "scan_range_per_level": 0.05
+    },
+    "signal_analysis": {
+      "display_name": "Signal Analysis",
+      "consumers": ["scan_detail", "encounter_telegraph"],
+      "scan_detail_bonus_per_level": 0.06,
+      "encounter_telegraph_per_level": 0.05
+    },
+    "biomatter_diagnostics": {
+      "display_name": "Biomatter Diagnostics",
+      "consumers": ["encounter_telegraph", "sanity_resist"],
+      "encounter_telegraph_per_level": 0.07,
+      "sanity_resist_per_level": 0.04
+    },
+    "scavenging": {
+      "display_name": "Scavenging",
+      "consumers": ["salvage_yield", "work_speed", "loot_find"],
+      "work_verbs": ["unbolt", "pry", "cut", "harvest"],
+      "salvage_yield_per_level": 0.05,
+      "work_speed_per_level": 0.03,
+      "loot_find_per_level": 0.04
+    },
+    "cooking": {
+      "display_name": "Cooking",
+      "consumers": ["craft_quality", "craft_speed", "food_spoil_resist"],
+      "work_verbs": ["plant", "harvest", "craft"],
+      "craft_quality_bonus_per_level": 0.03,
+      "craft_speed_per_level": 0.04,
+      "food_spoil_resist_per_level": 0.05
+    },
+    "construction": {
+      "display_name": "Construction",
+      "consumers": ["work_speed", "module_repair"],
+      "work_verbs": ["weld", "patch", "mount", "splice"],
+      "work_speed_per_level": 0.04,
+      "module_repair_per_level": 0.05
+    },
+    "resource_management": {
+      "display_name": "Resource Management",
+      "consumers": ["travel_food", "craft_efficiency"],
+      "travel_food_save_per_level": 0.04,
+      "craft_efficiency_per_level": 0.03
+    },
+    "leadership": {
+      "display_name": "Leadership",
+      "consumers": ["xp_mult", "crew_bonus"],
+      "xp_mult_per_level": 0.02,
+      "crew_bonus_per_level": 0.03
+    },
+    "negotiation": {
+      "display_name": "Negotiation",
+      "consumers": ["trade_price", "loot_find"],
+      "trade_price_per_level": 0.03,
+      "loot_find_per_level": 0.02
+    },
+    "intimidation": {
+      "display_name": "Intimidation",
+      "consumers": ["threat_memory", "encounter_telegraph"],
+      "threat_memory_per_level": 0.04,
+      "encounter_telegraph_per_level": 0.03
+    },
+    "comms": {
+      "display_name": "Comms",
+      "consumers": ["scan_range", "scan_detail"],
+      "scan_range_per_level": 0.04,
+      "scan_detail_bonus_per_level": 0.03
+    }
+  },
+  "class_kit_hooks": {
+    "engineer": {
+      "bonus_skills": ["repair", "fabrication", "welding"],
+      "work_speed_flat": 0.05,
+      "craft_quality_flat": 0.03
+    },
+    "medic": {
+      "bonus_skills": ["first_aid", "surgery", "pharmacology"],
+      "heal_mult_flat": 0.08
+    },
+    "scout": {
+      "bonus_skills": ["scavenging", "scanner_operation", "piloting"],
+      "salvage_yield_flat": 0.05,
+      "scan_detail_flat": 0.05
+    },
+    "default": {
+      "bonus_skills": [],
+      "work_speed_flat": 0.0
+    }
+  }
+}

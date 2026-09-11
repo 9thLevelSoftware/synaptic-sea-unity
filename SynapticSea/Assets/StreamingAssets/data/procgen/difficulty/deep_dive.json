@@ -1,0 +1,8 @@
+{
+  "id": "deep_dive",
+  "description": "Deep dive difficulty. High hazard (1.7x), baseline loot (1.1x), high encounter density (1.6x). Top of the difficulty range; composition with breach_field biome pushes final hazard modifier toward the 3.0 clamp.",
+  "hazard_modifier": 1.7,
+  "loot_quality_modifier": 1.1,
+  "encounter_density_modifier": 1.6,
+  "ambient_intensity": 1.0
+}

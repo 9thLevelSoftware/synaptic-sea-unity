@@ -1,0 +1,95 @@
+{
+  "id": "hive",
+  "description": "Hive cluster — short corridor core with clustered compartments, one lateral overgrown pocket, destination on the bow. Occupancy topology only; biomatter kit remaps existing stems.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": [
+        "dock"
+      ],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "core",
+      "role_pool": [
+        "corridor"
+      ],
+      "count": [
+        2,
+        3
+      ],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "entry"
+    },
+    {
+      "id": "cluster",
+      "role_pool": [
+        "cargo",
+        "crew_quarters"
+      ],
+      "count": [
+        2,
+        3
+      ],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "core"
+    },
+    {
+      "id": "overgrown",
+      "role_pool": [
+        "cargo",
+        "hangar"
+      ],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "core"
+    },
+    {
+      "id": "destination",
+      "role_pool": [
+        "bridge"
+      ],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "core"
+    }
+  ],
+  "connections": [
+    {
+      "from": "entry",
+      "to": "core",
+      "distribution": "adjacent"
+    },
+    {
+      "from": "core",
+      "to": "cluster",
+      "distribution": "spread"
+    },
+    {
+      "from": "core",
+      "to": "overgrown",
+      "distribution": "spread"
+    },
+    {
+      "from": "core",
+      "to": "destination",
+      "distribution": "adjacent"
+    }
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

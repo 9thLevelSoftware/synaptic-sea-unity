@@ -1,0 +1,131 @@
+{
+  "version": "tutorial-triggers-1",
+  "tutorials": [
+    {
+      "id": "first_move",
+      "trigger_event": "player_moved",
+      "trigger_target": "any",
+      "title": "Movement",
+      "body": "Use WASD or the left stick to move. Hold SHIFT to walk quietly.",
+      "codex_topic": "Survival",
+      "codex_entry_id": "first_move"
+    },
+    {
+      "id": "first_interact",
+      "trigger_event": "player_interacted",
+      "trigger_target": "any",
+      "title": "Interaction",
+      "body": "Walk up to an interactable and press E (or A on gamepad) to use it.",
+      "codex_topic": "Survival",
+      "codex_entry_id": "first_interact"
+    },
+    {
+      "id": "first_inventory_open",
+      "trigger_event": "inventory_opened",
+      "trigger_target": "any",
+      "title": "Inventory",
+      "body": "Press I (or TAB on gamepad) to open your inventory. Drag to move items.",
+      "codex_topic": "Items",
+      "codex_entry_id": "first_inventory_open"
+    },
+    {
+      "id": "first_breach",
+      "trigger_event": "breach_sealed",
+      "trigger_target": "any",
+      "title": "Breach Seal",
+      "body": "An open breach drains your suit and weakens the ship. Apply sealant at the breach point to make the compartment safe.",
+      "codex_topic": "Ship Systems",
+      "codex_entry_id": "first_breach"
+    },
+    {
+      "id": "first_threat_spotted",
+      "trigger_event": "threat_spotted",
+      "trigger_target": "any",
+      "title": "Threat Spotted",
+      "body": "Something has noticed you. Crouch to reduce noise and visibility, or fight if it closes in.",
+      "codex_topic": "Combat",
+      "codex_entry_id": "first_threat_spotted"
+    },
+    {
+      "id": "first_loot_search",
+      "trigger_event": "loot_searched",
+      "trigger_target": "any",
+      "title": "Search for Loot",
+      "body": "Search containers and corpses for parts, tools, and supplies. Every item can change your odds of surviving the next room.",
+      "codex_topic": "Exploration",
+      "codex_entry_id": "first_loot_search"
+    },
+    {
+      "id": "first_scanner_open",
+      "trigger_event": "scanner_opened",
+      "trigger_target": "any",
+      "title": "Scanner",
+      "body": "Open the scanner to locate nearby derelicts. Select a destination when you are ready to travel.",
+      "codex_topic": "Exploration",
+      "codex_entry_id": "first_scanner_open"
+    },
+    {
+      "id": "first_save",
+      "trigger_event": "run_saved",
+      "trigger_target": "any",
+      "title": "Saving",
+      "body": "Progress auto-saves every checkpoint. Press F5 to save manually.",
+      "codex_topic": "Survival",
+      "codex_entry_id": "first_save"
+    },
+    {
+      "id": "first_travel",
+      "trigger_event": "ship_traveled",
+      "trigger_target": "any",
+      "title": "Travel",
+      "body": "When the lifeboat's propulsion is online, you can travel to other derelicts in the Synaptic Sea.",
+      "codex_topic": "Ship Systems",
+      "codex_entry_id": "first_travel"
+    },
+    {
+      "id": "first_objective_complete",
+      "trigger_event": "objective_completed",
+      "trigger_target": "any",
+      "title": "Objectives",
+      "body": "Each derelict carries a sequence of objectives. The current objective shows in the top-left.",
+      "codex_topic": "Exploration",
+      "codex_entry_id": "first_objective_complete"
+    },
+    {
+      "id": "first_hazard",
+      "trigger_event": "hazard_entered",
+      "trigger_target": "fire",
+      "title": "Fire Hazard",
+      "body": "Fire spreads between adjacent rooms. Find an extinguisher or vent it into space.",
+      "codex_topic": "Combat",
+      "codex_entry_id": "first_hazard_fire"
+    },
+    {
+      "id": "first_low_oxygen",
+      "trigger_event": "vitals_warning",
+      "trigger_target": "oxygen_low",
+      "title": "Low Oxygen",
+      "body": "Your suit is leaking oxygen. Find a refill station or return to the lifeboat.",
+      "codex_topic": "Survival",
+      "codex_entry_id": "first_low_oxygen"
+    },
+    {
+      "id": "first_death",
+      "trigger_event": "run_ended",
+      "trigger_target": "death",
+      "title": "Death and Saving",
+      "body": "Death ends the current run. Save before a risky trip so you understand what progress can be recovered and what the loss means.",
+      "codex_topic": "Survival",
+      "codex_entry_id": "first_death"
+    },
+    {
+      "id": "save_and_exit_failed",
+      "trigger_event": "save_and_exit_failed",
+      "trigger_target": "any",
+      "title": "Save Failed",
+      "body": "Could not save the ship. Resolve the issue before leaving — your progress was NOT saved.",
+      "codex_topic": "Survival",
+      "codex_entry_id": "save_and_exit_failed"
+    }
+  ]
+}

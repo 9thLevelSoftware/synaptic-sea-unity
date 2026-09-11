@@ -1,0 +1,33 @@
+{
+  "kit_id": "ship_structural_industrial",
+  "description": "Industrial-biased structural kit. Heavy floor modules and reinforcement pillars for cargo and engineering. Default kit for dead_fleet biome.",
+  "version": 1,
+  "default_role_module": "floor_2x1",
+  "role_modules": {
+    "airlock": ["floor_1x1", "doorway_frame_open_1x1", "wall_straight_1x1"],
+    "corridor": ["corridor_floor_1x1", "wall_straight_1x1"],
+    "engineering": ["floor_2x1", "floor_2x1", "pillar_support_1x1"],
+    "life_support": ["floor_2x1", "floor_1x1"],
+    "bridge": ["floor_2x1", "floor_2x1", "wall_straight_1x1"],
+    "cargo": ["floor_2x1", "floor_2x1", "pillar_support_1x1"],
+    "crew_quarters": ["floor_2x1", "floor_1x1"],
+    "medical": ["floor_1x1", "floor_1x1"],
+    "maintenance": ["floor_1x1", "pillar_support_1x1"],
+    "reactor": ["floor_2x1", "pillar_support_1x1", "pillar_support_1x1"],
+    "main_spine": ["corridor_floor_1x2", "wall_straight_1x1"],
+    "hub": ["floor_2x1", "pillar_support_1x1"],
+    "ramp": ["ramp_up_1x2"],
+    "elevator": ["floor_1x1", "floor_1x1"],
+    "storage": ["floor_2x1"],
+    "compartment": ["floor_2x1", "floor_1x1"],
+    "bay": ["floor_2x1", "floor_2x1"],
+    "quarters": ["floor_1x1", "floor_1x1"],
+    "dock": ["floor_1x1", "doorway_frame_open_1x1"],
+    "hangar": ["floor_2x1", "floor_2x1"]
+  },
+  "biome_preference": {
+    "dead_fleet": 0.9,
+    "abyssal_synaptic_sea": 0.4,
+    "breach_field": 0.3
+  }
+}

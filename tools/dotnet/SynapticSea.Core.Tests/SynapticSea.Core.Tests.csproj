@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Compiles the engine-free Core (and later Procgen) sources plus the EditMode tests outside Unity,
+    so `dotnet test` gives second-scale feedback. Unity remains the source of truth: these are the
+    same .cs files, compiled with a C# version Unity 6 supports.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);SYNAPTIC_DOTNET_TESTS</DefineConstants>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <ProjectRoot>$(MSBuildThisFileDirectory)..\..\..\SynapticSea\</ProjectRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(ProjectRoot)Assets\_Project\Core\**\*.cs" />
+    <Compile Include="$(ProjectRoot)Assets\_Project\Procgen\**\*.cs" Condition="Exists('$(ProjectRoot)Assets\_Project\Procgen')" />
+    <Compile Include="$(ProjectRoot)Assets\_Project\Tests\EditMode\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+
+</Project>

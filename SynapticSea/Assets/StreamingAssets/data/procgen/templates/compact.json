@@ -1,0 +1,61 @@
+{
+  "id": "compact",
+  "description": "Single-deck minimal freighter with very tight corridors. Bridge forward, engineering aft, airlock lateral entry. Uses small role footprints; intended as the LIFE_BOAT-adjacent small variant.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "spine",
+      "role_pool": ["corridor"],
+      "count": [2, 3],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "entry"
+    },
+    {
+      "id": "side_a",
+      "role_pool": ["cargo", "maintenance"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "spine"
+    },
+    {
+      "id": "side_b",
+      "role_pool": ["medical", "crew_quarters"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "spine"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["engineering", "reactor"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "spine"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "spine", "distribution": "adjacent"},
+    {"from": "spine", "to": "side_a", "distribution": "spread"},
+    {"from": "spine", "to": "side_b", "distribution": "spread"},
+    {"from": "spine", "to": "destination", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

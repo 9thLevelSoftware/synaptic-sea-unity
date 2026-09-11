@@ -1,0 +1,81 @@
+{
+  "id": "radial",
+  "description": "Hub-and-spoke: central junction with 3–4 wings (bridge, cargo, medical, engineering). High branching variety.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "hub",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "entry"
+    },
+    {
+      "id": "spoke_bridge",
+      "role_pool": ["bridge"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "hub"
+    },
+    {
+      "id": "spoke_cargo",
+      "role_pool": ["cargo", "storage", "armory"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "hub"
+    },
+    {
+      "id": "spoke_life",
+      "role_pool": ["crew_quarters", "medical", "mess_hall"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "hub"
+    },
+    {
+      "id": "spoke_eng",
+      "role_pool": ["engineering", "life_support"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "hub"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["reactor"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "spoke_eng"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "hub", "distribution": "adjacent"},
+    {"from": "hub", "to": "spoke_bridge", "distribution": "adjacent"},
+    {"from": "hub", "to": "spoke_cargo", "distribution": "spread"},
+    {"from": "hub", "to": "spoke_life", "distribution": "spread"},
+    {"from": "hub", "to": "spoke_eng", "distribution": "adjacent"},
+    {"from": "spoke_eng", "to": "destination", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

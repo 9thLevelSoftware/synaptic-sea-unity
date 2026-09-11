@@ -1,0 +1,26 @@
+{
+  "schema": "kit_materials_v1",
+  "kit_id": "ship_structural_v0",
+  "modules": {
+    "wall_straight_1x1": {
+      "base_integrity": 1.0,
+      "tool_class": "welding_lance",
+      "material_composition": { "scrap_metal": 4, "hull_plate": 1 }
+    },
+    "bulkhead_portal_2x1": {
+      "base_integrity": 1.2,
+      "tool_class": "welding_lance",
+      "material_composition": { "scrap_metal": 6, "hull_plate": 2 }
+    },
+    "floor_1x1": {
+      "base_integrity": 1.0,
+      "tool_class": "prybar",
+      "material_composition": { "scrap_metal": 3 }
+    },
+    "default": {
+      "base_integrity": 1.0,
+      "tool_class": "welding_lance",
+      "material_composition": { "scrap_metal": 2 }
+    }
+  }
+}

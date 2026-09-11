@@ -1,0 +1,242 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "modular_asset_spec",
+  "asset_id": "ceiling_cap_1x1",
+  "module_id": "ceiling_cap_1x1",
+  "category": "structural",
+  "kit_id": "ship_structural_v0",
+  "module_family": "occlusion",
+  "grid_step_m": 4.0,
+  "bounds": {
+    "local_min_m": [
+      -2.0,
+      0.0,
+      -2.0
+    ],
+    "local_max_m": [
+      2.0,
+      0.2,
+      2.0
+    ],
+    "placement_origin": "cell-center-floor",
+    "mesh_origin_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "footprint_cells": [
+    1,
+    1
+  ],
+  "sockets": [
+    {
+      "id": "prop_anchor_internal_01",
+      "kind": "prop_anchor",
+      "position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "occlusion"
+      ]
+    },
+    {
+      "id": "ceiling_edge_north_01",
+      "kind": "ceiling_edge",
+      "position_m": [
+        0.0,
+        0.0,
+        -2.0
+      ],
+      "compatible_kinds": [
+        "ceiling_edge"
+      ]
+    },
+    {
+      "id": "ceiling_edge_south_01",
+      "kind": "ceiling_edge",
+      "position_m": [
+        0.0,
+        0.0,
+        2.0
+      ],
+      "compatible_kinds": [
+        "ceiling_edge"
+      ]
+    },
+    {
+      "id": "ceiling_edge_east_01",
+      "kind": "ceiling_edge",
+      "position_m": [
+        2.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "ceiling_edge"
+      ]
+    },
+    {
+      "id": "ceiling_edge_west_01",
+      "kind": "ceiling_edge",
+      "position_m": [
+        -2.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "ceiling_edge"
+      ]
+    },
+    {
+      "id": "ceiling_bottom_01",
+      "kind": "ceiling_bottom",
+      "position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "floor_top"
+      ]
+    }
+  ],
+  "collision": {
+    "kind": "static-body-proxy",
+    "nav_blocker": false,
+    "proxy_shape": "box",
+    "notes": "authored simple proxy, never decorative collision"
+  },
+  "provenance": {
+    "source_platform": "self-authored",
+    "license_state": "self-authored",
+    "provenance_id": "ship_structural_v0:ceiling_cap_1x1"
+  },
+  "source_asset_path": "assets/_processed/ship_structural_v0/ceiling_cap_1x1/ceiling_cap_1x1.glb",
+  "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/ceiling_cap_1x1.tscn",
+  "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/ceiling_cap_1x1_contract.tres",
+  "inspection_path": null,
+  "asset": {
+    "id": "ceiling_cap_1x1",
+    "module_id": "ceiling_cap_1x1",
+    "category": "structural",
+    "kit": {
+      "kit_id": "ship_structural_v0",
+      "module_id": "ceiling_cap_1x1",
+      "module_family": "occlusion",
+      "pivot_policy": "cell-center-floor"
+    },
+    "bounds": {
+      "local_min_m": [
+        -2.0,
+        0.0,
+        -2.0
+      ],
+      "local_max_m": [
+        2.0,
+        0.2,
+        2.0
+      ],
+      "placement_origin": "cell-center-floor",
+      "mesh_origin_offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "footprint_cells": [
+      1,
+      1
+    ],
+    "sockets": [
+      {
+        "id": "prop_anchor_internal_01",
+        "kind": "prop_anchor",
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "occlusion"
+        ]
+      },
+      {
+        "id": "ceiling_edge_north_01",
+        "kind": "ceiling_edge",
+        "position_m": [
+          0.0,
+          0.0,
+          -2.0
+        ],
+        "compatible_kinds": [
+          "ceiling_edge"
+        ]
+      },
+      {
+        "id": "ceiling_edge_south_01",
+        "kind": "ceiling_edge",
+        "position_m": [
+          0.0,
+          0.0,
+          2.0
+        ],
+        "compatible_kinds": [
+          "ceiling_edge"
+        ]
+      },
+      {
+        "id": "ceiling_edge_east_01",
+        "kind": "ceiling_edge",
+        "position_m": [
+          2.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "ceiling_edge"
+        ]
+      },
+      {
+        "id": "ceiling_edge_west_01",
+        "kind": "ceiling_edge",
+        "position_m": [
+          -2.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "ceiling_edge"
+        ]
+      },
+      {
+        "id": "ceiling_bottom_01",
+        "kind": "ceiling_bottom",
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "floor_top"
+        ]
+      }
+    ],
+    "collision": {
+      "kind": "static-body-proxy",
+      "nav_blocker": false,
+      "proxy_shape": "box",
+      "notes": "authored simple proxy, never decorative collision"
+    },
+    "provenance": {
+      "source_platform": "self-authored",
+      "license_state": "self-authored",
+      "provenance_id": "ship_structural_v0:ceiling_cap_1x1"
+    },
+    "source_asset_path": "assets/_processed/ship_structural_v0/ceiling_cap_1x1/ceiling_cap_1x1.glb",
+    "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/ceiling_cap_1x1.tscn",
+    "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/ceiling_cap_1x1_contract.tres"
+  }
+}

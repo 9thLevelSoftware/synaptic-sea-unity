@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "books": [
+    {
+      "book_id": "welding_manual_basic",
+      "display_name": "Welder's Handbook (Vol. I)",
+      "target_skill": "welding",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "Field notes on standard hull welding techniques."
+    },
+    {
+      "book_id": "diagnostics_field_guide",
+      "display_name": "Field Diagnostics Manual",
+      "target_skill": "diagnostics",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "How to read reactor telemetry from a derelict bridge."
+    },
+    {
+      "book_id": "fabrication_schematic_basic",
+      "display_name": "Fabrication Schematic (Basic)",
+      "target_skill": "fabrication",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "How to assemble standard replacement parts from salvage."
+    },
+    {
+      "book_id": "advanced_welding_schematic",
+      "display_name": "Advanced Welding Schematic",
+      "target_skill": "welding",
+      "book_xp": 400,
+      "unlocks_skill": "welding_mastery",
+      "description": "Hardening weld seams for high-pressure applications."
+    },
+    {
+      "book_id": "field_surgery_manual",
+      "display_name": "Field Surgery Manual",
+      "target_skill": "surgery",
+      "book_xp": 250,
+      "unlocks_skill": "",
+      "description": "Trauma surgery under hostile conditions."
+    },
+    {
+      "book_id": "pharmacology_formulary",
+      "display_name": "Pharmacology Formulary",
+      "target_skill": "pharmacology",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "Stimulant and stabilizer recipes for Synaptic Sea exposure."
+    },
+    {
+      "book_id": "astrogation_almanac",
+      "display_name": "Astrogation Almanac",
+      "target_skill": "astrogation",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "Charts of every drift pattern observed in the Synaptic Sea."
+    },
+    {
+      "book_id": "biomatter_signal_analysis",
+      "display_name": "Biomatter Signal Analysis",
+      "target_skill": "signal_analysis",
+      "book_xp": 350,
+      "unlocks_skill": "biomatter_diagnostics",
+      "description": "How to extract readable signals from biomatter interference."
+    },
+    {
+      "book_id": "scavenger_companion",
+      "display_name": "Scavenger's Companion",
+      "target_skill": "scavenging",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "Loose panel, false wall, and hidden cargo lore."
+    },
+    {
+      "book_id": "derelict_cookbook",
+      "display_name": "Derelict Cookbook",
+      "target_skill": "cooking",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "Rations, preserves, and morale-boosting recipes."
+    },
+    {
+      "book_id": "leadership_protocol",
+      "display_name": "Leadership Protocol",
+      "target_skill": "leadership",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "Crisis decision-making for derelict crews."
+    },
+    {
+      "book_id": "comms_relay_handbook",
+      "display_name": "Comms Relay Handbook",
+      "target_skill": "comms",
+      "book_xp": 200,
+      "unlocks_skill": "",
+      "description": "How to keep a long-range relay alive past week two."
+    }
+  ]
+}

@@ -1,0 +1,1095 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "ship_structural_catalog",
+  "kit_id": "ship_structural_biomatter",
+  "description": "Hive biomatter structural kit. First milestone remaps v0 wrapper scenes onto the same sockets; unique GLBs are a later content card. Bound by layout.template_id hive, not biome.",
+  "grid_step_m": 4.0,
+  "source_workspace_root": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/",
+  "catalog_path": "data/kits/ship_structural_biomatter.json",
+  "module_count": 15,
+  "default_role_module": "floor_1x1",
+  "biome_preference": {},
+
+  "role_modules": {
+    "airlock": ["floor_1x1", "floor_1x1", "doorway_frame_open_1x1"],
+    "corridor": ["corridor_floor_1x1", "corridor_floor_1x1"],
+    "engineering": ["floor_1x1", "floor_2x1", "wall_straight_1x1"],
+    "life_support": ["floor_1x1", "floor_1x1", "wall_straight_1x1"],
+    "bridge": ["floor_2x1", "floor_2x1", "wall_straight_1x1"],
+    "cargo": ["floor_2x1", "floor_2x1"],
+    "crew_quarters": ["floor_1x1", "floor_1x1"],
+    "medical": ["floor_1x1", "floor_1x1"],
+    "maintenance": ["floor_1x1", "corridor_floor_1x1"],
+    "cockpit": ["floor_1x1", "floor_1x1", "wall_straight_1x1"],
+    "engine_bay": ["floor_1x1", "floor_2x1", "wall_straight_1x1"],
+    "compartment": ["floor_1x1", "floor_1x1", "floor_1x1"],
+    "bay": ["floor_2x1", "floor_2x1", "floor_1x1"],
+    "quarters": ["floor_1x1", "floor_1x1"],
+    "dock": ["floor_1x1", "floor_1x1", "doorway_frame_open_1x1"]
+  },
+  "modules": [
+    {
+      "module_id": "floor_1x1",
+      "module_family": "floor",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": false,
+      "role": "single walkable deck cell",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/floor_1x1/floor_1x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/floor_1x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/floor_1x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/floor_1x1/floor_1x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/floor_1x1/floor_1x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "floor_1x1",
+          "source_object_name": "Collision_floor_1x1",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              1.7999999523162842,
+              0.25
+            ],
+            "dimensions_m": [
+              4.0,
+              3.5999999046325684,
+              0.25
+            ]
+          },
+          "collision_shape_m": {
+            "name": "floor_1x1",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              0.25
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "floor_1x1.glb",
+        "floor_1x1.asset.json",
+        "floor_1x1.inspect.json",
+        "floor_1x1.lint.json",
+        "floor_1x1.preview.png",
+        "floor_1x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_floor_edge_north_01",
+        "SOCK_floor_edge_south_01",
+        "SOCK_floor_edge_east_01",
+        "SOCK_floor_edge_west_01"
+      ],
+      "pivot_policy": "cell-center-floor",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/floor_1x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/floor_1x1_contract.tres",
+      "provenance_id": "ship_structural_v0:floor_1x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "floor_2x1",
+      "module_family": "floor",
+      "footprint_cells": [
+        2,
+        1
+      ],
+      "nav_blocker": false,
+      "role": "larger rectangular room floor span",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/floor_2x1/floor_2x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/floor_2x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/floor_2x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/floor_2x1/floor_2x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/floor_2x1/floor_2x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "floor_2x1",
+          "source_object_name": "Collision_floor_2x1",
+          "bounds": {
+            "local_min_m": [
+              -4.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              4.0,
+              1.7999999523162842,
+              0.25
+            ],
+            "dimensions_m": [
+              8.0,
+              3.5999999046325684,
+              0.25
+            ]
+          },
+          "collision_shape_m": {
+            "name": "floor_2x1",
+            "kind": "box",
+            "footprint_m": [
+              -4.0,
+              4.0,
+              0.0,
+              0.25
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "floor_2x1.glb",
+        "floor_2x1.asset.json",
+        "floor_2x1.inspect.json",
+        "floor_2x1.lint.json",
+        "floor_2x1.preview.png",
+        "floor_2x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_floor_edge_north_01",
+        "SOCK_floor_edge_south_01",
+        "SOCK_floor_edge_east_01",
+        "SOCK_floor_edge_west_01"
+      ],
+      "pivot_policy": "cell-center-floor",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/floor_2x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/floor_2x1_contract.tres",
+      "provenance_id": "ship_structural_v0:floor_2x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "corridor_floor_1x1",
+      "module_family": "corridor_floor",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": false,
+      "role": "narrow hallway cell",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/corridor_floor_1x1/corridor_floor_1x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/corridor_floor_1x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/corridor_floor_1x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/corridor_floor_1x1/corridor_floor_1x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/corridor_floor_1x1/corridor_floor_1x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "corridor_floor_1x1",
+          "source_object_name": "Collision_corridor_floor_1x1",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              1.7999999523162842,
+              0.25
+            ],
+            "dimensions_m": [
+              4.0,
+              3.5999999046325684,
+              0.25
+            ]
+          },
+          "collision_shape_m": {
+            "name": "corridor_floor_1x1",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              0.25
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "corridor_floor_1x1.glb",
+        "corridor_floor_1x1.asset.json",
+        "corridor_floor_1x1.inspect.json",
+        "corridor_floor_1x1.lint.json",
+        "corridor_floor_1x1.preview.png",
+        "corridor_floor_1x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_floor_edge_north_01",
+        "SOCK_floor_edge_south_01",
+        "SOCK_floor_edge_east_01",
+        "SOCK_floor_edge_west_01"
+      ],
+      "pivot_policy": "cell-center-floor",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/corridor_floor_1x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/corridor_floor_1x1_contract.tres",
+      "provenance_id": "ship_structural_v0:corridor_floor_1x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "corridor_floor_1x2",
+      "module_family": "corridor_floor",
+      "footprint_cells": [
+        1,
+        2
+      ],
+      "nav_blocker": false,
+      "role": "two-cell corridor span",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/corridor_floor_1x2/corridor_floor_1x2.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/corridor_floor_1x2/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/corridor_floor_1x2",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/corridor_floor_1x2/corridor_floor_1x2.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/corridor_floor_1x2/corridor_floor_1x2.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "corridor_floor_1x2",
+          "source_object_name": "Collision_corridor_floor_1x2",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -3.5999999046325684,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              3.5999999046325684,
+              0.25
+            ],
+            "dimensions_m": [
+              4.0,
+              7.199999809265137,
+              0.25
+            ]
+          },
+          "collision_shape_m": {
+            "name": "corridor_floor_1x2",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              0.25
+            ],
+            "height_m": 7.199999809265137,
+            "base_y_m": -3.5999999046325684,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "corridor_floor_1x2.glb",
+        "corridor_floor_1x2.asset.json",
+        "corridor_floor_1x2.inspect.json",
+        "corridor_floor_1x2.lint.json",
+        "corridor_floor_1x2.preview.png",
+        "corridor_floor_1x2.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_floor_edge_north_01",
+        "SOCK_floor_edge_south_01",
+        "SOCK_floor_edge_east_01",
+        "SOCK_floor_edge_west_01"
+      ],
+      "pivot_policy": "cell-center-floor",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/corridor_floor_1x2.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/corridor_floor_1x2_contract.tres",
+      "provenance_id": "ship_structural_v0:corridor_floor_1x2",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "wall_straight_1x1",
+      "module_family": "wall",
+      "footprint_cells": [
+        1,
+        0
+      ],
+      "nav_blocker": true,
+      "role": "straight boundary bulkhead segment on one exposed cell edge",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_straight_1x1/wall_straight_1x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_straight_1x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_straight_1x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_straight_1x1/wall_straight_1x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/wall_straight_1x1/wall_straight_1x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "wall_straight_1x1",
+          "source_object_name": "Collision_wall_straight_1x1",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -0.20250000059604645,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              0.20250000059604645,
+              2.549999952316284
+            ],
+            "dimensions_m": [
+              4.0,
+              0.4050000011920929,
+              2.549999952316284
+            ]
+          },
+          "collision_shape_m": {
+            "name": "wall_straight_1x1",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              2.549999952316284
+            ],
+            "height_m": 0.4050000011920929,
+            "base_y_m": -0.20250000059604645,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "wall_straight_1x1.glb",
+        "wall_straight_1x1.asset.json",
+        "wall_straight_1x1.inspect.json",
+        "wall_straight_1x1.lint.json",
+        "wall_straight_1x1.preview.png",
+        "wall_straight_1x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_wall_end_west_01",
+        "SOCK_wall_end_east_01",
+        "SOCK_wall_face_internal_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/wall_straight_1x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/wall_straight_1x1_contract.tres",
+      "provenance_id": "ship_structural_v0:wall_straight_1x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "wall_end_cap",
+      "module_family": "wall",
+      "footprint_cells": [
+        1,
+        0
+      ],
+      "nav_blocker": true,
+      "role": "terminates exposed wall run where no neighbor wall exists",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_end_cap/wall_end_cap.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_end_cap/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_end_cap",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_end_cap/wall_end_cap.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/wall_end_cap/wall_end_cap.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "wall_end_cap",
+          "source_object_name": "Collision_wall_end_cap",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -0.20250000059604645,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              0.20250000059604645,
+              2.549999952316284
+            ],
+            "dimensions_m": [
+              4.0,
+              0.4050000011920929,
+              2.549999952316284
+            ]
+          },
+          "collision_shape_m": {
+            "name": "wall_end_cap",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              2.549999952316284
+            ],
+            "height_m": 0.4050000011920929,
+            "base_y_m": -0.20250000059604645,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "wall_end_cap.glb",
+        "wall_end_cap.asset.json",
+        "wall_end_cap.inspect.json",
+        "wall_end_cap.lint.json",
+        "wall_end_cap.preview.png",
+        "wall_end_cap.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_wall_end_west_01",
+        "SOCK_wall_end_east_01",
+        "SOCK_wall_face_internal_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/wall_end_cap.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/wall_end_cap_contract.tres",
+      "provenance_id": "ship_structural_v0:wall_end_cap",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "wall_inner_corner",
+      "module_family": "corner",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": true,
+      "role": "concave interior corner for L/branch junctions",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_inner_corner/wall_inner_corner.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_inner_corner/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_inner_corner",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_inner_corner/wall_inner_corner.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/wall_inner_corner/wall_inner_corner.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "wall_inner_corner",
+          "source_object_name": "Collision_wall_inner_corner",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              1.7999999523162842,
+              1.7000000476837158
+            ],
+            "dimensions_m": [
+              4.0,
+              3.5999999046325684,
+              1.7000000476837158
+            ]
+          },
+          "collision_shape_m": {
+            "name": "wall_inner_corner",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              1.7000000476837158
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "wall_inner_corner.glb",
+        "wall_inner_corner.asset.json",
+        "wall_inner_corner.inspect.json",
+        "wall_inner_corner.lint.json",
+        "wall_inner_corner.preview.png",
+        "wall_inner_corner.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_outer_corner_vertex_north_01",
+        "SOCK_inner_corner_vertex_south_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/wall_inner_corner.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/wall_inner_corner_contract.tres",
+      "provenance_id": "ship_structural_v0:wall_inner_corner",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "wall_outer_corner",
+      "module_family": "corner",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": true,
+      "role": "convex exterior hull/bulkhead corner",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_outer_corner/wall_outer_corner.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_outer_corner/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_outer_corner",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_outer_corner/wall_outer_corner.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/wall_outer_corner/wall_outer_corner.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "wall_outer_corner",
+          "source_object_name": "Collision_wall_outer_corner",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              1.7999999523162842,
+              1.7000000476837158
+            ],
+            "dimensions_m": [
+              4.0,
+              3.5999999046325684,
+              1.7000000476837158
+            ]
+          },
+          "collision_shape_m": {
+            "name": "wall_outer_corner",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              1.7000000476837158
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "wall_outer_corner.glb",
+        "wall_outer_corner.asset.json",
+        "wall_outer_corner.inspect.json",
+        "wall_outer_corner.lint.json",
+        "wall_outer_corner.preview.png",
+        "wall_outer_corner.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_outer_corner_vertex_north_01",
+        "SOCK_inner_corner_vertex_south_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/wall_outer_corner.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/wall_outer_corner_contract.tres",
+      "provenance_id": "ship_structural_v0:wall_outer_corner",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "wall_t_junction",
+      "module_family": "junction",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": true,
+      "role": "T junction wall/corridor transition support",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_t_junction/wall_t_junction.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/wall_t_junction/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_t_junction",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/wall_t_junction/wall_t_junction.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/wall_t_junction/wall_t_junction.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "wall_t_junction",
+          "source_object_name": "Collision_wall_t_junction",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              1.7999999523162842,
+              1.7000000476837158
+            ],
+            "dimensions_m": [
+              4.0,
+              3.5999999046325684,
+              1.7000000476837158
+            ]
+          },
+          "collision_shape_m": {
+            "name": "wall_t_junction",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              1.7000000476837158
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "wall_t_junction.glb",
+        "wall_t_junction.asset.json",
+        "wall_t_junction.inspect.json",
+        "wall_t_junction.lint.json",
+        "wall_t_junction.preview.png",
+        "wall_t_junction.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_wall_face_north_01",
+        "SOCK_wall_face_east_01",
+        "SOCK_wall_face_west_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/wall_t_junction.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/wall_t_junction_contract.tres",
+      "provenance_id": "ship_structural_v0:wall_t_junction",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "doorway_frame_open_1x1",
+      "module_family": "portal",
+      "footprint_cells": [
+        1,
+        0
+      ],
+      "nav_blocker": true,
+      "role": "one-cell room/corridor doorway frame with clear opening",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/doorway_frame_open_1x1/doorway_frame_open_1x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/doorway_frame_open_1x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/doorway_frame_open_1x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/doorway_frame_open_1x1/doorway_frame_open_1x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/doorway_frame_open_1x1/doorway_frame_open_1x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "doorway_frame_open_1x1",
+          "source_object_name": "Collision_doorway_frame_open_1x1",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -0.20250000059604645,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              0.20250000059604645,
+              2.7200000286102295
+            ],
+            "dimensions_m": [
+              4.0,
+              0.4050000011920929,
+              2.7200000286102295
+            ]
+          },
+          "collision_shape_m": {
+            "name": "doorway_frame_open_1x1",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              2.7200000286102295
+            ],
+            "height_m": 0.4050000011920929,
+            "base_y_m": -0.20250000059604645,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "doorway_frame_open_1x1.glb",
+        "doorway_frame_open_1x1.asset.json",
+        "doorway_frame_open_1x1.inspect.json",
+        "doorway_frame_open_1x1.lint.json",
+        "doorway_frame_open_1x1.preview.png",
+        "doorway_frame_open_1x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_portal_edge_west_01",
+        "SOCK_portal_edge_east_01",
+        "SOCK_portal_center_internal_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/doorway_frame_open_1x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/doorway_frame_open_1x1_contract.tres",
+      "provenance_id": "ship_structural_v0:doorway_frame_open_1x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "bulkhead_portal_2x1",
+      "module_family": "portal",
+      "footprint_cells": [
+        2,
+        0
+      ],
+      "nav_blocker": true,
+      "role": "two-cell bulkhead/airlock portal; solves oversized door-frame issue explicitly",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/bulkhead_portal_2x1/bulkhead_portal_2x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/bulkhead_portal_2x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/bulkhead_portal_2x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/bulkhead_portal_2x1/bulkhead_portal_2x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/bulkhead_portal_2x1/bulkhead_portal_2x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "bulkhead_portal_2x1",
+          "source_object_name": "Collision_bulkhead_portal_2x1",
+          "bounds": {
+            "local_min_m": [
+              -4.0,
+              -0.20250000059604645,
+              0.0
+            ],
+            "local_max_m": [
+              4.0,
+              0.20250000059604645,
+              2.7200000286102295
+            ],
+            "dimensions_m": [
+              8.0,
+              0.4050000011920929,
+              2.7200000286102295
+            ]
+          },
+          "collision_shape_m": {
+            "name": "bulkhead_portal_2x1",
+            "kind": "box",
+            "footprint_m": [
+              -4.0,
+              4.0,
+              0.0,
+              2.7200000286102295
+            ],
+            "height_m": 0.4050000011920929,
+            "base_y_m": -0.20250000059604645,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "bulkhead_portal_2x1.glb",
+        "bulkhead_portal_2x1.asset.json",
+        "bulkhead_portal_2x1.inspect.json",
+        "bulkhead_portal_2x1.lint.json",
+        "bulkhead_portal_2x1.preview.png",
+        "bulkhead_portal_2x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_portal_edge_west_01",
+        "SOCK_portal_edge_east_01",
+        "SOCK_portal_center_internal_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/bulkhead_portal_2x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/bulkhead_portal_2x1_contract.tres",
+      "provenance_id": "ship_structural_v0:bulkhead_portal_2x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "doorway_frame_blocked_1x1",
+      "module_family": "portal",
+      "footprint_cells": [
+        1,
+        0
+      ],
+      "nav_blocker": true,
+      "role": "sealed/blocked doorway used when procgen closes a socket",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/doorway_frame_blocked_1x1/doorway_frame_blocked_1x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/doorway_frame_blocked_1x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/doorway_frame_blocked_1x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/doorway_frame_blocked_1x1/doorway_frame_blocked_1x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/doorway_frame_blocked_1x1/doorway_frame_blocked_1x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "doorway_frame_blocked_1x1",
+          "source_object_name": "Collision_doorway_frame_blocked_1x1",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -0.20250000059604645,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              0.20250000059604645,
+              2.7200000286102295
+            ],
+            "dimensions_m": [
+              4.0,
+              0.4050000011920929,
+              2.7200000286102295
+            ]
+          },
+          "collision_shape_m": {
+            "name": "doorway_frame_blocked_1x1",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              2.7200000286102295
+            ],
+            "height_m": 0.4050000011920929,
+            "base_y_m": -0.20250000059604645,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "doorway_frame_blocked_1x1.glb",
+        "doorway_frame_blocked_1x1.asset.json",
+        "doorway_frame_blocked_1x1.inspect.json",
+        "doorway_frame_blocked_1x1.lint.json",
+        "doorway_frame_blocked_1x1.preview.png",
+        "doorway_frame_blocked_1x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_portal_edge_west_01",
+        "SOCK_portal_edge_east_01",
+        "SOCK_portal_center_internal_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/doorway_frame_blocked_1x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/doorway_frame_blocked_1x1_contract.tres",
+      "provenance_id": "ship_structural_v0:doorway_frame_blocked_1x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "ramp_up_1x2",
+      "module_family": "vertical_transition",
+      "footprint_cells": [
+        1,
+        2
+      ],
+      "nav_blocker": false,
+      "role": "future verticality/level transition; may be deferred if solver stays single-deck",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/ramp_up_1x2/ramp_up_1x2.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/ramp_up_1x2/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/ramp_up_1x2",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/ramp_up_1x2/ramp_up_1x2.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/ramp_up_1x2/ramp_up_1x2.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "ramp_up_1x2",
+          "source_object_name": "Collision_ramp_up_1x2",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              1.7999999523162842,
+              0.4675000011920929
+            ],
+            "dimensions_m": [
+              4.0,
+              3.5999999046325684,
+              0.4675000011920929
+            ]
+          },
+          "collision_shape_m": {
+            "name": "ramp_up_1x2",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              0.4675000011920929
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "ramp_up_1x2.glb",
+        "ramp_up_1x2.asset.json",
+        "ramp_up_1x2.inspect.json",
+        "ramp_up_1x2.lint.json",
+        "ramp_up_1x2.preview.png",
+        "ramp_up_1x2.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_floor_edge_south_01",
+        "SOCK_floor_edge_north_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/ramp_up_1x2.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/ramp_up_1x2_contract.tres",
+      "provenance_id": "ship_structural_v0:ramp_up_1x2",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "pillar_support_1x1",
+      "module_family": "support",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": true,
+      "role": "readable support/post with explicit nav-blocker footprint",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/pillar_support_1x1/pillar_support_1x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/pillar_support_1x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/pillar_support_1x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/pillar_support_1x1/pillar_support_1x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/pillar_support_1x1/pillar_support_1x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "pillar_support_1x1",
+          "source_object_name": "Collision_pillar_support_1x1",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -0.27000001072883606,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              0.27000001072883606,
+              2.7200000286102295
+            ],
+            "dimensions_m": [
+              4.0,
+              0.5400000214576721,
+              2.7200000286102295
+            ]
+          },
+          "collision_shape_m": {
+            "name": "pillar_support_1x1",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              2.7200000286102295
+            ],
+            "height_m": 0.5400000214576721,
+            "base_y_m": -0.27000001072883606,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "pillar_support_1x1.glb",
+        "pillar_support_1x1.asset.json",
+        "pillar_support_1x1.inspect.json",
+        "pillar_support_1x1.lint.json",
+        "pillar_support_1x1.preview.png",
+        "pillar_support_1x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_prop_anchor_down_01",
+        "SOCK_prop_anchor_up_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/pillar_support_1x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/pillar_support_1x1_contract.tres",
+      "provenance_id": "ship_structural_v0:pillar_support_1x1",
+      "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "ceiling_cap_1x1",
+      "module_family": "occlusion",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": false,
+      "role": "optional cutaway/occlusion cap for locked-isometric readability",
+      "source_blend": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/ceiling_cap_1x1/ceiling_cap_1x1.blend",
+      "source_readme": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/ceiling_cap_1x1/README.md",
+      "processed_dir": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/ceiling_cap_1x1",
+      "processed_asset_json": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_processed/ship_structural_v0/ceiling_cap_1x1/ceiling_cap_1x1.asset.json",
+      "processed_asset_found": true,
+      "processed_asset_source": "assets/_processed/ship_structural_v0/ceiling_cap_1x1/ceiling_cap_1x1.glb",
+      "collision_proxy_records": [
+        {
+          "proxy_name": "ceiling_cap_1x1",
+          "source_object_name": "Collision_ceiling_cap_1x1",
+          "bounds": {
+            "local_min_m": [
+              -2.0,
+              -1.7999999523162842,
+              0.0
+            ],
+            "local_max_m": [
+              2.0,
+              1.7999999523162842,
+              0.25
+            ],
+            "dimensions_m": [
+              4.0,
+              3.5999999046325684,
+              0.25
+            ]
+          },
+          "collision_shape_m": {
+            "name": "ceiling_cap_1x1",
+            "kind": "box",
+            "footprint_m": [
+              -2.0,
+              2.0,
+              0.0,
+              0.25
+            ],
+            "height_m": 3.5999999046325684,
+            "base_y_m": -1.7999999523162842,
+            "nav_blocker": true
+          }
+        }
+      ],
+      "collision_proxy_count": 1,
+      "processed_files": [
+        "ceiling_cap_1x1.glb",
+        "ceiling_cap_1x1.asset.json",
+        "ceiling_cap_1x1.inspect.json",
+        "ceiling_cap_1x1.lint.json",
+        "ceiling_cap_1x1.preview.png",
+        "ceiling_cap_1x1.footprint.svg"
+      ],
+      "socket_names": [
+        "SOCK_prop_anchor_internal_01"
+      ],
+      "pivot_policy": "cell-center-floor",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/ceiling_cap_1x1.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/ceiling_cap_1x1_contract.tres",
+      "provenance_id": "ship_structural_v0:ceiling_cap_1x1",
+      "collision_policy": "static-body-proxy"
+    }
+  ]
+}

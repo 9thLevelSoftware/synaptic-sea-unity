@@ -1,0 +1,30 @@
+{
+  "version": "loot-biomes-1",
+  "biomes": {
+    "abyssal_synaptic_sea": {
+      "loot_quality_bonus": 0.0,
+      "junk_bias": 1.0,
+      "container_quality_bonus": {
+        "hidden_cache": 0.10,
+        "survivor_locker": 0.04
+      }
+    },
+    "breach_field": {
+      "loot_quality_bonus": 0.04,
+      "junk_bias": 1.15,
+      "container_quality_bonus": {
+        "maintenance_cache": 0.08,
+        "industrial_crate": 0.06
+      }
+    },
+    "dead_fleet": {
+      "loot_quality_bonus": 0.10,
+      "junk_bias": 0.85,
+      "container_quality_bonus": {
+        "hidden_cache": 0.18,
+        "survivor_locker": 0.12,
+        "industrial_crate": 0.08
+      }
+    }
+  }
+}

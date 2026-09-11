@@ -1,0 +1,47 @@
+{
+  "version": "threat-visual-1",
+  "archetypes": {
+    "biomatter_swarm": {
+      "mesh_path": "",
+      "primitive": "sphere",
+      "y_offset": 0.0,
+      "scale": 1.0,
+      "albedo": "#8cff73"
+    },
+    "stalker": {
+      "mesh_path": "",
+      "primitive": "capsule",
+      "y_offset": 0.0,
+      "scale": 1.15,
+      "albedo": "#9aa6ff"
+    },
+    "hull_tendril": {
+      "mesh_path": "",
+      "primitive": "cylinder",
+      "y_offset": 0.0,
+      "scale": 1.0,
+      "albedo": "#5ce1ff"
+    },
+    "puppet_corpse": {
+      "mesh_path": "",
+      "primitive": "capsule",
+      "y_offset": 0.0,
+      "scale": 1.0,
+      "albedo": "#d9d2b3"
+    },
+    "mimic": {
+      "mesh_path": "",
+      "primitive": "box",
+      "y_offset": 0.0,
+      "scale": 1.0,
+      "albedo": "#ff8c40"
+    },
+    "drone_swarm": {
+      "mesh_path": "",
+      "primitive": "sphere",
+      "y_offset": 0.0,
+      "scale": 0.85,
+      "albedo": "#ff5959"
+    }
+  }
+}

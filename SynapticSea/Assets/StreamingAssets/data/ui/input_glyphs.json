@@ -1,0 +1,119 @@
+{
+  "version": "controller-glyphs-1",
+  "default_scheme": "auto",
+  "fallback_scheme": "keyboard",
+  "actions": [
+    {
+      "action": "interact",
+      "schemes": {
+        "keyboard":     "[E]",
+        "gamepad_xbox": "[A]",
+        "gamepad_ps":   "[Cross]"
+      }
+    },
+    {
+      "action": "move_up",
+      "schemes": {
+        "keyboard":     "[W]",
+        "gamepad_xbox": "[LS]",
+        "gamepad_ps":   "[LS]"
+      }
+    },
+    {
+      "action": "move_down",
+      "schemes": {
+        "keyboard":     "[S]",
+        "gamepad_xbox": "[LS]",
+        "gamepad_ps":   "[LS]"
+      }
+    },
+    {
+      "action": "move_left",
+      "schemes": {
+        "keyboard":     "[A]",
+        "gamepad_xbox": "[LS]",
+        "gamepad_ps":   "[LS]"
+      }
+    },
+    {
+      "action": "move_right",
+      "schemes": {
+        "keyboard":     "[D]",
+        "gamepad_xbox": "[LS]",
+        "gamepad_ps":   "[LS]"
+      }
+    },
+    {
+      "action": "toggle_inventory",
+      "schemes": {
+        "keyboard":     "[I]",
+        "gamepad_xbox": "[Y]",
+        "gamepad_ps":   "[Triangle]"
+      }
+    },
+    {
+      "action": "toggle_scanner",
+      "schemes": {
+        "keyboard":     "[Tab]",
+        "gamepad_xbox": "[LB]",
+        "gamepad_ps":   "[L1]"
+      }
+    },
+    {
+      "action": "ui_pause",
+      "schemes": {
+        "keyboard":     "[Esc]",
+        "gamepad_xbox": "[Start]",
+        "gamepad_ps":   "[Options]"
+      }
+    },
+    {
+      "action": "ui_cancel",
+      "schemes": {
+        "keyboard":     "[Esc]",
+        "gamepad_xbox": "[B]",
+        "gamepad_ps":   "[Circle]"
+      }
+    },
+    {
+      "action": "ui_accept",
+      "schemes": {
+        "keyboard":     "[Enter]",
+        "gamepad_xbox": "[A]",
+        "gamepad_ps":   "[Cross]"
+      }
+    },
+    {
+      "action": "save_run",
+      "schemes": {
+        "keyboard":     "[F5]",
+        "gamepad_xbox": "[Back]",
+        "gamepad_ps":   "[Share]"
+      }
+    },
+    {
+      "action": "load_run",
+      "schemes": {
+        "keyboard":     "[F9]",
+        "gamepad_xbox": "[Start]",
+        "gamepad_ps":   "[Options]"
+      }
+    },
+    {
+      "action": "ui_open_codex",
+      "schemes": {
+        "keyboard":     "[F1]",
+        "gamepad_xbox": "[Back]",
+        "gamepad_ps":   "[Share]"
+      }
+    },
+    {
+      "action": "ui_open_map",
+      "schemes": {
+        "keyboard":     "[M]",
+        "gamepad_xbox": "[View]",
+        "gamepad_ps":   "[Touchpad]"
+      }
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "modular_asset_spec",
+  "asset_id": "doorway_frame_open_1x1",
+  "module_id": "doorway_frame_open_1x1",
+  "category": "structural",
+  "kit_id": "ship_structural_v0",
+  "module_family": "portal",
+  "grid_step_m": 4.0,
+  "bounds": {
+    "local_min_m": [
+      -2.0,
+      0.0,
+      0.0
+    ],
+    "local_max_m": [
+      2.0,
+      3.2,
+      0.0
+    ],
+    "placement_origin": "edge-center",
+    "mesh_origin_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "footprint_cells": [
+    1,
+    0
+  ],
+  "sockets": [
+    {
+      "id": "portal_edge_west_01",
+      "kind": "portal_edge",
+      "position_m": [
+        -2.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "portal_edge",
+        "wall_edge"
+      ]
+    },
+    {
+      "id": "portal_edge_east_01",
+      "kind": "portal_edge",
+      "position_m": [
+        2.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "portal_edge",
+        "wall_edge"
+      ]
+    },
+    {
+      "id": "portal_center_internal_01",
+      "kind": "portal_center",
+      "position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "portal_center"
+      ]
+    },
+    {
+      "id": "wall_base_01",
+      "kind": "wall_base",
+      "position_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "floor_edge",
+        "corridor_edge"
+      ]
+    }
+  ],
+  "collision": {
+    "kind": "static-body-proxy",
+    "nav_blocker": true,
+    "proxy_shape": "box",
+    "notes": "authored simple proxy, never decorative collision"
+  },
+  "provenance": {
+    "source_platform": "self-authored",
+    "license_state": "self-authored",
+    "provenance_id": "ship_structural_v0:doorway_frame_open_1x1"
+  },
+  "source_asset_path": "assets/_processed/ship_structural_v0/doorway_frame_open_1x1/doorway_frame_open_1x1.glb",
+  "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/doorway_frame_open_1x1.tscn",
+  "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/doorway_frame_open_1x1_contract.tres",
+  "inspection_path": null,
+  "asset": {
+    "id": "doorway_frame_open_1x1",
+    "module_id": "doorway_frame_open_1x1",
+    "category": "structural",
+    "kit": {
+      "kit_id": "ship_structural_v0",
+      "module_id": "doorway_frame_open_1x1",
+      "module_family": "portal",
+      "pivot_policy": "edge-center"
+    },
+    "bounds": {
+      "local_min_m": [
+        -2.0,
+        0.0,
+        0.0
+      ],
+      "local_max_m": [
+        2.0,
+        3.2,
+        0.0
+      ],
+      "placement_origin": "edge-center",
+      "mesh_origin_offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "footprint_cells": [
+      1,
+      0
+    ],
+    "sockets": [
+      {
+        "id": "portal_edge_west_01",
+        "kind": "portal_edge",
+        "position_m": [
+          -2.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "portal_edge",
+          "wall_edge"
+        ]
+      },
+      {
+        "id": "portal_edge_east_01",
+        "kind": "portal_edge",
+        "position_m": [
+          2.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "portal_edge",
+          "wall_edge"
+        ]
+      },
+      {
+        "id": "portal_center_internal_01",
+        "kind": "portal_center",
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "portal_center"
+        ]
+      },
+      {
+        "id": "wall_base_01",
+        "kind": "wall_base",
+        "position_m": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "floor_edge",
+          "corridor_edge"
+        ]
+      }
+    ],
+    "collision": {
+      "kind": "static-body-proxy",
+      "nav_blocker": true,
+      "proxy_shape": "box",
+      "notes": "authored simple proxy, never decorative collision"
+    },
+    "provenance": {
+      "source_platform": "self-authored",
+      "license_state": "self-authored",
+      "provenance_id": "ship_structural_v0:doorway_frame_open_1x1"
+    },
+    "source_asset_path": "assets/_processed/ship_structural_v0/doorway_frame_open_1x1/doorway_frame_open_1x1.glb",
+    "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/doorway_frame_open_1x1.tscn",
+    "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/doorway_frame_open_1x1_contract.tres"
+  }
+}

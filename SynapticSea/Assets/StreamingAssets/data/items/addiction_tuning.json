@@ -1,0 +1,17 @@
+{
+  "focus_ampoule": {
+    "withdrawal_threshold": 0.8,
+    "withdrawal_duration": 28.0,
+    "withdrawal_effects": ["withdrawal_shakes"]
+  },
+  "combat_stim": {
+    "withdrawal_threshold": 1.0,
+    "withdrawal_duration": 32.0,
+    "withdrawal_effects": ["withdrawal_shakes", "withdrawal_fatigue"]
+  },
+  "calm_patch": {
+    "withdrawal_threshold": 0.7,
+    "withdrawal_duration": 24.0,
+    "withdrawal_effects": ["withdrawal_fatigue"]
+  }
+}

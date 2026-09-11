@@ -1,0 +1,18 @@
+{
+  "biomatter_sample": {
+    "display_name": "Biomatter Sample",
+    "category": "trade",
+    "weight": 0.6,
+    "max_stack": 12,
+    "trade_value": 18,
+    "icon": "res://assets/placeholder/biomatter_sample.png"
+  },
+  "antique_relay": {
+    "display_name": "Antique Relay",
+    "category": "trade",
+    "weight": 1.2,
+    "max_stack": 6,
+    "trade_value": 45,
+    "icon": "res://assets/placeholder/antique_relay.png"
+  }
+}

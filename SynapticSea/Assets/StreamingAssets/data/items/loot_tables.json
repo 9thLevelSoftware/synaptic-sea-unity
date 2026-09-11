@@ -1,0 +1,107 @@
+{
+  "_schema": "loot-tables-2",
+  "generic_crate": {
+    "rolls": 2,
+    "container_kind": "industrial_crate",
+    "entries": [
+      { "item_id": "scrap_metal",  "qty_min": 1, "qty_max": 3, "weight": 5, "rarity": "common",   "depth_weight_scale": 0.05, "condition_weights": { "wrecked": 1.3 } },
+      { "item_id": "wiring_spool", "qty_min": 1, "qty_max": 2, "weight": 3, "rarity": "common" },
+      { "item_id": "power_cell",   "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon", "biome_weights": { "dead_fleet": 1.3 } },
+      { "item_id": "frayed_cable_coil", "qty_min": 1, "qty_max": 2, "weight": 4, "rarity": "common" },
+      { "item_id": "cracked_pressure_valve", "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon", "condition_weights": { "wrecked": 1.5 } },
+      { "item_id": "contaminated_water", "qty_min": 1, "qty_max": 3, "weight": 4, "rarity": "common" }
+    ]
+  },
+  "generic_locker": {
+    "rolls": 2,
+    "container_kind": "survivor_locker",
+    "entries": [
+      { "item_id": "ration_pack",   "qty_min": 1, "qty_max": 3, "weight": 5, "rarity": "common" },
+      { "item_id": "medkit",        "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "welder",        "qty_min": 1, "qty_max": 1, "weight": 3, "rarity": "uncommon" },
+      { "item_id": "plasma_cutter", "qty_min": 1, "qty_max": 1, "weight": 1, "rarity": "rare" },
+      { "item_id": "corroded_data_shard", "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "fire_extinguisher", "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "flare_round",   "qty_min": 1, "qty_max": 2, "weight": 2, "rarity": "common" },
+      { "item_id": "flare_pistol",  "qty_min": 1, "qty_max": 1, "weight": 1, "rarity": "rare" }
+    ]
+  },
+  "salvage_engineering": {
+    "rolls": 2,
+    "container_kind": "maintenance_cache",
+    "entries": [
+      { "item_id": "circuit_board",   "qty_min": 1, "qty_max": 2, "weight": 4, "rarity": "common" },
+      { "item_id": "fuel_line",       "qty_min": 1, "qty_max": 2, "weight": 3, "rarity": "common" },
+      { "item_id": "power_cell",      "qty_min": 1, "qty_max": 2, "weight": 3, "rarity": "uncommon" },
+      { "item_id": "thruster_nozzle", "qty_min": 1, "qty_max": 1, "weight": 1, "rarity": "rare", "depth_weight_scale": 0.12 },
+      { "item_id": "captains_black_box", "qty_min": 1, "qty_max": 1, "weight": 0.2, "rarity": "legendary", "unique_id": "captains_black_box", "codex_entry_id": "captains_black_box", "biome_weights": { "dead_fleet": 2.0, "default": 0.5 }, "condition_weights": { "wrecked": 1.4 } },
+      { "item_id": "fire_extinguisher", "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "fuel_canister",  "qty_min": 1, "qty_max": 2, "weight": 2, "rarity": "common" },
+      { "item_id": "capacitor_cell", "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "welding_lance",  "qty_min": 1, "qty_max": 1, "weight": 0.8, "rarity": "rare" },
+      { "item_id": "shock_probe",    "qty_min": 1, "qty_max": 1, "weight": 0.8, "rarity": "rare" }
+    ]
+  },
+  "salvage_cargo": {
+    "rolls": 3,
+    "container_kind": "industrial_crate",
+    "entries": [
+      { "item_id": "scrap_metal",   "qty_min": 1, "qty_max": 4, "weight": 5, "rarity": "common" },
+      { "item_id": "sealant",       "qty_min": 1, "qty_max": 3, "weight": 4, "rarity": "common" },
+      { "item_id": "plating",       "qty_min": 1, "qty_max": 2, "weight": 2, "rarity": "common" },
+      { "item_id": "oxygen_filter", "qty_min": 1, "qty_max": 2, "weight": 2, "rarity": "common" },
+      { "item_id": "biomatter_tangle", "qty_min": 1, "qty_max": 2, "weight": 3, "rarity": "common", "biome_weights": { "breach_field": 1.6 } },
+      { "item_id": "synaptic_sea_reliquary", "qty_min": 1, "qty_max": 1, "weight": 0.25, "rarity": "epic", "unique_id": "synaptic_sea_reliquary", "codex_entry_id": "synaptic_sea_reliquary", "biome_weights": { "dead_fleet": 1.6, "abyssal_synaptic_sea": 1.1 }, "container_weights": { "hidden_cache": 2.2, "industrial_crate": 0.5 } },
+      { "item_id": "hull_sealant", "qty_min": 1, "qty_max": 2, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "web_chart", "qty_min": 1, "qty_max": 1, "weight": 1.5, "rarity": "common" }
+    ]
+  },
+  "repair_parts_common": {
+    "rolls": 2,
+    "container_kind": "maintenance_cache",
+    "entries": [
+      { "item_id": "circuit_board", "qty_min": 1, "qty_max": 2, "weight": 5, "rarity": "common" },
+      { "item_id": "sensor_module", "qty_min": 1, "qty_max": 1, "weight": 3, "rarity": "uncommon" },
+      { "item_id": "data_core",     "qty_min": 1, "qty_max": 1, "weight": 3, "rarity": "uncommon" },
+      { "item_id": "hull_sealant",  "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" }
+    ]
+  },
+  "repair_parts_starter": {
+    "rolls": 1,
+    "container_kind": "survivor_locker",
+    "entries": [
+      { "item_id": "circuit_board", "qty_min": 1, "qty_max": 1, "weight": 10, "rarity": "common" }
+    ]
+  },
+  "repair_tools": {
+    "rolls": 1,
+    "container_kind": "maintenance_cache",
+    "entries": [
+      { "item_id": "welder",        "qty_min": 1, "qty_max": 1, "weight": 5, "rarity": "uncommon" },
+      { "item_id": "plasma_cutter", "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "rare" }
+    ]
+  },
+  "hidden_cache": {
+    "rolls": 2,
+    "container_kind": "hidden_cache",
+    "entries": [
+      { "item_id": "medkit", "qty_min": 1, "qty_max": 1, "weight": 3, "rarity": "uncommon" },
+      { "item_id": "data_core", "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "rare" },
+      { "item_id": "captains_black_box", "qty_min": 1, "qty_max": 1, "weight": 0.15, "rarity": "legendary", "unique_id": "captains_black_box", "codex_entry_id": "captains_black_box" },
+      { "item_id": "synaptic_sea_reliquary", "qty_min": 1, "qty_max": 1, "weight": 0.20, "rarity": "epic", "unique_id": "synaptic_sea_reliquary", "codex_entry_id": "synaptic_sea_reliquary" },
+      { "item_id": "web_chart", "qty_min": 1, "qty_max": 1, "weight": 2.0, "rarity": "common" },
+      { "item_id": "flare_pistol", "qty_min": 1, "qty_max": 1, "weight": 1.5, "rarity": "rare" }
+    ]
+  },
+  "combat_drop_common": {
+    "rolls": 1,
+    "entries": [
+      { "item_id": "scrap_metal",      "qty_min": 1, "qty_max": 2, "weight": 5, "rarity": "common" },
+      { "item_id": "biomatter_tangle", "qty_min": 1, "qty_max": 1, "weight": 3, "rarity": "common" },
+      { "item_id": "power_cell",       "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "flare_round",      "qty_min": 1, "qty_max": 2, "weight": 3, "rarity": "common" },
+      { "item_id": "capacitor_cell",   "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "uncommon" },
+      { "item_id": "fuel_canister",    "qty_min": 1, "qty_max": 1, "weight": 2, "rarity": "common" }
+    ]
+  }
+}

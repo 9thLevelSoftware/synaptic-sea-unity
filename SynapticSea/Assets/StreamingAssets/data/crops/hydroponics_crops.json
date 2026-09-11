@@ -1,0 +1,24 @@
+{
+  "crops": [
+    {
+      "crop_id": "hydroponic_greens",
+      "display_name": "Hydroponic Greens",
+      "produce_item_id": "hydroponic_greens",
+      "produce_quantity": 3,
+      "growth_seconds": 120.0,
+      "water_cost": 2.0,
+      "power_cost": 3.0,
+      "required_skill_level": 0
+    },
+    {
+      "crop_id": "alien_flora_cultivar",
+      "display_name": "Alien Flora Cultivar",
+      "produce_item_id": "alien_flora",
+      "produce_quantity": 2,
+      "growth_seconds": 180.0,
+      "water_cost": 3.0,
+      "power_cost": 5.0,
+      "required_skill_level": 2
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "id": "double_spine",
+  "description": "Two parallel corridor spines linked by cross-passages. Redundant routes for salvage under threat pressure.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "spine_port",
+      "role_pool": ["corridor"],
+      "count": [2, 3],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "entry"
+    },
+    {
+      "id": "spine_starboard",
+      "role_pool": ["corridor"],
+      "count": [2, 3],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "entry"
+    },
+    {
+      "id": "cross_fore",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "spine_port"
+    },
+    {
+      "id": "cross_aft",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "spine_port"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["bridge"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "cross_fore"
+    },
+    {
+      "id": "crew_wing",
+      "role_pool": ["crew_quarters", "medical"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "spine_starboard"
+    },
+    {
+      "id": "engine_block",
+      "role_pool": ["engineering", "reactor", "life_support"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "cross_aft"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "spine_port", "distribution": "adjacent"},
+    {"from": "entry", "to": "spine_starboard", "distribution": "adjacent"},
+    {"from": "spine_port", "to": "cross_fore", "distribution": "adjacent"},
+    {"from": "spine_starboard", "to": "cross_fore", "distribution": "adjacent"},
+    {"from": "spine_port", "to": "cross_aft", "distribution": "adjacent"},
+    {"from": "spine_starboard", "to": "cross_aft", "distribution": "adjacent"},
+    {"from": "cross_fore", "to": "destination", "distribution": "adjacent"},
+    {"from": "spine_starboard", "to": "crew_wing", "distribution": "spread"},
+    {"from": "cross_aft", "to": "engine_block", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

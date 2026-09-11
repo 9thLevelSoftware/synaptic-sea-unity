@@ -1,0 +1,8 @@
+{
+  "id": "standard",
+  "description": "Baseline difficulty. All modifiers 1.0. Default for any unknown seed.",
+  "hazard_modifier": 1.0,
+  "loot_quality_modifier": 1.0,
+  "encounter_density_modifier": 1.0,
+  "ambient_intensity": 1.0
+}

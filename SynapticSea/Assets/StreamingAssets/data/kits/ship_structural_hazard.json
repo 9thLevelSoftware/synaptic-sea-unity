@@ -1,0 +1,33 @@
+{
+  "kit_id": "ship_structural_hazard",
+  "description": "Hazard-biased structural kit. Adds hazard markers (electrical arc boxes, breach frames) to engineering and maintenance rooms. Default kit for breach_field biome.",
+  "version": 1,
+  "default_role_module": "floor_1x1",
+  "role_modules": {
+    "airlock": ["floor_1x1", "doorway_frame_open_1x1"],
+    "corridor": ["corridor_floor_1x1", "corridor_floor_1x2"],
+    "engineering": ["floor_1x1", "floor_2x1", "pillar_support_1x1"],
+    "life_support": ["floor_1x1", "pillar_support_1x1"],
+    "bridge": ["floor_2x1", "wall_straight_1x1"],
+    "cargo": ["floor_2x1", "floor_2x1"],
+    "crew_quarters": ["floor_1x1", "floor_1x1"],
+    "medical": ["floor_1x1", "wall_straight_1x1"],
+    "maintenance": ["floor_1x1", "pillar_support_1x1"],
+    "reactor": ["floor_2x1", "pillar_support_1x1", "pillar_support_1x1"],
+    "main_spine": ["corridor_floor_1x1", "corridor_floor_1x2"],
+    "hub": ["floor_1x1", "floor_2x1"],
+    "ramp": ["ramp_up_1x2"],
+    "elevator": ["floor_1x1", "floor_1x1"],
+    "storage": ["floor_1x1"],
+    "compartment": ["floor_1x1", "floor_1x1"],
+    "bay": ["floor_2x1"],
+    "quarters": ["floor_1x1"],
+    "dock": ["floor_1x1", "doorway_frame_open_1x1"],
+    "hangar": ["floor_2x1"]
+  },
+  "biome_preference": {
+    "breach_field": 0.9,
+    "abyssal_synaptic_sea": 0.4,
+    "dead_fleet": 0.3
+  }
+}

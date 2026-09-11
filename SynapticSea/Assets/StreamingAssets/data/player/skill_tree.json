@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "skill_prerequisites": [
+    {"skill_id": "welding_mastery",        "requires": [{"skill_id": "welding", "min_level": 5}],      "book_prerequisite": "advanced_welding_schematic"},
+    {"skill_id": "biomatter_diagnostics", "requires": [{"skill_id": "signal_analysis", "min_level": 4}], "book_prerequisite": "biomatter_signal_analysis"},
+    {"skill_id": "surgery",               "requires": [{"skill_id": "first_aid", "min_level": 4}],   "book_prerequisite": ""},
+    {"skill_id": "pharmacology",          "requires": [{"skill_id": "first_aid", "min_level": 2}],   "book_prerequisite": ""},
+    {"skill_id": "astrogation",           "requires": [{"skill_id": "piloting", "min_level": 3}],    "book_prerequisite": ""},
+    {"skill_id": "fabrication",           "requires": [{"skill_id": "repair", "min_level": 2}],      "book_prerequisite": ""},
+    {"skill_id": "construction",          "requires": [{"skill_id": "scavenging", "min_level": 2}], "book_prerequisite": ""},
+    {"skill_id": "resource_management",   "requires": [{"skill_id": "cooking", "min_level": 1}],     "book_prerequisite": ""},
+    {"skill_id": "leadership",            "requires": [{"skill_id": "negotiation", "min_level": 2}], "book_prerequisite": ""},
+    {"skill_id": "intimidation",          "requires": [{"skill_id": "leadership", "min_level": 2}], "book_prerequisite": ""},
+    {"skill_id": "comms",                 "requires": [{"skill_id": "signal_analysis", "min_level": 2}], "book_prerequisite": ""}
+  ]
+}

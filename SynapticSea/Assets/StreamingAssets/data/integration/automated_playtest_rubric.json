@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "required_stages": ["prepare", "derelict", "survive", "loot", "craft", "return", "upgrade"],
+  "min_visible_consequences": 7,
+  "min_player_choices": 5,
+  "max_stuck_events": 0,
+  "min_score": 0.85,
+  "rubric_dimensions": [
+    {"dimension": "loop_stage_coverage", "weight": 0.35, "target": "all required stages represented in order"},
+    {"dimension": "visible_consequence", "weight": 0.25, "target": "at least one visible consequence per stage"},
+    {"dimension": "meaningful_choice", "weight": 0.20, "target": "prepare/loadout, route, loot, craft, upgrade decisions represented"},
+    {"dimension": "no_stuck_state", "weight": 0.20, "target": "no stuck or impossible transition events"}
+  ]
+}

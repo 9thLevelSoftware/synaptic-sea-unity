@@ -1,0 +1,16 @@
+{
+  "version": "rarity-palette-1",
+  "rarities": {
+    "common": { "label": "Common", "color": "#9AA4AF" },
+    "uncommon": { "label": "Uncommon", "color": "#55C271" },
+    "rare": { "label": "Rare", "color": "#4D9BFF" },
+    "epic": { "label": "Epic", "color": "#A56DFF" },
+    "legendary": { "label": "Legendary", "color": "#FFB347" }
+  },
+  "container_kinds": {
+    "industrial_crate": { "label": "Industrial Crate", "color": "#C18F3B" },
+    "survivor_locker": { "label": "Survivor Locker", "color": "#61B6A6" },
+    "maintenance_cache": { "label": "Maintenance Cache", "color": "#D85D5D" },
+    "hidden_cache": { "label": "Hidden Cache", "color": "#7C63D9" }
+  }
+}

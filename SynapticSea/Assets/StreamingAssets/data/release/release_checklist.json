@@ -1,0 +1,64 @@
+{
+  "checks": [
+    {
+      "check_id": "pre_launch.export_presets",
+      "description": "All four export presets (web/linux/macos/windows) parse and have valid export_path.",
+      "category": "pre_launch"
+    },
+    {
+      "check_id": "pre_launch.build_metadata",
+      "description": "Build metadata loads with a known build_kind.",
+      "category": "pre_launch"
+    },
+    {
+      "check_id": "pre_launch.save_load_round_trip",
+      "description": "Save/load round-trip preserves all 8 model summaries.",
+      "category": "pre_launch"
+    },
+    {
+      "check_id": "pre_launch.achievements_smoke",
+      "description": "Achievement catalog loads and unlock events route correctly.",
+      "category": "pre_launch"
+    },
+    {
+      "check_id": "pre_launch.demo_scope_gate",
+      "description": "Demo scope gate rejects every feature in the demo manifest when build_kind==demo.",
+      "category": "pre_launch"
+    },
+    {
+      "check_id": "launch_day.credits_screen",
+      "description": "Credits screen loads and renders the catalog.",
+      "category": "launch_day"
+    },
+    {
+      "check_id": "launch_day.build_on_storefront",
+      "description": "Release build is uploaded to the storefront and visible to customers.",
+      "category": "launch_day"
+    },
+    {
+      "check_id": "launch_day.language_defaults",
+      "description": "Default language list matches the storefront metadata.",
+      "category": "launch_day"
+    },
+    {
+      "check_id": "launch_day.telemetry_reachable",
+      "description": "Telemetry endpoint responds to a probe request.",
+      "category": "launch_day"
+    },
+    {
+      "check_id": "post_launch.weekly_telemetry_review",
+      "description": "Weekly review of crash bundles and player telemetry.",
+      "category": "post_launch"
+    },
+    {
+      "check_id": "post_launch.monthly_patch_cadence",
+      "description": "Monthly patch cadence is published and shipped.",
+      "category": "post_launch"
+    },
+    {
+      "check_id": "post_launch.community_engagement",
+      "description": "Community mod / forum queue is reviewed at least weekly.",
+      "category": "post_launch"
+    }
+  ]
+}

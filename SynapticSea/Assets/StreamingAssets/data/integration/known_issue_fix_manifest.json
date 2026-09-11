@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "source_task": "t_12bf9f4a",
+  "fix_cards": [
+    {
+      "fix_key": "docs_currency_task15",
+      "title": "Task 15: Systems Map, Roadmap, Requirements, Manifest & Final Board Currency",
+      "linked_task_id": "t_c7ac4d08",
+      "status": "already_scheduled",
+      "assignee": "synaptic_seareview",
+      "reason": "Task 14 found stale source-map/status wording while checking package dependencies; Task 15 is the existing explicit currency/final-board card and is correctly gated after Task 14."
+    },
+    {
+      "fix_key": "live_main_scene_e2e",
+      "title": "Task 14 follow-up: live main-scene prepare-to-upgrade e2e probe",
+      "kanban_card_id": "t_4e47145d",
+      "status": "resolved",
+      "assignee": "synaptic_seaworker",
+      "reason": "Completed by t_4e47145d with live main-scene/controller/HUD seven-stage probe marker `LIVE MAIN PREPARE UPGRADE PROBE PASS stages=7`."
+    },
+    {
+      "fix_key": "rigid_pair_regression_timeout",
+      "title": "Task 14 follow-up: fix rigid-pair travel regression smoke timeout",
+      "kanban_card_id": "t_cc483347",
+      "status": "resolved",
+      "assignee": "synaptic_seaworker",
+      "reason": "The original full-regression timeout at `rigid_pair_travel_smoke.gd` was fixed by t_cc483347 and verified in the Task 14 retry. The retry also patched adjacent travel/vitals validation preconditions before the full regression bundle reached `SYNAPTIC_SEA REGRESSION PASS commands=163 clean_output=true`."
+    }
+  ]
+}

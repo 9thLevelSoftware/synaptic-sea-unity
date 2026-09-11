@@ -1,0 +1,91 @@
+{
+  "id": "vault",
+  "description": "Deep-core vault: long choke corridor into nested secure compartments. High threat pressure on the approach.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "approach",
+      "role_pool": ["corridor"],
+      "count": [2, 4],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "entry"
+    },
+    {
+      "id": "guard_wing",
+      "role_pool": ["armory", "security", "storage"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "approach"
+    },
+    {
+      "id": "antechamber",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "approach"
+    },
+    {
+      "id": "vault_a",
+      "role_pool": ["cargo", "storage"],
+      "count": [1, 2],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "antechamber"
+    },
+    {
+      "id": "vault_b",
+      "role_pool": ["cargo", "armory"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "vault_a"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["bridge", "engineering"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "vault_b"
+    },
+    {
+      "id": "life_support_nook",
+      "role_pool": ["life_support", "medical"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "antechamber"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "approach", "distribution": "adjacent"},
+    {"from": "approach", "to": "guard_wing", "distribution": "spread"},
+    {"from": "approach", "to": "antechamber", "distribution": "adjacent"},
+    {"from": "antechamber", "to": "vault_a", "distribution": "adjacent"},
+    {"from": "vault_a", "to": "vault_b", "distribution": "adjacent"},
+    {"from": "vault_b", "to": "destination", "distribution": "adjacent"},
+    {"from": "antechamber", "to": "life_support_nook", "distribution": "spread"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

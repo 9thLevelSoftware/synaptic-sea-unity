@@ -1,0 +1,10 @@
+{
+  "version": "run-results-copy-1",
+  "epitaphs": {
+    "fire": "The hull burned faster than you could seal it.",
+    "oxygen": "You ran out of air before the sea ran out of teeth.",
+    "combat": "The dark found you, and it did not let go.",
+    "sanity": "The signal became louder than your own thoughts.",
+    "default": "The sea keeps what it takes."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "scenarios": [
+    {
+      "scenario_id": "prepare_derelict_survive_loot_craft_return_upgrade",
+      "description": "Sanity envelope for the first full player loop: prepare, board a derelict, survive pressure, loot, craft, return, and buy an upgrade.",
+      "metrics": [
+        {"metric": "oxygen_remaining_pct", "min": 25.0, "max": 100.0, "note": "Scenario should pressure oxygen without forcing failure."},
+        {"metric": "hunger_remaining_pct", "min": 40.0, "max": 100.0, "note": "Hunger should matter but not starve the player in one short run."},
+        {"metric": "thirst_remaining_pct", "min": 35.0, "max": 100.0, "note": "Thirst should be visible but not unrecoverable."},
+        {"metric": "loot_value", "min": 4.0, "max": 20.0, "note": "Run must produce enough reward to justify risk."},
+        {"metric": "crafts_completed", "min": 1.0, "max": 4.0, "note": "At least one craft closes the loot-to-usefulness loop."},
+        {"metric": "meta_currency_delta", "min": 50.0, "max": 150.0, "note": "One successful short run can buy the basic hub storage upgrade but not a high-tier chain."},
+        {"metric": "upgrade_cost", "min": 50.0, "max": 75.0, "note": "Task 14 scenario targets the first upgrade tier."}
+      ]
+    },
+    {
+      "scenario_id": "combat_loot_craft",
+      "description": "Combat should create threat pressure, loot should recover value, and crafting should convert salvage into a usable item.",
+      "metrics": [
+        {"metric": "threat_health_remaining", "min": 1.0, "max": 23.0},
+        {"metric": "loot_roll_count", "min": 1.0, "max": 6.0},
+        {"metric": "craft_output_count", "min": 1.0, "max": 2.0}
+      ]
+    }
+  ]
+}

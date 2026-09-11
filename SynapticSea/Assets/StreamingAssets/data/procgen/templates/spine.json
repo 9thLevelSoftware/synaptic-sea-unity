@@ -1,0 +1,101 @@
+{
+  "id": "spine",
+  "description": "Linear corridor backbone. Bridge forward, engineering aft, airlock lateral entry. Classic submarine layout.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "fore_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "entry"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["bridge"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "fore_corridor"
+    },
+    {
+      "id": "crew_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "fore_corridor"
+    },
+    {
+      "id": "crew_wing",
+      "role_pool": ["crew_quarters", "medical", "mess_hall"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "crew_corridor"
+    },
+    {
+      "id": "mid_corridor",
+      "role_pool": ["corridor"],
+      "count": [1, 2],
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "crew_corridor"
+    },
+    {
+      "id": "cargo_wing",
+      "role_pool": ["cargo", "storage", "armory"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "mid_corridor"
+    },
+    {
+      "id": "aft_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "mid_corridor"
+    },
+    {
+      "id": "engine_room",
+      "role_pool": ["engineering", "reactor", "life_support"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "aft_corridor"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "fore_corridor", "distribution": "adjacent"},
+    {"from": "fore_corridor", "to": "destination", "distribution": "adjacent"},
+    {"from": "fore_corridor", "to": "crew_corridor", "distribution": "adjacent"},
+    {"from": "crew_corridor", "to": "crew_wing", "distribution": "spread"},
+    {"from": "crew_corridor", "to": "mid_corridor", "distribution": "adjacent"},
+    {"from": "mid_corridor", "to": "cargo_wing", "distribution": "spread"},
+    {"from": "mid_corridor", "to": "aft_corridor", "distribution": "adjacent"},
+    {"from": "aft_corridor", "to": "engine_room", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

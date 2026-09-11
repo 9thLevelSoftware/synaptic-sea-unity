@@ -1,0 +1,25 @@
+{
+    "name": "Derelict",
+    "description": "Dead ship shell — randomized exploration space with dock for life boat attachment",
+    "type": "derelict",
+    "blueprint": {
+        "size": 1,
+        "condition": 2,
+        "seed_value": 0,
+        "room_count_range": {
+            "min": 5,
+            "max": 10
+        }
+    },
+    "role_weights": {
+        "cargo": 4,
+        "corridor": 3,
+        "bridge": 3,
+        "crew_quarters": 2,
+        "hangar": 2,
+        "engineering": 2,
+        "dock": 1
+    },
+    "guaranteed_roles": ["dock"],
+    "max_duplicates": 3
+}

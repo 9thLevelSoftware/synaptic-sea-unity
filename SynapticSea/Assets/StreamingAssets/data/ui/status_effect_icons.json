@@ -1,0 +1,10 @@
+{
+  "stim_focus": "res://assets/ui/status/stim_focus.png",
+  "stim_haste": "res://assets/ui/status/stim_haste.png",
+  "stim_steady": "res://assets/ui/status/stim_steady.png",
+  "withdrawal_shakes": "res://assets/ui/status/withdrawal_shakes.png",
+  "withdrawal_fatigue": "res://assets/ui/status/withdrawal_fatigue.png",
+  "utility_flare": "res://assets/ui/status/utility_flare.png",
+  "utility_lockpick_ready": "res://assets/ui/status/utility_lockpick_ready.png",
+  "utility_hack_chip_ready": "res://assets/ui/status/utility_hack_chip_ready.png"
+}

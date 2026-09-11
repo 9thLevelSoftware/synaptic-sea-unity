@@ -1,0 +1,68 @@
+{
+  "achievements": [
+    {
+      "id": "first_breath",
+      "display_name": "First Breath",
+      "description": "Pick up your first portable oxygen pump.",
+      "icon_placeholder": "res://assets/ui/achievements/first_breath.png",
+      "trigger_event": "tool_acquired",
+      "trigger_target": "portable_oxygen_pump"
+    },
+    {
+      "id": "first_repair",
+      "display_name": "First Repair",
+      "description": "Consume a repair part to bring a system online.",
+      "icon_placeholder": "res://assets/ui/achievements/first_repair.png",
+      "trigger_event": "repair_consumed",
+      "trigger_target": "any"
+    },
+    {
+      "id": "first_loot",
+      "display_name": "First Salvage",
+      "description": "Search your first loot container.",
+      "icon_placeholder": "res://assets/ui/achievements/first_loot.png",
+      "trigger_event": "loot_searched",
+      "trigger_target": "any"
+    },
+    {
+      "id": "objective_complete",
+      "display_name": "Sequence Stabilized",
+      "description": "Complete your first objective in the sequence.",
+      "icon_placeholder": "res://assets/ui/achievements/objective_complete.png",
+      "trigger_event": "objective_completed",
+      "trigger_target": "objectives[0]"
+    },
+    {
+      "id": "reactor_stabilized",
+      "display_name": "Reactor Online",
+      "description": "Restore the reactor and unlock extraction.",
+      "icon_placeholder": "res://assets/ui/achievements/reactor_stabilized.png",
+      "trigger_event": "reactor_stabilized",
+      "trigger_target": "reactor"
+    },
+    {
+      "id": "extracted",
+      "display_name": "Extracted",
+      "description": "Complete a full run and return home.",
+      "icon_placeholder": "res://assets/ui/achievements/extracted.png",
+      "trigger_event": "run_complete",
+      "trigger_target": "any"
+    },
+    {
+      "id": "junction_calibrator_used",
+      "display_name": "Calibrated",
+      "description": "Use a junction calibrator to reduce a junction repair step count.",
+      "icon_placeholder": "res://assets/ui/achievements/calibrator.png",
+      "trigger_event": "tool_acquired",
+      "trigger_target": "junction_calibrator"
+    },
+    {
+      "id": "all_systems_restored",
+      "display_name": "Restored",
+      "description": "Bring every ship system to full health in a single run.",
+      "icon_placeholder": "res://assets/ui/achievements/all_systems.png",
+      "trigger_event": "objective_completed",
+      "trigger_target": "restore_systems"
+    }
+  ]
+}

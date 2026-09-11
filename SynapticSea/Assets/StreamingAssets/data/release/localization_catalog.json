@@ -1,0 +1,18 @@
+{
+  "en": {
+    "oxygen.label": "Oxygen:",
+    "oxygen.breach_sealed": "Breach: sealed",
+    "oxygen.breach_open": "Breach: venting",
+    "load.label": "Load:",
+    "achievement.first_breath.name": "First Breath",
+    "achievement.first_breath.desc": "Pick up your first portable oxygen pump.",
+    "achievement.first_repair.name": "First Repair",
+    "achievement.first_repair.desc": "Consume a repair part to bring a system online.",
+    "credits.title": "Credits & Attribution",
+    "credits.dismiss": "Press ESC to return",
+    "demo.badge": "DEMO",
+    "release.badge": "RELEASE",
+    "dev.badge": "DEV",
+    "ui.language_selector.label": "Language"
+  }
+}

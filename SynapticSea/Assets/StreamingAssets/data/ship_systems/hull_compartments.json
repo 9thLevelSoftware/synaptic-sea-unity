@@ -1,0 +1,8 @@
+{
+  "compartments": [
+    {"compartment_id": "bridge", "health": 1.0, "breach_open": false, "isolation_rating": 0.9},
+    {"compartment_id": "engineering", "health": 1.0, "breach_open": false, "isolation_rating": 0.8},
+    {"compartment_id": "hydroponics", "health": 1.0, "breach_open": false, "isolation_rating": 0.7},
+    {"compartment_id": "cargo", "health": 0.3, "breach_open": true, "isolation_rating": 0.6}
+  ]
+}

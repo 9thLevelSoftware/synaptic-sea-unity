@@ -1,0 +1,39 @@
+{
+  "life_support": {
+    "oxygen_percent": 100.0,
+    "co2_percent": 2.0,
+    "temperature_c": 21.0,
+    "water_liters": 40.0,
+    "nominal_temperature_c": 21.0,
+    "offline_oxygen_drain_per_second": 4.0,
+    "online_oxygen_recovery_per_second": 2.0,
+    "offline_co2_gain_per_second": 3.5,
+    "online_co2_scrub_per_second": 2.0,
+    "offline_temp_drift_per_second": 0.3,
+    "water_use_per_second": 0.2,
+    "life_support_power_threshold": 0.5
+  },
+  "fire_suppression": {
+    "compartments": ["bridge", "engineering", "hydroponics", "cargo"],
+    "suppressant_units": 100.0,
+    "suppression_rate_per_second": 25.0,
+    "power_threshold": 0.5,
+    "adjacency": {
+      "bridge": ["engineering"],
+      "engineering": ["bridge", "hydroponics", "cargo"],
+      "hydroponics": ["engineering"],
+      "cargo": ["engineering"]
+    },
+    "spread_rate_per_second": 0.15,
+    "ignition_rate_per_second": 0.2,
+    "cascade_rate_per_second": 0.5,
+    "arc_compartment": "engineering"
+  },
+  "propulsion": {
+    "thrust_percent": 100.0,
+    "engine_temperature_c": 28.0,
+    "fuel_efficiency": 1.0,
+    "power_threshold": 0.5,
+    "operational": true
+  }
+}

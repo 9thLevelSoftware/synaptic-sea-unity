@@ -1,0 +1,192 @@
+{
+  "schema_version": "1.0.0",
+  "unlocks": [
+    {
+      "unlock_id": "codex_repair_intro",
+      "category": "codex",
+      "display_name": "Repair — Field Notes",
+      "description": "How to coax a subcomponent back from zero health.",
+      "trigger_event": "repair_full_system",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_diagnostics_intro",
+      "category": "codex",
+      "display_name": "Diagnostics — Reactor Telemetry",
+      "description": "Reading the four lines a reactor won't lie about.",
+      "trigger_event": "diagnose_fault",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_first_aid_intro",
+      "category": "codex",
+      "display_name": "First Aid — Self-Triage",
+      "description": "When to bandage, when to stim, when to amputate.",
+      "trigger_event": "first_aid_self",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_surgery_intro",
+      "category": "codex",
+      "display_name": "Field Surgery — When It's Worth It",
+      "description": "Survival math for the operating table.",
+      "trigger_event": "perform_surgery",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_piloting_intro",
+      "category": "codex",
+      "display_name": "Piloting — Drift Compensation",
+      "description": "Keep the bow into the Synaptic Sea, not the hull.",
+      "trigger_event": "plot_course",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_astrogation_intro",
+      "category": "codex",
+      "display_name": "Astrogation — Synaptic Sea Drift Maps",
+      "description": "Reading the seven drift patterns.",
+      "trigger_event": "complete_astrogation",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_scanner_intro",
+      "category": "codex",
+      "display_name": "Scanner Operation — Reading Returns",
+      "description": "What the radar is actually telling you.",
+      "trigger_event": "scan_derelict",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_signal_intro",
+      "category": "codex",
+      "display_name": "Signal Analysis — Separating Voice From Noise",
+      "description": "When the biomatter hums back.",
+      "trigger_event": "decode_signal",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_scavenging_intro",
+      "category": "codex",
+      "display_name": "Scavenging — False Walls",
+      "description": "Hidden cargo holds and how to find them.",
+      "trigger_event": "scavenge_container",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_cooking_intro",
+      "category": "codex",
+      "display_name": "Cooking — Morale Math",
+      "description": "Why a hot meal matters more than a medkit.",
+      "trigger_event": "cook_meal",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_construction_intro",
+      "category": "codex",
+      "display_name": "Construction — Field Reinforcement",
+      "description": "Bracing a hull with scrap and stubbornness.",
+      "trigger_event": "build_shelter",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_resource_intro",
+      "category": "codex",
+      "display_name": "Resource Management — Stretching Rations",
+      "description": "Three meals from two portions.",
+      "trigger_event": "ration_supplies",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_leadership_intro",
+      "category": "codex",
+      "display_name": "Leadership — Crisis Decisions",
+      "description": "When to be the captain everyone remembers.",
+      "trigger_event": "inspire_crew",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_negotiation_intro",
+      "category": "codex",
+      "display_name": "Negotiation — Truce Math",
+      "description": "What you can trade and what you can't.",
+      "trigger_event": "negotiate_truce",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_intimidation_intro",
+      "category": "codex",
+      "display_name": "Intimidation — The Threat You Actually Are",
+      "description": "Standing your ground without firing a shot.",
+      "trigger_event": "intimidate_threat",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "codex_comms_intro",
+      "category": "codex",
+      "display_name": "Comms — Long-Relay Discipline",
+      "description": "Keeping a relay alive past week two.",
+      "trigger_event": "transmit_relay",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "hub_scene_reactor",
+      "category": "hub_scene",
+      "display_name": "Hub Reactor",
+      "description": "Unlocks the reactor room scene after the first completed run.",
+      "trigger_event": "complete_astrogation",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "hub_scene_workshop",
+      "category": "hub_scene",
+      "display_name": "Hub Workshop",
+      "description": "Unlocks the workshop scene once you've fabricated at least one part.",
+      "trigger_event": "fabricate_part",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "hub_scene_medical",
+      "category": "hub_scene",
+      "display_name": "Hub Medical Bay",
+      "description": "Unlocks the medical bay scene after the first field surgery.",
+      "trigger_event": "perform_surgery",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "hub_scene_bridge",
+      "category": "hub_scene",
+      "display_name": "Hub Bridge",
+      "description": "Unlocks the bridge scene after the first hostile encounter.",
+      "trigger_event": "threat_killed",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "class_unlock_salvage_captain",
+      "category": "class",
+      "class_id": "salvage_captain",
+      "display_name": "Salvage Captain",
+      "description": "Unlocks the Salvage Captain class — cross between mechanic and pilot.",
+      "trigger_event": "scavenge_container",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "class_unlock_field_medic",
+      "category": "class",
+      "class_id": "field_medic",
+      "display_name": "Field Medic",
+      "description": "Unlocks the Field Medic class — surgical medic variant.",
+      "trigger_event": "perform_surgery",
+      "trigger_target": "any"
+    },
+    {
+      "unlock_id": "class_unlock_signal_specialist",
+      "category": "class",
+      "class_id": "signal_specialist",
+      "display_name": "Signal Specialist",
+      "description": "Unlocks the Signal Specialist class — pilot / comms hybrid.",
+      "trigger_event": "decode_signal",
+      "trigger_target": "any"
+    }
+  ]
+}

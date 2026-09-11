@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "skills": [
+    {"skill_id": "repair", "category": "technical", "display_name": "Repair"},
+    {"skill_id": "diagnostics", "category": "technical", "display_name": "Diagnostics"},
+    {"skill_id": "fabrication", "category": "technical", "display_name": "Fabrication"},
+    {"skill_id": "welding", "category": "technical", "display_name": "Welding"},
+    {"skill_id": "welding_mastery", "category": "technical", "display_name": "Welding Mastery"},
+    {"skill_id": "first_aid", "category": "medical", "display_name": "First Aid"},
+    {"skill_id": "surgery", "category": "medical", "display_name": "Surgery"},
+    {"skill_id": "pharmacology", "category": "medical", "display_name": "Pharmacology"},
+    {"skill_id": "quarantine", "category": "medical", "display_name": "Quarantine"},
+    {"skill_id": "piloting", "category": "navigation", "display_name": "Piloting"},
+    {"skill_id": "astrogation", "category": "navigation", "display_name": "Astrogation"},
+    {"skill_id": "scanner_operation", "category": "navigation", "display_name": "Scanner Operation"},
+    {"skill_id": "signal_analysis", "category": "navigation", "display_name": "Signal Analysis"},
+    {"skill_id": "biomatter_diagnostics", "category": "navigation", "display_name": "Biomatter Diagnostics"},
+    {"skill_id": "scavenging", "category": "survival", "display_name": "Scavenging"},
+    {"skill_id": "cooking", "category": "survival", "display_name": "Cooking"},
+    {"skill_id": "construction", "category": "survival", "display_name": "Construction"},
+    {"skill_id": "resource_management", "category": "survival", "display_name": "Resource Management"},
+    {"skill_id": "leadership", "category": "social", "display_name": "Leadership"},
+    {"skill_id": "negotiation", "category": "social", "display_name": "Negotiation"},
+    {"skill_id": "intimidation", "category": "social", "display_name": "Intimidation"},
+    {"skill_id": "comms", "category": "social", "display_name": "Comms"}
+  ]
+}

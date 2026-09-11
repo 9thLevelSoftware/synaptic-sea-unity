@@ -1,0 +1,37 @@
+{
+  "eva_backpack": {
+    "display_name": "EVA Backpack",
+    "category": "equipment",
+    "weight": 3.0,
+    "max_stack": 1,
+    "equip_slot": "back",
+    "container_capacity": 40.0,
+    "weight_reduction": 0.30
+  },
+  "field_pack": {
+    "display_name": "Field Pack",
+    "category": "equipment",
+    "weight": 1.5,
+    "max_stack": 1,
+    "equip_slot": "back",
+    "container_capacity": 15.0,
+    "weight_reduction": 0.15
+  },
+  "tool_belt": {
+    "display_name": "Tool Belt",
+    "category": "equipment",
+    "weight": 1.0,
+    "max_stack": 1,
+    "equip_slot": "waist",
+    "container_capacity": 12.0,
+    "weight_reduction": 0.10
+  },
+  "hardsuit": {
+    "display_name": "Salvage Hardsuit",
+    "category": "equipment",
+    "weight": 6.0,
+    "max_stack": 1,
+    "equip_slot": "suit",
+    "effects": [{ "type": "oxygen_drain", "value": 0.75 }]
+  }
+}

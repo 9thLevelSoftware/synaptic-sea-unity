@@ -1,0 +1,32 @@
+{
+  "demo_blocked_features": [
+    {
+      "feature_id": "cargo_hold.full_inventory",
+      "reason": "Demo build caps ship cargo capacity to 6 kg; full build uses the standard 500 kg capacity.",
+      "hint": "Demo: 6 kg cap, full build: 500 kg.",
+      "params": {"max_weight_kg": 6.0}
+    },
+    {
+      "feature_id": "multi_hazard.run",
+      "reason": "Demo derelicts seed a single hazard; full build derelicts seed up to three.",
+      "hint": "Demo: 1 hazard, full build: up to 3 hazards.",
+      "params": {"max_hazards": 1}
+    },
+    {
+      "feature_id": "long_run.persistence",
+      "reason": "Demo refuses further saves after 20 minutes of active play; existing saves are kept.",
+      "hint": "Demo: saves refused past 20 min, full build: unlimited.",
+      "params": {"max_play_seconds": 1200}
+    },
+    {
+      "feature_id": "world_persistence.cross_run",
+      "reason": "Demo does not persist cross-run world state (ADR-0012 deferred).",
+      "hint": "Demo: per-run only, full build: cross-run persistence."
+    },
+    {
+      "feature_id": "hub.meta_progression",
+      "reason": "Hub/meta progression is deferred through Gate 2 per ADR-0003.",
+      "hint": "Demo: skip hub, full build: skip hub (Gate 3)."
+    }
+  ]
+}

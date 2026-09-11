@@ -1,0 +1,142 @@
+{
+  "schema": "manifestation_pool_v1",
+  "version": "1.0.0",
+  "notes": "PKG-C3.3: data-driven hallucination pool. New entries require no code if kind + min_tier known. Narrative hooks force specific manifestation_ids.",
+  "tiers": {
+    "0": { "name": "stable", "sanity_min": 40.0 },
+    "1": { "name": "unease", "sanity_max": 40.0 },
+    "2": { "name": "distortion", "sanity_max": 25.0 },
+    "3": { "name": "breakdown", "sanity_max": 15.0 }
+  },
+  "kinds": {
+    "ambient": {
+      "min_tier": 1,
+      "interval": 6.0,
+      "interval_t3": 4.0,
+      "max": 2,
+      "max_t3": 2,
+      "ttl": 3.0,
+      "audio_event": "sfx.sanity.ambient"
+    },
+    "hud": {
+      "min_tier": 2,
+      "interval": 5.0,
+      "interval_t3": 3.0,
+      "max": 3,
+      "max_t3": 3,
+      "ttl": 2.5,
+      "audio_event": "sfx.sanity.hud_glitch"
+    },
+    "phantom": {
+      "min_tier": 2,
+      "interval": 8.0,
+      "interval_t3": 3.5,
+      "max": 1,
+      "max_t3": 3,
+      "ttl": 12.0,
+      "audio_event": "sfx.sanity.phantom"
+    },
+    "whisper": {
+      "min_tier": 1,
+      "interval": 10.0,
+      "interval_t3": 5.0,
+      "max": 1,
+      "max_t3": 2,
+      "ttl": 4.0,
+      "audio_event": "sfx.sanity.whisper"
+    }
+  },
+  "entries": {
+    "ambient_static_hiss": {
+      "kind": "ambient",
+      "min_tier": 1,
+      "weight": 2,
+      "caption": "Something scratches behind the bulkhead.",
+      "audio_event": "sfx.sanity.ambient"
+    },
+    "ambient_footfalls": {
+      "kind": "ambient",
+      "min_tier": 1,
+      "weight": 1,
+      "caption": "Wet footfalls that match no crew.",
+      "audio_event": "sfx.sanity.ambient"
+    },
+    "hud_false_oxygen": {
+      "kind": "hud",
+      "min_tier": 2,
+      "weight": 2,
+      "caption": "O2 readout flickers to critical.",
+      "audio_event": "sfx.sanity.hud_glitch"
+    },
+    "hud_ghost_waypoint": {
+      "kind": "hud",
+      "min_tier": 2,
+      "weight": 1,
+      "caption": "A waypoint appears that should not exist.",
+      "audio_event": "sfx.sanity.hud_glitch"
+    },
+    "phantom_crew_silhouette": {
+      "kind": "phantom",
+      "min_tier": 2,
+      "weight": 2,
+      "caption": "A crew silhouette waits at the hatch.",
+      "audio_event": "sfx.sanity.phantom"
+    },
+    "phantom_self_mirror": {
+      "kind": "phantom",
+      "min_tier": 3,
+      "weight": 1,
+      "caption": "You see yourself standing still.",
+      "audio_event": "sfx.sanity.phantom"
+    },
+    "whisper_callsign": {
+      "kind": "whisper",
+      "min_tier": 1,
+      "weight": 2,
+      "caption": "A voice speaks your callsign from empty air.",
+      "audio_event": "sfx.sanity.whisper"
+    },
+    "whisper_log_echo": {
+      "kind": "whisper",
+      "min_tier": 2,
+      "weight": 1,
+      "caption": "An audio log plays that was never recorded.",
+      "audio_event": "sfx.sanity.whisper"
+    },
+    "narrative_bridge_mirror": {
+      "kind": "phantom",
+      "min_tier": 2,
+      "weight": 0,
+      "caption": "The bridge glass shows a ship that is not yours.",
+      "audio_event": "sfx.sanity.phantom",
+      "force_only": true
+    },
+    "narrative_reactor_hum": {
+      "kind": "ambient",
+      "min_tier": 1,
+      "weight": 0,
+      "caption": "The reactor hum becomes a heartbeat.",
+      "audio_event": "sfx.sanity.ambient",
+      "force_only": true
+    },
+    "narrative_log_confession": {
+      "kind": "whisper",
+      "min_tier": 1,
+      "weight": 0,
+      "caption": "The log confesses something you have not done yet.",
+      "audio_event": "sfx.sanity.whisper",
+      "force_only": true
+    }
+  },
+  "narrative_hooks": {
+    "room_triggers": {
+      "bridge": ["narrative_bridge_mirror"],
+      "reactor": ["narrative_reactor_hum"],
+      "reactor_01": ["narrative_reactor_hum"]
+    },
+    "audio_log_triggers": {
+      "log_captain_last": ["narrative_log_confession"],
+      "log_sanity_seed": ["whisper_log_echo", "narrative_log_confession"]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "source_repo": "D:\\the-synaptic-sea",
+  "source_sha": "96ecb2b002b93be6907b25ed7d20839e24b81869",
+  "source_data_dirty": false,
+  "synced_utc": "2026-09-11T05:02:49Z",
+  "file_count": 121,
+  "excluded_dirs": [
+    "training",
+    "asset_generation",
+    "comfyui"
+  ]
+}

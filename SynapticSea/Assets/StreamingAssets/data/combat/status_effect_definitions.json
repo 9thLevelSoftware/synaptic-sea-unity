@@ -1,0 +1,8 @@
+{
+  "bleed": {"duration": 8.0, "stacks": 1, "status_line": "Bleeding", "damage_type": "physical"},
+  "burn": {"duration": 6.0, "stacks": 1, "status_line": "Burning", "damage_type": "fire"},
+  "infected": {"duration": 12.0, "stacks": 1, "status_line": "Infected", "damage_type": "biomatter"},
+  "stun": {"duration": 2.0, "stacks": 1, "status_line": "Stunned", "damage_type": "electric"},
+  "exposed": {"duration": 10.0, "stacks": 1, "status_line": "Armor Exposed", "damage_type": "acid"},
+  "hallucinated": {"duration": 10.0, "stacks": 1, "status_line": "Hallucinating", "damage_type": "biomatter"}
+}

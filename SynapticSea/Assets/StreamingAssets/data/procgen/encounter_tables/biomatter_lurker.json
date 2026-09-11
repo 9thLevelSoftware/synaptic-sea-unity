@@ -1,0 +1,113 @@
+{
+  "id": "biomatter_lurker",
+  "description": "Biomatter lurker encounter table. Lurkers spawn in non-critical compartments, corridors, cargo holds, and crew quarters. Default encounter table for abyssal_synaptic_sea and breach_field biomes.",
+  "version": 1,
+  "default_count": 1,
+  "rolls": [
+    {
+      "role": "corridor",
+      "encounter_kind": "biomatter_lurker",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 6
+    },
+    {
+      "role": "cargo",
+      "encounter_kind": "biomatter_lurker",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 7
+    },
+    {
+      "role": "medical",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 5
+    },
+    {
+      "role": "crew_quarters",
+      "encounter_kind": "biomatter_lurker",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 6
+    },
+    {
+      "role": "maintenance",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 6
+    },
+    {
+      "role": "compartment",
+      "encounter_kind": "biomatter_lurker",
+      "count": [
+        1,
+        3
+      ],
+      "weight": 8
+    },
+    {
+      "role": "quarters",
+      "encounter_kind": "biomatter_lurker",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 6
+    },
+    {
+      "role": "storage",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 4
+    },
+    {
+      "role": "mess_hall",
+      "encounter_kind": "biomatter_lurker",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 4
+    },
+    {
+      "role": "engineering",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 5
+    },
+    {
+      "role": "bridge",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 2
+    },
+    {
+      "role": "hangar",
+      "encounter_kind": "biomatter_lurker",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 4
+    },
+    {
+      "role": "dock",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 3
+    },
+    {
+      "role": "reactor",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 3
+    }
+  ]
+}

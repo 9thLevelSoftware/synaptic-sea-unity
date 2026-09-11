@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaptic-sea.invalid/schemas/prop_visual_binding_v1.schema.json",
+  "title": "Synaptic Sea prop visual binding v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_kind",
+    "asset_id",
+    "prop_kind",
+    "visual_scene_path",
+    "binding",
+    "placement",
+    "source",
+    "bounds",
+    "collision_policy",
+    "provenance",
+    "extensions"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$"
+    },
+    "document_kind": {
+      "const": "prop_visual_binding"
+    },
+    "asset_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "prop_kind": {
+      "enum": ["component", "dressing", "objective"]
+    },
+    "visual_scene_path": {
+      "type": "string",
+      "pattern": "^res://(?!\\.\\.?(?:/|$))(?!.*\\/\\.\\.?(?:/|$))[^/].*\\.glb$"
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["namespace", "ids"],
+      "properties": {
+        "namespace": {
+          "enum": ["component_id", "visual_prop_id", "gameplay_placement_id"]
+        },
+        "ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "placement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "offset_m",
+        "rotation_degrees",
+        "allowed_yaw_deg",
+        "scale"
+      ],
+      "properties": {
+        "origin": {
+          "enum": ["scene_origin", "marker_anchor"]
+        },
+        "offset_m": {
+          "type": "array",
+          "minItems": 3,
+          "prefixItems": [
+            {"type": "number"},
+            {"type": "number"},
+            {"type": "number"}
+          ],
+          "items": false
+        },
+        "rotation_degrees": {
+          "type": "array",
+          "minItems": 3,
+          "prefixItems": [
+            {"type": "number"},
+            {"type": "number"},
+            {"type": "number"}
+          ],
+          "items": false
+        },
+        "allowed_yaw_deg": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "number"}
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "surface": {
+          "enum": ["floor", "wall", "ceiling"]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "byte_size", "mesh_count", "gltf_version"],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "byte_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mesh_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "gltf_version": {
+          "const": "2.0"
+        }
+      }
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["local_min_m", "local_max_m"],
+      "properties": {
+        "local_min_m": {
+          "type": "array",
+          "minItems": 3,
+          "prefixItems": [
+            {"type": "number"},
+            {"type": "number"},
+            {"type": "number"}
+          ],
+          "items": false
+        },
+        "local_max_m": {
+          "type": "array",
+          "minItems": 3,
+          "prefixItems": [
+            {"type": "number"},
+            {"type": "number"},
+            {"type": "number"}
+          ],
+          "items": false
+        }
+      }
+    },
+    "collision_policy": {
+      "const": "none_visual_only"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["license_state", "source_platform"],
+      "properties": {
+        "license_state": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_platform": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Arbitrary forward-compatible studio data.",
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"prop_kind": {"const": "component"}}
+      },
+      "then": {
+        "properties": {
+          "binding": {
+            "properties": {"namespace": {"const": "component_id"}}
+          },
+          "placement": {
+            "not": {"required": ["surface"]}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"prop_kind": {"const": "dressing"}}
+      },
+      "then": {
+        "properties": {
+          "binding": {
+            "properties": {"namespace": {"const": "visual_prop_id"}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"prop_kind": {"const": "objective"}}
+      },
+      "then": {
+        "properties": {
+          "binding": {
+            "properties": {"namespace": {"const": "gameplay_placement_id"}}
+          }
+        }
+      }
+    }
+  ]
+}

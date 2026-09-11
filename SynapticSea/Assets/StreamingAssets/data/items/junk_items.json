@@ -1,0 +1,41 @@
+{
+  "version": "loot-junk-1",
+  "items": {
+    "frayed_cable_coil": {
+      "display_name": "Frayed Cable Coil",
+      "category": "junk",
+      "base_rarity": "common",
+      "yields": [
+        { "material_id": "wiring_bundle", "quantity": 2 },
+        { "material_id": "polymer_pellet", "quantity": 1 }
+      ]
+    },
+    "corroded_data_shard": {
+      "display_name": "Corroded Data Shard",
+      "category": "junk",
+      "base_rarity": "uncommon",
+      "yields": [
+        { "material_id": "memory_crystal", "quantity": 1 },
+        { "material_id": "circuit_board", "quantity": 1 }
+      ]
+    },
+    "biomatter_tangle": {
+      "display_name": "Biomatter Tangle",
+      "category": "junk",
+      "base_rarity": "common",
+      "yields": [
+        { "material_id": "biomatter_residue", "quantity": 2 },
+        { "material_id": "reactive_gel", "quantity": 1 }
+      ]
+    },
+    "cracked_pressure_valve": {
+      "display_name": "Cracked Pressure Valve",
+      "category": "junk",
+      "base_rarity": "uncommon",
+      "yields": [
+        { "material_id": "pneumatic_valve", "quantity": 1 },
+        { "material_id": "scrap_metal", "quantity": 1 }
+      ]
+    }
+  }
+}

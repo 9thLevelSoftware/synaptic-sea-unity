@@ -1,0 +1,29 @@
+{
+  "id": "breach_field",
+  "description": "Many oxygen breaches. High hazard density, slightly higher encounter density. Cold blue ambient. Higher loot quality to balance the elevated risk.",
+  "hazard_modifier": 1.4,
+  "loot_quality_modifier": 1.1,
+  "encounter_density_modifier": 1.3,
+  "ambient_color": [0.45, 0.55, 0.70],
+  "ambient_intensity": 0.85,
+  "atmosphere": {
+    "ambient_color": "#1a2430",
+    "ambient_energy": 0.35,
+    "fog_enabled": true,
+    "fog_density": 0.02,
+    "fog_light_color": "#2a3540",
+    "key_light_color": "#c8d4e0",
+    "key_light_energy": 0.55,
+    "away_fog_density_mult": 1.6,
+    "emergency_accent": "#ff6a3d"
+  },
+  "hazard_overrides": {
+    "fire": 1.0,
+    "oxygen_breach": 1.6,
+    "electrical_arc": 1.2
+  },
+  "encounter_table_id": "biomatter_lurker",
+  "loot_table_overrides": {
+    "cargo": "breach_field_cargo"
+  }
+}

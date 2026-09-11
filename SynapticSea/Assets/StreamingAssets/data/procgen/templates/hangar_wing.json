@@ -1,0 +1,91 @@
+{
+  "id": "hangar_wing",
+  "description": "Forward hangar/dock volume with side maintenance and aft engineering. Emphasizes large cargo/dock rooms.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock", "dock"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "hangar",
+      "role_pool": ["cargo", "dock"],
+      "count": [1, 2],
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "entry"
+    },
+    {
+      "id": "maint_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "hangar"
+    },
+    {
+      "id": "maint_bay",
+      "role_pool": ["maintenance", "storage", "armory"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "maint_corridor"
+    },
+    {
+      "id": "aft_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "hangar"
+    },
+    {
+      "id": "crew_nook",
+      "role_pool": ["crew_quarters", "mess_hall"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "aft_corridor"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["engineering", "bridge"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "aft_corridor"
+    },
+    {
+      "id": "reactor_pocket",
+      "role_pool": ["reactor", "life_support"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "destination"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "hangar", "distribution": "adjacent"},
+    {"from": "hangar", "to": "maint_corridor", "distribution": "spread"},
+    {"from": "maint_corridor", "to": "maint_bay", "distribution": "spread"},
+    {"from": "hangar", "to": "aft_corridor", "distribution": "adjacent"},
+    {"from": "aft_corridor", "to": "crew_nook", "distribution": "spread"},
+    {"from": "aft_corridor", "to": "destination", "distribution": "adjacent"},
+    {"from": "destination", "to": "reactor_pocket", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "version": "tooltip-catalog-1",
+  "entries": [
+    {
+      "id": "interactable_circuit_board",
+      "subject_kind": "interactable",
+      "subject_id": "circuit_board",
+      "title": "Circuit Board",
+      "body": "Required to repair the junction that unlocks propulsion.",
+      "footer": "[E] Pick up"
+    },
+    {
+      "id": "interactable_portable_oxygen_pump",
+      "subject_kind": "interactable",
+      "subject_id": "portable_oxygen_pump",
+      "title": "Portable Oxygen Pump",
+      "body": "Carried in your inventory. Reduces suit oxygen drain to 0.5x.",
+      "footer": "[E] Pick up"
+    },
+    {
+      "id": "interactable_fire_extinguisher",
+      "subject_kind": "interactable",
+      "subject_id": "fire_extinguisher",
+      "title": "Fire Extinguisher",
+      "body": "Use on a burning room to clear the fire in one tick.",
+      "footer": "[E] Pick up"
+    },
+    {
+      "id": "interactable_junction_calibrator",
+      "subject_kind": "interactable",
+      "subject_id": "junction_calibrator",
+      "title": "Junction Calibrator",
+      "body": "Reduces the number of repair steps required on a junction by 1.",
+      "footer": "[E] Pick up"
+    },
+    {
+      "id": "interactable_breach",
+      "subject_kind": "interactable",
+      "subject_id": "breach",
+      "title": "Hull Breach",
+      "body": "Seal with a hull patch or vent it into space.",
+      "footer": "[E] Repair"
+    },
+    {
+      "id": "interactable_dock_port",
+      "subject_kind": "interactable",
+      "subject_id": "dock_port",
+      "title": "Dock Port",
+      "body": "Open the dock port to board the docked ship.",
+      "footer": "[E] Open"
+    },
+    {
+      "id": "interactable_terminal",
+      "subject_kind": "interactable",
+      "subject_id": "terminal",
+      "title": "Terminal",
+      "body": "Access ship systems and pilot the docked vessel.",
+      "footer": "[E] Use"
+    },
+    {
+      "id": "interactable_scanner",
+      "subject_kind": "interactable",
+      "subject_id": "scanner",
+      "title": "Scanner",
+      "body": "Lists nearby derelicts and their travel range.",
+      "footer": "[E] Open"
+    },
+    {
+      "id": "hazard_fire",
+      "subject_kind": "hazard",
+      "subject_id": "fire",
+      "title": "Fire",
+      "body": "Fire spreads between adjacent rooms. Find an extinguisher or vent.",
+      "footer": ""
+    },
+    {
+      "id": "hazard_arc",
+      "subject_kind": "hazard",
+      "subject_id": "arc",
+      "title": "Electrical Arc",
+      "body": "An arcing cable blocks the corridor. Wait for it to discharge.",
+      "footer": ""
+    },
+    {
+      "id": "hazard_breach",
+      "subject_kind": "hazard",
+      "subject_id": "breach",
+      "title": "Hull Breach",
+      "body": "Vacuum exposure. Suit oxygen drains faster near an unsealed breach.",
+      "footer": ""
+    },
+    {
+      "id": "item_circuit_board",
+      "subject_kind": "item",
+      "subject_id": "circuit_board",
+      "title": "Circuit Board",
+      "body": "Required for junction repair.",
+      "footer": ""
+    },
+    {
+      "id": "item_portable_oxygen_pump",
+      "subject_kind": "item",
+      "subject_id": "portable_oxygen_pump",
+      "title": "Portable Oxygen Pump",
+      "body": "Reduces suit oxygen drain to 0.5x.",
+      "footer": ""
+    },
+    {
+      "id": "item_fire_extinguisher",
+      "subject_kind": "item",
+      "subject_id": "fire_extinguisher",
+      "title": "Fire Extinguisher",
+      "body": "Single-use. Clears a burning room.",
+      "footer": ""
+    },
+    {
+      "id": "interactable_junction_step",
+      "subject_kind": "interactable",
+      "subject_id": "junction_step",
+      "title": "Repair Step",
+      "body": "One of several steps required to complete this junction repair.",
+      "footer": "[E] Repair"
+    },
+    {
+      "id": "interactable_recover_supplies",
+      "subject_kind": "interactable",
+      "subject_id": "recover_supplies",
+      "title": "Supply Cache",
+      "body": "A required supply cache. Salvage it to progress the objective.",
+      "footer": "[E] Salvage"
+    },
+    {
+      "id": "interactable_restore_systems",
+      "subject_kind": "interactable",
+      "subject_id": "restore_systems",
+      "title": "Disabled System",
+      "body": "Bring this ship system back online.",
+      "footer": "[E] Restore"
+    },
+    {
+      "id": "interactable_download_logs",
+      "subject_kind": "interactable",
+      "subject_id": "download_logs",
+      "title": "Data Terminal",
+      "body": "Pull the data logs stored on this terminal.",
+      "footer": "[E] Download"
+    },
+    {
+      "id": "interactable_stabilize_reactor",
+      "subject_kind": "interactable",
+      "subject_id": "stabilize_reactor",
+      "title": "Reactor Excursion",
+      "body": "The reactor is running hot. Halt the excursion before it cascades.",
+      "footer": "[E] Stabilize"
+    },
+    {
+      "id": "item_web_chart",
+      "subject_kind": "item",
+      "subject_id": "web_chart",
+      "title": "Web Chart",
+      "body": "A paper chart of nearby ship positions in the web. Possessing one records scanner contacts.",
+      "footer": ""
+    },
+    {
+      "id": "interactable_salvage",
+      "subject_kind": "interactable",
+      "subject_id": "salvage",
+      "title": "Supply Cache",
+      "body": "A marked supply cache. Salvage it to recover what the derelict left behind.",
+      "footer": "[E] Salvage"
+    },
+    {
+      "id": "interactable_interact",
+      "subject_kind": "interactable",
+      "subject_id": "interact",
+      "title": "Objective",
+      "body": "The derelict's final objective. Interact to complete it.",
+      "footer": "[E] Interact"
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "id": "stacked",
+  "description": "Two decks connected by ramp. Upper deck: bridge forward, crew areas. Lower deck: cargo, engineering aft, reactor.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "upper_fore_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": "entry"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["bridge"],
+      "count": 1,
+      "position_hint": "bow",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": "upper_fore_corridor"
+    },
+    {
+      "id": "upper_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": "upper_fore_corridor"
+    },
+    {
+      "id": "crew_wing",
+      "role_pool": ["crew_quarters", "medical", "mess_hall"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 1,
+      "layout": "clustered",
+      "attach_to": "upper_corridor"
+    },
+    {
+      "id": "ramp",
+      "role_pool": ["ramp"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 1,
+      "layout": "single",
+      "attach_to": "upper_corridor"
+    },
+    {
+      "id": "lower_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "ramp"
+    },
+    {
+      "id": "cargo_bay",
+      "role_pool": ["cargo", "storage", "armory"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "lower_corridor"
+    },
+    {
+      "id": "lower_aft_corridor",
+      "role_pool": ["corridor"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "lower_corridor"
+    },
+    {
+      "id": "engine_room",
+      "role_pool": ["engineering", "reactor", "life_support"],
+      "count": 1,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "lower_aft_corridor"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "upper_fore_corridor", "distribution": "adjacent"},
+    {"from": "upper_fore_corridor", "to": "destination", "distribution": "adjacent"},
+    {"from": "upper_fore_corridor", "to": "upper_corridor", "distribution": "adjacent"},
+    {"from": "upper_corridor", "to": "crew_wing", "distribution": "spread"},
+    {"from": "upper_corridor", "to": "ramp", "distribution": "adjacent"},
+    {"from": "ramp", "to": "lower_corridor", "distribution": "adjacent"},
+    {"from": "lower_corridor", "to": "cargo_bay", "distribution": "spread"},
+    {"from": "lower_corridor", "to": "lower_aft_corridor", "distribution": "adjacent"},
+    {"from": "lower_aft_corridor", "to": "engine_room", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 2,
+    "vertical_transition_probability": 1.0
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "credits": [
+    {
+      "role": "Design & Direction",
+      "name": "9th Level Software",
+      "note": "The Synaptic Sea core team."
+    },
+    {
+      "role": "Programming",
+      "name": "9th Level Software Engineering",
+      "note": "Godot 4.6.2 / GDScript runtime."
+    },
+    {
+      "role": "Art Direction",
+      "name": "9th Level Visual Team",
+      "note": "Locked-isometric 3D art."
+    },
+    {
+      "role": "Audio",
+      "name": "9th Level Audio Team",
+      "license": "CC-BY 4.0",
+      "note": "Ambient Synaptic Sea field soundscape."
+    },
+    {
+      "role": "QA & Playtesting",
+      "name": "Synaptic Sea Field-Test Cohort",
+      "note": "Early access cohort, 2026-Q2."
+    },
+    {
+      "role": "Godot Engine",
+      "name": "The Godot Engine contributors",
+      "license": "MIT",
+      "note": "Powered by Godot 4.6.2 (https://godotengine.org/license)."
+    },
+    {
+      "role": "Open Source Libraries",
+      "name": "zlib, libpng, FreeType, Opus, etc.",
+      "license": "Various permissive licenses",
+      "note": "Bundled with the Godot export templates."
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "flare_round": {"display_name": "Flare Round", "category": "ammo", "weight": 0.2, "max_stack": 12, "weapon_ids": ["flare_pistol"]},
+  "capacitor_cell": {"display_name": "Capacitor Cell", "category": "ammo", "weight": 0.3, "max_stack": 10, "weapon_ids": ["shock_probe"]},
+  "fuel_canister": {"display_name": "Fuel Canister", "category": "ammo", "weight": 0.5, "max_stack": 8, "weapon_ids": ["welding_lance"]}
+}

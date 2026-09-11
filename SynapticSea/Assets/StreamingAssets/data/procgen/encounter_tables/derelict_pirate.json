@@ -1,0 +1,74 @@
+{
+  "id": "derelict_pirate",
+  "description": "Derelict-pirate encounter table. Drone scouts and lurkers in derelict compartments. Lower density than biomatter_lurker. Available for custom biome retargets (dead_fleet now uses threat_drone_swarm).",
+  "version": 1,
+  "default_count": 1,
+  "rolls": [
+    {
+      "role": "compartment",
+      "encounter_kind": "drone_scout",
+      "count": 1,
+      "weight": 5
+    },
+    {
+      "role": "compartment",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 4
+    },
+    {
+      "role": "bay",
+      "encounter_kind": "drone_scout",
+      "count": 1,
+      "weight": 4
+    },
+    {
+      "role": "quarters",
+      "encounter_kind": "biomatter_lurker",
+      "count": 1,
+      "weight": 5
+    },
+    {
+      "role": "corridor",
+      "encounter_kind": "drone_scout",
+      "count": 1,
+      "weight": 3
+    },
+    {
+      "role": "hangar",
+      "encounter_kind": "drone_scout",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 5
+    },
+    {
+      "role": "cargo",
+      "encounter_kind": "mimic",
+      "count": 1,
+      "weight": 5
+    },
+    {
+      "role": "crew_quarters",
+      "encounter_kind": "puppet_corpse",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 5
+    },
+    {
+      "role": "engineering",
+      "encounter_kind": "stalker",
+      "count": 1,
+      "weight": 4
+    },
+    {
+      "role": "bridge",
+      "encounter_kind": "stalker",
+      "count": 1,
+      "weight": 3
+    }
+  ]
+}

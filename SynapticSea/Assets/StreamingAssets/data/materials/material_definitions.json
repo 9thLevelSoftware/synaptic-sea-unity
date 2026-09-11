@@ -1,0 +1,302 @@
+{
+  "version": "1.0.0",
+  "materials": {
+    "scrap_metal": {
+      "display_name": "Scrap Metal",
+      "category": "raw",
+      "weight": 0.5,
+      "max_stack": 50,
+      "base_quality": 0.3,
+      "description": "Twisted hull plating. Brittle, but workable.",
+      "icon": "res://assets/icons/materials/scrap_metal.png"
+    },
+    "ferrous_shard": {
+      "display_name": "Ferrous Shard",
+      "category": "raw",
+      "weight": 0.3,
+      "max_stack": 99,
+      "base_quality": 0.5,
+      "description": "Magnetic fragment stripped from a dead ship's spine.",
+      "icon": "res://assets/icons/materials/ferrous_shard.png"
+    },
+    "circuit_board": {
+      "display_name": "Circuit Board",
+      "category": "part",
+      "weight": 0.2,
+      "max_stack": 20,
+      "base_quality": 0.6,
+      "description": "Salvaged logic board with intact traces.",
+      "icon": "res://assets/icons/materials/circuit_board.png"
+    },
+    "wiring_bundle": {
+      "display_name": "Wiring Bundle",
+      "category": "raw",
+      "weight": 0.4,
+      "max_stack": 30,
+      "base_quality": 0.4,
+      "description": "Insulated cable harvested from a ruptured conduit.",
+      "icon": "res://assets/icons/materials/wiring_bundle.png"
+    },
+    "synth_fiber": {
+      "display_name": "Synth Fiber",
+      "category": "raw",
+      "weight": 0.1,
+      "max_stack": 99,
+      "base_quality": 0.5,
+      "description": "Woven polymer from a shredded EVA suit liner.",
+      "icon": "res://assets/icons/materials/synth_fiber.png"
+    },
+    "biomatter_residue": {
+      "display_name": "Biomatter Residue",
+      "category": "raw",
+      "weight": 0.3,
+      "max_stack": 40,
+      "base_quality": 0.2,
+      "description": "Dried slurry from the Synaptic Sea web. Potentially reactive.",
+      "icon": "res://assets/icons/materials/biomatter_residue.png"
+    },
+    "reactive_gel": {
+      "display_name": "Reactive Gel",
+      "category": "raw",
+      "weight": 0.4,
+      "max_stack": 20,
+      "base_quality": 0.4,
+      "description": "Thick catalytic paste. Handle with care.",
+      "icon": "res://assets/icons/materials/reactive_gel.png"
+    },
+    "coolant_fluid": {
+      "display_name": "Coolant Fluid",
+      "category": "fluid",
+      "weight": 0.6,
+      "max_stack": 10,
+      "base_quality": 0.5,
+      "description": "Thermal regulation medium from a ruptured radiator loop.",
+      "icon": "res://assets/icons/materials/coolant_fluid.png"
+    },
+    "power_cell": {
+      "display_name": "Power Cell",
+      "category": "part",
+      "weight": 0.8,
+      "max_stack": 10,
+      "base_quality": 0.7,
+      "description": "Compact energy storage. Still holds a partial charge.",
+      "icon": "res://assets/icons/materials/power_cell.png"
+    },
+    "optical_lens": {
+      "display_name": "Optical Lens",
+      "category": "part",
+      "weight": 0.1,
+      "max_stack": 15,
+      "base_quality": 0.6,
+      "description": "Precision-ground glass from a dead sensor array.",
+      "icon": "res://assets/icons/materials/optical_lens.png"
+    },
+    "ceramic_plate": {
+      "display_name": "Ceramic Plate",
+      "category": "raw",
+      "weight": 0.7,
+      "max_stack": 20,
+      "base_quality": 0.5,
+      "description": "Heat-resistant tiling from an engine manifold.",
+      "icon": "res://assets/icons/materials/ceramic_plate.png"
+    },
+    "polymer_pellet": {
+      "display_name": "Polymer Pellet",
+      "category": "raw",
+      "weight": 0.1,
+      "max_stack": 99,
+      "base_quality": 0.4,
+      "description": "Recycled thermoplastic beads. Malleable when heated.",
+      "icon": "res://assets/icons/materials/polymer_pellet.png"
+    },
+    "adhesive_paste": {
+      "display_name": "Adhesive Paste",
+      "category": "consumable",
+      "weight": 0.2,
+      "max_stack": 30,
+      "base_quality": 0.5,
+      "description": "Structural epoxy. Bonds metal to ceramic under vacuum.",
+      "icon": "res://assets/icons/materials/adhesive_paste.png"
+    },
+    "filament_spool": {
+      "display_name": "Filament Spool",
+      "category": "raw",
+      "weight": 0.3,
+      "max_stack": 20,
+      "base_quality": 0.5,
+      "description": "3D-print stock recovered from a fabrication bay.",
+      "icon": "res://assets/icons/materials/filament_spool.png"
+    },
+    "medical_gauze": {
+      "display_name": "Medical Gauze",
+      "category": "consumable",
+      "weight": 0.1,
+      "max_stack": 20,
+      "base_quality": 0.6,
+      "description": "Sterile dressing from a med-bay emergency kit.",
+      "icon": "res://assets/icons/materials/medical_gauze.png"
+    },
+    "antiseptic_vial": {
+      "display_name": "Antiseptic Vial",
+      "category": "consumable",
+      "weight": 0.15,
+      "max_stack": 15,
+      "base_quality": 0.6,
+      "description": "Broad-spectrum disinfectant. Irritating to bare skin.",
+      "icon": "res://assets/icons/materials/antiseptic_vial.png"
+    },
+    "ration_pack": {
+      "display_name": "Ration Pack",
+      "category": "consumable",
+      "weight": 0.5,
+      "max_stack": 20,
+      "base_quality": 0.5,
+      "description": "Vacuum-sealed nutrient block. Taste is optional.",
+      "icon": "res://assets/icons/materials/ration_pack.png"
+    },
+    "purified_water": {
+      "display_name": "Purified Water",
+      "category": "fluid",
+      "weight": 1.0,
+      "max_stack": 10,
+      "base_quality": 0.5,
+      "description": "Recycled potable water. Crystal clear, faintly metallic.",
+      "icon": "res://assets/icons/materials/purified_water.png"
+    },
+    "scavenged_protein": {
+      "display_name": "Scavenged Protein",
+      "category": "raw",
+      "weight": 0.4,
+      "max_stack": 15,
+      "base_quality": 0.3,
+      "description": "Preserved meat substrate of uncertain origin.",
+      "icon": "res://assets/icons/materials/scavenged_protein.png"
+    },
+    "alien_flora": {
+      "display_name": "Alien Flora",
+      "category": "raw",
+      "weight": 0.2,
+      "max_stack": 25,
+      "base_quality": 0.2,
+      "description": "Bioluminescent tendril. Possibly nutritious, possibly toxic.",
+      "icon": "res://assets/icons/materials/alien_flora.png"
+    },
+    "synthesizer_base": {
+      "display_name": "Synthesizer Base",
+      "category": "consumable",
+      "weight": 0.3,
+      "max_stack": 20,
+      "base_quality": 0.5,
+      "description": "Neutral nutrient substrate for chemical synthesizers.",
+      "icon": "res://assets/icons/materials/synthesizer_base.png"
+    },
+    "nanite_slurry": {
+      "display_name": "Nanite Slurry",
+      "category": "part",
+      "weight": 0.5,
+      "max_stack": 10,
+      "base_quality": 0.8,
+      "description": "Micro-repair swarm in suspension. Expensive to produce.",
+      "icon": "res://assets/icons/materials/nanite_slurry.png"
+    },
+    "graphene_sheet": {
+      "display_name": "Graphene Sheet",
+      "category": "raw",
+      "weight": 0.05,
+      "max_stack": 50,
+      "base_quality": 0.7,
+      "description": "Mono-layer carbon lattice. Stronger than steel per gram.",
+      "icon": "res://assets/icons/materials/graphene_sheet.png"
+    },
+    "hydraulic_piston": {
+      "display_name": "Hydraulic Piston",
+      "category": "part",
+      "weight": 1.2,
+      "max_stack": 8,
+      "base_quality": 0.6,
+      "description": "Compact actuator salvaged from a docking clamp.",
+      "icon": "res://assets/icons/materials/hydraulic_piston.png"
+    },
+    "sensor_array": {
+      "display_name": "Sensor Array",
+      "category": "part",
+      "weight": 0.6,
+      "max_stack": 8,
+      "base_quality": 0.7,
+      "description": "Multi-band detection cluster. Fragile but precise.",
+      "icon": "res://assets/icons/materials/sensor_array.png"
+    },
+    "fusion_igniter": {
+      "display_name": "Fusion Igniter",
+      "category": "part",
+      "weight": 0.9,
+      "max_stack": 5,
+      "base_quality": 0.8,
+      "description": "Plasma-initiation coil. Rare and volatile.",
+      "icon": "res://assets/icons/materials/fusion_igniter.png"
+    },
+    "titanium_ingot": {
+      "display_name": "Titanium Ingot",
+      "category": "raw",
+      "weight": 1.5,
+      "max_stack": 10,
+      "base_quality": 0.7,
+      "description": "High-grade alloy bar. Standard hull reinforcement stock.",
+      "icon": "res://assets/icons/materials/titanium_ingot.png"
+    },
+    "radiation_shielding": {
+      "display_name": "Radiation Shielding",
+      "category": "raw",
+      "weight": 2.0,
+      "max_stack": 5,
+      "base_quality": 0.6,
+      "description": "Lead-polymer composite tile. Blocks hard rads.",
+      "icon": "res://assets/icons/materials/radiation_shielding.png"
+    },
+    "solenoid_coil": {
+      "display_name": "Solenoid Coil",
+      "category": "part",
+      "weight": 0.4,
+      "max_stack": 12,
+      "base_quality": 0.6,
+      "description": "Electromagnetic coil wound for high-current switching.",
+      "icon": "res://assets/icons/materials/solenoid_coil.png"
+    },
+    "enzyme_catalyst": {
+      "display_name": "Enzyme Catalyst",
+      "category": "consumable",
+      "weight": 0.1,
+      "max_stack": 20,
+      "base_quality": 0.5,
+      "description": "Bio-engineered catalyst. Accelerates chemical reactions.",
+      "icon": "res://assets/icons/materials/enzyme_catalyst.png"
+    },
+    "pneumatic_valve": {
+      "display_name": "Pneumatic Valve",
+      "category": "part",
+      "weight": 0.5,
+      "max_stack": 12,
+      "base_quality": 0.5,
+      "description": "Pressure-regulating valve from life-support plumbing.",
+      "icon": "res://assets/icons/materials/pneumatic_valve.png"
+    },
+    "cryo_stabilizer": {
+      "display_name": "Cryo Stabilizer",
+      "category": "part",
+      "weight": 0.7,
+      "max_stack": 8,
+      "base_quality": 0.7,
+      "description": "Thermal inertia core. Keeps systems from overheating.",
+      "icon": "res://assets/icons/materials/cryo_stabilizer.png"
+    },
+    "memory_crystal": {
+      "display_name": "Memory Crystal",
+      "category": "part",
+      "weight": 0.1,
+      "max_stack": 15,
+      "base_quality": 0.8,
+      "description": "High-density data storage medium. Blank or wiped.",
+      "icon": "res://assets/icons/materials/memory_crystal.png"
+    }
+  }
+}

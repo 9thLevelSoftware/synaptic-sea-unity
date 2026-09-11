@@ -1,0 +1,22 @@
+{
+    "name": "Medium Cruiser",
+    "description": "Large military or exploration vessel",
+    "blueprint": {
+        "size": 2,
+        "condition": 1,
+        "seed_value": 0,
+        "room_count_range": {
+            "min": 8,
+            "max": 12
+        }
+    },
+    "role_weights": {
+        "corridor": 4,
+        "cargo": 3,
+        "crew_quarters": 3,
+        "maintenance": 2,
+        "medical": 1
+    },
+    "guaranteed_roles": ["cargo", "corridor"],
+    "max_duplicates": 2
+}

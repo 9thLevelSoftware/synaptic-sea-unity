@@ -1,0 +1,27 @@
+{
+  "id": "abyssal_synaptic_sea",
+  "description": "Deep-sea baseline. Calm Synaptic Sea with average hazard and encounter density. Default biome for any unknown seed.",
+  "hazard_modifier": 1.0,
+  "loot_quality_modifier": 1.0,
+  "encounter_density_modifier": 1.0,
+  "ambient_color": [0.60, 0.65, 0.75],
+  "ambient_intensity": 1.0,
+  "atmosphere": {
+    "ambient_color": "#1f2938",
+    "ambient_energy": 0.4,
+    "fog_enabled": true,
+    "fog_density": 0.015,
+    "fog_light_color": "#2d3948",
+    "key_light_color": "#c8d4e0",
+    "key_light_energy": 0.6,
+    "away_fog_density_mult": 1.5,
+    "emergency_accent": "#ff6a3d"
+  },
+  "hazard_overrides": {
+    "fire": 1.0,
+    "oxygen_breach": 1.0,
+    "electrical_arc": 1.0
+  },
+  "encounter_table_id": "biomatter_lurker",
+  "loot_table_overrides": {}
+}

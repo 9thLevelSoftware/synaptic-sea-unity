@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0.0",
+  "source_task": "t_12bf9f4a",
+  "verdict": "task14_package_pass_with_tracked_followups",
+  "min_matrix_entries": 14,
+  "required_loop_stages": [
+    "prepare",
+    "derelict",
+    "survive",
+    "loot",
+    "craft",
+    "return",
+    "upgrade"
+  ],
+  "summary": "The parent packages have enough code, docs, and smoke evidence to run cross-system integration checks. The product has moved from isolated subsystems toward a real survival loop. The previously tracked rigid-pair regression blocker and live-controller e2e probe are resolved; remaining tracked follow-up is final Task 15 source-map/manifest currency plus external release-ops evidence.",
+  "findings": [
+    {
+      "finding_id": "CROSS-DEPENDENCY-001",
+      "severity": "accepted",
+      "status": "resolved",
+      "title": "Parent package dependencies have source-backed evidence",
+      "evidence": [
+        "data/integration/cross_system_integration_matrix.json records task ids, requirements, code files, docs files, smoke files, and markers for kickoff plus Tasks 01-14.",
+        "scripts/validation/cross_system_dependency_smoke.gd checks those files, requirement headings, and validation-plan markers."
+      ]
+    },
+    {
+      "finding_id": "PRODUCT-LOOP-001",
+      "severity": "accepted",
+      "status": "resolved",
+      "title": "The seven-stage prepare->derelict->survive->loot->craft->return->upgrade loop is now machine-checked",
+      "evidence": [
+        "scripts/validation/e2e_survival_loop_smoke.gd evaluates the seven-stage rubric and balance ledger.",
+        "scripts/validation/e2e_combat_loot_craft_smoke.gd composes live damage/threat, loot distribution, inventory/materials, and crafting models.",
+        "scripts/validation/e2e_ship_meta_loop_smoke.gd composes power routing, meta payout, and hub upgrade purchase."
+      ]
+    },
+    {
+      "finding_id": "PRODUCT-DOC-CURRENCY-001",
+      "severity": "contradiction",
+      "status": "tracked",
+      "fix_key": "docs_currency_task15",
+      "title": "Some source-map/roadmap status text still reflects earlier package states",
+      "evidence": [
+        "docs/SYNAPTIC_SEA_COMPLETE_SYSTEMS_MAP.md includes historical status rows that predate later Task 01-13 package evidence.",
+        "Task 15 already exists as t_c7ac4d08 and is explicitly scoped to systems map, roadmap, requirements, ADR index, manifest, and final board currency."
+      ]
+    },
+    {
+      "finding_id": "PRODUCT-PLAYABLE-E2E-001",
+      "severity": "follow_up",
+      "status": "resolved",
+      "fix_key": "live_main_scene_e2e",
+      "title": "Live main-scene/controller e2e probe is now board-backed",
+      "evidence": [
+        "Task 14 smokes prove system contracts and composite behavior headlessly.",
+        "Kanban card t_4e47145d added scripts/validation/live_main_prepare_to_upgrade_probe.gd and registered it in docs/game/06_validation_plan.md.",
+        "The probe marker is `LIVE MAIN PREPARE UPGRADE PROBE PASS stages=7 marker=0:0:0 upgrade=hub_storage_basic`."
+      ]
+    },
+    {
+      "finding_id": "VALIDATION-REGRESSION-001",
+      "severity": "accepted",
+      "status": "resolved",
+      "fix_key": "rigid_pair_regression_timeout",
+      "title": "Full regression bundle passes after travel/vitals validation closure",
+      "evidence": [
+        "Kanban card t_cc483347 fixed the original rigid-pair/claim-persistence regression timeout.",
+        "Task 14 retry closed the same validation precondition class in `recursive_travel_smoke.gd` and `bay_travel_unbay_smoke.gd`, and isolated `vitals_state_save_load_smoke.gd` from live threat damage.",
+        "The full regression bundle from docs/game/06_validation_plan.md now emits `SYNAPTIC_SEA REGRESSION PASS commands=163 clean_output=true` with exit code 0."
+      ]
+    },
+    {
+      "finding_id": "BALANCE-SANITY-001",
+      "severity": "accepted",
+      "status": "resolved",
+      "title": "Initial balance sanity envelope exists for the integrated loop",
+      "evidence": [
+        "data/integration/balance_ledger.json defines thresholds for oxygen, hunger, thirst, loot value, craft count, meta currency, and upgrade cost.",
+        "docs/game/balance/cross_system_balance_ledger.md records the rationale and safe ranges."
+      ]
+    }
+  ]
+}

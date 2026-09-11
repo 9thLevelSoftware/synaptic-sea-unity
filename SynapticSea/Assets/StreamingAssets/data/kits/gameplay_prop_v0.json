@@ -1,0 +1,62 @@
+{
+  "kit_id": "gameplay_prop_v0",
+  "version": "gameplay-prop-v0",
+  "props": {
+    "loot_crate": {
+      "mesh_path": "",
+      "primitive": "box",
+      "albedo": "#c88a35",
+      "y_offset": 0.45,
+      "scale": 1.0,
+      "height_hint": 0.9
+    },
+    "extinguisher_station": {
+      "mesh_path": "",
+      "primitive": "cylinder",
+      "albedo": "#e24a3b",
+      "y_offset": 0.7,
+      "scale": 1.0,
+      "height_hint": 1.4
+    },
+    "breach_patch_panel": {
+      "mesh_path": "",
+      "primitive": "box",
+      "albedo": "#f0a33b",
+      "y_offset": 0.55,
+      "scale": 1.0,
+      "height_hint": 1.1
+    },
+    "hatch_wheel": {
+      "mesh_path": "",
+      "primitive": "cylinder",
+      "albedo": "#8b9aaa",
+      "y_offset": 0.8,
+      "scale": 1.0,
+      "height_hint": 1.6
+    },
+    "workbench": {
+      "mesh_path": "",
+      "primitive": "box",
+      "albedo": "#2d9f9a",
+      "y_offset": 0.55,
+      "scale": 1.0,
+      "height_hint": 1.1
+    },
+    "corpse_bag": {
+      "mesh_path": "",
+      "primitive": "capsule",
+      "albedo": "#756b78",
+      "y_offset": 0.5,
+      "scale": 1.0,
+      "height_hint": 1.0
+    },
+    "tool_case": {
+      "mesh_path": "",
+      "primitive": "sphere",
+      "albedo": "#4f86c6",
+      "y_offset": 0.45,
+      "scale": 0.85,
+      "height_hint": 0.9
+    }
+  }
+}

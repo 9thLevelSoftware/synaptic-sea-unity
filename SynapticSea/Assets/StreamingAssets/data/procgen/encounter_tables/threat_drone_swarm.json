@@ -1,0 +1,83 @@
+{
+  "id": "threat_drone_swarm",
+  "description": "Engineering-side encounter table. Drone swarms appear in engineering, reactor, and armory rooms at higher density.",
+  "version": 1,
+  "default_count": 1,
+  "rolls": [
+    {
+      "role": "engineering",
+      "encounter_kind": "drone_swarm",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 8
+    },
+    {
+      "role": "reactor",
+      "encounter_kind": "drone_swarm",
+      "count": [
+        1,
+        3
+      ],
+      "weight": 8
+    },
+    {
+      "role": "armory",
+      "encounter_kind": "drone_swarm",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 6
+    },
+    {
+      "role": "bay",
+      "encounter_kind": "drone_swarm",
+      "count": 1,
+      "weight": 5
+    },
+    {
+      "role": "hangar",
+      "encounter_kind": "drone_swarm",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 5
+    },
+    {
+      "role": "engine_bay",
+      "encounter_kind": "drone_swarm",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 7
+    },
+    {
+      "role": "corridor",
+      "encounter_kind": "drone_swarm",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 6
+    },
+    {
+      "role": "cargo",
+      "encounter_kind": "drone_swarm",
+      "count": [
+        1,
+        2
+      ],
+      "weight": 6
+    },
+    {
+      "role": "bridge",
+      "encounter_kind": "drone_swarm",
+      "count": 1,
+      "weight": 2
+    }
+  ]
+}

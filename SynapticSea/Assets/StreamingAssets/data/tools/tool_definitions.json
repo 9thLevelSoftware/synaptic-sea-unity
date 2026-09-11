@@ -1,0 +1,16 @@
+{
+  "portable_oxygen_pump": {
+    "display_name": "Portable Oxygen Pump",
+    "effect": {
+      "type": "oxygen_drain_multiplier",
+      "value": 0.5
+    }
+  },
+  "junction_calibrator": {
+    "display_name": "Junction Calibrator",
+    "effect": {
+      "type": "junction_step_reduction",
+      "value": 1
+    }
+  }
+}

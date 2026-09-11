@@ -1,0 +1,15 @@
+{
+  "version": "v0.1.0",
+  "build_kind": "dev",
+  "store": "itch",
+  "language_defaults": ["en"],
+  "achievements_supported": true,
+  "demo_hub_unlocked_features": [
+    "oxygen_breach",
+    "fire_hazard",
+    "objective_progress"
+  ],
+  "valid_build_kinds": ["dev", "demo", "release"],
+  "release_date": "2026-Q4",
+  "telemetry_endpoint_placeholder": "https://telemetry.synaptic_sea.example/api/v1"
+}

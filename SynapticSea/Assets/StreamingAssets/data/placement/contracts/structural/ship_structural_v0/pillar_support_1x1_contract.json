@@ -1,0 +1,146 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "modular_asset_spec",
+  "asset_id": "pillar_support_1x1",
+  "module_id": "pillar_support_1x1",
+  "category": "structural",
+  "kit_id": "ship_structural_v0",
+  "module_family": "support",
+  "grid_step_m": 4.0,
+  "bounds": {
+    "local_min_m": [
+      -2.0,
+      0.0,
+      -2.0
+    ],
+    "local_max_m": [
+      2.0,
+      3.0,
+      2.0
+    ],
+    "placement_origin": "edge-center",
+    "mesh_origin_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "footprint_cells": [
+    1,
+    1
+  ],
+  "sockets": [
+    {
+      "id": "prop_anchor_down_01",
+      "kind": "prop_anchor",
+      "position_m": [
+        0.0,
+        0.0,
+        -0.5
+      ],
+      "compatible_kinds": [
+        "floor_attach"
+      ]
+    },
+    {
+      "id": "prop_anchor_up_01",
+      "kind": "prop_anchor",
+      "position_m": [
+        0.0,
+        0.0,
+        0.5
+      ],
+      "compatible_kinds": [
+        "ceiling_attach"
+      ]
+    }
+  ],
+  "collision": {
+    "kind": "static-body-proxy",
+    "nav_blocker": true,
+    "proxy_shape": "box",
+    "notes": "authored simple proxy, never decorative collision"
+  },
+  "provenance": {
+    "source_platform": "self-authored",
+    "license_state": "self-authored",
+    "provenance_id": "ship_structural_v0:pillar_support_1x1"
+  },
+  "source_asset_path": "assets/_processed/ship_structural_v0/pillar_support_1x1/pillar_support_1x1.glb",
+  "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/pillar_support_1x1.tscn",
+  "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/pillar_support_1x1_contract.tres",
+  "inspection_path": null,
+  "asset": {
+    "id": "pillar_support_1x1",
+    "module_id": "pillar_support_1x1",
+    "category": "structural",
+    "kit": {
+      "kit_id": "ship_structural_v0",
+      "module_id": "pillar_support_1x1",
+      "module_family": "support",
+      "pivot_policy": "edge-center"
+    },
+    "bounds": {
+      "local_min_m": [
+        -2.0,
+        0.0,
+        -2.0
+      ],
+      "local_max_m": [
+        2.0,
+        3.0,
+        2.0
+      ],
+      "placement_origin": "edge-center",
+      "mesh_origin_offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "footprint_cells": [
+      1,
+      1
+    ],
+    "sockets": [
+      {
+        "id": "prop_anchor_down_01",
+        "kind": "prop_anchor",
+        "position_m": [
+          0.0,
+          0.0,
+          -0.5
+        ],
+        "compatible_kinds": [
+          "floor_attach"
+        ]
+      },
+      {
+        "id": "prop_anchor_up_01",
+        "kind": "prop_anchor",
+        "position_m": [
+          0.0,
+          0.0,
+          0.5
+        ],
+        "compatible_kinds": [
+          "ceiling_attach"
+        ]
+      }
+    ],
+    "collision": {
+      "kind": "static-body-proxy",
+      "nav_blocker": true,
+      "proxy_shape": "box",
+      "notes": "authored simple proxy, never decorative collision"
+    },
+    "provenance": {
+      "source_platform": "self-authored",
+      "license_state": "self-authored",
+      "provenance_id": "ship_structural_v0:pillar_support_1x1"
+    },
+    "source_asset_path": "assets/_processed/ship_structural_v0/pillar_support_1x1/pillar_support_1x1.glb",
+    "wrapper_scene": "res://scenes/wrappers/structural/ship_structural_v0/pillar_support_1x1.tscn",
+    "contract_path": "res://data/placement/contracts/structural/ship_structural_v0/pillar_support_1x1_contract.tres"
+  }
+}

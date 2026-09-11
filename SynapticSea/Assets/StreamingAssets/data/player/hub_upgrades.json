@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "upgrades": [
+    {
+      "upgrade_id": "hub_storage_basic",
+      "display_name": "Hub Storage Bay (Basic)",
+      "description": "Adds a 25-slot storage bay to the hub ship.",
+      "cost": 50,
+      "requires": [],
+      "effects": {"inventory_cap_bonus": 25, "starting_supplies_bonus": 1}
+    },
+    {
+      "upgrade_id": "hub_workshop_basic",
+      "display_name": "Hub Workshop",
+      "description": "Adds a fabrication bench to the hub; grants a permanent +1 fabrication level on every new run.",
+      "cost": 75,
+      "requires": [],
+      "effects": {"starting_skill_bonus": {"fabrication": 1}}
+    },
+    {
+      "upgrade_id": "hub_medical_bay",
+      "display_name": "Hub Medical Bay",
+      "description": "Adds a medical bay; grants a permanent +1 first_aid level on every new run.",
+      "cost": 75,
+      "requires": [],
+      "effects": {"starting_skill_bonus": {"first_aid": 1}}
+    },
+    {
+      "upgrade_id": "hub_scanner_array",
+      "display_name": "Hub Scanner Array",
+      "description": "Adds a long-range scanner; grants +1 scanner_operation level on every new run.",
+      "cost": 100,
+      "requires": ["hub_workshop_basic"],
+      "effects": {"starting_skill_bonus": {"scanner_operation": 1}}
+    },
+    {
+      "upgrade_id": "hub_armory",
+      "display_name": "Hub Armory",
+      "description": "Adds a weapons locker; grants +1 intimidation level on every new run.",
+      "cost": 100,
+      "requires": ["hub_medical_bay"],
+      "effects": {"starting_skill_bonus": {"intimidation": 1}}
+    },
+    {
+      "upgrade_id": "hub_reactor_booster",
+      "display_name": "Hub Reactor Booster",
+      "description": "Hub reactor upgrade; grants +10% XP to all technical skills across runs.",
+      "cost": 150,
+      "requires": ["hub_workshop_basic"],
+      "effects": {"xp_multiplier_bonus": {"technical": 1.1}}
+    },
+    {
+      "upgrade_id": "hub_xenobiology_lab",
+      "display_name": "Hub Xenobiology Lab",
+      "description": "Adds a xenobiology lab; grants +10% XP to all medical skills.",
+      "cost": 150,
+      "requires": ["hub_medical_bay"],
+      "effects": {"xp_multiplier_bonus": {"medical": 1.1}}
+    },
+    {
+      "upgrade_id": "hub_astrogation_chamber",
+      "display_name": "Hub Astrogation Chamber",
+      "description": "Adds a star-map chamber; grants +10% XP to all navigation skills.",
+      "cost": 200,
+      "requires": ["hub_scanner_array"],
+      "effects": {"xp_multiplier_bonus": {"navigation": 1.1}}
+    },
+    {
+      "upgrade_id": "hub_morale_lounge",
+      "display_name": "Hub Morale Lounge",
+      "description": "Adds a crew lounge; grants +10% XP to all social skills.",
+      "cost": 200,
+      "requires": ["hub_armory"],
+      "effects": {"xp_multiplier_bonus": {"social": 1.1}}
+    },
+    {
+      "upgrade_id": "hub_survival_cache",
+      "display_name": "Hub Survival Cache",
+      "description": "Adds a survival cache; grants +10% XP to all survival skills.",
+      "cost": 200,
+      "requires": ["hub_workshop_basic", "hub_medical_bay"],
+      "effects": {"xp_multiplier_bonus": {"survival": 1.1}}
+    },
+    {
+      "upgrade_id": "hub_command_deck",
+      "display_name": "Hub Command Deck",
+      "description": "Adds a command deck; +1 leadership on every new run. Requires armory + scanner array.",
+      "cost": 300,
+      "requires": ["hub_armory", "hub_scanner_array"],
+      "effects": {"starting_skill_bonus": {"leadership": 1}}
+    },
+    {
+      "upgrade_id": "hub_drydock",
+      "display_name": "Hub Drydock",
+      "description": "Adds a derelict drydock; permanent +1 repair level on every new run.",
+      "cost": 400,
+      "requires": ["hub_reactor_booster", "hub_command_deck"],
+      "effects": {"starting_skill_bonus": {"repair": 1}}
+    }
+  ]
+}

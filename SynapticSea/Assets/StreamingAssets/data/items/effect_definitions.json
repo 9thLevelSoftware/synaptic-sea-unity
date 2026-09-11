@@ -1,0 +1,21 @@
+{
+  "heal_small": { "kind": "vitals_delta", "health": 18.0 },
+  "heal_medium": { "kind": "vitals_delta", "health": 35.0 },
+  "restore_stamina_small": { "kind": "vitals_delta", "stamina": 20.0 },
+  "restore_stamina_large": { "kind": "vitals_delta", "stamina": 40.0 },
+  "restore_hunger_small": { "kind": "vitals_delta", "hunger": 12.0 },
+  "restore_thirst_small": { "kind": "vitals_delta", "thirst": 18.0 },
+  "restore_sanity_small": { "kind": "sanity_delta", "amount": 8.0 },
+  "reduce_radiation_minor": { "kind": "radiation_delta", "amount": -20.0 },
+  "stim_focus": { "kind": "add_status", "status_id": "stim_focus", "duration": 20.0, "stacks": 1 },
+  "stim_haste": { "kind": "add_status", "status_id": "stim_haste", "duration": 18.0, "stacks": 1 },
+  "stim_steady": { "kind": "add_status", "status_id": "stim_steady", "duration": 24.0, "stacks": 1 },
+  "withdrawal_shakes": { "kind": "add_status", "status_id": "withdrawal_shakes", "duration": 28.0, "stacks": 1 },
+  "withdrawal_fatigue": { "kind": "add_status", "status_id": "withdrawal_fatigue", "duration": 28.0, "stacks": 1 },
+  "cure_food_poisoning": { "kind": "cure_status", "status_ids": ["food_poisoning"] },
+  "cure_radiation_sickness": { "kind": "cure_status", "status_ids": ["radiation_sickness"] },
+  "utility_flare": { "kind": "add_status", "status_id": "utility_flare", "duration": 30.0, "stacks": 1 },
+  "utility_lockpick": { "kind": "add_status", "status_id": "utility_lockpick_ready", "duration": 20.0, "stacks": 1 },
+  "utility_hack_chip": { "kind": "add_status", "status_id": "utility_hack_chip_ready", "duration": 20.0, "stacks": 1 },
+  "heatpack": { "kind": "temperature_delta", "amount": 8.0 }
+}

@@ -1,0 +1,41 @@
+{
+  "focus_ampoule": {
+    "display_name": "Focus Ampoule",
+    "category": "stimulant",
+    "weight": 0.2,
+    "max_stack": 6,
+    "effects": ["stim_focus", "restore_stamina_small"],
+    "withdrawal_effects": ["withdrawal_shakes"],
+    "stim_duration": 20.0,
+    "withdrawal_duration": 28.0,
+    "tolerance_gain": 0.20,
+    "dependence_gain": 0.40,
+    "icon": "res://assets/placeholder/focus_ampoule.png"
+  },
+  "combat_stim": {
+    "display_name": "Combat Stim",
+    "category": "stimulant",
+    "weight": 0.3,
+    "max_stack": 6,
+    "effects": ["stim_haste", "restore_stamina_large"],
+    "withdrawal_effects": ["withdrawal_shakes", "withdrawal_fatigue"],
+    "stim_duration": 18.0,
+    "withdrawal_duration": 32.0,
+    "tolerance_gain": 0.30,
+    "dependence_gain": 0.50,
+    "icon": "res://assets/placeholder/combat_stim.png"
+  },
+  "calm_patch": {
+    "display_name": "Calm Patch",
+    "category": "stimulant",
+    "weight": 0.2,
+    "max_stack": 6,
+    "effects": ["stim_steady", "restore_sanity_small"],
+    "withdrawal_effects": ["withdrawal_fatigue"],
+    "stim_duration": 24.0,
+    "withdrawal_duration": 24.0,
+    "tolerance_gain": 0.18,
+    "dependence_gain": 0.35,
+    "icon": "res://assets/placeholder/calm_patch.png"
+  }
+}

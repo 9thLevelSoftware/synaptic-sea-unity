@@ -1,0 +1,92 @@
+{
+  "id": "ring",
+  "description": "Closed loop corridor with central core rooms. Player can circle the ship; critical path uses the ring then breaks into the core.",
+  "zones": [
+    {
+      "id": "entry",
+      "role_pool": ["airlock"],
+      "count": 1,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": ""
+    },
+    {
+      "id": "ring_a",
+      "role_pool": ["corridor"],
+      "count": 2,
+      "position_hint": "bow",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "entry"
+    },
+    {
+      "id": "ring_b",
+      "role_pool": ["corridor"],
+      "count": 2,
+      "position_hint": "stern",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "ring_a"
+    },
+    {
+      "id": "ring_c",
+      "role_pool": ["corridor"],
+      "count": 2,
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "linear",
+      "attach_to": "ring_b"
+    },
+    {
+      "id": "crew_pocket",
+      "role_pool": ["crew_quarters", "mess_hall", "medical"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "ring_a"
+    },
+    {
+      "id": "cargo_pocket",
+      "role_pool": ["cargo", "storage"],
+      "count": [1, 2],
+      "position_hint": "lateral",
+      "deck": 0,
+      "layout": "clustered",
+      "attach_to": "ring_b"
+    },
+    {
+      "id": "core",
+      "role_pool": ["bridge", "engineering"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "ring_c"
+    },
+    {
+      "id": "destination",
+      "role_pool": ["reactor", "life_support"],
+      "count": 1,
+      "position_hint": "center",
+      "deck": 0,
+      "layout": "single",
+      "attach_to": "core"
+    }
+  ],
+  "connections": [
+    {"from": "entry", "to": "ring_a", "distribution": "adjacent"},
+    {"from": "ring_a", "to": "ring_b", "distribution": "adjacent"},
+    {"from": "ring_b", "to": "ring_c", "distribution": "adjacent"},
+    {"from": "ring_c", "to": "ring_a", "distribution": "adjacent"},
+    {"from": "ring_a", "to": "crew_pocket", "distribution": "spread"},
+    {"from": "ring_b", "to": "cargo_pocket", "distribution": "spread"},
+    {"from": "ring_c", "to": "core", "distribution": "adjacent"},
+    {"from": "core", "to": "destination", "distribution": "adjacent"}
+  ],
+  "deck_config": {
+    "max_decks": 1,
+    "vertical_transition_probability": 0.0
+  }
+}

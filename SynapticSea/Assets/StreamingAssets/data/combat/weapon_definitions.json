@@ -1,0 +1,45 @@
+{
+  "crowbar": {
+    "display_name": "Crowbar",
+    "equip_slot": "primary_hand",
+    "damage": 18.0,
+    "damage_type": "physical",
+    "noise": 0.25,
+    "stun_seconds": 0.25,
+    "ammo_item_id": "",
+    "status_effect_id": "bleed"
+  },
+  "flare_pistol": {
+    "display_name": "Flare Pistol",
+    "equip_slot": "primary_hand",
+    "damage": 16.0,
+    "damage_type": "fire",
+    "noise": 1.00,
+    "stun_seconds": 0.15,
+    "ammo_item_id": "flare_round",
+    "magazine_size": 2,
+    "status_effect_id": "burn"
+  },
+  "shock_probe": {
+    "display_name": "Shock Probe",
+    "equip_slot": "secondary_hand",
+    "damage": 11.0,
+    "damage_type": "electric",
+    "noise": 0.40,
+    "stun_seconds": 1.00,
+    "ammo_item_id": "capacitor_cell",
+    "magazine_size": 5,
+    "status_effect_id": "stun"
+  },
+  "welding_lance": {
+    "display_name": "Welding Lance",
+    "equip_slot": "secondary_hand",
+    "damage": 14.0,
+    "damage_type": "fire",
+    "noise": 0.55,
+    "stun_seconds": 0.20,
+    "ammo_item_id": "fuel_canister",
+    "magazine_size": 6,
+    "status_effect_id": "burn"
+  }
+}

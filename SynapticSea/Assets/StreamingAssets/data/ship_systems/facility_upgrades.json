@@ -1,0 +1,7 @@
+{
+  "facilities": {
+    "hydroponics": {"upgrade_slots": 2, "power_band": "sustenance"},
+    "synthesizer": {"upgrade_slots": 2, "power_band": "sustenance"},
+    "water_recycler": {"upgrade_slots": 1, "power_band": "sustenance"}
+  }
+}

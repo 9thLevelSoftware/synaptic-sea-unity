@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.1.0",
+  "document_kind": "ship_gameplay_slice",
+  "program_id": "coherent-proof-ship-002",
+  "start_room": "airlock_01",
+  "goal_room": "reactor_01",
+  "critical_path": [
+    "airlock_01",
+    "corridor_01",
+    "hub_01",
+    "left_arm_01",
+    "cargo_bay_01",
+    "maintenance_bay_01",
+    "right_arm_01",
+    "medbay_01",
+    "bridge_01",
+    "convergence_01",
+    "reactor_01"
+  ],
+  "fire_zones": [
+    {
+      "id": "tool_storage_fire",
+      "from_room": "tool_storage_01",
+      "to_room": "airlock_01",
+      "from_cell": [2, 1, 0],
+      "to_cell": [1, 1, 0],
+      "module_id": "doorway_frame_open_1x1",
+      "kind": "timed_fire",
+      "rationale": "non-critical side link to optional portable oxygen pump pickup; fire cannot trap the player or block any main objective"
+    }
+  ],
+  "arc_zones": [
+    {
+      "id": "corridor_to_arc_side_arc",
+      "from_room": "corridor_01",
+      "to_room": "arc_side_01",
+      "from_cell": [2, 0, 0],
+      "to_cell": [1, -1, 0],
+      "module_id": "doorway_frame_open_1x1",
+      "kind": "electrical_arc",
+      "rationale": "non-critical side branch off the main spine into the optional arc_side_01 storage pocket; arc cannot trap the player or block any main objective"
+    }
+  ],
+  "objectives": [
+    {
+      "id": "cargo_bay_01:cargo_supply_cache",
+      "sequence": 1,
+      "type": "recover_supplies",
+      "room_id": "cargo_bay_01",
+      "room_role": "cargo",
+      "placement_id": "cargo_supply_cache",
+      "semantic": "loot_container",
+      "cell": [2, -3, 0],
+      "approach_cell": [3, -3, 0],
+      "approach_distance_cells": 1,
+      "interactable": true
+    },
+    {
+      "id": "maintenance_bay_01:junction_alpha",
+      "sequence": 2,
+      "type": "restore_systems",
+      "kind": "repair_junction",
+      "room_id": "maintenance_bay_01",
+      "room_role": "maintenance",
+      "placement_id": "maintenance_breaker_panel",
+      "semantic": "junction_box",
+      "cell": [5, -3, 0],
+      "approach_cell": [5, -2, 0],
+      "approach_distance_cells": 1,
+      "interactable": true,
+      "steps": [
+        { "step_id": "primary_coupling", "approach_cell": [5, -2, 0] },
+        { "step_id": "secondary_coupling", "approach_cell": [6, -2, 0] }
+      ]
+    },
+    {
+      "id": "medbay_01:medbay_terminal",
+      "sequence": 3,
+      "type": "download_logs",
+      "room_id": "medbay_01",
+      "room_role": "medical",
+      "placement_id": "medbay_terminal",
+      "semantic": "command_console",
+      "cell": [2, 3, 0],
+      "approach_cell": [3, 3, 0],
+      "approach_distance_cells": 1,
+      "interactable": true
+    },
+    {
+      "id": "bridge_01:power_distribution",
+      "sequence": 4,
+      "type": "restore_systems",
+      "room_id": "bridge_01",
+      "room_role": "bridge",
+      "placement_id": "bridge_power_distribution",
+      "semantic": "breaker_panel",
+      "cell": [6, 3, 0],
+      "approach_cell": [6, 2, 0],
+      "approach_distance_cells": 1,
+      "interactable": true
+    },
+    {
+      "id": "reactor_01:reactor_control_panel",
+      "sequence": 5,
+      "type": "stabilize_reactor",
+      "room_id": "reactor_01",
+      "room_role": "reactor",
+      "placement_id": "reactor_control_panel",
+      "semantic": "reactor_control_panel",
+      "cell": [8, 1, 0],
+      "approach_cell": [8, 0, 0],
+      "approach_distance_cells": 1,
+      "interactable": true
+    }
+  ],
+  "summary": {
+    "objective_count": 5,
+    "role_count": 5,
+    "roles": ["cargo", "maintenance", "medical", "bridge", "reactor"],
+    "has_goal_room_objective": true,
+    "passes": true
+  }
+}
