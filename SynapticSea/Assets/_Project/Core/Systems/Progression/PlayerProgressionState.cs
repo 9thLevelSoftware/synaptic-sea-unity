@@ -31,6 +31,13 @@ namespace SynapticSea.Core.Systems
         public GdDict BooksRead = new GdDict();         // book_id -> true (idempotent set)
         public GdDict SkillXpFractional = new GdDict(); // skill_id -> float carry preserved across fractional XP grants
         GdDict _xpMultipliers = new GdDict();           // category -> float (from the class)
+
+        /// <summary>
+        /// The live <c>_xp_multipliers</c> dictionary. The run coordinator layers hub-upgrade XP multipliers onto it
+        /// directly (playable_generated_ship.gd <c>_configure_player_progression</c>), so it is exposed for that write.
+        /// </summary>
+        public GdDict XpMultipliers => _xpMultipliers;
+
         readonly GdDict _skillCategory = new GdDict();  // skill_id -> category (from the catalog)
         GdDict _bookCatalog = new GdDict();             // book_id -> {target_skill, book_xp, unlocks_skill}
 
