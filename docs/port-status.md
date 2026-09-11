@@ -36,9 +36,12 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
 11. **No AudioMixer asset yet.** Unity has no public API to create one, and Godot's buses only used volume and mute. The runtime applies per-bus volumes itself; a mixer can be added by hand later for effects.
 12. **The seed-17 smoke layout in the Godot repo came from the Rust worldgen.** The GDScript-pipeline target is `fixtures/godot/procgen/layout_s17_medium_pristine.json`. The Rust generator has no source, so Unity uses the GDScript pipeline, and Windows-Godot derelict layouts will differ for the same seed.
 13. **String helpers are consolidated in `GdString`.** Wave 1 ports carry equivalent private `*Compat` helpers; new code uses the kernel class.
+14. **Float text follows Godot's Windows builds, on every platform.** Official Windows Godot prints through the Microsoft C runtime printf: 17 significant digits (ties toward zero), zeros after that, then half-up rounding to the requested decimals. `GdFloatFormat.FormatFixed` reproduces this and matches 4,202 captured Godot outputs (`fixtures/godot/kernel/float_format_msvcrt.json`). Save and layout text therefore matches what Windows Godot wrote.
+15. **No `GdScriptPipelineSource` class.** The GDScript generation pipeline is the fallback inside `ShipGenerator` when no `IDerelictLayoutSource` is set.
 
 ## Open items
 
+- `StartSceneBuilder.Build` returns null for every seed tried, in Godot too: the legacy template pool generates derelicts without a dock room. Ported as is; needs a design decision.
 - Calibrate `AtmosphereApplier.DirectionalEnergyScale` / `OmniEnergyScale` against Godot renders once room lights are ported.
 - Ramp collision needs a sloped collider (Godot used a placeholder cube).
 - The Godot-side exporter and screenshot scripts live on the local, unpushed `unity/parity-fixtures` branch of the Godot repo.

@@ -113,17 +113,6 @@ namespace SynapticSea.Tests.Parity
             Assert.IsEmpty(sliceDiffs, "gameplay_slice: " + TreeDiff.Format(sliceDiffs));
         }
 
-        /// <summary>
-        /// Kernel <c>GdFloatFormat</c> formats JSON floats from the exact binary value, but Godot 4.7.1 (Windows) prints
-        /// some 15-decimal values one digit higher: 0.6709878396987915 (0x3FE578BB7D70A3D7, exact 0.67098783969879149946…)
-        /// becomes "0.670987839698792" in Godot and "0.670987839698791" in the kernel. These captures contain such a
-        /// module_damage amount in the raw 14-significant-digit text; their full-precision canonical parity is exact.
-        /// </summary>
-        static readonly HashSet<string> KnownKernelFloatFormatTags = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "s777_small_wrecked_ext", "s7777_small_wrecked_ext",
-        };
-
         /// <summary>The recipe's FNV-1a over the raw <c>JSON.stringify(layout, "  ")</c> text (vectors as strings).</summary>
         [TestCaseSource(nameof(Tags))]
         public void RawStringifyFingerprintMatchesGodot(string tag)
@@ -133,8 +122,6 @@ namespace SynapticSea.Tests.Parity
             if (!fingerprints.Has("layout_fnv1a_64_raw_stringify_2space")) Assert.Ignore("recipe has no raw fingerprint");
             long rawHash = Regenerate(recipe).RawHash;
             long expected = fingerprints.GetInt("layout_fnv1a_64_raw_stringify_2space");
-            if (rawHash != expected && KnownKernelFloatFormatTags.Contains(tag))
-                Assert.Ignore("known kernel GdFloatFormat divergence (see KnownKernelFloatFormatTags)");
             Assert.AreEqual(expected, rawHash, "raw JSON.stringify(layout, \"  \") fnv1a_64");
         }
     }

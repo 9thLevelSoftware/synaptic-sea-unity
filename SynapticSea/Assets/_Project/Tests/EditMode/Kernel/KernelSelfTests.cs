@@ -108,14 +108,17 @@ namespace SynapticSea.Tests.Kernel
         }
 
         [Test]
-        public void FormatFixed_RoundsHalfEvenOnExactBinaryValue()
+        public void FormatFixed_FollowsWindowsPrintf()
         {
             Assert.AreEqual("0.125", GdFloatFormat.FormatFixed(0.125, 3));
-            Assert.AreEqual("0.12", GdFloatFormat.FormatFixed(0.125, 2)); // exact tie rounds to even
+            Assert.AreEqual("0.13", GdFloatFormat.FormatFixed(0.125, 2)); // decimal ties round half up
             Assert.AreEqual("0.38", GdFloatFormat.FormatFixed(0.375, 2));
-            Assert.AreEqual("2", GdFloatFormat.FormatFixed(2.5, 0));
+            Assert.AreEqual("3", GdFloatFormat.FormatFixed(2.5, 0));
             Assert.AreEqual("-1.50", GdFloatFormat.FormatFixed(-1.5, 2));
-            Assert.AreEqual("0.1000000000000000055511", GdFloatFormat.FormatFixed(0.1, 22));
+            Assert.AreEqual("0.1000000000000000100000", GdFloatFormat.FormatFixed(0.1, 22)); // 17 significant digits, then zeros
+            Assert.AreEqual("99999999999999992000000", GdFloatFormat.FormatFixed(1e23, 0));
+            Assert.AreEqual("0.670987839698792", GdFloatFormat.FormatFixed(0.6709878396987915, 15)); // double rounding
+            Assert.AreEqual("295694728730.48437", GdFloatFormat.FormatFixed(295694728730.484375, 5)); // 17th-digit tie rounds down
         }
 
         [Test]

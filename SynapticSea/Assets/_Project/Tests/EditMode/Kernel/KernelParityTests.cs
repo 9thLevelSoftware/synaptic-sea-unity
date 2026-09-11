@@ -145,6 +145,37 @@ namespace SynapticSea.Tests.Kernel
             Assert.AreEqual(Fixtures.ReadText("godot/kernel/float_format_raw.json"), GdJson.Stringify(values, "\t"));
         }
 
+        /// <summary>
+        /// <c>String.num(v, d)</c> and <c>JSON.stringify(v)</c> for 4,000 random doubles plus rounding edge cases, captured
+        /// by float_format_msvcrt_probe.gd. Pins the Windows C runtime printf behaviour (17 significant digits, then
+        /// half-up decimal rounding). Godot returns "" when the text overflows its buffer (DBL_MAX at 15+ decimals).
+        /// </summary>
+        [Test]
+        public void FloatFormatting_WindowsPrintfRounding()
+        {
+            Fixtures.Require("godot/kernel/float_format_msvcrt.json");
+            var cases = GdJson.Parse(Fixtures.ReadText("godot/kernel/float_format_msvcrt.json")) as GdArray;
+            Assert.IsNotNull(cases);
+            var misses = new List<string>();
+            int checkedCount = 0;
+            foreach (object o in cases)
+            {
+                var c = (GdDict)o;
+                string expected = c.GetString("s");
+                if (expected.Length == 0) continue;
+                double v = FromBits(c["b"]);
+                int d = (int)c.GetInt("d");
+                checkedCount++;
+                string num = GdFloatFormat.Num(v, d);
+                if (num != expected) misses.Add($"num({c["b"]}, {d}) godot={expected} kernel={num}");
+                if (c.Has("j") && GdFloatFormat.JsonNumber(v) != c.GetString("j"))
+                    misses.Add($"json({c["b"]}) godot={c.GetString("j")} kernel={GdFloatFormat.JsonNumber(v)}");
+                if (misses.Count >= 20) break;
+            }
+            Assert.Greater(checkedCount, 4000);
+            Assert.IsEmpty(misses, string.Join("\n", misses));
+        }
+
         [Test]
         public void JsonParse_EveryNumberIsFloat()
         {

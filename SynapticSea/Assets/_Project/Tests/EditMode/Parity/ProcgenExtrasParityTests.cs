@@ -72,15 +72,7 @@ namespace SynapticSea.Tests.Parity
                 var sliceBuilder = new GameplaySliceBuilder();
                 AssertSame(c["derelict_gameplay"], sliceBuilder.Build(derelictLayout), $"seed {seed} derelict gameplay");
                 AssertSame(c["life_boat_gameplay"], sliceBuilder.Build(lbLayout), $"seed {seed} life boat gameplay");
-                // module_damage amounts are 14-digit JSON floats where kernel GdFloatFormat can differ from Godot (see
-                // ProcgenPipelineParityTests.KnownKernelFloatFormatTags): compare them at full precision and hash the rest.
-                if (c.GetInt("derelict_layout_fnv1a") != SeedDeterminismContract.Fnv1a64(GdJson.Stringify(derelictLayout, "  ")))
-                {
-                    AssertSame(c["derelict_module_damage"], derelictLayout.Get("module_damage", new GdArray()), $"seed {seed} module_damage");
-                    GdDict noDamage = derelictLayout.DeepCopy();
-                    noDamage.Erase("module_damage");
-                    Assert.AreEqual(c.GetInt("derelict_layout_no_damage_fnv1a"), SeedDeterminismContract.Fnv1a64(GdJson.Stringify(noDamage, "  ")), $"seed {seed} derelict layout text");
-                }
+                Assert.AreEqual(c.GetInt("derelict_layout_fnv1a"), SeedDeterminismContract.Fnv1a64(GdJson.Stringify(derelictLayout, "  ")), $"seed {seed} derelict layout text");
                 Assert.AreEqual(c.GetInt("life_boat_layout_fnv1a"), SeedDeterminismContract.Fnv1a64(GdJson.Stringify(lbLayout, "  ")), $"seed {seed} life boat layout text");
                 Vec3 dock = StartSceneBuilder.FindDockPosition(derelictLayout);
                 Vec3 lifeBoatPosition = dock + new Vec3(0.0, 0.0, StartSceneBuilder.DOCK_GAP);
