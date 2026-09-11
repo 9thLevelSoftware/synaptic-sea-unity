@@ -16,7 +16,7 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 8 Runtime scene layer | Loader done | `ShipSceneBuilder` builds wrappers, markers, portals, zones, props, dressing and objective volumes, matching Godot loader fixtures; interaction sensors and session host wait on RunSession |
 | 9 Rendering | In progress (ceiling fade, VFX, hallucination FX, calibration) | URP Forward+, SSAO, decals, global volume; first renders match Godot's silhouette and orientation |
 | 10 UI | In progress | 29 panels plus MenuCoordinator on UI Toolkit |
-| 11 Audio and input | Done (first pass) | AudioManager port with per-bus volumes; input | actions mirror the Godot InputMap; typed wrapper generated |
+| 11 Audio and input | Done (first pass) | AudioManager port with per-bus volumes; input actions mirror the Godot InputMap; typed wrapper generated |
 | 12 Tooling | Started | `tools/test.ps1`, `tools/sync-godot-data.ps1`, fixture exporter on the local `unity/parity-fixtures` Godot branch |
 
 Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMode).
