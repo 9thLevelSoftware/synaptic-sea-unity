@@ -1,6 +1,6 @@
 # Godot parity fixtures
 
-These are one-time captures from the original Godot 4 GDScript game ("The Synaptic Sea" / "The Sargasso of Stars"). The Unity C# port uses them to show it produces the same outputs as the Godot code. Everything under `godot/` comes from a single exporter run. `golden/` and `godot_wrappers/` are plain copies of files already checked into the Godot repo.
+These are one-time captures from the original Godot 4 GDScript game ("The Synaptic Sea" / "The Sargasso of Stars"). The Unity C# port uses them to show it produces the same outputs as the Godot code. Everything under `godot/` comes from a single exporter run. `golden/`, `godot_wrappers/` and `godot_vfx/` are plain copies of files already checked into the Godot repo.
 
 | | |
 |---|---|
@@ -24,6 +24,7 @@ fixtures/
   golden/                     copy of data/procgen/golden/** (git blob bytes, LF)
     smoke_seed_000017/        copy of data/procgen/smoke/seed_000017/**
   godot_wrappers/ship_structural_v0/   scenes/wrappers/structural/ship_structural_v0/*.tscn + *.manifest.json
+  godot_vfx/                  scenes/vfx/*.tscn (VfxPrefabBuilder input)
 ```
 
 ### JSON conventions
@@ -96,6 +97,7 @@ for p in $(git ls-files data/procgen/golden); do d=$F/golden/${p#data/procgen/go
 mkdir -p $F/golden/smoke_seed_000017 $F/godot_wrappers/ship_structural_v0
 for p in $(git ls-files data/procgen/smoke/seed_000017); do git show HEAD:$p > $F/golden/smoke_seed_000017/$(basename $p); done
 for p in $(git ls-files 'scenes/wrappers/structural/ship_structural_v0/*.tscn' 'scenes/wrappers/structural/ship_structural_v0/*.manifest.json'); do git show HEAD:$p > $F/godot_wrappers/ship_structural_v0/$(basename $p); done
+mkdir -p $F/godot_vfx; for p in $(git ls-files 'scenes/vfx/*.tscn'); do git show HEAD:$p > $F/godot_vfx/$(basename $p); done
 ```
 
 `--skip-saves` skips the child-process save stage, which is the only stage that touches `user://`. The exporter deletes and rewrites only `kernel/ procgen/ loot/ models/ save/ meta.json` under `--out`.

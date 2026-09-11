@@ -22,14 +22,88 @@ namespace SynapticSea.Runtime
         public const float DefaultAwayFogMultiplier = 1.6f;
         public const float DefaultEmergencyAccentEnergy = 0.16f;
 
-        /// <summary>Godot DirectionalLight3D energy → URP intensity. Calibrated against Godot captures.</summary>
-        public static float DirectionalEnergyScale = 1.0f;
+        /// <summary>Godot DirectionalLight3D energy → URP intensity. Calibrated against Godot captures (docs/port-status.md).</summary>
+        public static float DirectionalEnergyScale = CalibratedDirectionalEnergyScale;
 
-        /// <summary>Godot OmniLight3D energy → URP point-light intensity. Calibrated against Godot captures.</summary>
-        public static float OmniEnergyScale = 1.0f;
+        /// <summary>Godot OmniLight3D energy → URP point-light intensity. Calibrated against Godot captures (docs/port-status.md).</summary>
+        public static float OmniEnergyScale = CalibratedOmniEnergyScale;
+
+        /// <summary>Multiplier on Godot's flat ambient energy (after the linear-space mapping). Calibrated.</summary>
+        public static float AmbientEnergyScale = CalibratedAmbientEnergyScale;
+
+        public const float CalibratedDirectionalEnergyScale = 1.3f;
+        public const float CalibratedOmniEnergyScale = 2.5f;
+        public const float CalibratedAmbientEnergyScale = 1.0f;
+
+        /// <summary>Godot project <c>rendering/environment/defaults/default_clear_color</c>.</summary>
+        public static readonly Color GodotClearColor = new Color(0.05f, 0.05f, 0.07f, 1f);
+
+        /// <summary>
+        /// The camera clear colour matching the last applied environment: Godot's clear colour, or the fog colour when
+        /// fog is on (Godot fog also covers the background, <c>fog_sky_affect = 1</c>, so empty space reads as fog).
+        /// The iso camera rig copies it every frame.
+        /// </summary>
+        public static Color BackgroundColor { get; private set; } = GodotClearColor;
 
         public const string KeyLightName = "SliceAtmosphereKeyLight";
         public const string AccentLightName = "SliceAtmosphereEmergencyAccent";
+
+        /// <summary>
+        /// Godot with no WorldEnvironment (layouts without a biome, e.g. the goldens): no fog, no key light, and the
+        /// default environment's ambient light, which is the clear colour at energy 1 (ambient source = background).
+        /// </summary>
+        public static void ApplyGodotDefaultEnvironment()
+        {
+            SetFlatAmbient(GodotClearColor, 1f);
+            RenderSettings.fog = false;
+            BackgroundColor = GodotClearColor;
+        }
+
+        /// <summary>
+        /// Godot multiplies the linear ambient colour by its energy; <see cref="RenderSettings.ambientLight"/> is read as
+        /// sRGB and linearised, so pass the sRGB encoding of the linear product (a plain <c>color * energy</c> would
+        /// scale the light by energy^2.2).
+        /// </summary>
+        public static Color LinearAmbient(Color godotColor, float energy) =>
+            (new Color(godotColor.r, godotColor.g, godotColor.b, 1f).linear * (energy * AmbientEnergyScale)).gamma;
+
+        /// <summary>
+        /// Flat ambient. URP shades from <see cref="RenderSettings.ambientProbe"/>, which Unity only rebuilds from
+        /// <see cref="RenderSettings.ambientLight"/> when lighting is regenerated, so the probe is set directly as well
+        /// (otherwise a procedural scene keeps the default sky ambient).
+        /// </summary>
+        public static void SetFlatAmbient(Color godotColor, float energy)
+        {
+            Color linear = new Color(godotColor.r, godotColor.g, godotColor.b, 1f).linear * (energy * AmbientEnergyScale);
+            RenderSettings.ambientMode = AmbientMode.Flat;
+            RenderSettings.ambientLight = linear.gamma;
+            var sh = new SphericalHarmonicsL2();
+            sh.AddAmbientLight(linear);
+            RenderSettings.ambientProbe = sh;
+            ApplyBackgroundReflection();
+        }
+
+        static Cubemap _reflection;
+
+        /// <summary>
+        /// Godot's default reflected-light source is the background, i.e. the clear colour, so metals reflect a near-black
+        /// environment. Unity would reflect its default sky; a tiny solid cubemap of the clear colour replaces it.
+        /// </summary>
+        static void ApplyBackgroundReflection()
+        {
+            if (_reflection == null)
+            {
+                const int size = 4;
+                _reflection = new Cubemap(size, TextureFormat.RGBAHalf, false) { name = "SS_GodotClearReflection", hideFlags = HideFlags.DontSave };
+                Color c = GodotClearColor.linear;
+                var pixels = new Color[size * size];
+                for (int i = 0; i < pixels.Length; i++) pixels[i] = c;
+                for (int f = 0; f < 6; f++) _reflection.SetPixels(pixels, (CubemapFace)f);
+                _reflection.Apply(false, false);
+            }
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
+            RenderSettings.customReflectionTexture = _reflection;
+        }
 
         public static GdDict Apply(Transform root, GdDict atmosphere, bool isAway)
         {
@@ -38,8 +112,7 @@ namespace SynapticSea.Runtime
 
             Color ambient = ColorValue(atmosphere.Get("ambient_color", "#1a2430"), DefaultAmbientColor);
             float ambientEnergy = NonNegative(atmosphere.Get("ambient_energy", (double)DefaultAmbientEnergy), DefaultAmbientEnergy);
-            RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = ambient * ambientEnergy;
+            SetFlatAmbient(ambient, ambientEnergy);
 
             bool fogEnabled = V.Bool(atmosphere.Get("fog_enabled", false));
             float fogDensity = NonNegative(atmosphere.Get("fog_density", (double)DefaultFogDensity), DefaultFogDensity);
@@ -52,6 +125,7 @@ namespace SynapticSea.Runtime
             RenderSettings.fogMode = FogMode.Exponential;
             RenderSettings.fogDensity = fogDensity;
             RenderSettings.fogColor = ColorValue(atmosphere.Get("fog_light_color", "#2a3540"), DefaultFogColor);
+            BackgroundColor = fogEnabled ? RenderSettings.fogColor : GodotClearColor;
 
             var key = ResolveKeyLight(root);
             key.color = ColorValue(atmosphere.Get("key_light_color", "#c8d4e0"), DefaultKeyColor);

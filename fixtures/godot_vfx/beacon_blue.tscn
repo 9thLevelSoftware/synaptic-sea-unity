@@ -1,0 +1,98 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beacon_blue"]
+albedo_color = Color(0.01, 0.08, 0.24, 1)
+metallic = 0.15
+roughness = 0.28
+emission_enabled = true
+emission = Color(0.02, 0.18, 1, 1)
+emission_energy_multiplier = 3.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_beacon_blue"]
+radius = 0.22
+height = 0.44
+radial_segments = 16
+rings = 10
+material = SubResource("StandardMaterial3D_beacon_blue")
+
+[sub_resource type="Animation" id="Animation_beacon_blue_reset"]
+resource_name = "RESET"
+length = 0.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GlowSource:material_override:emission_energy_multiplier")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [3.5]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("GlowLight:light_energy")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.25]
+}
+
+[sub_resource type="Animation" id="Animation_beacon_blue_pulse"]
+resource_name = "pulse"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GlowSource:material_override:emission_energy_multiplier")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [2.8, 4.4, 2.8]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("GlowLight:light_energy")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [1.0, 1.8, 1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_beacon_blue"]
+_data = {
+&"RESET": SubResource("Animation_beacon_blue_reset"),
+&"pulse": SubResource("Animation_beacon_blue_pulse")
+}
+
+[node name="BeaconGlow" type="Node3D"]
+metadata/glow_variant = "beacon_blue"
+
+[node name="GlowSource" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_beacon_blue")
+material_override = SubResource("StandardMaterial3D_beacon_blue")
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+light_color = Color(0.05, 0.3, 1, 1)
+light_energy = 1.25
+omni_range = 3.5
+shadow_enabled = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_beacon_blue")
+}
+autoplay = "pulse"

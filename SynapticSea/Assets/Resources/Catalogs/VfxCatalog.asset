@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 169b1a387361f074289c8b70bca130f7, type: 3}
+  m_Name: VfxCatalog
+  m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.VfxCatalog
+  entries:
+  - id: timed_fire
+    prefab: {fileID: 4787489821551794658, guid: e8d2aef3c52eb73449df707d444c0608, type: 3}
+    godotScene: res://scenes/vfx/timed_fire.tscn
+    usage: 'Fire hazard zones: layout fire_zones of kind "timed_fire" (ShipView.GetFireZoneSpecs / GetFireZoneMarkers). Not instanced by Godot at 96ecb2b0.'
+  - id: beacon_blue
+    prefab: {fileID: 9027139841165599696, guid: f00c8a70f52eab945a2f7269560c2980, type: 3}
+    godotScene: res://scenes/vfx/beacon_blue.tscn
+    usage: Blue landmark glow (landmarks with color "blue", the EntryBeacon affordance; metadata glow_variant). Not instanced by Godot at 96ecb2b0.
+  - id: reactor_green
+    prefab: {fileID: 4184063714102976642, guid: feeca3df680174f4db5b51cb1c3691d6, type: 3}
+    godotScene: res://scenes/vfx/reactor_green.tscn
+    usage: Green reactor-core glow (landmark "reactor_green_core", the DestinationReactorCore affordance; metadata glow_variant). Not instanced by Godot at 96ecb2b0.
+  - id: biomatter_blockage
+    prefab: {fileID: 5266074248142845352, guid: fd90e09629aaae44e8f4ac4f54dd4c44, type: 3}
+    godotScene: res://scenes/vfx/biomatter_blockage.tscn
+    usage: Biomatter route blockage (BlockedBiomatter affordance / blocked_links). Not instanced by Godot at 96ecb2b0.

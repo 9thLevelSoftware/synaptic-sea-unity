@@ -1,0 +1,268 @@
+{
+	"critical_path": [
+		"dock_01",
+		"corridor_02",
+		"corridor_04",
+		"cargo_05",
+		"cargo_06",
+		"bridge_07"
+	],
+	"document_kind": "ship_gameplay_slice",
+	"fire_zones": [],
+	"goal_room": "bridge_07",
+	"loot_containers": [
+		{
+			"approach_cell": [
+				5.0,
+				6.0,
+				0.0
+			],
+			"id": "container_14",
+			"kind": "suit_locker",
+			"loot_table": "worldgen_seeded",
+			"room_id": "dock_01",
+			"slot_kind": "wall",
+			"slot_index": 0,
+			"contents": [
+				{
+					"item_id": "scrap_metal",
+					"count": 3
+				}
+			]
+		},
+		{
+			"approach_cell": [
+				6.0,
+				3.0,
+				0.0
+			],
+			"id": "container_17",
+			"kind": "footlocker",
+			"loot_table": "worldgen_seeded",
+			"room_id": "crew_quarters_03"
+		},
+		{
+			"approach_cell": [
+				9.0,
+				4.0,
+				0.0
+			],
+			"id": "container_19",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				8.0,
+				4.0,
+				0.0
+			],
+			"id": "container_20",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				10.0,
+				4.0,
+				0.0
+			],
+			"id": "container_22",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				8.0,
+				3.0,
+				0.0
+			],
+			"id": "container_23",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				12.0,
+				5.0,
+				0.0
+			],
+			"id": "container_26",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "cargo_06"
+		},
+		{
+			"approach_cell": [
+				13.0,
+				5.0,
+				0.0
+			],
+			"id": "container_27",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "cargo_06"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				3.0,
+				0.0
+			],
+			"id": "container_32",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				7.0,
+				0.0
+			],
+			"id": "container_33",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				6.0,
+				0.0
+			],
+			"id": "container_34",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				5.0,
+				0.0
+			],
+			"id": "container_35",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				12.0,
+				3.0,
+				0.0
+			],
+			"id": "container_36",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "storage_11"
+		},
+		{
+			"approach_cell": [
+				12.0,
+				7.0,
+				0.0
+			],
+			"id": "container_37",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"room_id": "storage_12"
+		}
+	],
+	"objectives": [
+		{
+			"approach_cell": [
+				14.0,
+				4.0,
+				0.0
+			],
+			"approach_distance_cells": 1.0,
+			"cell": [
+				14.0,
+				4.0,
+				0.0
+			],
+			"id": "bridge_07:reach_goal",
+			"interactable": false,
+			"kind": "single",
+			"room_id": "bridge_07",
+			"room_role": "bridge",
+			"semantic": "goal_room",
+			"sequence": 1.0,
+			"type": "reach_room"
+		}
+	],
+	"program_id": "worldgen-shuttle-17",
+	"schema_version": "1.1.0",
+	"start_room": "dock_01",
+	"summary": "worldgen shuttle seed 17 intactness 0.60 (Depressurization)",
+	"placed_props": [
+		{
+			"id": "pp_crate",
+			"visual_id": "loot_crate",
+			"room_id": "dock_01",
+			"cell": [
+				5,
+				6,
+				0
+			],
+			"quarter_turn": 1
+		},
+		{
+			"id": "pp_dressing",
+			"prop_id": "generic_crate",
+			"room_id": "cargo_05",
+			"cell": [
+				10,
+				4,
+				0
+			],
+			"yaw_degrees": 180.0
+		},
+		{
+			"id": "pp_unknown",
+			"visual_id": "no_such_prop",
+			"room_id": "cargo_05",
+			"cell": [
+				10,
+				5,
+				0
+			]
+		},
+		{
+			"id": "pp_rotation",
+			"asset_id": "workbench",
+			"room_id": "bridge_07",
+			"approach_cell": [
+				14,
+				4,
+				0
+			],
+			"rotation": 7
+		},
+		{
+			"id": "pp_cylinder",
+			"proto": " extinguisher_station ",
+			"room_id": "bridge_07",
+			"cell": [
+				15,
+				6,
+				0
+			],
+			"yaw_degrees": -90.0,
+			"extra": {
+				"note": "kept"
+			}
+		},
+		{
+			"id": "pp_no_cell",
+			"visual_id": "loot_crate",
+			"room_id": "bridge_07"
+		}
+	]
+}

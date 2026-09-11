@@ -9,8 +9,8 @@ namespace SynapticSea.Core.Variant
     /// Godot 4.7 float-to-text rules, ported from <c>core/string/ustring.cpp</c>:
     /// <c>String::num</c> (printf "%.Nlf" then trailing-zero trim keeping one digit after the period),
     /// <c>String::num_real</c> (used by <c>str(float)</c>), and the JSON writer's precision rule.
-    /// Fixed-point digits are produced from the exact binary value with round-half-even, independent of the
-    /// .NET/Mono runtime's formatting (Mono caps "F" formatting at 15 significant digits).
+    /// Fixed-point digits reproduce the Windows C runtime printf that Godot's official builds use (17 significant
+    /// digits, then decimal rounding; see <see cref="FormatFixed"/>), independent of the .NET/Mono runtime's formatting.
     /// </summary>
     public static class GdFloatFormat
     {
@@ -93,7 +93,14 @@ namespace SynapticSea.Core.Variant
             return s.Substring(0, end + 1);
         }
 
-        /// <summary>Exact "%.Nf" formatting with round-half-even on the exact binary value.</summary>
+        /// <summary>
+        /// <c>"%.Nf"</c> as Godot's official Windows builds print it (the Microsoft C runtime printf). Only 17
+        /// significant digits are generated, rounded with ties toward zero, and every later digit is zero; the "%.Nf"
+        /// rounding to <paramref name="decimals"/> places is then applied to that decimal string, half away from zero.
+        /// So 0.5 prints as "1" at zero decimals, 0.125 as "0.13" at two, 1e23 as "99999999999999992000000", and
+        /// 0.6709878396987915 as "0.670987839698792" at fifteen. Verified against 4,202 Godot 4.7.1 outputs
+        /// (<c>KernelParityTests</c> float_format_msvcrt fixture).
+        /// </summary>
         public static string FormatFixed(double value, int decimals)
         {
             long bits = BitConverter.DoubleToInt64Bits(value);
@@ -101,37 +108,46 @@ namespace SynapticSea.Core.Variant
             int exponentBits = (int)((bits >> 52) & 0x7FF);
             long fraction = bits & 0xFFFFFFFFFFFFFL;
 
-            BigInteger mantissa;
-            int exponent;
+            BigInteger num;
+            BigInteger den;
             if (exponentBits == 0)
             {
-                mantissa = fraction;
-                exponent = -1074;
+                num = fraction;
+                den = BigInteger.One << 1074;
             }
             else
             {
-                mantissa = fraction | (1L << 52);
-                exponent = exponentBits - 1075;
+                BigInteger mantissa = fraction | (1L << 52);
+                int exponent = exponentBits - 1075;
+                num = exponent >= 0 ? mantissa << exponent : mantissa;
+                den = exponent >= 0 ? BigInteger.One : BigInteger.One << -exponent;
             }
 
-            BigInteger scaled;
-            BigInteger pow10 = BigInteger.Pow(10, decimals);
-            if (mantissa.IsZero)
+            BigInteger scaled = BigInteger.Zero;
+            if (!num.IsZero)
             {
-                scaled = BigInteger.Zero;
-            }
-            else if (exponent >= 0)
-            {
-                scaled = (mantissa << exponent) * pow10;
-            }
-            else
-            {
-                BigInteger numerator = mantissa * pow10;
-                BigInteger denominator = BigInteger.One << -exponent;
-                scaled = BigInteger.DivRem(numerator, denominator, out BigInteger remainder);
-                BigInteger twice = remainder << 1;
-                int cmp = twice.CompareTo(denominator);
-                if (cmp > 0 || (cmp == 0 && !scaled.IsEven)) scaled += BigInteger.One;
+                // |value| lies in [10^(k-1), 10^k).
+                int k = (int)Math.Floor(Math.Log10(Math.Abs(value))) + 1;
+                while (!LessThanPow10(num, den, k)) k++;
+                while (LessThanPow10(num, den, k - 1)) k--;
+
+                // The 17 significant digits, as an integer q with value ~= q * 10^-s.
+                int s = 17 - k;
+                BigInteger qn = s >= 0 ? num * BigInteger.Pow(10, s) : num;
+                BigInteger qd = s >= 0 ? den : den * BigInteger.Pow(10, -s);
+                BigInteger q = BigInteger.DivRem(qn, qd, out BigInteger rem);
+                if ((rem << 1).CompareTo(qd) > 0) q += BigInteger.One;
+
+                if (decimals >= s)
+                {
+                    scaled = q * BigInteger.Pow(10, decimals - s);
+                }
+                else
+                {
+                    BigInteger p = BigInteger.Pow(10, s - decimals);
+                    scaled = BigInteger.DivRem(q, p, out BigInteger r);
+                    if ((r << 1).CompareTo(p) >= 0) scaled += BigInteger.One;
+                }
             }
 
             string digits = scaled.ToString(CultureInfo.InvariantCulture);
@@ -151,5 +167,9 @@ namespace SynapticSea.Core.Variant
             }
             return sb.ToString();
         }
+
+        /// <summary>num/den &lt; 10^e.</summary>
+        static bool LessThanPow10(BigInteger num, BigInteger den, int e) =>
+            e >= 0 ? num < den * BigInteger.Pow(10, e) : num * BigInteger.Pow(10, -e) < den;
     }
 }

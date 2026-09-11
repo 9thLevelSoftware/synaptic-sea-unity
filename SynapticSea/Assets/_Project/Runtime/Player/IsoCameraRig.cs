@@ -19,6 +19,8 @@ namespace SynapticSea.Runtime
         [SerializeField] Camera rigCamera;
         [Tooltip("Godot-frame offset from the target (converted through Frame).")]
         public Vector3 godotOffset = new Vector3(16f, 18f, 16f);
+        [Tooltip("Clear with AtmosphereApplier.BackgroundColor (Godot clear colour, or the fog colour when fog is on).")]
+        public bool matchAtmosphereBackground = true;
 
         public Camera Camera => rigCamera;
         public Transform FollowTarget => followTarget;
@@ -36,6 +38,7 @@ namespace SynapticSea.Runtime
 
         public void SyncToTarget()
         {
+            if (rigCamera != null && matchAtmosphereBackground) rigCamera.backgroundColor = AtmosphereApplier.BackgroundColor;
             if (followTarget == null || rigCamera == null) return;
             Vector3 offset = Frame.ToUnity(new Vec3(godotOffset.x, godotOffset.y, godotOffset.z));
             transform.position = followTarget.position + offset;
@@ -54,7 +57,7 @@ namespace SynapticSea.Runtime
             rigCamera.nearClipPlane = 1f;
             rigCamera.farClipPlane = 120f;
             rigCamera.clearFlags = CameraClearFlags.SolidColor;
-            rigCamera.backgroundColor = new Color(0.05f, 0.05f, 0.07f, 1f);
+            rigCamera.backgroundColor = AtmosphereApplier.BackgroundColor;
             return rigCamera;
         }
     }

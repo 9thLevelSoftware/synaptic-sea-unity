@@ -1,0 +1,2066 @@
+{
+	"arc_zone_markers": [],
+	"arc_zone_specs": [],
+	"authored_atmosphere_specs": [],
+	"authored_portal_specs": [
+		{
+			"deck": 0.0,
+			"direction": "south",
+			"edge_key": "0|h|3|13",
+			"exterior": false,
+			"from_cell": [
+				13.0,
+				3.0,
+				0.0
+			],
+			"from_position": [
+				52.0,
+				0.11999999731779099,
+				12.0
+			],
+			"from_room": "storage_11",
+			"id": "storage_11_to_cargo_06",
+			"kind": "LOCKED",
+			"module_id": "doorway_frame_blocked_1x1",
+			"opposite_direction": "north",
+			"required": true,
+			"runtime_position": [
+				52.0,
+				0.11999999731779099,
+				14.0
+			],
+			"state": "LOCKED",
+			"to_cell": [
+				13.0,
+				4.0,
+				0.0
+			],
+			"to_position": [
+				52.0,
+				0.11999999731779099,
+				16.0
+			],
+			"to_room": "cargo_06",
+			"yaw_degrees": 0.0
+		},
+		{
+			"edge_key": "0|h|3|5",
+			"exterior": true,
+			"from_cell": [
+				5.0,
+				4.0,
+				0.0
+			],
+			"from_position": [
+				20.0,
+				0.11999999731779099,
+				16.0
+			],
+			"from_room": "crew_quarters_03",
+			"id": "edge:0|h|3|5",
+			"kind": "BREACH",
+			"runtime_position": [
+				20.0,
+				0.11999999731779099,
+				16.0
+			],
+			"state": "BREACH",
+			"to_cell": [
+				5.0,
+				3.0,
+				0.0
+			],
+			"to_position": [
+				1e99999,
+				1e99999,
+				1e99999
+			],
+			"to_room": "",
+			"yaw_degrees": 180.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "north",
+			"edge_key": "0|h|4|6",
+			"exterior": false,
+			"from_cell": [
+				6.0,
+				4.0,
+				0.0
+			],
+			"from_position": [
+				24.0,
+				0.11999999731779099,
+				16.0
+			],
+			"from_room": "crew_quarters_03",
+			"id": "corridor_02_to_crew_quarters_03",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "south",
+			"required": true,
+			"runtime_position": [
+				24.0,
+				0.11999999731779099,
+				18.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				6.0,
+				5.0,
+				0.0
+			],
+			"to_position": [
+				24.0,
+				0.11999999731779099,
+				20.0
+			],
+			"to_room": "corridor_02",
+			"yaw_degrees": 0.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "north",
+			"edge_key": "0|h|5|6",
+			"exterior": false,
+			"from_cell": [
+				6.0,
+				5.0,
+				0.0
+			],
+			"from_position": [
+				24.0,
+				0.11999999731779099,
+				20.0
+			],
+			"from_room": "corridor_02",
+			"id": "dock_01_to_corridor_02",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "south",
+			"required": true,
+			"runtime_position": [
+				24.0,
+				0.11999999731779099,
+				22.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				6.0,
+				6.0,
+				0.0
+			],
+			"to_position": [
+				24.0,
+				0.11999999731779099,
+				24.0
+			],
+			"to_room": "dock_01",
+			"yaw_degrees": 0.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "south",
+			"edge_key": "0|h|5|7",
+			"exterior": false,
+			"from_cell": [
+				7.0,
+				5.0,
+				0.0
+			],
+			"from_position": [
+				28.0,
+				0.11999999731779099,
+				20.0
+			],
+			"from_room": "corridor_02",
+			"id": "corridor_02_to_corridor_04",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "north",
+			"required": true,
+			"runtime_position": [
+				28.0,
+				0.11999999731779099,
+				22.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				7.0,
+				6.0,
+				0.0
+			],
+			"to_position": [
+				28.0,
+				0.11999999731779099,
+				24.0
+			],
+			"to_room": "corridor_04",
+			"yaw_degrees": 0.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "north",
+			"edge_key": "0|h|5|9",
+			"exterior": false,
+			"from_cell": [
+				9.0,
+				5.0,
+				0.0
+			],
+			"from_position": [
+				36.0,
+				0.11999999731779099,
+				20.0
+			],
+			"from_room": "cargo_05",
+			"id": "corridor_04_to_cargo_05",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "south",
+			"required": true,
+			"runtime_position": [
+				36.0,
+				0.11999999731779099,
+				22.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				9.0,
+				6.0,
+				0.0
+			],
+			"to_position": [
+				36.0,
+				0.11999999731779099,
+				24.0
+			],
+			"to_room": "corridor_04",
+			"yaw_degrees": 0.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "north",
+			"edge_key": "0|h|6|13",
+			"exterior": false,
+			"from_cell": [
+				13.0,
+				6.0,
+				0.0
+			],
+			"from_position": [
+				52.0,
+				0.11999999731779099,
+				24.0
+			],
+			"from_room": "cargo_06",
+			"id": "storage_12_to_cargo_06",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "south",
+			"required": true,
+			"runtime_position": [
+				52.0,
+				0.11999999731779099,
+				26.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				13.0,
+				7.0,
+				0.0
+			],
+			"to_position": [
+				52.0,
+				0.11999999731779099,
+				28.0
+			],
+			"to_room": "storage_12",
+			"yaw_degrees": 0.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "north",
+			"edge_key": "0|h|6|8",
+			"exterior": false,
+			"from_cell": [
+				8.0,
+				6.0,
+				0.0
+			],
+			"from_position": [
+				32.0,
+				0.11999999731779099,
+				24.0
+			],
+			"from_room": "corridor_04",
+			"id": "compartment_10_to_corridor_04",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "south",
+			"required": true,
+			"runtime_position": [
+				32.0,
+				0.11999999731779099,
+				26.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				8.0,
+				7.0,
+				0.0
+			],
+			"to_position": [
+				32.0,
+				0.11999999731779099,
+				28.0
+			],
+			"to_room": "compartment_10",
+			"yaw_degrees": 0.0
+		},
+		{
+			"edge_key": "0|h|7|6",
+			"exterior": true,
+			"from_cell": [
+				6.0,
+				7.0,
+				0.0
+			],
+			"from_position": [
+				24.0,
+				0.11999999731779099,
+				28.0
+			],
+			"from_room": "dock_01",
+			"id": "edge:0|h|7|6",
+			"kind": "DOOR",
+			"runtime_position": [
+				24.0,
+				0.11999999731779099,
+				28.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				6.0,
+				8.0,
+				0.0
+			],
+			"to_position": [
+				1e99999,
+				1e99999,
+				1e99999
+			],
+			"to_room": "",
+			"yaw_degrees": 0.0
+		},
+		{
+			"edge_key": "0|v|3|4",
+			"exterior": true,
+			"from_cell": [
+				4.0,
+				3.0,
+				0.0
+			],
+			"from_position": [
+				16.0,
+				0.11999999731779099,
+				12.0
+			],
+			"from_room": "storage_09",
+			"id": "edge:0|v|3|4",
+			"kind": "BREACH",
+			"runtime_position": [
+				16.0,
+				0.11999999731779099,
+				12.0
+			],
+			"state": "BREACH",
+			"to_cell": [
+				5.0,
+				3.0,
+				0.0
+			],
+			"to_position": [
+				1e99999,
+				1e99999,
+				1e99999
+			],
+			"to_room": "",
+			"yaw_degrees": 270.0
+		},
+		{
+			"edge_key": "0|v|3|9",
+			"exterior": true,
+			"from_cell": [
+				9.0,
+				3.0,
+				0.0
+			],
+			"from_position": [
+				36.0,
+				0.11999999731779099,
+				12.0
+			],
+			"from_room": "cargo_05",
+			"id": "edge:0|v|3|9",
+			"kind": "BREACH",
+			"runtime_position": [
+				36.0,
+				0.11999999731779099,
+				12.0
+			],
+			"state": "BREACH",
+			"to_cell": [
+				10.0,
+				3.0,
+				0.0
+			],
+			"to_position": [
+				1e99999,
+				1e99999,
+				1e99999
+			],
+			"to_room": "",
+			"yaw_degrees": 270.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "east",
+			"edge_key": "0|v|4|4",
+			"exterior": false,
+			"from_cell": [
+				4.0,
+				4.0,
+				0.0
+			],
+			"from_position": [
+				16.0,
+				0.11999999731779099,
+				16.0
+			],
+			"from_room": "storage_09",
+			"id": "storage_09_to_crew_quarters_03",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "west",
+			"required": true,
+			"runtime_position": [
+				18.0,
+				0.11999999731779099,
+				16.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				5.0,
+				4.0,
+				0.0
+			],
+			"to_position": [
+				20.0,
+				0.11999999731779099,
+				16.0
+			],
+			"to_room": "crew_quarters_03",
+			"yaw_degrees": 270.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "east",
+			"edge_key": "0|v|5|10",
+			"exterior": false,
+			"from_cell": [
+				10.0,
+				5.0,
+				0.0
+			],
+			"from_position": [
+				40.0,
+				0.11999999731779099,
+				20.0
+			],
+			"from_room": "cargo_05",
+			"id": "cargo_05_to_cargo_06",
+			"kind": "LOCKED",
+			"module_id": "doorway_frame_blocked_1x1",
+			"opposite_direction": "west",
+			"required": true,
+			"runtime_position": [
+				42.0,
+				0.11999999731779099,
+				20.0
+			],
+			"state": "LOCKED",
+			"to_cell": [
+				11.0,
+				5.0,
+				0.0
+			],
+			"to_position": [
+				44.0,
+				0.11999999731779099,
+				20.0
+			],
+			"to_room": "cargo_06",
+			"yaw_degrees": 270.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "east",
+			"edge_key": "0|v|6|10",
+			"exterior": false,
+			"from_cell": [
+				10.0,
+				6.0,
+				0.0
+			],
+			"from_position": [
+				40.0,
+				0.11999999731779099,
+				24.0
+			],
+			"from_room": "corridor_08",
+			"id": "corridor_08_to_cargo_06",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "west",
+			"required": true,
+			"runtime_position": [
+				42.0,
+				0.11999999731779099,
+				24.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				11.0,
+				6.0,
+				0.0
+			],
+			"to_position": [
+				44.0,
+				0.11999999731779099,
+				24.0
+			],
+			"to_room": "cargo_06",
+			"yaw_degrees": 270.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "east",
+			"edge_key": "0|v|6|13",
+			"exterior": false,
+			"from_cell": [
+				13.0,
+				6.0,
+				0.0
+			],
+			"from_position": [
+				52.0,
+				0.11999999731779099,
+				24.0
+			],
+			"from_room": "cargo_06",
+			"id": "cargo_06_to_bridge_07",
+			"kind": "LOCKED",
+			"module_id": "doorway_frame_blocked_1x1",
+			"opposite_direction": "west",
+			"required": true,
+			"runtime_position": [
+				54.0,
+				0.11999999731779099,
+				24.0
+			],
+			"state": "LOCKED",
+			"to_cell": [
+				14.0,
+				6.0,
+				0.0
+			],
+			"to_position": [
+				56.0,
+				0.11999999731779099,
+				24.0
+			],
+			"to_room": "bridge_07",
+			"yaw_degrees": 270.0
+		},
+		{
+			"deck": 0.0,
+			"direction": "east",
+			"edge_key": "0|v|6|9",
+			"exterior": false,
+			"from_cell": [
+				10.0,
+				6.0,
+				0.0
+			],
+			"from_position": [
+				40.0,
+				0.11999999731779099,
+				24.0
+			],
+			"from_room": "corridor_08",
+			"id": "corridor_04_to_corridor_08",
+			"kind": "DOOR",
+			"module_id": "doorway_frame_open_1x1",
+			"opposite_direction": "west",
+			"required": true,
+			"runtime_position": [
+				38.0,
+				0.11999999731779099,
+				24.0
+			],
+			"state": "DOOR",
+			"to_cell": [
+				9.0,
+				6.0,
+				0.0
+			],
+			"to_position": [
+				36.0,
+				0.11999999731779099,
+				24.0
+			],
+			"to_room": "corridor_04",
+			"yaw_degrees": 90.0
+		}
+	],
+	"blocked_links": [],
+	"breach_zone_markers": [],
+	"breach_zone_specs": [],
+	"case": "seed_000017_away",
+	"count_collision_shapes": 225,
+	"critical_path": [
+		"dock_01",
+		"corridor_02",
+		"corridor_04",
+		"cargo_05",
+		"cargo_06",
+		"bridge_07"
+	],
+	"encounter_markers": [],
+	"fire_zone_markers": [],
+	"fire_zone_specs": [],
+	"goal_position": [
+		58.0,
+		0.11999999731779099,
+		20.0
+	],
+	"has_loaded_ship": true,
+	"inputs": {
+		"gameplay_slice": "data/procgen/smoke/seed_000017/gameplay_slice.json",
+		"kit": "data/kits/ship_structural_v0.json",
+		"layout": "data/procgen/smoke/seed_000017/layout.json"
+	},
+	"is_away": true,
+	"landmark_specs": [],
+	"load_failed_reason": "",
+	"loaded": true,
+	"loot_container_specs": [
+		{
+			"approach_cell": [
+				5.0,
+				6.0,
+				0.0
+			],
+			"id": "container_14",
+			"kind": "suit_locker",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				20.0,
+				0.11999999731779099,
+				24.0
+			],
+			"room_id": "dock_01"
+		},
+		{
+			"approach_cell": [
+				6.0,
+				3.0,
+				0.0
+			],
+			"id": "container_17",
+			"kind": "footlocker",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				24.0,
+				0.11999999731779099,
+				12.0
+			],
+			"room_id": "crew_quarters_03"
+		},
+		{
+			"approach_cell": [
+				9.0,
+				4.0,
+				0.0
+			],
+			"id": "container_19",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				36.0,
+				0.11999999731779099,
+				16.0
+			],
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				8.0,
+				4.0,
+				0.0
+			],
+			"id": "container_20",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				32.0,
+				0.11999999731779099,
+				16.0
+			],
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				10.0,
+				4.0,
+				0.0
+			],
+			"id": "container_22",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				40.0,
+				0.11999999731779099,
+				16.0
+			],
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				8.0,
+				3.0,
+				0.0
+			],
+			"id": "container_23",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				32.0,
+				0.11999999731779099,
+				12.0
+			],
+			"room_id": "cargo_05"
+		},
+		{
+			"approach_cell": [
+				12.0,
+				5.0,
+				0.0
+			],
+			"id": "container_26",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				48.0,
+				0.11999999731779099,
+				20.0
+			],
+			"room_id": "cargo_06"
+		},
+		{
+			"approach_cell": [
+				13.0,
+				5.0,
+				0.0
+			],
+			"id": "container_27",
+			"kind": "cargo_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				52.0,
+				0.11999999731779099,
+				20.0
+			],
+			"room_id": "cargo_06"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				3.0,
+				0.0
+			],
+			"id": "container_32",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				16.0,
+				0.11999999731779099,
+				12.0
+			],
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				7.0,
+				0.0
+			],
+			"id": "container_33",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				16.0,
+				0.11999999731779099,
+				28.0
+			],
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				6.0,
+				0.0
+			],
+			"id": "container_34",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				16.0,
+				0.11999999731779099,
+				24.0
+			],
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				4.0,
+				5.0,
+				0.0
+			],
+			"id": "container_35",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				16.0,
+				0.11999999731779099,
+				20.0
+			],
+			"room_id": "storage_09"
+		},
+		{
+			"approach_cell": [
+				12.0,
+				3.0,
+				0.0
+			],
+			"id": "container_36",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				48.0,
+				0.11999999731779099,
+				12.0
+			],
+			"room_id": "storage_11"
+		},
+		{
+			"approach_cell": [
+				12.0,
+				7.0,
+				0.0
+			],
+			"id": "container_37",
+			"kind": "supply_crate",
+			"loot_table": "worldgen_seeded",
+			"position": [
+				48.0,
+				0.11999999731779099,
+				28.0
+			],
+			"room_id": "storage_12"
+		}
+	],
+	"nodes": {
+		"atmosphere": {},
+		"authored_portals": [
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": false,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_storage_11_to_cargo_06",
+				"portal_id": "storage_11_to_cargo_06",
+				"portal_kind": "LOCKED",
+				"position": [
+					52.0,
+					0.11999999731779099,
+					14.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "StructuralEdge_0_h_3_13",
+				"structural_blocker_enabled_shapes": 1,
+				"structural_blocker_visible": true,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						-1.0,
+						0.0,
+						8.742277657347586e-08
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-8.742277657347586e-08,
+						0.0,
+						-1.0
+					]
+				],
+				"blocker_disabled": true,
+				"is_exterior": true,
+				"is_open": true,
+				"is_unlocked": true,
+				"is_unsafe": true,
+				"name": "AuthoredPortal_edge_0|h|3|5",
+				"portal_id": "edge:0|h|3|5",
+				"portal_kind": "BREACH",
+				"position": [
+					20.0,
+					0.11999999731779099,
+					16.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": false
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_corridor_02_to_crew_quarters_03",
+				"portal_id": "corridor_02_to_crew_quarters_03",
+				"portal_kind": "DOOR",
+				"position": [
+					24.0,
+					0.11999999731779099,
+					18.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_dock_01_to_corridor_02",
+				"portal_id": "dock_01_to_corridor_02",
+				"portal_kind": "DOOR",
+				"position": [
+					24.0,
+					0.11999999731779099,
+					22.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_corridor_02_to_corridor_04",
+				"portal_id": "corridor_02_to_corridor_04",
+				"portal_kind": "DOOR",
+				"position": [
+					28.0,
+					0.11999999731779099,
+					22.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_corridor_04_to_cargo_05",
+				"portal_id": "corridor_04_to_cargo_05",
+				"portal_kind": "DOOR",
+				"position": [
+					36.0,
+					0.11999999731779099,
+					22.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_storage_12_to_cargo_06",
+				"portal_id": "storage_12_to_cargo_06",
+				"portal_kind": "DOOR",
+				"position": [
+					52.0,
+					0.11999999731779099,
+					26.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_compartment_10_to_corridor_04",
+				"portal_id": "compartment_10_to_corridor_04",
+				"portal_kind": "DOOR",
+				"position": [
+					32.0,
+					0.11999999731779099,
+					26.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": true,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_edge_0|h|7|6",
+				"portal_id": "edge:0|h|7|6",
+				"portal_kind": "DOOR",
+				"position": [
+					24.0,
+					0.11999999731779099,
+					28.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": true,
+				"is_exterior": true,
+				"is_open": true,
+				"is_unlocked": true,
+				"is_unsafe": true,
+				"name": "AuthoredPortal_edge_0|v|3|4",
+				"portal_id": "edge:0|v|3|4",
+				"portal_kind": "BREACH",
+				"position": [
+					16.0,
+					0.11999999731779099,
+					12.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": false
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": true,
+				"is_exterior": true,
+				"is_open": true,
+				"is_unlocked": true,
+				"is_unsafe": true,
+				"name": "AuthoredPortal_edge_0|v|3|9",
+				"portal_id": "edge:0|v|3|9",
+				"portal_kind": "BREACH",
+				"position": [
+					36.0,
+					0.11999999731779099,
+					12.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": false
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_storage_09_to_crew_quarters_03",
+				"portal_id": "storage_09_to_crew_quarters_03",
+				"portal_kind": "DOOR",
+				"position": [
+					18.0,
+					0.11999999731779099,
+					16.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": false,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_cargo_05_to_cargo_06",
+				"portal_id": "cargo_05_to_cargo_06",
+				"portal_kind": "LOCKED",
+				"position": [
+					42.0,
+					0.11999999731779099,
+					20.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "StructuralEdge_0_v_5_10",
+				"structural_blocker_enabled_shapes": 1,
+				"structural_blocker_visible": true,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_corridor_08_to_cargo_06",
+				"portal_id": "corridor_08_to_cargo_06",
+				"portal_kind": "DOOR",
+				"position": [
+					42.0,
+					0.11999999731779099,
+					24.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						1.1924880638503055e-08,
+						0.0,
+						1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						-1.0,
+						0.0,
+						1.1924880638503055e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": false,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_cargo_06_to_bridge_07",
+				"portal_id": "cargo_06_to_bridge_07",
+				"portal_kind": "LOCKED",
+				"position": [
+					54.0,
+					0.11999999731779099,
+					24.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "StructuralEdge_0_v_6_13",
+				"structural_blocker_enabled_shapes": 1,
+				"structural_blocker_visible": true,
+				"visual_visible": true
+			},
+			{
+				"basis": [
+					[
+						-4.371138828673793e-08,
+						0.0,
+						-1.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						1.0,
+						0.0,
+						-4.371138828673793e-08
+					]
+				],
+				"blocker_disabled": false,
+				"is_exterior": false,
+				"is_open": false,
+				"is_unlocked": true,
+				"is_unsafe": false,
+				"name": "AuthoredPortal_corridor_04_to_corridor_08",
+				"portal_id": "corridor_04_to_corridor_08",
+				"portal_kind": "DOOR",
+				"position": [
+					38.0,
+					0.11999999731779099,
+					24.0
+				],
+				"required_flag": "lockpick",
+				"structural_blocker": "",
+				"structural_blocker_enabled_shapes": 0,
+				"structural_blocker_visible": false,
+				"visual_visible": true
+			}
+		],
+		"blocked_routes": [],
+		"dressing": [],
+		"integrity_states": {},
+		"landmarks": [],
+		"module_keys": [
+			"edge/0|h|2|12",
+			"edge/0|h|2|13",
+			"edge/0|h|2|4",
+			"edge/0|h|2|6",
+			"edge/0|h|2|7",
+			"edge/0|h|2|8",
+			"edge/0|h|2|9",
+			"edge/0|h|3|10",
+			"edge/0|h|3|11",
+			"edge/0|h|3|12",
+			"edge/0|h|3|13",
+			"edge/0|h|3|14",
+			"edge/0|h|3|15",
+			"edge/0|h|4|5",
+			"edge/0|h|4|6",
+			"edge/0|h|4|7",
+			"edge/0|h|5|10",
+			"edge/0|h|5|5",
+			"edge/0|h|5|6",
+			"edge/0|h|5|7",
+			"edge/0|h|5|8",
+			"edge/0|h|5|9",
+			"edge/0|h|6|10",
+			"edge/0|h|6|11",
+			"edge/0|h|6|12",
+			"edge/0|h|6|13",
+			"edge/0|h|6|14",
+			"edge/0|h|6|15",
+			"edge/0|h|6|7",
+			"edge/0|h|6|8",
+			"edge/0|h|6|9",
+			"edge/0|h|7|10",
+			"edge/0|h|7|12",
+			"edge/0|h|7|13",
+			"edge/0|h|7|4",
+			"edge/0|h|7|5",
+			"edge/0|h|7|6",
+			"edge/0|h|7|7",
+			"edge/0|h|7|8",
+			"edge/0|h|7|9",
+			"edge/0|v|3|11",
+			"edge/0|v|3|13",
+			"edge/0|v|3|3",
+			"edge/0|v|3|5",
+			"edge/0|v|3|7",
+			"edge/0|v|4|10",
+			"edge/0|v|4|13",
+			"edge/0|v|4|15",
+			"edge/0|v|4|3",
+			"edge/0|v|4|4",
+			"edge/0|v|4|7",
+			"edge/0|v|5|10",
+			"edge/0|v|5|13",
+			"edge/0|v|5|15",
+			"edge/0|v|5|3",
+			"edge/0|v|5|4",
+			"edge/0|v|5|7",
+			"edge/0|v|6|10",
+			"edge/0|v|6|13",
+			"edge/0|v|6|15",
+			"edge/0|v|6|3",
+			"edge/0|v|6|4",
+			"edge/0|v|6|6",
+			"edge/0|v|6|9",
+			"edge/0|v|7|10",
+			"edge/0|v|7|11",
+			"edge/0|v|7|13",
+			"edge/0|v|7|3",
+			"edge/0|v|7|4",
+			"edge/0|v|7|6",
+			"floor/0|10|4",
+			"floor/0|10|5",
+			"floor/0|10|6",
+			"floor/0|10|7",
+			"floor/0|11|4",
+			"floor/0|11|5",
+			"floor/0|11|6",
+			"floor/0|12|3",
+			"floor/0|12|4",
+			"floor/0|12|5",
+			"floor/0|12|6",
+			"floor/0|12|7",
+			"floor/0|13|3",
+			"floor/0|13|4",
+			"floor/0|13|5",
+			"floor/0|13|6",
+			"floor/0|13|7",
+			"floor/0|14|4",
+			"floor/0|14|5",
+			"floor/0|14|6",
+			"floor/0|15|4",
+			"floor/0|15|5",
+			"floor/0|15|6",
+			"floor/0|4|3",
+			"floor/0|4|4",
+			"floor/0|4|5",
+			"floor/0|4|6",
+			"floor/0|4|7",
+			"floor/0|5|4",
+			"floor/0|5|5",
+			"floor/0|5|6",
+			"floor/0|5|7",
+			"floor/0|6|3",
+			"floor/0|6|4",
+			"floor/0|6|5",
+			"floor/0|6|6",
+			"floor/0|6|7",
+			"floor/0|7|3",
+			"floor/0|7|4",
+			"floor/0|7|5",
+			"floor/0|7|6",
+			"floor/0|7|7",
+			"floor/0|8|3",
+			"floor/0|8|4",
+			"floor/0|8|5",
+			"floor/0|8|6",
+			"floor/0|8|7",
+			"floor/0|9|3",
+			"floor/0|9|4",
+			"floor/0|9|5",
+			"floor/0|9|6",
+			"floor/0|9|7",
+			"ceiling/0|10|4",
+			"ceiling/0|10|5",
+			"ceiling/0|10|6",
+			"ceiling/0|10|7",
+			"ceiling/0|11|4",
+			"ceiling/0|11|5",
+			"ceiling/0|11|6",
+			"ceiling/0|12|3",
+			"ceiling/0|12|4",
+			"ceiling/0|12|5",
+			"ceiling/0|12|6",
+			"ceiling/0|12|7",
+			"ceiling/0|13|3",
+			"ceiling/0|13|4",
+			"ceiling/0|13|5",
+			"ceiling/0|13|6",
+			"ceiling/0|13|7",
+			"ceiling/0|14|4",
+			"ceiling/0|14|5",
+			"ceiling/0|14|6",
+			"ceiling/0|15|4",
+			"ceiling/0|15|5",
+			"ceiling/0|15|6",
+			"ceiling/0|4|3",
+			"ceiling/0|4|4",
+			"ceiling/0|4|5",
+			"ceiling/0|4|6",
+			"ceiling/0|4|7",
+			"ceiling/0|5|4",
+			"ceiling/0|5|5",
+			"ceiling/0|5|6",
+			"ceiling/0|5|7",
+			"ceiling/0|6|3",
+			"ceiling/0|6|4",
+			"ceiling/0|6|5",
+			"ceiling/0|6|6",
+			"ceiling/0|6|7",
+			"ceiling/0|7|3",
+			"ceiling/0|7|4",
+			"ceiling/0|7|5",
+			"ceiling/0|7|6",
+			"ceiling/0|7|7",
+			"ceiling/0|8|3",
+			"ceiling/0|8|4",
+			"ceiling/0|8|5",
+			"ceiling/0|8|6",
+			"ceiling/0|8|7",
+			"ceiling/0|9|3",
+			"ceiling/0|9|4",
+			"ceiling/0|9|5",
+			"ceiling/0|9|6",
+			"ceiling/0|9|7"
+		],
+		"objective_volumes": [
+			{
+				"basis": [
+					[
+						1.0,
+						0.0,
+						0.0
+					],
+					[
+						0.0,
+						1.0,
+						0.0
+					],
+					[
+						0.0,
+						0.0,
+						1.0
+					]
+				],
+				"name": "ObjectiveVolume_seq1_reach_room_bridge_07_reach_goal",
+				"objective_id": "bridge_07:reach_goal",
+				"objective_type": "reach_room",
+				"position": [
+					56.0,
+					0.11999999731779099,
+					16.0
+				],
+				"room_id": "bridge_07",
+				"sequence": 1
+			}
+		],
+		"placed_props": [],
+		"trigger_volumes": [],
+		"vertical_links": [],
+		"vertical_transitions": []
+	},
+	"objective_specs": [
+		{
+			"approach_cell": [
+				14.0,
+				4.0,
+				0.0
+			],
+			"id": "bridge_07:reach_goal",
+			"kind": "single",
+			"position": [
+				56.0,
+				0.11999999731779099,
+				16.0
+			],
+			"radius": 1.5,
+			"room_id": "bridge_07",
+			"sequence": 1,
+			"steps": [],
+			"type": "reach_room"
+		}
+	],
+	"placed_prop_errors": [],
+	"placed_prop_specs": [],
+	"probes": [
+		{
+			"authored_atmosphere_at": {},
+			"drain_multiplier": 1.0,
+			"point": [
+				1000.0,
+				0.0,
+				1000.0
+			],
+			"radiation_zone_at": {}
+		}
+	],
+	"radiation_zone_markers": [],
+	"radiation_zone_segments": [],
+	"radiation_zone_specs": [],
+	"room_links": [
+		{
+			"from_cell": [
+				6.0,
+				6.0,
+				0.0
+			],
+			"from_room": "dock_01",
+			"id": "dock_01_to_corridor_02",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				6.0,
+				5.0,
+				0.0
+			],
+			"to_room": "corridor_02"
+		},
+		{
+			"from_cell": [
+				6.0,
+				5.0,
+				0.0
+			],
+			"from_room": "corridor_02",
+			"id": "corridor_02_to_crew_quarters_03",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				6.0,
+				4.0,
+				0.0
+			],
+			"to_room": "crew_quarters_03"
+		},
+		{
+			"from_cell": [
+				7.0,
+				5.0,
+				0.0
+			],
+			"from_room": "corridor_02",
+			"id": "corridor_02_to_corridor_04",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				7.0,
+				6.0,
+				0.0
+			],
+			"to_room": "corridor_04"
+		},
+		{
+			"from_cell": [
+				9.0,
+				6.0,
+				0.0
+			],
+			"from_room": "corridor_04",
+			"id": "corridor_04_to_cargo_05",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				9.0,
+				5.0,
+				0.0
+			],
+			"to_room": "cargo_05"
+		},
+		{
+			"from_cell": [
+				9.0,
+				6.0,
+				0.0
+			],
+			"from_room": "corridor_04",
+			"id": "corridor_04_to_corridor_08",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				10.0,
+				6.0,
+				0.0
+			],
+			"to_room": "corridor_08"
+		},
+		{
+			"from_cell": [
+				10.0,
+				6.0,
+				0.0
+			],
+			"from_room": "corridor_08",
+			"id": "corridor_08_to_cargo_06",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				11.0,
+				6.0,
+				0.0
+			],
+			"to_room": "cargo_06"
+		},
+		{
+			"from_cell": [
+				13.0,
+				6.0,
+				0.0
+			],
+			"from_room": "cargo_06",
+			"id": "cargo_06_to_bridge_07",
+			"module_id": "doorway_frame_blocked_1x1",
+			"to_cell": [
+				14.0,
+				6.0,
+				0.0
+			],
+			"to_room": "bridge_07"
+		},
+		{
+			"from_cell": [
+				10.0,
+				5.0,
+				0.0
+			],
+			"from_room": "cargo_05",
+			"id": "cargo_05_to_cargo_06",
+			"module_id": "doorway_frame_blocked_1x1",
+			"to_cell": [
+				11.0,
+				5.0,
+				0.0
+			],
+			"to_room": "cargo_06"
+		},
+		{
+			"from_cell": [
+				4.0,
+				4.0,
+				0.0
+			],
+			"from_room": "storage_09",
+			"id": "storage_09_to_crew_quarters_03",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				5.0,
+				4.0,
+				0.0
+			],
+			"to_room": "crew_quarters_03"
+		},
+		{
+			"from_cell": [
+				8.0,
+				7.0,
+				0.0
+			],
+			"from_room": "compartment_10",
+			"id": "compartment_10_to_corridor_04",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				8.0,
+				6.0,
+				0.0
+			],
+			"to_room": "corridor_04"
+		},
+		{
+			"from_cell": [
+				13.0,
+				3.0,
+				0.0
+			],
+			"from_room": "storage_11",
+			"id": "storage_11_to_cargo_06",
+			"module_id": "doorway_frame_blocked_1x1",
+			"to_cell": [
+				13.0,
+				4.0,
+				0.0
+			],
+			"to_room": "cargo_06"
+		},
+		{
+			"from_cell": [
+				13.0,
+				7.0,
+				0.0
+			],
+			"from_room": "storage_12",
+			"id": "storage_12_to_cargo_06",
+			"module_id": "doorway_frame_open_1x1",
+			"to_cell": [
+				13.0,
+				6.0,
+				0.0
+			],
+			"to_room": "cargo_06"
+		}
+	],
+	"room_variant_descriptors": {},
+	"rooms": {
+		"bridge_07": {
+			"center": [
+				58.0,
+				0.11999999731779099,
+				20.0
+			],
+			"deck": 0,
+			"role": "bridge"
+		},
+		"cargo_05": {
+			"center": [
+				35.5,
+				0.11999999731779099,
+				16.5
+			],
+			"deck": 0,
+			"role": "cargo"
+		},
+		"cargo_06": {
+			"center": [
+				48.0,
+				0.11999998986721039,
+				20.0
+			],
+			"deck": 0,
+			"role": "cargo"
+		},
+		"compartment_10": {
+			"center": [
+				34.0,
+				0.11999999731779099,
+				28.0
+			],
+			"deck": 0,
+			"role": "compartment"
+		},
+		"corridor_02": {
+			"center": [
+				24.0,
+				0.11999999731779099,
+				20.0
+			],
+			"deck": 0,
+			"role": "corridor"
+		},
+		"corridor_04": {
+			"center": [
+				32.0,
+				0.11999999731779099,
+				24.0
+			],
+			"deck": 0,
+			"role": "corridor"
+		},
+		"corridor_08": {
+			"center": [
+				40.0,
+				0.11999999731779099,
+				24.0
+			],
+			"deck": 0,
+			"role": "corridor"
+		},
+		"crew_quarters_03": {
+			"center": [
+				24.799999237060547,
+				0.11999998986721039,
+				14.399999618530273
+			],
+			"deck": 0,
+			"role": "crew_quarters"
+		},
+		"dock_01": {
+			"center": [
+				22.0,
+				0.11999999731779099,
+				26.0
+			],
+			"deck": 0,
+			"role": "dock"
+		},
+		"storage_09": {
+			"center": [
+				16.0,
+				0.11999998986721039,
+				20.0
+			],
+			"deck": 0,
+			"role": "storage"
+		},
+		"storage_11": {
+			"center": [
+				50.0,
+				0.11999999731779099,
+				12.0
+			],
+			"deck": 0,
+			"role": "storage"
+		},
+		"storage_12": {
+			"center": [
+				50.0,
+				0.11999999731779099,
+				28.0
+			],
+			"deck": 0,
+			"role": "storage"
+		}
+	},
+	"start_transform_origin": [
+		22.0,
+		0.11999999731779099,
+		26.0
+	],
+	"summary": {
+		"gameplay_slice_path": "data/procgen/smoke/seed_000017/gameplay_slice.json",
+		"goal_position": [
+			58.0,
+			0.11999999731779099,
+			20.0
+		],
+		"instantiated_count": 174,
+		"kit_path": "data/kits/ship_structural_v0.json",
+		"layout_path": "data/procgen/smoke/seed_000017/layout.json",
+		"objective_count": 1,
+		"start_position": [
+			22.0,
+			0.11999999731779099,
+			26.0
+		],
+		"vertical_link_count": 0
+	},
+	"unknown_room": {
+		"deck": -1,
+		"role": ""
+	}
+}

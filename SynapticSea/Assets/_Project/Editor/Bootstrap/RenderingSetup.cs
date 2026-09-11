@@ -1,4 +1,5 @@
 using System.Linq;
+using SynapticSea.Runtime;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -9,7 +10,8 @@ namespace SynapticSea.EditorTools.Bootstrap
     /// <summary>
     /// Configures URP for the locked-isometric interior look (plan Phase 9): Forward+, HDR, MSAA 4x, main-light
     /// soft shadows sized for the orthographic follow camera, GPU Resident Drawer, SSAO + Decal renderer features,
-    /// and the global post-processing profile (ACES, bloom for emissives, vignette, colour adjustments).
+    /// the hallucination full-screen pass, and the global post-processing profile (Neutral tonemapping, bloom for
+    /// emissives, vignette, colour adjustments).
     /// Idempotent.
     ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Bootstrap.RenderingSetup.Apply -quit
     /// </summary>
@@ -18,6 +20,8 @@ namespace SynapticSea.EditorTools.Bootstrap
         public const string PipelineAssetPath = "Assets/Settings/PC_RPAsset.asset";
         public const string RendererPath = "Assets/Settings/PC_Renderer.asset";
         public const string GlobalProfilePath = "Assets/Settings/Volumes/SS_GlobalVolume.asset";
+        public const string DitherFadeShaderPath = "Assets/Content/Shaders/SS_LitDitherFade.shader";
+        public const string HallucinationShaderPath = "Assets/Content/Shaders/SS_Hallucination.shader";
 
         [MenuItem("Synaptic Sea/Bootstrap/Apply Rendering Settings")]
         public static void Apply()
@@ -68,7 +72,14 @@ namespace SynapticSea.EditorTools.Bootstrap
             SetFloat(sso, "m_Settings.Falloff", 40f);
             sso.ApplyModifiedPropertiesWithoutUndo();
             EnsureFeature<DecalRendererFeature>(renderer, "Decals");
+            var hallucination = EnsureFeature<HallucinationRendererFeature>(renderer, "Hallucination");
+            hallucination.Shader = AssetDatabase.LoadAssetAtPath<Shader>(HallucinationShaderPath);
+            EditorUtility.SetDirty(hallucination);
             EditorUtility.SetDirty(renderer);
+
+            // Shaders only looked up by name at runtime must be in builds.
+            EnsureAlwaysIncluded(AssetDatabase.LoadAssetAtPath<Shader>(DitherFadeShaderPath));
+            EnsureAlwaysIncluded(AssetDatabase.LoadAssetAtPath<Shader>(HallucinationShaderPath));
 
             var profile = EnsureGlobalProfile();
 
@@ -103,6 +114,24 @@ namespace SynapticSea.EditorTools.Bootstrap
             return feature;
         }
 
+        static void EnsureAlwaysIncluded(Shader shader)
+        {
+            if (shader == null)
+            {
+                Debug.LogWarning("[RenderingSetup] shader to always include not found");
+                return;
+            }
+            var graphics = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset").FirstOrDefault();
+            if (graphics == null) return;
+            var so = new SerializedObject(graphics);
+            var list = so.FindProperty("m_AlwaysIncludedShaders");
+            for (int i = 0; i < list.arraySize; i++)
+                if (list.GetArrayElementAtIndex(i).objectReferenceValue == shader) return;
+            list.arraySize++;
+            list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = shader;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         static VolumeProfile EnsureGlobalProfile()
         {
             System.IO.Directory.CreateDirectory("Assets/Settings/Volumes");
@@ -113,8 +142,11 @@ namespace SynapticSea.EditorTools.Bootstrap
                 AssetDatabase.CreateAsset(profile, GlobalProfilePath);
             }
 
+            // Neutral, not the plan's ACES: Godot rendered with linear tonemapping, and ACES's toe crushed the Godot
+            // palette (clear colour 0.05 → black, mid-tones about -55%). Neutral stays within about 10% of the Godot
+            // captures and still rolls off HDR emissives (docs/port-status.md, calibration).
             var tone = Get<Tonemapping>(profile);
-            tone.mode.Override(TonemappingMode.ACES);
+            tone.mode.Override(TonemappingMode.Neutral);
 
             var bloom = Get<Bloom>(profile);
             bloom.threshold.Override(1.0f);
@@ -125,9 +157,11 @@ namespace SynapticSea.EditorTools.Bootstrap
             vignette.intensity.Override(0.25f);
             vignette.smoothness.Override(0.4f);
 
+            // Present but neutral: contrast/saturation grading darkened the calibrated Godot light levels.
             var color = Get<ColorAdjustments>(profile);
-            color.contrast.Override(10f);
-            color.saturation.Override(-8f);
+            color.postExposure.Override(0f);
+            color.contrast.Override(0f);
+            color.saturation.Override(0f);
 
             EditorUtility.SetDirty(profile);
             return profile;
