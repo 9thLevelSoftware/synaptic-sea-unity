@@ -3,7 +3,10 @@
     "rootNamespace": "SynapticSea.EditorTools",
     "references": [
         "SynapticSea.Core",
-        "SynapticSea.Runtime"
+        "SynapticSea.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [
         "Editor"
