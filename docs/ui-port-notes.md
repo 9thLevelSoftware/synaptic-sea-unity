@@ -32,20 +32,43 @@ Shared building blocks are in `UI/Common/`: `SurfacePanel`, `SelectableList`, `S
 
 ## Session wiring
 
-1. **Build the coordinator.** Construct `MenuCoordinator` with the 14 dependencies from Godot's `bind_meta_screens`, in the same order. Wrap the Runtime `AudioManager` in `AudioManagerAdapter`. Then call `ConfigureFromData(a11y)`, or call `Configure(...)` with explicit catalogs.
-2. **Mount the UI.** Add `coordinator.Root` to the menu `UIDocument` (`PanelSettings_Menu`). Build `HudRoot` on the HUD document and call `hud.Mount(coordinator)`.
-3. **Route input.** Each frame, call `UiInputRouter.Tick()`, constructed as `new UiInputRouter(input, coordinator.Stack, coordinator.HandleUiInput)`. It disables the Player map while any surface is open. Handle `PanelToggleRequested` and `DevShortcutRequested` in the session.
-4. **Open inspection panels.** Open the panel (`inventory.OpenTransfer(...)`, `wounds.Open()`, and so on), then call `coordinator.OpenInspection(panel)`. Subscribe `panel.PanelClosed += () => coordinator.NotifyInspectionClosed(panel)`.
-5. **Handle the events:**
-   - `ModalOpened(menuId)` and `ModalClosed(menuId)`
-   - `SaveRequested`, `LoadRequested`, `QuitRequested`, `SaveAndExitRequested`
-   - `SettingsChanged(summary)`: persist it, and push captions to the SFX router (ADR-0044)
-   - `MetaScreenConfirmed(result)`
-   - `SlotSnapshotLoaded(slotId, snapshot)`: apply the manual slot
-   - `WorldLoadRequested`: run the world load
-   - `LanguageChanged(id)`
-6. **Pause the simulation.** Use `coordinator.Stack.SimulationPaused` to suspend the simulation. It is true while the pause stack or run results are open. It is false for LIVE inspection, where gameplay is still blocked.
-7. **Hallucination FX.** `HallucinationRendererFeature` reads `Runtime/Rendering/HallucinationFx.Intensity` and `MotionReduce`. `ThreatPlaceholderView` forwards `SessionEvents.HallucinationFxIntensity` to it; there is no UI-side presenter.
+In play, `Game/PlayableBootstrap` composes the UI and `Game/SessionUiBridge` does the wiring. On the title, `App/Title/TitleScreen` runs the same `MenuCoordinator` in `TitleMode`.
+
+1. **Build the HUD and menu documents.** `PlayableBootstrap.Boot` creates the HUD `UIDocument` (with `HudRoot`) and the menu `UIDocument`, then constructs `SessionUiBridge`. Before the session's ready events fire, `SessionUiBridge.BindSessionEvents(session)` subscribes the HUD to `SessionEvents`: tracker, prompts, weapon line, toasts, inventory and hotbar. Events that arrive before the coordinator exists are replayed once it does.
+2. **Build the coordinator.** After the boot, `SessionUiBridge.BuildCoordinator(session, host, audio)` constructs `MenuCoordinator` with Godot's `bind_meta_screens` dependencies.
+   - The coordinator gets the session's single `TutorialState` and `SettingsState`.
+   - UI sounds go through `SessionUiAudio`, which sits over the session's `SessionAudio` models so bus volumes have one source of truth.
+   - It then calls `ConfigureFromData(a11y)`.
+3. **Adopt the stored preferences.** `user://settings.json` (`UserSettingsStore`), or the app's in-memory settings, is loaded with `LoadSettingsSummary` before any handler is subscribed, so nothing re-saves defaults. The adopted values are:
+   - the stored bus volumes and mutes, applied to the session audio;
+   - accessibility, applied to the HUD at mount and on every change;
+   - `hold_to_tap`, which `RunSession.HoldToWorkEnabled` reads live from the session's `SettingsState`.
+   The bridge keeps a copy of the preferences and re-adopts it after every load, so settings in a save never overwrite the player's preferences.
+4. **Mount.** `coordinator.Root` goes into the menu document and `Hud.Mount(coordinator)` runs. World labels (`WorldLabelLayer`) draw into `Hud.WorldLabelLayer` at the current text scale.
+5. **Route input.** `PlayableBootstrap.Update` calls `SessionUiBridge.Tick()`, which calls `UiInputRouter.Tick()`, refreshes the vitals cluster and, every 250 ms, refreshes the status-effect icons.
+   - `PanelToggleRequested` opens or closes the LIVE inspection panels. A denied toggle raises a toast ("No web chart", "Ship modification unavailable").
+   - `DevShortcutRequested` (F5, F6, F9) is compiled out of `SS_BUILD_RELEASE` builds.
+   - The host's gates come from the modal stack: `RunSessionHost.SimulationPaused = Stack.SimulationPaused`, `GameplayInputBlocked = Stack.BlocksGameplay` and `MotionReduce`.
+   - `PlayerController` raises attack, reload, hotbar 1–3, interact press and release, field craft and movement. `RunSessionHost` refuses them while `GameplayInputAllowed` is false.
+6. **Inspection panels.** Inventory, Wounds, Scanner, Ship modification, Chart and Recipe picker are opened through `coordinator.OpenInspection(panel)`. Each panel's `PanelClosed` calls `NotifyInspectionClosed`. Wound treatment goes through `RunSession.TryBandageWound` / `TryTreatWound` (`SessionWoundHost`), so the item is consumed and the SFX and training events fire.
+7. **Coordinator events:**
+   - `SaveRequested`, `LoadRequested`, `WorldLoadRequested`: `RequestSave` / `RequestLoad`, then the preferences are re-adopted.
+   - `SlotSnapshotLoaded`: `ApplyManualSlot`.
+   - `QuitRequested`: `QuitToTitle`. `SaveAndExitRequested`: `SaveAndExit`.
+   - `SettingsChanged(summary)`: `ApplyUiSettingsSummary`, accessibility applied to the scene, and the merged state persisted through `AppServices.ApplySettings` (`user://settings.json`).
+   - `LanguageChanged(id)`: persisted through the settings file. Godot's `LocalizationCatalog` only has `en` and no UI string reads it.
+8. **Combat feedback.** `RunSessionHost.PlayerDamaged` (from `ThreatRuntime.ThreatAttacked`, via `ThreatPlaceholderView.PlayerHit`) calls `HudRoot.ShowDamage`: the damage indicator and flash.
+9. **Pause and run end.** `coordinator.Stack.SimulationPaused` suspends the session tick. It is true while the pause stack or the run results are open, and false under LIVE inspection, where gameplay input is still blocked. When the run ends (`PlayableSliceCompleted`, death or completion), `PlayableBootstrap.ShowResults` opens `RunResultsPanel` as a TERMINAL surface with a seed · biome · difficulty context line.
+   - Return to Title stores `RunReturnInfo`, and the title shows the last-run line.
+   - New Run starts a fresh generated run with the same biome and difficulty.
+10. **Hallucination FX.** `HallucinationRendererFeature` reads `Runtime/Rendering/HallucinationFx.Intensity` and `MotionReduce`. `HallucinationView` (in `ThreatPlaceholderView.cs`) forwards `SessionEvents.HallucinationFxIntensity` to it. There is no UI-side presenter.
+
+`PlayableScenePlayModeTests` covers this path end to end:
+- the gamepad inventory → pause → resume journey;
+- stored settings applied in play, and a change saving the merged state;
+- settings persisting from Title through play and the pause menu back to Title;
+- combat, reload and hotbar keys under the modal stack;
+- a real threat's hit reaching the HUD damage indicator.
 
 ## Spec rules and where they are enforced
 
@@ -82,7 +105,7 @@ Shared building blocks are in `UI/Common/`: `SurfacePanel`, `SelectableList`, `S
   - The right-click `PopupMenu` becomes an always-visible action row, and the `AcceptDialog` split becomes an inline stepper.
   - Deny paths now show a caution line as well as playing the SFX.
   - Submit runs the primary action: transfer in transfer mode, otherwise equip, otherwise use.
-- **Audio log.** Moving the cursor no longer plays the entry, as Godot's `item_selected` did. Submit or Play does. Stop is mirrored in `AudioManagerAdapter`, because the Runtime has no way to clear the current voice log.
+- **Audio log.** Moving the cursor no longer plays the entry, as Godot's `item_selected` did. Submit or Play does. Stop is mirrored in `AudioManagerAdapter`; in play, `SessionUiAudio` forwards it to `AudioManager.StopVoiceLog`.
 - **Save/load result.** The save/load confirm result no longer carries `snapshot`, because `GdDict` holds only Variant leaves. The snapshot is exposed as `SaveSlotScreenModel.LastLoadedSnapshot` and through the `SlotSnapshotLoaded` event.
 - **Build info.** The release badge also shows the version and store.
 - **Text scale.** `AccessibilitySettings` reads the env var only; Unity has no Godot project settings. A scale between steps reflows up to the next step, never down.
@@ -90,7 +113,7 @@ Shared building blocks are in `UI/Common/`: `SurfacePanel`, `SelectableList`, `S
 ## Open items
 
 - `HudRoot` polls transient arbitration every 100 ms. An event from `TooltipCard` and `TutorialBanner` would be cleaner.
-- UI Toolkit runtime navigation in the player needs an EventSystem and `InputSystemUIInputModule`, or the project-wide UI actions. That belongs in the session scene. The router only dispatches Menu-map navigation when no element has focus.
+- The router only dispatches Menu-map navigation when no element has focus. UI Toolkit navigation itself comes from the EventSystem with `InputSystemUIInputModule` that `AppServices` creates.
 - The colour-blind palettes in `panels.uss` are provisional. They need contrast measurement on real backgrounds.
-- The Runtime `AudioManager` needs `StopVoiceLog()`. `ScannerHost` and `CraftingStationHost` are reference adapters; the session owns the field-craft, salvage and hydroponics branches.
-- The PlayMode gamepad journey from the port plan is not written here: Title, Settings, Back, then Inventory with transfer and close, then Pause over Inventory and Resume.
+- `ScannerHost` and `CraftingStationHost` are reference adapters. The session uses `SessionScannerHost` and `SessionRecipeHost` (`Game/SessionUiAudio.cs`) and owns the field-craft, salvage and hydroponics branches.
+- `RunResultsPanel` has no dedicated styles yet (it uses the generic surface classes).
