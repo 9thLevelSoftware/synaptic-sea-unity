@@ -71,7 +71,7 @@ namespace SynapticSea.Runtime.Session
             var go = new GameObject(string.IsNullOrEmpty(documents.Name) ? "GeneratedDerelict" : GodotNodeName.Validate(documents.Name));
             go.SetActive(false);
             var view = go.AddComponent<ShipView>();
-            var builder = new ShipSceneBuilder(view);
+            var builder = new ShipSceneBuilder(view) { KitPath = documents.KitPath ?? "" };
             string reason = "";
             builder.LoadFailed += r => reason = r;
             if (!builder.LoadFromDocuments(documents.Layout, documents.Kit, documents.GameplaySlice ?? new GdDict(), documents.IsAway))
@@ -102,7 +102,7 @@ namespace SynapticSea.Runtime.Session
                 rooms.Add(room.Position);
             }
             GdDict layout = lifeboat.Layout ?? new GdDict();
-            KitPrefabCatalog kit = KitCatalogResolver.ForLayout(layout);
+            KitPrefabCatalog kit = string.IsNullOrEmpty(lifeboat.KitPath) ? KitCatalogResolver.ForLayout(layout) : KitCatalogResolver.ForKitPath(lifeboat.KitPath);
             if (kit != null)
             {
                 var built = new StructuralLayoutBuilder().Build(layout, kit, structure);

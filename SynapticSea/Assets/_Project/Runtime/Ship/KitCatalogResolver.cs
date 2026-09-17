@@ -88,6 +88,24 @@ namespace SynapticSea.Runtime
             return kitPath;
         }
 
+        /// <summary>
+        /// The catalog for a kit path (<c>ShipDocuments.KitPath</c>, <c>LifeBoatBuilder.BuildResult.KitPath</c>, or an
+        /// absolute file path): the document at that path, keyed by its wrapper folder. Falls back to
+        /// <paramref name="loadedKit"/> when the path cannot be read.
+        /// </summary>
+        public static KitPrefabCatalog ForKitPath(string kitPath, GdDict loadedKit = null)
+        {
+            GdDict doc = null;
+            if (!string.IsNullOrEmpty(kitPath))
+            {
+                if (kitPath.StartsWith("res://", StringComparison.Ordinal))
+                    doc = CatalogRegistry.Exists(kitPath) ? CatalogRegistry.LoadDict(kitPath) : null;
+                else if (System.IO.File.Exists(kitPath))
+                    doc = GdJson.ParseDict(System.IO.File.ReadAllText(kitPath));
+            }
+            return ForKitDocument(doc ?? loadedKit);
+        }
+
         /// <summary>The catalog for a layout without a loaded kit document (life boat): its kit path, then the wrapper folder.</summary>
         public static KitPrefabCatalog ForLayout(GdDict layout)
         {

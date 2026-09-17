@@ -47,6 +47,10 @@ namespace SynapticSea.Runtime
         /// <summary>Kit prefab catalog override; by default <see cref="KitCatalogResolver.ForKitDocument"/> (the loaded kit's wrapper folder, else v0).</summary>
         public KitPrefabCatalog KitCatalog { get; set; }
 
+        /// <summary>Kit path the catalog resolves from when <see cref="LoadFromDocuments"/> gets no <c>kit</c> source path
+        /// (<c>ShipDocuments.KitPath</c>); the kit document itself is the last fallback.</summary>
+        public string KitPath { get; set; } = "";
+
         /// <summary>Prop prefab catalog override; by default <c>Resources/Catalogs/PropCatalog</c>.</summary>
         public PropCatalog PropCatalog { get; set; }
 
@@ -124,7 +128,7 @@ namespace SynapticSea.Runtime
 
             GdDict verdict = ValidateStructuralPlan(layout);
             if (!V.Bool(verdict.Get("ok", false))) return FailLoad("layout structural plan validation failed: " + V.Str(verdict.Get("errors", new GdArray())));
-            KitPrefabCatalog kitCatalog = ResolveKitCatalog(kit);
+            KitPrefabCatalog kitCatalog = ResolveKitCatalog(kit, kitAbs.Length > 0 ? kitAbs : KitPath);
             if (!PreflightStructuralWrappers(moduleIds, kitCatalog, layout.Get("structural_plan", new GdDict()) as GdDict ?? new GdDict()))
                 return FailLoad("structural wrapper preflight failed");
 
@@ -240,10 +244,10 @@ namespace SynapticSea.Runtime
             return new StructuralPlanValidator().Validate(plan, layout);
         }
 
-        KitPrefabCatalog ResolveKitCatalog(GdDict kit)
+        KitPrefabCatalog ResolveKitCatalog(GdDict kit, string kitPath)
         {
             if (KitCatalog != null) return KitCatalog;
-            return KitCatalogResolver.ForKitDocument(kit);
+            return KitCatalogResolver.ForKitPath(kitPath, kit);
         }
 
         /// <summary>

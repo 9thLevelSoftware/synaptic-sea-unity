@@ -49,6 +49,18 @@ namespace SynapticSea.Tests.Unity
             Assert.AreSame(catalog, KitCatalogResolver.ForKitDocument(CatalogRegistry.LoadDict("res://data/kits/" + kitId + ".json")));
         }
 
+        [TestCase("")]
+        [TestCase("breach_field")]
+        [TestCase("dead_fleet")]
+        public void LifeboatBuildsFromItsKitPath(string biome)
+        {
+            LifeBoatBuilder.BuildResult lifeboat = LifeBoatBuilder.Build(biome);
+            Assert.IsNotNull(lifeboat, biome);
+            KitPrefabCatalog catalog = KitCatalogResolver.ForKitPath(lifeboat.KitPath);
+            Assert.IsNotNull(catalog, lifeboat.KitPath);
+            Assert.IsNotNull(new StructuralLayoutBuilder().Build(lifeboat.Layout, catalog, _parent.transform), biome);
+        }
+
         [Test]
         public void WrapperFolderParsesSceneDirectory()
         {
@@ -78,7 +90,9 @@ namespace SynapticSea.Tests.Unity
             }
             Assert.IsNotNull(docs, "no seed in 1..400 generated a layout with kit_id " + kitId);
 
+            Assert.AreSame(KitCatalogResolver.ForKitDocument(docs.Kit), KitCatalogResolver.ForKitPath(docs.KitPath), docs.KitPath);
             var builder = ShipSceneBuilder.Create(_parent.transform);
+            builder.KitPath = docs.KitPath;
             string failure = "";
             builder.LoadFailed += r => failure = r;
             Assert.IsTrue(builder.LoadFromDocuments(docs.Layout, docs.Kit, docs.GameplaySlice, docs.IsAway), kitId + ": " + failure);
