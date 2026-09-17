@@ -28,6 +28,7 @@ namespace SynapticSea.Tests.PlayMode
     {
         MemoryStorage _storage;
         Func<string, bool> _previousLoader;
+        Func<long> _previousRandomSeed;
         IStorage _previousStorage;
         IResourceReader _previousResources;
         ILog _previousLog;
@@ -50,6 +51,8 @@ namespace SynapticSea.Tests.PlayMode
             };
             RunLaunchRequest.Pending = null;
             RunReturnInfo.Clear();
+            _previousRandomSeed = NewRunSetupPanel.RandomSeed;
+            NewRunSetupPanel.RandomSeed = () => 4242;
         }
 
         public override void TearDown()
@@ -58,6 +61,8 @@ namespace SynapticSea.Tests.PlayMode
             AppServices.Shutdown();
             AppServices.StorageOverride = null;
             TitleScreen.SceneLoader = _previousLoader;
+            NewRunSetupPanel.RandomSeed = _previousRandomSeed;
+            RunReturnInfo.Clear();
             RunLaunchRequest.Pending = null;
             CatalogRegistry.Clear();
             CoreServices.UserStorage = _previousStorage;
@@ -163,25 +168,152 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator NewRunStoresTheLaunchRequestAndRequestsPlayable()
+        public IEnumerator NewRunOpensSetupAndStartStoresTheLaunchRequest()
         {
             yield return BootToTitle();
             MenuCoordinator c = _title.Coordinator;
             c.MenuState.SetFocusIndex(RowIndex(c, "start"));
             c.HandleUiInput(UiCommand.Accept);
+            CollectionAssert.IsEmpty(_loadedScenes, "New Run opens the setup instead of launching");
+            NewRunSetupPanel setup = _title.NewRunSetup;
+            Assert.IsNotNull(setup);
+            Assert.AreSame(setup, c.Stack.Top);
+            CollectionAssert.AreEqual(new[] { "abyssal_synaptic_sea", "breach_field", "dead_fleet" }, setup.BiomeIds.ToArray(), "biomes from data/procgen/biomes");
+            CollectionAssert.AreEqual(new[] { "standard", "hardened", "deep_dive" }, setup.DifficultyIds.ToArray(), "difficulties from data/procgen/difficulty");
+            Assert.AreEqual("breach_field", setup.BiomeId);
+            Assert.AreEqual("standard", setup.DifficultyId, "the title difficulty setting");
+            Assert.AreEqual(4242, setup.Seed, "a random seed by default");
+
+            setup.FocusRow(NewRunSetupPanel.RowStart);
+            setup.Consume(UiCommand.Accept);
 
             CollectionAssert.AreEqual(new[] { RunLaunchRequest.PlayableSceneName }, _loadedScenes);
             RunLaunchRequest request = RunLaunchRequest.Pending;
             Assert.IsNotNull(request);
             Assert.AreEqual(RunLaunchMode.NewRun, request.Mode);
             Assert.AreEqual("", request.SlotId);
-            Assert.AreEqual(RunLaunchRequest.DefaultSeed, request.Seed);
+            Assert.AreEqual(4242, request.Seed);
             Assert.AreEqual("breach_field", request.BiomeId);
             Assert.AreEqual("standard", request.DifficultyId);
             Assert.AreEqual("engineer", request.ClassId);
+            Assert.AreEqual("", request.LayoutOverridePath, "a title run is generated");
             Assert.IsNull(request.SettingsSummary, "untouched title settings are not handed off");
             Assert.AreSame(request, RunLaunchRequest.Consume());
             Assert.IsNull(RunLaunchRequest.Pending);
+        }
+
+        [UnityTest]
+        public IEnumerator GamepadNewRunSetupFillsTheRequestAndBackRestoresFocus()
+        {
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            yield return BootToTitle();
+            MenuCoordinator c = _title.Coordinator;
+            Assert.AreEqual(MenuPanel.TokenFor("main_menu", "start"), FocusedToken(_title));
+
+            yield return Tap(gamepad.buttonSouth);
+            NewRunSetupPanel setup = _title.NewRunSetup;
+            Assert.IsNotNull(setup, "South on New Run opens the setup");
+            yield return null;
+            Assert.AreEqual(NewRunSetupPanel.TokenFor(NewRunSetupPanel.RowBiome), FocusedToken(_title), "the biome row takes focus");
+            Assert.IsFalse(c.MenuPanel.IsViewVisible, "the title menu is hidden under the setup");
+
+            yield return Tap(gamepad.dpad.right);
+            Assert.AreEqual("dead_fleet", setup.BiomeId, "Right cycles the biome");
+            yield return Tap(gamepad.dpad.down);
+            Assert.AreEqual(NewRunSetupPanel.TokenFor(NewRunSetupPanel.RowDifficulty), FocusedToken(_title));
+            yield return Tap(gamepad.dpad.right);
+            Assert.AreEqual("hardened", setup.DifficultyId);
+            yield return Tap(gamepad.dpad.down);
+            yield return Tap(gamepad.dpad.right);
+            Assert.AreEqual(4243, setup.Seed, "Right steps the seed");
+            Assert.AreEqual("4243", setup.RowValue(NewRunSetupPanel.RowSeed));
+            yield return Tap(gamepad.dpad.down);
+            NewRunSetupPanel.RandomSeed = () => 777;
+            yield return Tap(gamepad.buttonSouth);
+            Assert.AreEqual(777, setup.Seed, "Randomize seed rolls a new seed");
+
+            yield return Tap(gamepad.buttonEast);
+            Assert.IsNull(_title.NewRunSetup, "Back closes the setup");
+            Assert.AreSame(c.MenuPanel, c.Stack.Top);
+            Assert.IsTrue(c.MenuPanel.IsViewVisible);
+            yield return null;
+            Assert.AreEqual(MenuPanel.TokenFor("main_menu", "start"), FocusedToken(_title), "Back restores focus to New Run");
+            CollectionAssert.IsEmpty(_loadedScenes);
+
+            NewRunSetupPanel.RandomSeed = () => 99;
+            yield return Tap(gamepad.buttonSouth);
+            setup = _title.NewRunSetup;
+            Assert.IsNotNull(setup);
+            yield return null;
+            yield return Tap(gamepad.dpad.right);
+            yield return Tap(gamepad.dpad.down);
+            yield return Tap(gamepad.dpad.right);
+            yield return Tap(gamepad.dpad.right);
+            Assert.AreEqual("deep_dive", setup.DifficultyId);
+            yield return Tap(gamepad.dpad.up);
+            yield return Tap(gamepad.dpad.up);
+            Assert.AreEqual(NewRunSetupPanel.TokenFor(NewRunSetupPanel.RowStart), FocusedToken(_title), "Up wraps to Start");
+            yield return Tap(gamepad.buttonSouth);
+
+            CollectionAssert.AreEqual(new[] { RunLaunchRequest.PlayableSceneName }, _loadedScenes);
+            RunLaunchRequest request = RunLaunchRequest.Pending;
+            Assert.IsNotNull(request);
+            Assert.AreEqual(RunLaunchMode.NewRun, request.Mode);
+            Assert.AreEqual(99, request.Seed);
+            Assert.AreEqual("dead_fleet", request.BiomeId);
+            Assert.AreEqual("deep_dive", request.DifficultyId);
+            Assert.AreEqual("engineer", request.ClassId);
+        }
+
+        [UnityTest]
+        public IEnumerator SeedFieldAcceptsTypedDigits()
+        {
+            yield return BootToTitle();
+            NewRunSetupPanel setup = _title.OpenNewRunSetup();
+            setup.FocusRow(NewRunSetupPanel.RowSeed);
+            setup.Consume(UiCommand.Accept);
+            Assert.IsTrue(setup.IsEditingSeed, "Accept on the seed row opens the numeric field");
+            setup.SeedField.value = "90x21";
+            setup.Consume(UiCommand.Accept);
+            Assert.IsFalse(setup.IsEditingSeed);
+            Assert.AreEqual(9021, setup.Seed, "non-digits are dropped");
+            setup.Consume(UiCommand.Accept);
+            setup.SeedField.value = "5";
+            setup.Consume(UiCommand.Cancel);
+            Assert.AreEqual(9021, setup.Seed, "Back cancels the edit");
+            Assert.IsNotNull(_title.NewRunSetup, "and keeps the setup open");
+            setup.Consume(UiCommand.Cancel);
+            Assert.IsNull(_title.NewRunSetup);
+        }
+
+        [UnityTest]
+        public IEnumerator TitleShowsTheLastRunAndFailureLines()
+        {
+            RunReturnInfo.LastRunOutcome = "death";
+            RunReturnInfo.LastRunContext = "seed 17 · breach_field · hardened";
+            RunReturnInfo.LastRunTime = "03:12";
+            RunReturnInfo.LastRunProgress = "objectives 1/5";
+            RunReturnInfo.LastFailureReason = "boom";
+            yield return BootToTitle();
+            StringAssert.Contains("Load failed: boom", _title.StatusText);
+            StringAssert.Contains("Last run: death — seed 17 · breach_field · hardened — 03:12", _title.StatusText);
+            StringAssert.Contains("Progress: objectives 1/5", _title.StatusText);
+            Assert.AreEqual("", RunReturnInfo.LastRunOutcome, "the title consumed the return info");
+        }
+
+        [Test]
+        public void ProjectVersionComesFromTheStampElseTheApplicationVersion()
+        {
+            Assert.AreEqual("1.2.3", AppServices.ProjectVersionFor(new GdDict { { "version", "1.2.3" } }, "0.9"));
+            Assert.AreEqual("0.9", AppServices.ProjectVersionFor(new GdDict(), "0.9"));
+        }
+
+        [UnityTest]
+        public IEnumerator BootSetsTheCloudManifestBuildId()
+        {
+            yield return BootToTitle();
+            Assert.AreEqual(Application.version, CoreServices.ProjectVersion, "no build stamp in the editor: Application.version");
+            Assert.IsNotEmpty(CoreServices.ProjectVersion);
         }
 
         [UnityTest]

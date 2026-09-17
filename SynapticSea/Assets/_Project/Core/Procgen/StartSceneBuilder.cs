@@ -1,4 +1,6 @@
 // Ported from scripts/procgen/start_scene_builder.gd @ 96ecb2b0
+using System;
+using System.Collections.Generic;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Variant;
 
@@ -37,8 +39,13 @@ namespace SynapticSea.Core.Procgen
             public Vec3 LifeBoatPosition;
         }
 
-        /// <summary>Builds the start scene documents for <paramref name="seedValue"/>; null on failure.</summary>
-        public static StartSceneDocuments Build(long seedValue)
+        /// <summary>
+        /// Builds the start scene documents for <paramref name="seedValue"/>; null on failure.
+        /// <paramref name="boardingCellFallback"/> (Unity port, C3): when the derelict has no dock room, place the life boat
+        /// at the boarding/airlock cell (<see cref="FindBoardingPosition"/>) instead of failing. Off = Godot, which fails
+        /// for every legacy template seed.
+        /// </summary>
+        public static StartSceneDocuments Build(long seedValue, bool boardingCellFallback = false)
         {
             GdDict archetype = LoadArchetype(DERELICT_ARCHETYPE_PATH);
             if (archetype.IsEmpty)
@@ -102,6 +109,12 @@ namespace SynapticSea.Core.Procgen
 
             // Step 6: position the life boat adjacent to the derelict's dock room.
             Vec3 dockPos = FindDockPosition(derelictLayout);
+            if (dockPos == Vec3.Inf && boardingCellFallback)
+            {
+                dockPos = FindBoardingPosition(derelictLayout, V.Str(derelictGameplay.Get("start_room", "")));
+                if (dockPos != Vec3.Inf)
+                    CoreServices.Log.Info("StartSceneBuilder: no dock room; life boat placed at the boarding cell " + dockPos);
+            }
             if (dockPos == Vec3.Inf)
             {
                 CoreServices.Log.Error("StartSceneBuilder: no dock room found in derelict layout; cannot position life boat");
@@ -155,6 +168,173 @@ namespace SynapticSea.Core.Procgen
                 if (count > 0) return sum / (float)count;
             }
             return Vec3.Inf;
+        }
+
+        /// <summary>
+        /// Unity port (C3): the boarding cell's world centre used when a layout has no dock room. Prefers the
+        /// <c>airlock</c> room, then <paramref name="startRoomId"/>, then the first room with a boarding cell
+        /// (<see cref="GeneratedShipLayout.BoardingCellXz"/>: reserved_cells[0], else the first floor_cell_*).
+        /// <see cref="Vec3.Inf"/> when no room has one.
+        /// </summary>
+        public static Vec3 FindBoardingPosition(GdDict layout, string startRoomId = "")
+        {
+            GdArray rooms = layout?.GetArrayOrEmpty("rooms") ?? new GdArray();
+            var candidates = new List<GdDict>();
+            foreach (var roomVariant in rooms)
+            {
+                if (roomVariant is GdDict room && (V.Str(room.Get("room_role", "")) == "airlock" || GdString.BeginsWith(V.Str(room.Get("id", "")), "airlock")))
+                    candidates.Add(room);
+            }
+            if (!string.IsNullOrEmpty(startRoomId))
+            {
+                foreach (var roomVariant in rooms)
+                {
+                    if (roomVariant is GdDict room && V.Str(room.Get("id", "")) == startRoomId && !candidates.Contains(room))
+                        candidates.Add(room);
+                }
+            }
+            foreach (var roomVariant in rooms)
+            {
+                if (roomVariant is GdDict room && !candidates.Contains(room))
+                    candidates.Add(room);
+            }
+            foreach (GdDict room in candidates)
+            {
+                GdArray cell = GeneratedShipLayout.BoardingCellXz(room);
+                if (cell.Count < 2) continue;
+                return StructuralEdgeCompiler.CellWorldPosition(V.I64(room.Get("deck", 0L)), new Vec2i((int)V.I64(cell[0]), (int)V.I64(cell[1])));
+            }
+            return Vec3.Inf;
+        }
+
+        // ------------------------------------------------------------------ Unity port (C2/C3): the generated home start
+
+        /// <summary>Tries per New Run start: seed, seed+1, ... seed+MAX_START_ATTEMPTS-1.</summary>
+        public const int MAX_START_ATTEMPTS = 8;
+        /// <summary>Home blueprint for a New Run: a medium, damaged ship (the golden sidecar's size / condition class).</summary>
+        public const long HOME_SIZE = (long)ShipBlueprint.Size.Medium;
+        public const long HOME_CONDITION = (long)ShipBlueprint.Condition.Damaged;
+
+        /// <summary>A viable generated home start: the ship documents plus where the life boat attaches.</summary>
+        public sealed class HomeStart
+        {
+            public ShipDocuments Documents;
+            public ShipBlueprint Blueprint;
+            /// <summary>The seed the player asked for.</summary>
+            public long RequestedSeed;
+            /// <summary>The seed actually generated (RequestedSeed + Attempts - 1).</summary>
+            public long Seed;
+            public int Attempts;
+            /// <summary>"dock" (dock room floor centroid) or "boarding" (boarding/airlock cell fallback).</summary>
+            public string AnchorSource = "";
+            /// <summary>Ship-local life boat anchor + (0, 0, DOCK_GAP), Godot frame.</summary>
+            public Vec3 LifeBoatPosition;
+            /// <summary>One "seed N: reason" line per rejected attempt.</summary>
+            public readonly List<string> Rejections = new List<string>();
+        }
+
+        /// <summary>
+        /// Generates the New Run home ship for <paramref name="seedValue"/> through <see cref="ShipGenerator"/> with the run
+        /// context, gated by <see cref="ValidateHomeStart"/>. A rejected seed is retried deterministically with seed+1, up to
+        /// <paramref name="maxAttempts"/> tries; each rejection is logged. Null (logged as an error) when no try is viable.
+        /// </summary>
+        /// <param name="extraGate">Optional further check after <see cref="ValidateHomeStart"/> ("" = accept); tests use it to
+        /// force rejections.</param>
+        public static HomeStart BuildHomeStart(long seedValue, string biomeId, string difficultyId, long size = HOME_SIZE, long condition = HOME_CONDITION,
+            int maxAttempts = MAX_START_ATTEMPTS, Func<long, ShipDocuments, string> extraGate = null)
+        {
+            var result = new HomeStart { RequestedSeed = seedValue };
+            for (int attempt = 0; attempt < Math.Max(1, maxAttempts); attempt++)
+            {
+                long seed = unchecked(seedValue + attempt);
+                result.Attempts = attempt + 1;
+                var generator = new ShipGenerator();
+                generator.ConfigureRunContext(biomeId ?? "", difficultyId ?? "");
+                ShipDocuments docs = generator.GenerateFromSeed(seed, size, condition);
+                Vec3 anchor = Vec3.Inf;
+                string source = "";
+                string reason = docs == null ? "generation failed" : ValidateHomeStart(docs, out anchor, out source);
+                if (reason.Length == 0 && extraGate != null) reason = extraGate(seed, docs) ?? "";
+                if (reason.Length == 0)
+                {
+                    docs.IsAway = false;
+                    result.Documents = docs;
+                    result.Blueprint = new ShipBlueprint(size, condition, seed);
+                    result.Seed = seed;
+                    result.AnchorSource = source;
+                    result.LifeBoatPosition = anchor + new Vec3(0.0, 0.0, DOCK_GAP);
+                    if (attempt > 0)
+                        CoreServices.Log.Warning("StartSceneBuilder: reseeded the home start from " + GdString.FormatInt(seedValue) + " to " + GdString.FormatInt(seed));
+                    return result;
+                }
+                string line = "seed " + GdString.FormatInt(seed) + ": " + reason;
+                result.Rejections.Add(line);
+                CoreServices.Log.Warning("StartSceneBuilder: home start rejected, " + line);
+            }
+            CoreServices.Log.Error("StartSceneBuilder: no viable home start in " + result.Attempts + " attempts from seed " + GdString.FormatInt(seedValue));
+            return null;
+        }
+
+        /// <summary>
+        /// The start gate: "" when <paramref name="docs"/> can host a run, else the first failed check, in order:
+        /// <list type="number">
+        /// <item>the stamped structural plan passes <see cref="StructuralPlanValidator"/>;</item>
+        /// <item>the gameplay slice has objectives and a start room with occupied cells;</item>
+        /// <item>walkability: every objective room and the goal room are reachable from the start room through non-SOLID
+        /// edges (<see cref="WalkabilityContract.RoomsReachable"/> on enclosure adjacency, since route gates and breaches open
+        /// during play);</item>
+        /// <item>a life boat anchor: the dock room, else the boarding/airlock cell (<see cref="FindBoardingPosition"/>), and a
+        /// dock port the session can dock the life boat to (<c>DockPorts.ForDerelict</c>).</item>
+        /// </list>
+        /// </summary>
+        public static string ValidateHomeStart(ShipDocuments docs, out Vec3 anchor, out string anchorSource)
+        {
+            anchor = Vec3.Inf;
+            anchorSource = "";
+            if (docs == null || docs.Layout == null || docs.Layout.IsEmpty) return "no layout";
+            GdDict layout = docs.Layout;
+            GdDict slice = docs.GameplaySlice ?? new GdDict();
+            GdDict plan = layout.GetDictOrEmpty("structural_plan");
+            GdDict verdict = new StructuralPlanValidator().Validate(plan, layout);
+            if (!V.Bool(verdict.Get("ok", false)))
+                return "structural plan invalid: " + GdJson.Stringify(verdict.Get("errors", new GdArray()));
+            GdArray objectives = slice.GetArrayOrEmpty("objectives");
+            if (objectives.IsEmpty) return "gameplay slice has no objectives";
+            string startRoom = V.Str(slice.Get("start_room", ""));
+            if (startRoom.Length == 0) return "gameplay slice has no start room";
+            GdDict occupancy = plan.GetDictOrEmpty("occupancy");
+            if (WalkabilityContract.RoomCellKeys(occupancy, startRoom).Count == 0) return "start room " + startRoom + " has no occupied cells";
+            GdDict adjacency = WalkabilityContract.BuildAdjacency(occupancy, plan.GetDictOrEmpty("edges"), layout, false);
+            var goals = new List<string>();
+            foreach (var objectiveVariant in objectives)
+            {
+                if (!(objectiveVariant is GdDict objective)) continue;
+                string room = V.Str(objective.Get("room_id", ""));
+                if (room.Length != 0 && !goals.Contains(room)) goals.Add(room);
+            }
+            string goalRoom = V.Str(slice.Get("goal_room", ""));
+            if (goalRoom.Length != 0 && !goals.Contains(goalRoom)) goals.Add(goalRoom);
+            foreach (string room in goals)
+            {
+                if (room != startRoom && !WalkabilityContract.RoomsReachable(adjacency, occupancy, startRoom, room))
+                    return "room " + room + " is not walkable from start room " + startRoom;
+            }
+            anchor = FindDockPosition(layout);
+            anchorSource = "dock";
+            if (anchor == Vec3.Inf)
+            {
+                anchor = FindBoardingPosition(layout, startRoom);
+                anchorSource = "boarding";
+            }
+            if (anchor == Vec3.Inf)
+            {
+                anchorSource = "";
+                return "no dock room and no boarding cell for the life boat";
+            }
+            // The session docks the life boat through DockPorts (dock room, else airlock room).
+            if (Systems.DockPorts.ForDerelict(layout).IsEmpty)
+                return "no dock or airlock port for the life boat to dock to";
+            return "";
         }
 
         static GdDict LoadArchetype(string path)

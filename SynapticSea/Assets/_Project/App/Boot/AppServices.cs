@@ -105,6 +105,7 @@ namespace SynapticSea.App
             if (CoreServices.Resources.Exists(BuildStampPath)) stamp = GdJson.ParseString(CoreServices.Resources.ReadText(BuildStampPath)) as GdDict;
             BuildStamp = stamp ?? new GdDict();
             BuildMetadata.Configure(ApplyStamp(manifest, BuildStamp));
+            CoreServices.ProjectVersion = ProjectVersionFor(BuildStamp, Application.version);
             DemoScopeGate.Configure(CatalogRegistry.LoadDict(DemoScopeManifestPath) ?? new GdDict(), BuildMetadata);
         }
 
@@ -124,7 +125,17 @@ namespace SynapticSea.App
             return result;
         }
 
-        void ComposeSettings()
+        /// <summary>
+        /// Godot <c>ProjectSettings application/config/version</c> (<c>CloudManifestState.BuildId</c>): the build stamp's
+        /// version, else <c>Application.version</c> (the player settings bundle version, set in the editor too).
+        /// </summary>
+        public static string ProjectVersionFor(GdDict stamp, string applicationVersion)
+        {
+            string version = stamp != null ? stamp.GetString("version", "") : "";
+            return version.Length != 0 ? version : applicationVersion ?? "";
+        }
+
+                void ComposeSettings()
         {
             // The environment variable seeds the text scale on first run; stored preferences win afterwards.
             Accessibility = new AccessibilitySettings();
