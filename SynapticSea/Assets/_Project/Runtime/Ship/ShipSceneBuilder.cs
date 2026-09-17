@@ -328,6 +328,8 @@ namespace SynapticSea.Runtime
             var box = body.AddComponent<BoxCollider>();
             box.size = size;
             box.center = center;
+            // A marker that blocks the player's route blocks the threats' NavMesh too (decision 59).
+            if (collisionLayer == PhysicsLayers.ZoneBlocker) Session.NavMeshBlocker.Attach(box);
             return marker;
         }
 

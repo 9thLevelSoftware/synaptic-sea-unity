@@ -102,6 +102,7 @@ namespace SynapticSea.Core.Session
             UtilityItemState.Configure(new GdDict());
             // ThreatManager: add_child runs _ready (catalogs + pipeline configure) before the coordinator hooks callbacks.
             ThreatManager = new ThreatRuntime();
+            ThreatManager.Navigation = Deps.ThreatNavigation;
             ThreatManager.DamagePipeline.OnPlayerDamaged = OnPlayerCombatDamaged;
             ThreatManager.OnStructureAttack = OnThreatStructureAttack;
             ThreatManager.ThreatKilled += OnThreatKilled;

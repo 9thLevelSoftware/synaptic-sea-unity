@@ -65,6 +65,9 @@ namespace SynapticSea.Runtime.Session
         public IReadOnlyDictionary<SessionInteractable, InteractableView> InteractableViews => _interactables;
         public IReadOnlyDictionary<SessionZone, ZoneView> ZoneViews => _zones;
         public ThreatPlaceholderView Threats { get; private set; }
+
+        /// <summary>The NavMesh agents that move the threats (decision 59); null before the boot.</summary>
+        public NavMeshThreatNavigation ThreatNavigation { get; private set; }
         public HallucinationView Hallucinations { get; private set; }
         public AffordanceView Affordances { get; private set; }
         public ComponentMarkerView ComponentMarkers { get; private set; }
@@ -124,6 +127,8 @@ namespace SynapticSea.Runtime.Session
             deps.Scene = SceneState;
             deps.ShipHost = ShipHost;
             deps.LosProbe = new PhysicsLineOfSightProbe();
+            ThreatNavigation = new NavMeshThreatNavigation(Threats);
+            deps.ThreatNavigation = ThreatNavigation;
             if (audio != null) deps.AudioSink = new AudioManagerSink(audio, () => SceneState.Player != null ? SceneState.Player.transform : null);
 
             Session = RunSession.Create(deps, s =>
@@ -190,6 +195,8 @@ namespace SynapticSea.Runtime.Session
         {
             if (Session == null) return;
             Paused = SimulationPaused != null && SimulationPaused();
+            // Agents walk in the engine's update, which a paused simulation does not stop.
+            ThreatNavigation?.SetPaused(Paused);
             if (!Paused) Session.Tick(BuildTickContext(Time.deltaTime));
             ApplyViews();
         }
@@ -524,9 +531,25 @@ namespace SynapticSea.Runtime.Session
             _environmentDirty = false;
             _appliedActiveRoot = active;
             ApplyEnvironment(active as ShipLoaderNode, Session.AwayFromStart);
+            ApplyThreatNavMesh(active);
             Physics.SyncTransforms();
             SceneState.Sensor?.Refresh();
             ActiveShipChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Builds the NavMesh of the ship the threats are now on (decision 59). A ship is generated at load, so its
+        /// surface is built here rather than baked into an asset; a build failure leaves
+        /// <see cref="Core.Session.IThreatNavigation.HasNavMesh"/> false and the threats keep to the nav graph.
+        /// </summary>
+        void ApplyThreatNavMesh(IShipSceneRoot active)
+        {
+            if (ThreatNavigation == null) return;
+            GameObject root = active is SceneShipRoot scene && scene.IsValid ? scene.GameObject : null;
+            ShipNavMesh nav = root != null ? ShipNavMesh.Build(root) : null;
+            if (root != null && nav == null)
+                Debug.LogWarning($"[RunSessionHost] no NavMesh built for {root.name}; threats fall back to the nav graph");
+            ThreatNavigation.SetShip(nav);
         }
 
         static void ApplyEnvironment(ShipLoaderNode loader, bool away)

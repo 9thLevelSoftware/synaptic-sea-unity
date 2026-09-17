@@ -233,7 +233,12 @@ namespace SynapticSea.Runtime.Session
 
         void OnMoved(string instanceId, Vec3 world)
         {
-            if (_nodes.TryGetValue(instanceId, out GameObject node) && node != null) node.transform.position = Frame.ToUnity(world);
+            if (!_nodes.TryGetValue(instanceId, out GameObject node) || node == null) return;
+            // A threat walking on the NavMesh is placed by its own agent (decision 59); writing the position here
+            // would fight it (and lose the attack bob, which is the agent's own idea of where it stands).
+            var agent = node.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (agent != null && agent.enabled && agent.isOnNavMesh) return;
+            node.transform.position = Frame.ToUnity(world);
         }
 
         void OnRemoved(string instanceId)

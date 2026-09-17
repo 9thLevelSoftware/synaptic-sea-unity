@@ -70,6 +70,8 @@ namespace SynapticSea.Runtime.Session
                 Blocker = blockerGo.AddComponent<BoxCollider>();
                 Blocker.size = Frame.SizeToUnity(new Vec3(size.x, size.y, size.z));
                 Blocker.center = new Vector3(0f, size.y * 0.5f, 0f);
+                // A closed blocker stops the threats' agents too, by carving: it opens and closes during a run.
+                NavMeshBlocker.Attach(Blocker);
                 Visual = RuntimeVisualCatalog.AddMesh(transform, prefix + "Visual", RuntimeVisualCatalog.Cube,
                     RuntimeVisualCatalog.Material(ColorFor(zone), unshaded: true, transparent: true, doubleSided: true),
                     new Vector3(0f, size.y * 0.5f, 0f), Quaternion.identity, size, PhysicsLayers.Prop, castShadows: false);
