@@ -3,6 +3,9 @@
  * one lower-left primary cluster (health, personal O2, stamina, urgent status, weapon/quick-use) and one small
  * upper-left objective chip. Persistent UI must stay out of the central 40% x 45% play area and the lower-middle
  * traversal corridor (x 35–65%, y 70–100%). Target coverage <= 20% at 1x (ceiling 25%), <= 30% at 1.5x/2x.
+ * Both zones are width-bounded below x = 30% so no persistent HUD can reach the protected centre or the corridor at
+ * any text scale; larger text reflows (wraps, grows upward) instead of widening.
+ * No minimap, room map, or radar (ADR-0045).
  */
 
 .hud-root {
@@ -13,13 +16,68 @@
     bottom: 0;
 }
 
-.hud-cluster {
+/* Lower-left column: transient stack (tutorial, context prompt / tooltip, active work) directly above the cluster. */
+.hud-left-column {
     position: absolute;
     left: var(--ss-safe-inset);
     bottom: var(--ss-safe-inset);
-    width: 22%;
-    min-width: 280px;
-    max-width: 34%;
+    width: 27%;
+    min-width: 260px;
+    max-width: 27%;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.hud-transients {
+    flex-direction: column;
+}
+
+.hud-transient-slot {
+    margin-bottom: var(--ss-space-1);
+}
+
+.hud-cluster {
+    position: relative;
+    padding-top: var(--ss-space-2);
+    padding-bottom: var(--ss-space-2);
+}
+
+/* Cluster meters are single rows: "Health 18" + bar, so three readings stay compact and readable without hover. */
+.hud-cluster .ss-meter,
+.hud-work-strip .ss-meter {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.hud-cluster .ss-meter__header,
+.hud-work-strip .ss-meter__header {
+    flex-shrink: 0;
+    justify-content: flex-start;
+    padding-right: var(--ss-space-2);
+}
+
+.hud-cluster .ss-meter__header > Label,
+.hud-work-strip .ss-meter__header > Label {
+    margin-right: var(--ss-space-2);
+    white-space: nowrap;
+}
+
+/* Compact work strip (1.5x/2x): verb · target · percent in the title, bar only, noise/blocker below. */
+.hud-work-strip--compact .ss-meter__header {
+    display: none;
+}
+
+.hud-work-strip--compact .ss-meter__track {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.hud-cluster .ss-meter__track,
+.hud-work-strip .ss-meter__track {
+    flex-grow: 1;
+    min-width: 40px;
+    margin-top: 0;
 }
 
 .hud-status-row {
@@ -30,10 +88,12 @@
 
 .hud-status-chip {
     font-size: var(--ss-font-meta);
-    padding-left: var(--ss-space-2);
-    padding-right: var(--ss-space-2);
+    padding-left: var(--ss-space-1);
+    padding-right: var(--ss-space-1);
+    padding-top: 0;
+    padding-bottom: 0;
     margin-right: var(--ss-space-1);
-    margin-bottom: var(--ss-space-1);
+    margin-bottom: 2px;
     border-width: var(--ss-border-width);
     border-radius: var(--ss-radius);
     border-color: var(--ss-color-seam);
@@ -49,9 +109,112 @@
     border-color: var(--ss-color-danger);
 }
 
+/* Upper-left objective chip: one actionable line (wraps at large text), progress count at the end. */
 .hud-objective-chip {
     position: absolute;
     left: var(--ss-safe-inset);
     top: var(--ss-safe-inset);
-    max-width: 34%;
+    max-width: 27%;
+    flex-direction: row;
+    align-items: flex-start;
+    padding-top: var(--ss-space-2);
+    padding-bottom: var(--ss-space-2);
+}
+
+/* Large text: the chip moves beside the lower-left column (left 29%, still in the top band above the protected centre,
+   y < 27.5%) and widens, so the one actionable line wraps to at most two lines and the column can use the full height. */
+.scale-150 .hud-objective-chip,
+.scale-200 .hud-objective-chip {
+    left: 29%;
+    max-width: 69%;
+}
+
+.hud-objective-chip__marker {
+    color: var(--ss-color-info);
+    margin-right: var(--ss-space-2);
+}
+
+.hud-objective-chip__text {
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+
+.hud-objective-chip__progress {
+    margin-left: var(--ss-space-2);
+}
+
+.hud-objective-chip.ss-sev--success .hud-objective-chip__marker {
+    color: var(--ss-color-success);
+}
+
+.hud-context-prompt {
+    background-color: var(--ss-color-panel-opaque);
+    padding-top: var(--ss-space-1);
+    padding-bottom: var(--ss-space-1);
+    padding-left: var(--ss-space-2);
+    padding-right: var(--ss-space-2);
+    border-radius: var(--ss-radius);
+    white-space: normal;
+}
+
+.hud-work-strip {
+    border-color: var(--ss-color-caution);
+}
+
+.hud-work-strip__title {
+    -unity-font-style: bold;
+}
+
+.hud-tooltip__title,
+.hud-tutorial__title {
+    -unity-font-style: bold;
+}
+
+.hud-tutorial {
+    border-color: var(--ss-color-caution);
+}
+
+.hud-quick-use {
+    margin-top: var(--ss-space-1);
+}
+
+.hud-hotbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.hud-hotbar__slots {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-shrink: 1;
+}
+
+.hud-hotbar__slot {
+    font-size: var(--ss-font-meta);
+    padding-left: var(--ss-space-1);
+    padding-right: var(--ss-space-1);
+    margin-right: var(--ss-space-1);
+    border-width: var(--ss-border-width);
+    border-color: var(--ss-color-seam);
+    border-radius: var(--ss-radius);
+}
+
+.hud-hotbar__slot--selected {
+    border-color: var(--ss-color-info);
+    border-width: var(--ss-focus-width);
+}
+
+.hud-hotbar__slot--empty {
+    color: var(--ss-color-text-secondary);
+}
+
+.hud-hotbar .ss-glyph {
+    margin-bottom: 2px;
+}
+
+.hud-hotbar__slot {
+    margin-bottom: 2px;
+    padding-top: 0;
+    padding-bottom: 0;
 }

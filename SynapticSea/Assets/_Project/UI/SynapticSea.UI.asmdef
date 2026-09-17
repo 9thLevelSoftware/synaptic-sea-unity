@@ -3,6 +3,7 @@
     "rootNamespace": "SynapticSea.UI",
     "references": [
         "SynapticSea.Core",
+        "SynapticSea.UI.Presenters",
         "SynapticSea.Runtime",
         "Unity.InputSystem"
     ],

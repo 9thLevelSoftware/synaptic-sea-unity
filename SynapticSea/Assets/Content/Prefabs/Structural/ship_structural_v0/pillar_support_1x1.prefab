@@ -56,11 +56,17 @@ MonoBehaviour:
   godotBoundsMin: {x: -2, y: 0, z: -2}
   godotBoundsMax: {x: 2, y: 3, z: 2}
   intactVisual: {fileID: 4729611273217568579}
-  damagedVisual: {fileID: 6827418782663817414}
+  damagedVisual: {fileID: 2812199686886029442}
   breachedVisual: {fileID: 2830104033807702676}
   moduleKey: 
   structuralKind: 
   roomId: 
+  roomIds: []
+  placementId: 
+  placementKey: 
+  layer: 
+  godotPosition: {x: 0, y: 0, z: 0}
+  godotYawDegrees: 0
   integrityState: intact
 --- !u!1 &129195700819281860
 GameObject:
@@ -243,7 +249,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8188255813206878016}
-  - {fileID: 6827418782663817415}
+  - {fileID: 1659158187425116289}
   - {fileID: 1677309095527043735}
   m_Father: {fileID: 4935278460300702899}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -712,14 +718,14 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 0cbdd0b3192b9e14ab2ae202a79d9101, type: 3}
---- !u!1 &6827418782663817414 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8771091787928289351, guid: 0cbdd0b3192b9e14ab2ae202a79d9101, type: 3}
-  m_PrefabInstance: {fileID: 6827418782663817413}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &6827418782663817415 stripped
+--- !u!4 &1659158187425116289 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3910990755373119420, guid: 0cbdd0b3192b9e14ab2ae202a79d9101, type: 3}
+  m_PrefabInstance: {fileID: 6827418782663817413}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2812199686886029442 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8771091787928289351, guid: 0cbdd0b3192b9e14ab2ae202a79d9101, type: 3}
   m_PrefabInstance: {fileID: 6827418782663817413}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6845367105815960275

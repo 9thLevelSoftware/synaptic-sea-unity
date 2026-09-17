@@ -47,15 +47,36 @@ namespace SynapticSea.Runtime
         public float godotYawDegrees;
         public string integrityState = IntegrityIntact;
 
-        /// <summary>Port of IntegrityVisualResolver.apply_visual_state: exactly one variant is visible.</summary>
+        public const string IntegrityDestroyed = "destroyed";
+
+        /// <summary>
+        /// True for Godot "legacy" wrappers with a single <c>VisualInstance</c> (corners, T-junction, end cap, ceiling,
+        /// bulkhead): the prefab builder points all three variant slots at the same object.
+        /// </summary>
+        public bool HasSingleVisual => intactVisual != null && damagedVisual == intactVisual && breachedVisual == intactVisual;
+
+        /// <summary>
+        /// Port of IntegrityVisualResolver.apply_visual_state. Variant wrappers show exactly the requested variant
+        /// (none for <c>destroyed</c> or a state without a variant). Single-visual wrappers stay visible for every state
+        /// except <c>destroyed</c> (Godot's legacy branch; its per-state albedo tint is not ported).
+        /// </summary>
         public void SetIntegrity(string state)
         {
             integrityState = string.IsNullOrEmpty(state) ? IntegrityIntact : state;
-            bool damaged = string.Equals(integrityState, IntegrityDamaged, StringComparison.Ordinal);
-            bool breached = string.Equals(integrityState, IntegrityBreached, StringComparison.Ordinal);
-            if (intactVisual != null) intactVisual.SetActive(!damaged && !breached);
-            if (damagedVisual != null) damagedVisual.SetActive(damaged);
-            if (breachedVisual != null) breachedVisual.SetActive(breached);
+            if (HasSingleVisual)
+            {
+                intactVisual.SetActive(!string.Equals(integrityState, IntegrityDestroyed, StringComparison.Ordinal));
+                return;
+            }
+            GameObject shown = null;
+            if (string.Equals(integrityState, IntegrityIntact, StringComparison.Ordinal)) shown = intactVisual;
+            else if (string.Equals(integrityState, IntegrityDamaged, StringComparison.Ordinal)) shown = damagedVisual;
+            else if (string.Equals(integrityState, IntegrityBreached, StringComparison.Ordinal)) shown = breachedVisual;
+            // Deactivate the others first, so a slot shared by two variants cannot end up hidden.
+            if (intactVisual != null && intactVisual != shown) intactVisual.SetActive(false);
+            if (damagedVisual != null && damagedVisual != shown) damagedVisual.SetActive(false);
+            if (breachedVisual != null && breachedVisual != shown) breachedVisual.SetActive(false);
+            if (shown != null) shown.SetActive(true);
         }
     }
 }

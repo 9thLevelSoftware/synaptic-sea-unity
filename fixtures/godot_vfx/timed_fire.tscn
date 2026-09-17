@@ -1,0 +1,167 @@
+[gd_scene load_steps=14 format=3]
+
+[sub_resource type="Gradient" id="Gradient_fire"]
+offsets = PackedFloat32Array(0, 0.42, 0.78, 1)
+colors = PackedColorArray(1, 0.08, 0.005, 1, 1, 0.32, 0.01, 0.95, 1, 0.72, 0.04, 0.65, 0.08, 0.01, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_fire"]
+gradient = SubResource("Gradient_fire")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fire"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.2, 0.01, 1)
+emission_enabled = true
+emission = Color(1, 0.12, 0.005, 1)
+emission_energy_multiplier = 1.8
+billboard_mode = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_fire"]
+radius = 0.13
+height = 0.26
+radial_segments = 8
+rings = 4
+material = SubResource("StandardMaterial3D_fire")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_fire"]
+direction = Vector3(0, 1, 0)
+spread = 28.0
+gravity = Vector3(0, -0.65, 0)
+initial_velocity_min = 0.7
+initial_velocity_max = 1.55
+scale_min = 0.45
+scale_max = 1.0
+color_ramp = SubResource("GradientTexture1D_fire")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_smoke"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.16, 0.1, 0.07, 0.5)
+billboard_mode = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_smoke"]
+radius = 0.22
+height = 0.44
+radial_segments = 8
+rings = 4
+material = SubResource("StandardMaterial3D_smoke")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_smoke"]
+direction = Vector3(0, 1, 0)
+spread = 20.0
+gravity = Vector3(0, 0.18, 0)
+initial_velocity_min = 0.25
+initial_velocity_max = 0.7
+scale_min = 0.65
+scale_max = 1.35
+color = Color(0.28, 0.2, 0.16, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ember"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.35, 0.02, 1)
+emission_enabled = true
+emission = Color(1, 0.18, 0.01, 1)
+emission_energy_multiplier = 3.0
+billboard_mode = 1
+
+[sub_resource type="SphereMesh" id="SphereMesh_ember"]
+radius = 0.045
+height = 0.09
+radial_segments = 6
+rings = 3
+material = SubResource("StandardMaterial3D_ember")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ember"]
+direction = Vector3(0, 1, 0)
+spread = 24.0
+gravity = Vector3(0, -0.12, 0)
+initial_velocity_min = 0.5
+initial_velocity_max = 1.25
+scale_min = 0.65
+scale_max = 1.15
+color = Color(1, 0.32, 0.015, 1)
+
+[sub_resource type="Animation" id="Animation_fire_reset"]
+resource_name = "RESET"
+length = 0.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("FireLight:light_energy")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [2.2]
+}
+
+[sub_resource type="Animation" id="Animation_fire_flicker"]
+resource_name = "flicker"
+length = 1.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("FireLight:light_energy")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.12, 0.29, 0.47, 0.68, 0.91, 1.12, 1.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [2.15, 1.65, 2.45, 1.9, 2.55, 1.8, 2.3, 2.15]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fire"]
+_data = {
+&"RESET": SubResource("Animation_fire_reset"),
+&"flicker": SubResource("Animation_fire_flicker")
+}
+
+[node name="TimedFire" type="Node3D"]
+
+[node name="FireParticles" type="GPUParticles3D" parent="."]
+emitting = true
+amount = 28
+lifetime = 1.35
+preprocess = 0.8
+randomness = 0.35
+process_material = SubResource("ParticleProcessMaterial_fire")
+draw_pass_1 = SubResource("SphereMesh_fire")
+
+[node name="SmokeParticles" type="GPUParticles3D" parent="."]
+emitting = true
+amount = 14
+lifetime = 1.8
+preprocess = 1.0
+randomness = 0.45
+position = Vector3(0, 0.22, 0)
+process_material = SubResource("ParticleProcessMaterial_smoke")
+draw_pass_1 = SubResource("SphereMesh_smoke")
+
+[node name="EmberParticles" type="GPUParticles3D" parent="."]
+emitting = true
+amount = 22
+lifetime = 2.4
+preprocess = 1.2
+randomness = 0.55
+process_material = SubResource("ParticleProcessMaterial_ember")
+draw_pass_1 = SubResource("SphereMesh_ember")
+
+[node name="FireLight" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.6, 0.2, 1)
+light_energy = 2.2
+omni_range = 3.0
+shadow_enabled = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_fire")
+}
+autoplay = "flicker"

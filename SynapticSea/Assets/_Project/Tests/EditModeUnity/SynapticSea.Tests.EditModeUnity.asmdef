@@ -5,6 +5,7 @@
         "SynapticSea.Core",
         "SynapticSea.Runtime",
         "SynapticSea.UI",
+        "SynapticSea.UI.Presenters",
         "SynapticSea.Tests.EditMode",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
