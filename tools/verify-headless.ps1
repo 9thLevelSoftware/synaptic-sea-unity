@@ -3,8 +3,9 @@
   Smoke-launches a built player headless and fails on any exception or error in its log, or on the wrong build kind.
 
 .DESCRIPTION
-  Runs builds/<Target>/<Kind>/<player> with -batchmode -nographics for a few seconds (the player has no -quit of its
-  own, so it is stopped after -Seconds), then:
+  Runs builds/<Target>/<Kind>/<player> with -batchmode -nographics (the player has no -quit of its own). A Windows player
+  is stopped -SettleSeconds after "[TitleScreen] ready" appears, or after -Seconds; a Linux player runs for -Seconds.
+  Then:
     - requires AppServices' boot line to report the built kind ("[AppServices] composed ... build=<Kind>"), which proves
       build_stamp.json reached the player and the demo scope gate reads the right kind;
     - scans the player log for exceptions, errors and missing-script warnings.
@@ -21,7 +22,9 @@ param(
     [string]$Target = 'StandaloneWindows64',
     [ValidateSet('dev', 'demo', 'release')]
     [string]$Kind = 'dev',
-    [int]$Seconds = 10,
+    # Upper bound. Windows players stop early once the title is ready; Linux players always run this long.
+    [int]$Seconds = 30,
+    [int]$SettleSeconds = 3,
     [string]$WslDistro = 'Ubuntu'
 )
 
@@ -44,7 +47,13 @@ if ($Target -eq 'StandaloneWindows64') {
     $exe = Join-Path $buildDir 'TheSynapticSea.exe'
     if (-not (Test-Path $exe)) { Write-Output "VERIFY FAIL missing $exe (run tools/build.ps1 -Kind $Kind)"; exit 1 }
     $proc = Start-Process -FilePath $exe -ArgumentList @('-batchmode', '-nographics', '-logFile', $log) -PassThru
-    if (-not $proc.WaitForExit($Seconds * 1000)) { Stop-Process -Id $proc.Id -Force; $proc.WaitForExit() }
+    # Stop as soon as the title is up (plus a short settle for late errors), or after -Seconds at the latest.
+    $deadline = (Get-Date).AddSeconds($Seconds)
+    while (-not $proc.HasExited -and (Get-Date) -lt $deadline) {
+        if ((Test-Path $log) -and (Select-String -Path $log -Pattern '\[TitleScreen\] ready' -Quiet)) { Start-Sleep -Seconds $SettleSeconds; break }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force; $proc.WaitForExit() }
 }
 else {
     $player = Join-Path $buildDir 'TheSynapticSea.x86_64'

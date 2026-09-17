@@ -6,7 +6,8 @@
   1. Reads the version from the player's own build_stamp.json (written by Builder.PerformBuild), so the itch user
      version always names the build that is actually uploaded.
   2. Copies builds/<Target>/<Kind> to builds/staging/<Target>-<Kind>, leaving out the folders Unity marks as
-     not-for-shipping (*_BackUpThisFolder_ButDontShipItWithYourGame, *_BurstDebugInformation_DoNotShip).
+     not-for-shipping (*_BackUpThisFolder_ButDontShipItWithYourGame, *_BurstDebugInformation_DoNotShip) and debug
+     symbol files (*_s.debug, *.pdb).
   3. Runs `butler validate --platform <p> --arch amd64` on the staging folder. Exit 1 when it fails.
   4. Dry run by default: prints the exact `butler push` command. It pushes only with -Push AND -Project.
 
@@ -17,7 +18,7 @@
 .EXAMPLE
   pwsh tools/publish-itch.ps1                                   # validate the Windows release build, dry run
   pwsh tools/publish-itch.ps1 -Kind demo                        # channel win-rc-demo, dry run
-  pwsh tools/publish-itch.ps1 -Target StandaloneLinux64 -Kind release -Project 9thlevelsoftware/the-synaptic-sea -Push
+  pwsh tools/publish-itch.ps1 -Target StandaloneLinux64 -Kind release -Project <user>/<game> -Push
 #>
 param(
     [ValidateSet('StandaloneWindows64', 'StandaloneOSX', 'StandaloneLinux64')]
@@ -64,7 +65,9 @@ Write-Output "== staging $buildDir -> $staging"
 if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
 New-Item -ItemType Directory -Force $staging | Out-Null
 $excluded = @('*_BackUpThisFolder_ButDontShipItWithYourGame', '*_BurstDebugInformation_DoNotShip')
-robocopy $buildDir $staging /E /XD @excluded /NFL /NDL /NJH /NJS /NP | Out-Null
+# Linux/macOS development builds carry split debug symbols (*_s.debug); butler would offer them as launch targets.
+$excludedFiles = @('*_s.debug', '*.pdb')
+robocopy $buildDir $staging /E /XD @excluded /XF @excludedFiles /NFL /NDL /NJH /NJS /NP | Out-Null
 if ($LASTEXITCODE -ge 8) { Write-Output "PUBLISH FAIL staging copy robocopy exit=$LASTEXITCODE"; exit 1 }
 $leftovers = Get-ChildItem $staging -Directory -Recurse | Where-Object { $name = $_.Name; $excluded | Where-Object { $name -like $_ } }
 if ($leftovers) { Write-Output "PUBLISH FAIL do-not-ship folders reached staging: $($leftovers.FullName -join ', ')"; exit 1 }
