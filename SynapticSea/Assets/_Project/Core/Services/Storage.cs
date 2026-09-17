@@ -23,6 +23,12 @@ namespace SynapticSea.Core.Services
         /// <summary>File names (not paths) directly inside <paramref name="dir"/>, sorted ordinally.</summary>
         IReadOnlyList<string> ListFiles(string dir);
 
+        /// <summary>Directory names (not paths) directly inside <paramref name="dir"/>, sorted ordinally (empty when missing).</summary>
+        IReadOnlyList<string> ListDirectories(string dir);
+
+        /// <summary>Deletes a directory and everything under it; false when it does not exist.</summary>
+        bool DeleteDirectory(string path);
+
         /// <summary>Absolute OS path for diagnostics (<c>ProjectSettings.globalize_path</c>).</summary>
         string Globalize(string path);
     }
@@ -142,6 +148,28 @@ namespace SynapticSea.Core.Services
                 .ToList();
         }
 
+        public IReadOnlyList<string> ListDirectories(string dir)
+        {
+            string prefix = Key(dir);
+            if (prefix.Length > 0) prefix += "/";
+            return _dirs
+                .Where(k => k.Length > prefix.Length && k.StartsWith(prefix, StringComparison.Ordinal) && k.IndexOf('/', prefix.Length) < 0)
+                .Select(k => k.Substring(prefix.Length))
+                .OrderBy(k => k, StringComparer.Ordinal)
+                .ToList();
+        }
+
+        public bool DeleteDirectory(string path)
+        {
+            string k = Key(path);
+            if (k.Length == 0 || !_dirs.Contains(k)) return false;
+            string prefix = k + "/";
+            foreach (string f in _files.Keys.Where(f => f.StartsWith(prefix, StringComparison.Ordinal)).ToList())
+                _files.Remove(f);
+            _dirs.RemoveWhere(d => d == k || d.StartsWith(prefix, StringComparison.Ordinal));
+            return true;
+        }
+
         public string Globalize(string path) => "memory://" + Key(path);
     }
 
@@ -199,6 +227,22 @@ namespace SynapticSea.Core.Services
             string full = Globalize(dir);
             if (!Directory.Exists(full)) return Array.Empty<string>();
             return Directory.GetFiles(full).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        }
+
+        public IReadOnlyList<string> ListDirectories(string dir)
+        {
+            string full = Globalize(dir);
+            if (!Directory.Exists(full)) return Array.Empty<string>();
+            return Directory.GetDirectories(full).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        }
+
+        public bool DeleteDirectory(string path)
+        {
+            string full = Globalize(path);
+            if (!Directory.Exists(full) || Path.GetFullPath(full).TrimEnd(Path.DirectorySeparatorChar) == _root.TrimEnd(Path.DirectorySeparatorChar))
+                return false;
+            Directory.Delete(full, true);
+            return true;
         }
     }
 

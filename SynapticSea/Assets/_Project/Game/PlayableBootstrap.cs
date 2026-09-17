@@ -43,7 +43,7 @@ namespace SynapticSea.Game
     public sealed class PlayableBootstrap : MonoBehaviour
     {
         /// <summary>Where generated run documents live.</summary>
-        public const string RunsDir = "user://runs/";
+        public const string RunsDir = RunDirectoryJanitor.RunsDir + "/";
 
         /// <summary>The running bootstrap (null outside the Playable scene).</summary>
         public static PlayableBootstrap Current { get; private set; }

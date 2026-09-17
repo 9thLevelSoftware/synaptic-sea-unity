@@ -513,6 +513,31 @@ namespace SynapticSea.Core.Systems
             return idx.SortedBySavedAtDesc();
         }
 
+        /// <summary>
+        /// Unity port: every <c>layout_path</c> a save on disk still points at (a run slot's top-level path, or the
+        /// embedded <c>home_ship</c> of a world save). <see cref="RunDirectoryJanitor"/> keeps those run directories.
+        /// Unreadable payloads are skipped.
+        /// </summary>
+        public HashSet<string> ReferencedLayoutPaths()
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string slotId in AllSlotIdsOnDisk())
+            {
+                string path = SlotPath(slotId, IndexedKindFor(slotId));
+                if (!Storage.FileExists(path))
+                    continue;
+                if (!(GdJson.ParseString(Storage.ReadText(path) ?? "") is GdDict dict))
+                    continue;
+                string layout = V.Str(dict.Get("layout_path", ""));
+                if (layout.Length > 0)
+                    result.Add(layout);
+                string homeLayout = V.Str(dict.GetDictOrEmpty("home_ship").Get("layout_path", ""));
+                if (homeLayout.Length > 0)
+                    result.Add(homeLayout);
+            }
+            return result;
+        }
+
         /// <remarks>
         /// Godot's <c>DirAccess.get_next()</c> order is filesystem-dependent; <see cref="IStorage.ListFiles"/> is
         /// ordinal. Directories (<c>.corrupt</c>, <c>.cloud</c>) start with '.' and were skipped in Godot too.

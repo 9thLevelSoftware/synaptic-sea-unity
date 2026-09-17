@@ -42,6 +42,9 @@ namespace SynapticSea.Core.Session
                     foreach (object slotId in SaveSlotState.AutosaveSlotIds)
                         SaveLoadService.DeleteSlot(V.Str(slotId));
                 }
+                // Unity port: drop generated run directories no save references (a death keeps this run's; its frozen
+                // slots still point at it, and the title sweep collects it once they are gone).
+                new RunDirectoryJanitor(Storage, SaveLoadService, Log).Sweep(reason == "death" ? LayoutPath : "");
             }
             if (reason != "death")
                 EmitTrainingEvent("transmit_relay", reason);

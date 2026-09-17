@@ -122,6 +122,8 @@ namespace SynapticSea.App
 
             SaveService = new SaveLoadService(storage, clock);
             DeathRecords = new PermadeathResolver(storage, clock);
+            // Generated run directories that no save references any more (finished or abandoned runs).
+            new RunDirectoryJanitor(storage, SaveService).Sweep();
 
             var achievements = new AchievementState(storage, clock);
             achievements.Configure(CatalogRegistry.LoadDict(AchievementsPanel.CatalogPath));
