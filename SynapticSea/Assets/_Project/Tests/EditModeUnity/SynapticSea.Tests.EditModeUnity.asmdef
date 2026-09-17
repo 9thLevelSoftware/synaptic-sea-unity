@@ -8,6 +8,7 @@
         "SynapticSea.UI.Presenters",
         "SynapticSea.Game",
         "SynapticSea.Tests.EditMode",
+        "SynapticSea.Editor",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
