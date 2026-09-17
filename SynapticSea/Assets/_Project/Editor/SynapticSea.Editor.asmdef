@@ -4,6 +4,9 @@
     "references": [
         "SynapticSea.Core",
         "SynapticSea.Runtime",
+        "SynapticSea.App",
+        "SynapticSea.UI",
+        "SynapticSea.UI.Presenters",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.RenderPipelines.GPUDriven.Runtime",

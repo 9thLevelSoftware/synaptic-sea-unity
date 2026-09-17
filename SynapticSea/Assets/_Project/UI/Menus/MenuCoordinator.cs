@@ -52,6 +52,14 @@ namespace SynapticSea.UI
         /// <summary>A slot-screen Load on the world row: the session runs its world load (Godot: request_load()).</summary>
         public event Action WorldLoadRequested;
         public event Action<string> LanguageChanged;
+        /// <summary>Title mode only: the main menu's New Run (Godot title_main.gd <c>_on_title_start</c>).</summary>
+        public event Action StartRequested;
+
+        /// <summary>
+        /// Title screen host (Godot title_main.gd): New Run raises <see cref="StartRequested"/> instead of closing the
+        /// menu into play, the root main menu cannot be cancelled away, and Pause / Codex are ignored.
+        /// </summary>
+        public bool TitleMode { get; set; }
 
         public readonly MenuState MenuState = new MenuState();
         public readonly SettingsState SettingsState = new SettingsState();
@@ -335,6 +343,10 @@ namespace SynapticSea.UI
         /// </summary>
         public bool HandleUiInput(UiCommand command)
         {
+            if (TitleMode && (command == UiCommand.Pause || command == UiCommand.OpenCodex)) return false;
+            if (TitleMode && command == UiCommand.Cancel && _activeMetaScreen.Length == 0
+                && MenuState.GetCurrentMenu() == "main_menu" && MenuState.GetMenuHistory().IsEmpty)
+                return true;
             if (command == UiCommand.Pause)
             {
                 if (MenuState.IsInPlay())
@@ -516,6 +528,11 @@ namespace SynapticSea.UI
                     switch (itemId)
                     {
                         case "start":
+                            if (TitleMode)
+                            {
+                                StartRequested?.Invoke();
+                                break;
+                            }
                             MenuState.CloseAll();
                             EmitMenuCloseSfx();
                             break;
@@ -524,6 +541,9 @@ namespace SynapticSea.UI
                             break;
                         case "settings":
                             OpenSubmenu(currentMenu, itemId, "settings_menu");
+                            break;
+                        case "records":
+                            OpenSubmenu(currentMenu, itemId, "records_menu");
                             break;
                         case "quit":
                             QuitRequested?.Invoke();

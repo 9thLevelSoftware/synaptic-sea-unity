@@ -4,7 +4,12 @@
     "references": [
         "SynapticSea.Core",
         "SynapticSea.Runtime",
+        "SynapticSea.UI.Presenters",
+        "SynapticSea.UI",
+        "SynapticSea.App",
         "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "UnityEngine.UI",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "SynapticSea.Game",
