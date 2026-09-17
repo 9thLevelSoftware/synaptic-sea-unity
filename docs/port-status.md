@@ -6,7 +6,7 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 
 | Phase | State | Evidence |
 |---|---|---|
-| 0 Bootstrap | Done | Unity 6000.6.0f1 URP project, git + LFS, packages (glTFast 6.20, Newtonsoft 3.2, Input System 1.20), layers and collision matrix, IL2CPP/Mac Mono modules, VS Build Tools, .NET 8, Python 3.12 (all under `F:\Tools`). Godot 4.7.1 fixtures captured (`fixtures/`). |
+| 0 Bootstrap | Done | Unity 6000.6.0f1 URP project, git + LFS, packages (glTFast 6.20, Newtonsoft 3.2, Input System 1.20), layers and collision matrix, IL2CPP, Mac Mono and Linux Mono modules, VS Build Tools, butler, .NET 8, Python 3.12 (all under `F:\Tools`). Godot 4.7.1 fixtures captured (`fixtures/`). |
 | 1 Kernel | Done | Bit-exact against Godot for RNG, hashing, float formatting, and JSON (`KernelParityTests`) |
 | 3 Wave 1 models (107 files, no dependencies) | Done | Merged; tick traces for oxygen, radiation, sanity, web infestation, and hydroponics match Godot bit-exactly; LootRoller matches all 50 Godot rolls |
 | 3–5 Wave 2–3 models | Done | Merged; all 11 Godot model tick traces match bit-exactly, 42 Godot save files reproduce byte-for-byte |
@@ -17,8 +17,9 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 9 Rendering | Done (first pass) | URP Forward+, SSAO, decals, global volume; ceilings hidden in interior play; hallucination full-screen pass; 4 VFX prefabs; light levels calibrated against the Godot captures (below) |
 | 10 UI | Done (first pass) | All 30 `scripts/ui` files ported as UI Toolkit presenters built to the UI presentation spec, with MenuCoordinator and ModalStack; `HudLayoutTests` enforces HUD coverage, protected zones and text sizes at three resolutions and three text scales. Wired to the session in the Playable scene (settings, tutorials, wounds, combat feedback, world labels, run results); gamepad journeys in `FrontEndPlayModeTests` and `PlayableScenePlayModeTests` (`docs/ui-port-notes.md`) |
 | 11 Audio and input | Done | AudioManager port with per-bus volumes persisted in `user://settings.json`; Godot's 21 unused clips mapped, three music stems, ambient beds (decision 25); input actions mirror the Godot InputMap, and combat, reload, hotbar and hold-to-work are routed through `RunSessionHost` |
-| 12 Builds and tooling | Started | Windows dev (Mono) and release (IL2CPP) and macOS dev (Mono, unsigned) builds pass; `tools/verify-headless.ps1` smoke-launches the Windows player clean; `tools/test.ps1 -Mode All` runs dotnet, EditMode and PlayMode; fixture exporter on the local `unity/parity-fixtures` Godot branch. Build Settings list Boot → Title → Playable (`BuildSettingsSetup`; the Builder skips a missing scene with a warning); Boot composes `AppServices` and loads Title (`FrontEndSceneBuilder`, `FrontEndPlayModeTests`). |
+| 12 Builds and tooling | Done | Builds pass for Windows dev (Mono), demo (Mono) and release (IL2CPP), Linux dev (Mono) and macOS dev (Mono, unsigned). `tools/verify-headless.ps1` boots Windows players and Linux players under WSL, and checks the reported build kind (`build=demo` for demo). `tools/publish-itch.ps1` stages each build and passes `butler validate` (dry run; nothing pushed). `Builder.PerformBuild` runs `DataManifestValidator` and removes the build stamp afterwards (decision 45). `tools/test.ps1` exits 8 for failing tests and 1 for infrastructure errors. Manual GitHub workflows (`.github/workflows`), an inert Steam scaffold behind `SS_STEAM`, and tooling continuity (`tools/python`, `tools/blender`, `docs/inventory`, `PromoteStructuralSource`, `MeshyRuntimeReview`, Import Library Asset). The fixture exporter is on `origin/unity/parity-fixtures` in the Godot repo. Build Settings list Boot → Title → Playable (`BuildSettingsSetup`); Boot composes `AppServices` and loads Title (`FrontEndSceneBuilder`, `FrontEndPlayModeTests`). |
 | Integration gap closure | Done | Plan `tender-swinging-badger` (2026-09-17). Wave 1: kit catalog resolution, mapped audio, icons, session gaps (wounds, hold-to-work, run context, saves run-5), fixture guards and round-trip replay. Wave 2: in-play integration, generated New Run, results and failure flow. Wave 3: real-loop PlayMode suite and these docs. `pwsh tools/test.ps1 -Mode All`: dotnet 626, EditMode 767, PlayMode 37, none skipped |
+| Open-item and Phase 12 closure | Done | Plan `compiled-noodling-minsky` (2026-09-17), branches `close/session`, `close/scene`, `close/build`, `close/tools`. Session and save: decisions 35–40. Scene, visuals and UI: decisions 41–43 and the amendments to 9 and 19. Builds, platform and tooling: decisions 44–54. The life boat overlap stays open (open items). `pwsh tools/test.ps1 -Mode All` on the merged result: dotnet 644, EditMode 837, PlayMode 38, none skipped |
 
 Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Unity EditMode and PlayMode).
 
@@ -32,7 +33,8 @@ Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Uni
 6. **Frame convention.** glTFast mirrors X, so Godot `(x, y, z)` maps to Unity `(-x, y, z)` and Godot yaw `a` to Unity `-a`. Lights and cameras get an extra 180° yaw, because Godot lights face −Z and Unity lights face +Z. `Runtime/Adapters/Frame.cs` is the only conversion point.
 7. **Collision comes from the Godot wrapper scenes, sockets from the placement contracts.** The kit's `collision_proxy_records` are Z-up Blender boxes and are wrong. The wrapper `Marker3D` sockets all sit at the origin.
 8. **The GLBs' `Collision_*` mesh nodes are hidden.** Godot rendered them as untextured boxes. They are collision proxies, not art.
-9. **Known Godot data defects are kept for parity.** The pillar's `prop_anchor_up_01` and `prop_anchor_down_01` contract sockets carry Z-up values. The ramp, pillar, bulkhead, and ceiling wrappers use 1 m placeholder collision cubes.
+9. **Known Godot data defects are kept for parity.** The pillar's `prop_anchor_up_01` and `prop_anchor_down_01` contract sockets carry Z-up values. The pillar, bulkhead, and ceiling wrappers use 1 m placeholder collision cubes. The ceiling cube is inert, because the Ceiling layer collides with nothing.
+   - **Ramp amendment (2026-09-17).** The ramp's Godot placeholder cube is replaced. `StructuralPrefabBuilder` has a collision-override table that applies only when every wrapper box is the placeholder cube. For `ramp_up_1x2` it derives one rotated `RampSlope` box from the imported GLB's six treads: 0.7 m of rise over 6.67 m (about 6°), 3.6 × 0.2 × 8.0 m (`StructuralPrefabCollisionTests`). The tread tops reach about 0.87 m while both contract sockets sit at y = 0, so the high end is a ledge against a flat neighbour (open items).
 10. **The Unity prefab lookup is `KitPrefabCatalog`.** The Godot `kit_catalog.gd` port is `Core.Procgen.KitCatalog`.
 11. **No AudioMixer asset yet.** Unity has no public API to create one, and Godot's buses only used volume and mute. The runtime applies per-bus volumes itself; a mixer can be added by hand later for effects.
 12. **The seed-17 smoke layout in the Godot repo came from the Rust worldgen.** The GDScript-pipeline target is `fixtures/godot/procgen/layout_s17_medium_pristine.json`. The Rust generator has no source, so Unity uses the GDScript pipeline, and Windows-Godot derelict layouts will differ for the same seed.
@@ -51,6 +53,9 @@ Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Uni
     - In Godot these modules draw a solid 4×2×4 `Visual_*` box in `SSV0_BULKHEAD` (0.22, 0.25, 0.29). Those are the "dark blocks". Their `Collision_*` box sits inside that visual, so hiding it changes nothing.
     - `StructuralModule.SetIntegrity` now keeps a single visual visible for every state except `destroyed`, as in Godot's legacy branch. The legacy per-state albedo tint is not ported.
     - The prefabs were rebuilt.
+    - **Legacy tint amendment (2026-09-17).** Single-visual wrappers now take Godot's legacy per-state tint from `ModuleIntegrityConsequences`: damaged (0.85, 0.70, 0.55), breached (0.55, 0.60, 0.75). `StructuralModule.ApplyLegacyTint` multiplies the original colour through a per-material `MaterialPropertyBlock` on `baseColorFactor` (glTFast), `_BaseColor` or `_Color`, so shared materials are untouched. `SceneModuleNode.TintMeshes` forwards to it.
+      - Intact clears the blocks, so a repair re-tints to white. Godot's loader never did that, because it only called the resolver for non-intact states.
+      - Destroyed hides the visual, so blending is not switched (`StructuralModuleTintTests`).
 20. **VFX are ported from the Godot scenes, but nothing in Godot uses them.** At 96ecb2b0 no script instances `scenes/vfx/*.tscn`. `VfxCatalog` records the intended hook for each scene.
     - Only `timed_fire` has particles: three GPUParticles3D become three Shuriken systems.
     - `beacon_blue`, `reactor_green` and `biomatter_blockage` are an emissive mesh, an OmniLight3D, and a looping pulse on the light and emission energy (`VfxEffect`). They get no invented particles.
@@ -135,7 +140,71 @@ Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Uni
     - Propulsion is made flyable through the repair, fire suppression and breach seal points, with parts and repair skill given as setup. The test does not use `ForceRepairAll`.
     - Hull integrity caps thrust (`PropulsionState`: target = 100 × (powered ratio − hull penalty)), so golden 001 also needs its breaches sealed before the drive reaches the 50 % travel threshold.
     - Long simulated waits run at `Time.timeScale = 20`.
-    - Golden 001 boots with life support starved, and an idle player dies at about 29 s (open items), so no test waits idle for long.
+    - Golden 001's idle player still dies at about 54 s (decision 39, open items), so no test waits idle for long.
+35. **Manual slots restore world-only state (run schema `gate2-current-run-6`).** Godot's manual slot restored none of this; only its world save did.
+    - The run snapshot's port extensions add `home_ship_carts`, `home_breach_environment`, `meta_progression_summary`, `unique_item_summary` and `visited_ships`. `SaveMigrationService` gives run-5 and older saves empty defaults, which mean "not saved" (`PortDefaults`).
+    - `ApplyManualSlot` restores them after the reload through helpers shared with the world load. The world load is unchanged and ignores the embedded copies, so nothing is applied twice.
+    - The breach environment is read without syncing ship state (`HomeBreachEnvironmentForSave`), so quick and auto saves do not mutate the ship.
+    - The 42 Godot save reproductions are unaffected: `SavePortSchema.GodotView` strips the extensions.
+36. **Finished run directories are deleted** (`Core/Systems/Save/RunDirectoryJanitor`). It removes `user://runs/<id>/` folders that no save payload's `layout_path` and no world save's home ship references.
+    - It runs at the end of a run (`RunSession.EndRun`) and when the title builds.
+    - A death keeps its own directory while frozen slots point at it. Nothing outside `user://runs` is touched.
+    - `IStorage` gained `ListDirectories` and `DeleteDirectory`.
+37. **Difficulty reaches electrical arcs, and the New Run choice is remembered.** These are tuning values, not parity values.
+    - At home the arcing phase lasts 2.5 s × the hazard dial and the discharged window 1.5 s ÷ the dial (`RunSession.ArcConfig`; dial floored at 0.1). Standard difficulty and away ships keep Godot's timing.
+    - Starting a New Run stores the setup's difficulty as the settings preference, saved once through `AppServices.ApplySettings` (`TitleScreen.RememberNewRunDifficulty`).
+38. **Combat wounds pick a body part.** Godot never called `suggest_from_damage` from gameplay, so no body part was ever designed.
+    - Weights: torso 50, arm 20, leg 20, head 10 (`RunSession.RollWoundBodyPart`).
+    - The roll uses `GodotRandom` seeded from the run seed × 31 plus a per-session counter, which restarts on reload. The sequence is deterministic per boot but is not saved.
+39. **Emergency life-support power floor** (`RunSessionDeps.HomeLifeSupportPowerFloor = 0.75`). Home life support ticks with at least this powered ratio while its own subsystems work, even when the `power` dependency is down.
+    - At 0.75, recovery matches one open breach; 0.5 still let one breach foul the air.
+    - Grid allocation and saved summaries are unchanged. The Godot session harness sets the floor to 0.0, so `PowerWearParityTests` still dies at 29.25 s.
+    - Golden 001's idle death at 29 s is gone, but an idle player still dies at about 54 s: the engineering fire burns power to 0, radiation then drains health, and web damage multiplies the breaches. That cascade is an open design item.
+40. **Crafting and production stations are placed by room role** (`Core/Session/StationPlacer`).
+    - Each station kind has preferred room roles. It takes the first spot there whose 1.8 m interaction area overlaps no live interactable, other station or the player start, and that is not a doorway cell.
+    - Otherwise it takes the first free legacy position (Godot's structural placement list).
+    - On golden 001, five stations get rooms (maintenance, medbay, cargo, reactor ×2). Salvage, hydroponics and water recycler take free passage spots, because those rooms are full of objectives, loot and hub controls. The interaction order is unchanged (`docs/InteractionOrder.md`).
+41. **Blocked-route node colliders follow their powered gate.** Godot's loader kept the `BlockedRoute_*` markers collidable after `restore_systems` opened the gates, so the route stayed physically closed.
+    - `IShipLoaderView.SetBlockedRouteCollisionEnabled(index, enabled)` does the toggle.
+    - Each gate stores `blocked_route_index`, which follows the `BlockedRoutes` list order, and `ApplyRouteGateSceneState` toggles that node with the gate.
+42. **Affordances are built per ship, derelicts included, and props use imported visuals.**
+    - `AffordanceView` keeps one set per loader root. `SessionEvents.AffordancesRebuilt` carries the root and is also raised when a derelict is boarded; `AffordancesCleared`, or the root being freed, drops the set.
+    - Derelict labels use the prefix `affordance@<root>:`, and the home ship keeps `affordance:`. Clearing blocked props stays home-only.
+    - Component markers mount the bound prop prefab (`RuntimePropVisualBinder.MountComponentVisual`; `visual_source` imported or fallback). Objective props try the objective binding first, as in Godot.
+    - Godot's loader objective specs never carried `placement_id`, so its objective binding never fired. The view reads the id from the gameplay slice by sequence instead; adding the key to the specs would break the loader parity fixtures.
+43. **The run results panel is styled** (`RunResultsPanel`, `.ss-results*` in `panels.uss`, `docs/ui-port-notes.md`). It shows:
+    - a severity banner;
+    - 44 px label/value rows, for tracked stats only;
+    - an epitaph block on death;
+    - the seed · biome · difficulty line (`SetContextLine`).
+    `BodyText` keeps Godot's line list.
+44. **`DataManifestValidator` lives in Core, not the Editor** (`Core/Services`). It checks that every data JSON parses and every `res://data` JSON reference resolves. `Builder` and `DataManifestTests` share it, and the dotnet suite still compiles it.
+45. **The build stamp exists only during a build.** `Builder` writes `StreamingAssets/build_stamp.json` for the player and deletes it and its `.meta` afterwards. `BuildStampTests` fails if a stamp is left in the project, because the editor would otherwise report the last built kind.
+46. **Test and headless check scripts.**
+    - `tools/test.ps1` exits 8 when tests fail and 1 for infrastructure errors.
+    - `tools/verify-headless.ps1 -Target -Kind` requires the boot line to report `build=<kind>`. Windows waits for the title-ready line (up to 30 s). Linux players run under WSL (`wsl --exec`, stopped by timeout, a crash exit code fails the check).
+47. **itch publishing is a dry run by default** (`tools/publish-itch.ps1`). It stages the build without Unity's do-not-ship folders or debug symbols, then runs `butler validate` (butler 15.31.0 in `F:\Tools\butler`). It pushes only with `-Push -Project`. Channels are `win-rc`, `mac-rc` and `linux-rc`, plus `-demo`, from Godot's ITCH-017 names; the user version comes from the player's own stamp.
+48. **Linux builds use Mono only.** Only `linux-mono` is installed; `Builder` falls back to Mono with a warning unless the linux-il2cpp variation exists.
+49. **Steam is an inert drop-in** (`Platform/Steam`, asmdef `defineConstraints: SS_STEAM`).
+    - Facepunch.Steamworks goes into a gitignored `Plugins/` folder by hand. It is never a package dependency, so native Steam libraries never enter normal builds.
+    - Catalog achievement ids are the Steam names 1:1 (`PlatformAchievementIds`). `AchievementState.Unlocked` fires for new unlocks only.
+    - The Steam assembly itself has not been compiled, because the plugin is absent.
+50. **CI workflows are manual only** (`.github/workflows/unity-tests.yml`, `unity-build.yml`: game-ci v4, LFS checkout, Library cache, a license-free dotnet job). They are `workflow_dispatch` until the Unity license secrets exist.
+51. **Tooling continuity.** The Godot repo's engine-agnostic Python tools live in `tools/python/`.
+    - `synaptic_layout.py` maps Godot project paths onto StreamingAssets, Content, `fixtures/godot_wrappers` and `artifacts/_staging`; `res://` strings in data stay Godot's.
+    - The Meshy governance chain runs only on POSIX (macOS, Linux or WSL), because it needs `fcntl` and file modes.
+    - `tools/python/README.md` lists what was copied, replaced and dropped.
+    - The Blender structural toolkit and `reexport_gltf_separate.py` (glTF Separate re-export of the `*_textured.glb` files) live in `tools/blender/`.
+    - `Synaptic Sea/Content/Import Library Asset…` copies one `art-library` asset into `Assets/Content/Library/<category>/`.
+52. **The system inventory stays Python** (`tools/python/build_system_inventory.py`, output in `docs/inventory/`). Each system's `file` is its C# port, `godot_file` keeps the Godot source, and `port_files` lists partials. It was imported once with `--from-godot` from the `// Ported from` headers. `--check` is the gate; `--coverage` is informational.
+53. **Structural promotion is a Unity editor tool** (`Editor/Content/PromoteStructuralSource`, menu plus `-executeMethod`, `-dryRun`, `-force`).
+    - It keeps the Python script's allowlist, strict contract rules, GLB header checks and hash skip.
+    - The Godot overlay import is replaced by an AssetDatabase import smoke test in a disposable folder, then an atomic copy and a structural prefab rebuild.
+    - The Blender export stays in Python.
+54. **The Meshy runtime review renders in Unity** (`Editor/Content/MeshyRuntimeReview`, logic in `MeshyReviewEvidence`).
+    - It reproduces the Godot capture: derelict, harness lighting, the locked (16,14,16) orthographic camera and the staged, contextual and non-blank pixel gates.
+    - It writes the same 19 leaves with Python-canonical JSON, and the Python verifier re-derived identical evidence on a synthetic task.
+    - Ceilings are hidden everywhere (decision 17). Evidence binding stays in Python.
 
 ## Light calibration (2026-09-11)
 
@@ -167,26 +236,27 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
 
 ## Open items
 
-- **Idle life-support death on golden 001 (design decision pending).** Verified in Godot: even with the threats cleared, an idle player on `coherent_ship_001` dies at about 29 s, because wearing power starves the home life support. Not changed; tests avoid long idle waits on the golden ship.
-- **Manual slot restore is partial.** A manual slot load restores equipment, home loot and cargo, but not home carts, the breach environment, meta progress, unique items or visited ships.
-- **Difficulty.** The hazard dial does not affect electrical arcs. The New Run setup's difficulty is not saved to the settings file.
-- **Wounds** from combat damage are always on the torso.
-- **Finished runs are never deleted from `user://runs/`.**
-- **Results panel.** `RunResultsPanel` is unstyled (generic surface classes).
+- **Idle death on golden 001 after about 54 s (design decision pending).** The life-support floor (decision 39) removed the 29 s starvation. The remaining cascade is the engineering fire burning power to 0, then radiation draining 1 HP/s from about 25 s, then web damage raising breaches from 1 to 8 at about 35 s. Stopping it needs fire, radiation or web tuning. Tests avoid long idle waits on the golden ship.
+- **The docked life boat overlaps the home airlock (design decision pending).** The home dock port is the airlock room's centre (`DockPorts.ForDerelict` falls back to the airlock), and the life boat's airlock edge is aligned onto it (`ForLifeboat`), so a life boat wall runs through the home start marker. Parity with Godot.
+  - The player spawns inside that wall, and the CharacterController pushes it out by about 0.47 m on the first physics step. `BootBuildsTheGoldenShipPlayerCameraAndHud` reads the pose when the boot finishes and bounds the settle.
+  - Moving the port clear of the hull was tried in the closure plan and rejected. The boat reaches 4 m past its port, so it would dock about 8 m outside the airlock's solid west wall. Its repair, fire suppression and breach seal points would then be more than 1.8 m from any reachable floor, so the boat could never be made flyable in real play. PlayMode would not catch that, because the travel tests teleport. Derelicts connect through the same overlap: their port is the dock room's centre.
+  - The options are a docking doorway module at the seam, or keeping the overlap and moving the spawn marker off the boat's wall line.
+- **The ramp's high end is a ledge.** The derived slope follows the treads up to about 0.87 m, but both contract sockets sit at y = 0 (decision 9). Not walked in play yet.
 - **Silent audio events.** 12 events are still silent (decision 25; `AudioContentTests.ReportsEventsStillWithoutClips`).
-- **Home ship only.** The affordance props and world labels are built only for the home ship, not for derelicts. The component markers are placeholders and do not use the prop visuals.
-- **Crafting stations claim interact near the first floor cells.** `RequestInteract` resolves to `crafting_station` at several golden floor positions.
-  - It is not a registry range bug: `TryInteract` uses the strict 1.8 m range.
-  - The cause is placement. Godot put the six stations on the first six nodes of the home `ShipStructure` (the structural placements' positions, `HomeLocalStationPositions`), which are the airlock and corridor floor-cell centres.
-  - Within 1.8 m of those centres the recipe picker claims before the objectives and pickups. This is parity; moving the stations to authored spots needs a design decision.
-- **The docked life boat overlaps the home airlock.** The home dock port is the airlock room's centre (`DockPorts.ForDerelict` falls back to the airlock), and the life boat's airlock edge is aligned onto it (`ForLifeboat`), so a life boat wall runs through the home start marker. Parity with Godot.
-  - The player spawns inside that wall, and the CharacterController pushes it out by about 0.47 m on the first physics step. This was the intermittent "player at the start pose" failure: the old assertion read the position before or after that step.
-  - `BootBuildsTheGoldenShipPlayerCameraAndHud` now reads the pose when the boot finishes and bounds the settle.
-- Playable: the loader's `BlockedRoute_*` markers stay collidable after the powered gates open (both as in Godot; confirm against a Godot run).
+- **Publishing and platform setup that needs the owner:**
+  - The itch project slug is unknown, and butler needs `butler login` or `BUTLER_API_KEY` before any `-Push`.
+  - The CI workflows need the `UNITY_LICENSE`, `UNITY_EMAIL` and `UNITY_PASSWORD` secrets.
+  - Linux IL2CPP is not installed.
+  - macOS builds are unsigned and not notarised; that needs a Mac.
+  - Steam needs the Facepunch plugin, `SS_STEAM`, `steam_appid.txt` and the 8 achievements created on Steamworks. Steam uploads are not scripted.
+- **Tooling left to calibrate or finish:**
+  - `MeshyRuntimeReview`'s pixel thresholds are Godot's and have only been checked on a synthetic task under URP.
+  - `meshy_candidate_review bind` and the Python evidence verifier need POSIX file modes and a Blender re-import, so they do not run on Windows.
+  - The Godot `tests/test_*.py` suites for the copied scripts were not ported.
+  - The 15 `*_textured.glb` files have not been re-exported to glTF Separate.
+- **Running Unity on a worktree dirties `ProjectSettings`** (the app-ui config object and the `APP_UI_EDITOR_ONLY` define). It is package noise; do not commit it.
 - `PlayableScenePlayModeTests` taps keys with queued `KeyboardState` events: `InputTestFixture.Press` has no keyboard state pointer in the batch-mode editor.
-- Ramp collision needs a sloped collider (Godot used a placeholder cube).
 - GPU Resident Drawer first frame. The GRD applies renderer and material changes only in its player-loop hook (`GPUResidentDrawer.PostPostLateUpdate` → `m_WorldProcessor.Update()`, injected before `PostLateUpdate.FinishFrameRendering`).
   - An editor script that builds a scene and calls `Camera.Render()` synchronously bypasses that hook, so the first capture can use stale instance data. `ScreenshotRunner` keeps its double render.
   - Games are unaffected: the hook runs every frame after `LateUpdate`, so runtime material changes land in the same frame.
-- The legacy per-state albedo tint on damaged single-visual wrappers is not ported (decision 19).
-- The Godot-side exporter and screenshot scripts live on the local, unpushed `unity/parity-fixtures` branch of the Godot repo.
+- The Godot-side exporter and screenshot scripts live on the `unity/parity-fixtures` branch of the Godot repo (pushed to origin 2026-09-17, not merged into Godot `main`).
