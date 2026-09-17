@@ -4,7 +4,7 @@ Death or extract must open `RunResultsPanel` with an outcome. A silent Title dum
 
 Automated coverage:
 
-- EditMode: `SessionUiBridgeRunResultsTests` (`DeathOpensRunResultsPanelWithOutcome`, `ExtractOpensRunResultsPanelWithOutcome`, `SliceCompleteReasonOpensExtractionResults`, `ResultsReturnToTitleRaisesTheHostSeam`, `QuitToTitleDoesNotOpenResults`)
+- EditMode: `SessionUiBridgeRunResultsTests` (death, extract, slice-complete, Return to Title seam, quit does not open or replace results)
 - PlayMode: `RunLifecyclePlayModeTests.DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun` and `ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun`
 
 ```
@@ -23,10 +23,11 @@ pwsh tools/test.ps1 -Mode PlayMode -Filter RunLifecyclePlayModeTests
 
 ### 2. Extract once → RunResultsPanel
 
-1. Title → New Run (or continue from a live hub).
-2. Extract once (`EndRun("extraction")` in automation; in play, finish the slice / extract path so `PlayableSliceCompleted` fires with extract/complete).
-3. Expect **RUN COMPLETE — EXTRACTION** with outcome extraction (complete/completion normalize to extraction).
-4. Do **not** land on Title without this panel.
+1. Title → New Run (slice defaults). Confirm the hub is live.
+2. Complete the hub slice (all `coherent_ship_001` gameplay-slice objectives). That emits `PlayableSliceCompleted` with `reason=complete`, which the panel shows as **extraction**. First-away travel is not extract.
+3. Automation may also call `EndRun("extraction")` — same panel.
+4. Expect **RUN COMPLETE — EXTRACTION** over the paused run: outcome extraction, seed · biome · difficulty. Simulation must not keep ticking.
+5. Do **not** land on Title without this panel.
 
 ### 3. From results, return to Title
 

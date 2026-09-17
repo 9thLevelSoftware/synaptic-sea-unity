@@ -143,5 +143,21 @@ namespace SynapticSea.Tests.Unity
                 Assert.IsNull(bridge.Results, "pause quit is not death/extract — no results panel");
             }
         }
+
+        [Test]
+        public void QuitAfterDeathDoesNotReplaceTheResultsPanel()
+        {
+            RunSession session = SessionHarness.CreateGolden().Session;
+            using (var menus = new UiHarness())
+            {
+                SessionUiBridge bridge = BindBridge(session, menus.Document);
+                session.EndRun("death");
+                Assert.AreSame(bridge.Results, bridge.Coordinator.Stack.Top);
+                session.QuitToTitle();
+                Assert.AreSame(bridge.Results, bridge.Coordinator.Stack.Top, "quit must not dump over results");
+                Assert.IsTrue(bridge.Coordinator.HandleUiInput(UiCommand.Pause), "pause is consumed on TERMINAL");
+                Assert.AreSame(bridge.Results, bridge.Coordinator.Stack.Top);
+            }
+        }
     }
 }
