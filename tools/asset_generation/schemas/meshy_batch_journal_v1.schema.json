@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaptic-sea.invalid/schemas/meshy_batch_journal_v1.schema.json",
+  "title": "Synaptic Sea Meshy batch journal v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "document_kind", "batch_id", "asset_id", "approval", "state", "tasks", "cumulative_consumed_credits"],
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "assetId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "batchId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "taskId": { "type": ["string", "null"], "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$" },
+    "reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["view", "basename", "media_type", "byte_size", "sha256"],
+      "properties": {
+        "view": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "minLength": 1 },
+        "basename": { "type": "string", "pattern": "^[^/\\\\]+$", "minLength": 1 },
+        "media_type": { "enum": ["image/png", "image/jpeg"] },
+        "byte_size": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "protected": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "path", "sha256", "size"],
+      "properties": {
+        "type": { "enum": ["missing", "file", "directory"] },
+        "path": { "type": "string", "minLength": 1, "pattern": "^[^/].*" },
+        "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "size": { "type": "integer", "minimum": 0 }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "missing" } } }, "then": { "properties": { "sha256": { "type": "null" }, "size": { "const": 0 } } } },
+        { "if": { "properties": { "type": { "enum": ["file", "directory"] } } }, "then": { "properties": { "sha256": { "$ref": "#/$defs/hash" } } } }
+      ]
+    },
+    "providerRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model_type", "ai_model", "target_polycount", "should_texture", "target_formats"],
+      "oneOf": [
+        { "required": ["image_url"], "not": { "required": ["image_urls"] } },
+        { "required": ["image_urls"], "not": { "required": ["image_url"] } }
+      ],
+      "properties": {
+        "model_type": { "enum": ["smart-topology", "standard"] },
+        "ai_model": { "enum": ["meshy-t2", "meshy-7", "latest"] },
+        "target_polycount": { "type": "integer", "minimum": 1 },
+        "should_texture": { "const": false },
+        "target_formats": { "type": "array", "const": ["glb"] },
+        "image_url": { "type": "object", "additionalProperties": false, "required": ["view", "basename", "media_type", "byte_size", "sha256"], "properties": { "view": { "type": "string", "minLength": 1 }, "basename": { "type": "string", "pattern": "^[^/\\\\]+$", "minLength": 1 }, "media_type": { "enum": ["image/png", "image/jpeg"] }, "byte_size": { "type": "integer", "minimum": 1 }, "sha256": { "$ref": "#/$defs/hash" } } },
+        "image_urls": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/reference" } }
+      },
+      "allOf": [
+        { "if": { "required": ["image_url"] }, "then": { "properties": { "model_type": { "const": "smart-topology" }, "ai_model": { "const": "meshy-t2" } } } },
+        { "if": { "required": ["image_urls"] }, "then": { "properties": { "model_type": { "const": "standard" }, "ai_model": { "enum": ["meshy-7", "latest"] } } } }
+      ]
+    },
+    "approval": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract_sha256", "prompt_profile_id", "prompt_profile_sha256", "prompt_packet_sha256", "pricing_id", "pricing_sha256", "provider_payload_sha256", "request", "references", "endpoint", "candidate_count", "cost_per_candidate", "maximum_credits", "approved_credits", "output_license", "protected_snapshot", "created_at"],
+      "properties": {
+        "contract_sha256": { "$ref": "#/$defs/hash" },
+        "prompt_profile_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+        "prompt_profile_sha256": { "$ref": "#/$defs/hash" },
+        "prompt_packet_sha256": { "$ref": "#/$defs/hash" },
+        "pricing_id": { "type": "string", "minLength": 1 },
+        "pricing_sha256": { "$ref": "#/$defs/hash" },
+        "provider_payload_sha256": { "$ref": "#/$defs/hash" },
+        "request": { "$ref": "#/$defs/providerRequest" },
+        "references": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/reference" } },
+        "endpoint": { "enum": ["/openapi/v1/image-to-3d", "/openapi/v1/multi-image-to-3d"] },
+        "candidate_count": { "type": "integer", "minimum": 1 },
+        "cost_per_candidate": { "type": "integer", "minimum": 1 },
+        "maximum_credits": { "type": "integer", "minimum": 1 },
+        "approved_credits": { "type": "integer", "minimum": 1 },
+        "output_license": { "enum": ["paid-private", "free-cc-by-4.0"] },
+        "protected_snapshot": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/protected" } },
+        "created_at": { "type": "string", "minLength": 1 }
+      }
+    },
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["index", "task_id", "collision_task_id", "state", "consumed_credits", "error", "budget_violation"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "task_id": { "$ref": "#/$defs/taskId" },
+        "collision_task_id": { "$ref": "#/$defs/taskId" },
+        "state": { "enum": ["PENDING", "SUBMITTING", "SUCCEEDED", "FAILED", "OVERRUN", "UNCERTAIN", "COLLISION"] },
+        "consumed_credits": { "type": ["integer", "null"], "minimum": 0 },
+        "error": { "type": ["string", "null"], "maxLength": 240 },
+        "budget_violation": { "type": "boolean" }
+      },
+      "allOf": [
+        { "if": { "required": ["collision_task_id"], "properties": { "collision_task_id": { "type": "string" } } }, "then": { "properties": { "task_id": { "type": "null" }, "state": { "const": "COLLISION" }, "consumed_credits": { "type": "null" }, "budget_violation": { "const": false } } } },
+        { "if": { "properties": { "state": { "const": "PENDING" } }, "required": ["state"] }, "then": { "properties": { "consumed_credits": { "type": "null" }, "budget_violation": { "const": false } } } },
+        { "if": { "properties": { "state": { "const": "SUBMITTING" } }, "required": ["state"] }, "then": { "properties": { "collision_task_id": { "type": "null" }, "consumed_credits": { "type": "null" }, "budget_violation": { "const": false } } } },
+        { "if": { "properties": { "state": { "const": "SUCCEEDED" } }, "required": ["state"] }, "then": { "required": ["task_id"], "properties": { "task_id": { "type": "string" }, "collision_task_id": { "type": "null" }, "consumed_credits": { "type": "integer", "minimum": 0 }, "error": { "type": "null" }, "budget_violation": { "const": false } } } },
+        { "if": { "properties": { "state": { "const": "FAILED" } }, "required": ["state"] }, "then": { "required": ["error"], "properties": { "collision_task_id": { "type": "null" }, "error": { "type": "string", "minLength": 1 }, "budget_violation": { "const": false } } } },
+        { "if": { "properties": { "state": { "const": "OVERRUN" } }, "required": ["state"] }, "then": { "required": ["task_id", "consumed_credits", "error"], "properties": { "task_id": { "type": "string" }, "collision_task_id": { "type": "null" }, "consumed_credits": { "type": "integer", "minimum": 0 }, "error": { "type": "string", "minLength": 1 }, "budget_violation": { "const": true } } } },
+        { "if": { "properties": { "state": { "const": "UNCERTAIN" } }, "required": ["state"] }, "then": { "required": ["task_id", "consumed_credits", "error"], "properties": { "task_id": { "type": "string" }, "collision_task_id": { "type": "null" }, "consumed_credits": { "type": "integer", "minimum": 0 }, "error": { "type": "string", "minLength": 1 }, "budget_violation": { "const": false } } } },
+        { "if": { "properties": { "state": { "const": "COLLISION" } }, "required": ["state"] }, "then": { "required": ["collision_task_id", "error"], "properties": { "collision_task_id": { "type": "string" }, "task_id": { "type": "null" }, "consumed_credits": { "type": "null" }, "error": { "type": "string", "minLength": 1 }, "budget_violation": { "const": false } } } }
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "document_kind": { "const": "meshy_batch_journal" },
+    "batch_id": { "$ref": "#/$defs/batchId" },
+    "asset_id": { "$ref": "#/$defs/assetId" },
+    "approval": { "$ref": "#/$defs/approval" },
+    "state": { "enum": ["APPROVED", "SUBMITTING", "COMPLETED", "FAILED", "BUDGET_OVERRUN", "UNCERTAIN"] },
+    "tasks": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/task" } },
+    "cumulative_consumed_credits": { "type": "integer", "minimum": 0 }
+  },
+  "allOf": [
+    { "if": { "properties": { "state": { "const": "APPROVED" } }, "required": ["state"] }, "then": { "properties": { "tasks": { "items": { "properties": { "state": { "const": "PENDING" } } } } } } },
+    { "if": { "properties": { "state": { "const": "SUBMITTING" } }, "required": ["state"] }, "then": { "properties": { "tasks": { "items": { "properties": { "state": { "enum": ["PENDING", "SUBMITTING", "SUCCEEDED"] } } }, "contains": { "properties": { "state": { "enum": ["PENDING", "SUBMITTING"] } } } } } } },
+    { "if": { "properties": { "state": { "const": "COMPLETED" } }, "required": ["state"] }, "then": { "properties": { "tasks": { "items": { "properties": { "state": { "const": "SUCCEEDED" } } } } } } },
+    { "if": { "properties": { "state": { "const": "FAILED" } }, "required": ["state"] }, "then": { "properties": { "tasks": { "contains": { "properties": { "state": { "enum": ["FAILED", "COLLISION"] } } } } } } },
+    { "if": { "properties": { "state": { "const": "BUDGET_OVERRUN" } }, "required": ["state"] }, "then": { "properties": { "tasks": { "contains": { "properties": { "state": { "const": "OVERRUN" } } } } } } },
+    { "if": { "properties": { "state": { "const": "UNCERTAIN" } }, "required": ["state"] }, "then": { "properties": { "tasks": { "contains": { "properties": { "state": { "const": "UNCERTAIN" } } } } } } }
+  ]
+}

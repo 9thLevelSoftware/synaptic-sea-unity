@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "ai_asset_contract",
+  "asset_id": "crafting_station_derelict_v1",
+  "category": "gameplay_prop",
+  "gameplay_role": "derelict_crafting_station",
+  "dimensions_m": [1.6, 1.2, 1.8],
+  "dimension_tolerance_m": 0.02,
+  "pivot": "bottom_center",
+  "forward_axis": "+Z",
+  "allowed_yaw_deg": [0, 90, 180, 270],
+  "required_states": ["default"],
+  "state_derivation": "single_state",
+  "collision_owner": "godot_wrapper",
+  "animation": {
+    "kind": "static_gameplay_prop",
+    "meshy_rigging_allowed": false,
+    "rigging_target": "non_humanoid"
+  },
+  "budget": {
+    "triangles": {
+      "min": 3000,
+      "max": 6000,
+      "scope": "whole_asset"
+    },
+    "material_slots": 3,
+    "texture_resolution": 1024
+  },
+  "references": {
+    "required_views": ["front", "side", "back", "three_quarter"],
+    "input_layout": "separate_files",
+    "rights_state": "project-owned"
+  },
+  "generation": {
+    "provider": "meshy",
+    "mode": "image_to_3d",
+    "model_type": "smart-topology",
+    "ai_model": "meshy-t2",
+    "target_polycount": 6000,
+    "should_texture": false,
+    "candidate_count": 4,
+    "target_formats": ["glb"]
+  },
+  "review": {
+    "seeds": [42, 777],
+    "lighting_modes": ["normal", "emergency", "dark"]
+  },
+  "prompt_profile": "synaptic_sea_derelict_v1",
+  "visual_brief": "Derelict crafting station with a clear front-side interaction silhouette, readable work surface, serviceable access panels, and bounded machinery detail. Keep the interaction face visually unambiguous from the locked-isometric camera."
+}
