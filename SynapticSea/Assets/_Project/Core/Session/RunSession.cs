@@ -409,8 +409,20 @@ namespace SynapticSea.Core.Session
             return latest.Length > 0 && TutorialState.Dismiss(latest);
         }
 
-        /// <summary>The MenuCoordinator's tutorial model (rebuilt with the HUD, like Godot).</summary>
-        public TutorialState TutorialState;
+        /// <summary>
+        /// The ONE in-run tutorial / Codex model (Godot: the MenuCoordinator's). The in-run UI binds to this instance and its
+        /// <see cref="Systems.TutorialState.Triggered"/> / <see cref="Systems.TutorialState.Dismissed"/> /
+        /// <see cref="Systems.TutorialState.CodexUnlocked"/> events instead of building its own. The instance never changes
+        /// for the session's lifetime; boot, reloads and save restores reset or restore it in place and then raise
+        /// <see cref="SessionEvents.TutorialStateReset"/>. Persisted as the run snapshot's <c>tutorial_summary</c>.
+        /// </summary>
+        public TutorialState TutorialState { get; private set; }
+
+        /// <summary>
+        /// Godot <c>_input</c> (gd 11820): any move action press fires <c>trigger_tutorial("player_moved", "any")</c>. The
+        /// scene calls this on movement input; TutorialState fires the tutorial once per run.
+        /// </summary>
+        public void OnPlayerMoved() => TriggerTutorial("player_moved", "any");
 
         static bool RootValid(IShipSceneRoot root) => root != null && root.IsValid;
 

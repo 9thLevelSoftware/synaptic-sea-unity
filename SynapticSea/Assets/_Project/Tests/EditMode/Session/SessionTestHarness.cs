@@ -127,9 +127,16 @@ namespace SynapticSea.Tests.Session
         public readonly List<IShipSceneRoot> Freed = new List<IShipSceneRoot>();
         public int HomeLoads;
 
+        /// <summary>The kit path each load received (A4 contract).</summary>
+        public string LastHomeKitPath = "";
+        public readonly List<string> DerelictKitPaths = new List<string>();
+        public string LastLifeboatKitPath = "";
+        public string LastLifeboatLayoutKitId = "";
+
         public IShipLoaderView LoadHomeShip(string layoutPath, string kitPath, string gameplaySlicePath, out string failureReason)
         {
             failureReason = "";
+            LastHomeKitPath = kitPath;
             GdDict layout = CatalogRegistry.LoadDict(layoutPath);
             GdDict gameplay = CatalogRegistry.LoadDict(gameplaySlicePath);
             if (layout == null || gameplay == null)
@@ -147,11 +154,14 @@ namespace SynapticSea.Tests.Session
         {
             if (documents == null || documents.Layout == null)
                 return null;
+            DerelictKitPaths.Add(documents.KitPath);
             return new FakeLoaderView(documents.Layout, documents.GameplaySlice ?? new GdDict(), "");
         }
 
         public IShipSceneRoot BuildLifeboatScene(LifeBoatBuilder.BuildResult lifeboat)
         {
+            LastLifeboatKitPath = lifeboat.KitPath;
+            LastLifeboatLayoutKitId = lifeboat.Layout.GetString("kit_id");
             var root = new FakeShipRoot();
             foreach (LifeBoatBuilder.RoomNode room in lifeboat.Rooms)
                 root.RoomPositions.Add(room.Position);

@@ -16,6 +16,8 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_build_runtime_nodes()</c>: construct and configure every model, in the Godot order (RNG/catalog order matters).</summary>
         void BuildRuntimeNodes()
         {
+            // Unity port (C4): the run context (difficulty / biome / seed) is known before any model reads it.
+            ApplyRunContext(Deps.DifficultyId, Deps.BiomeId, Deps.RunSeed);
             ShipSystemsManager = new ShipSystemsManager();
             ShipBlueprint bp = LoadBlueprintForSystems();
             ShipSystemsManager.Configure(ShipSystemsManager.LoadDefinitions(), bp.ShipCondition, bp.SeedValue);
@@ -304,9 +306,12 @@ namespace SynapticSea.Core.Session
             // PKG-D9a / B2.2b: WorkAction pure driver.
             WorkActionDriver = new WorkActionDriver();
             WorkActionDriver.Configure(new GdDict());
-            // PKG-C3.1a / D9d: wounds model.
-            WoundState = new WoundState();
+            // PKG-C3.1a / D9d: wounds model. Unity port: one instance for the session's lifetime (reconfigured = the fresh
+            // model Godot rebuilt), so the Wounds panel binding survives reloads.
+            if (WoundState == null)
+                WoundState = new WoundState();
             WoundState.Configure(new GdDict());
+            Events.RaiseWoundsChanged(WoundState);
             // PKG-D2.6 / D6.2 / D9b: hub install manifest.
             ShipModificationState = new ShipModificationState();
             ShipModificationState.Configure(new GdDict());
@@ -323,16 +328,22 @@ namespace SynapticSea.Core.Session
             SettingsState = Deps.SettingsState ?? new SettingsState();
             // MenuCoordinator's TutorialState (configured from tutorial_triggers.json; rebuilt with the HUD). Its signals
             // drove the coordinator's cue sfx: triggered/codex -> UI_OBJECTIVE_ADVANCE, dismissed -> UI_PANEL_CLOSE.
-            TutorialState = new TutorialState();
+            // Unity port (A5): the session owns the ONE in-run TutorialState for its lifetime; the rebuild reconfigures it
+            // (Configure resets fired/dismissed/codex exactly like Godot's fresh instance) so UI bindings stay valid.
+            if (TutorialState == null)
+            {
+                TutorialState = new TutorialState();
+                TutorialState.Triggered += (id, title, body) =>
+                {
+                    Events.RaiseTutorialShown(id, title, body);
+                    PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
+                };
+                TutorialState.Dismissed += id => PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
+                TutorialState.CodexUnlocked += id => PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
+            }
             if (!TutorialState.Configure(LoadJsonDict("res://data/ui/tutorial_triggers.json")))
                 Log.Warning("PlayableGeneratedShip: MenuCoordinator configure returned false");
-            TutorialState.Triggered += (id, title, body) =>
-            {
-                Events.RaiseTutorialShown(id, title, body);
-                PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
-            };
-            TutorialState.Dismissed += id => PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
-            TutorialState.CodexUnlocked += id => PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
+            Events.RaiseTutorialStateReset(TutorialState);
             Events.RaiseLoadAvailable(IsLoadAvailable());
             Events.RaiseInventoryItems(InventoryHotbarIds());
             Events.RaiseHotbarSlots(GetConsumableSlotLabels(), 0);
@@ -347,12 +358,16 @@ namespace SynapticSea.Core.Session
                 OnLoaderFailed("no_ship_host");
                 return;
             }
+            // Unity port (A4): the loader receives the kit document actually used (wrapper-map fallback to v0).
+            kitPath = ResolveHomeKitPath(layoutPath, kitPath);
+            KitPath = kitPath;
             IShipLoaderView view = ShipHost.LoadHomeShip(layoutPath, kitPath, gameplaySlicePath, out string reason);
             if (view == null)
             {
                 OnLoaderFailed(string.IsNullOrEmpty(reason) ? "load_failed" : reason);
                 return;
             }
+            RecordKitPath(view, kitPath);
             Loader = view;
             OnShipLoaded(new GdDict());
         }
@@ -468,6 +483,7 @@ namespace SynapticSea.Core.Session
                 Log.Error("PlayableGeneratedShip: LifeBoatBuilder.build() returned null; lifeboat not created");
                 return;
             }
+            RecordKitPath(lbRoot, built.KitPath);
             LifeboatShip = ShipInstance.Create("lifeboat", "", null, ShipSystemsManager, lbRoot);
             LifeboatShip.BuiltLayout = LifeBoatBuilder.BuildLayout();
             LifeboatShip.GetAccess().Claim(PLAYER_LOCAL_ID);

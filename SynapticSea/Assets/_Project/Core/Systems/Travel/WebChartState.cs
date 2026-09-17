@@ -10,7 +10,8 @@ namespace SynapticSea.Core.Systems
     /// <summary>
     /// Domain 10 (ADR-0045): session-only record of ship-marker knowledge the player has recorded onto their web
     /// chart. Two callers merge views in: found <c>web_chart</c> items (detail 2, "paper map" import) and scanner
-    /// scans performed while a chart is possessed (detail 1-6). No get_summary/apply_summary: deliberately ephemeral.
+    /// scans performed while a chart is possessed (detail 1-6). Godot had no get_summary/apply_summary (ephemeral); the Unity
+    /// port persists it (E2).
     /// Pure-model-first: no scene-tree access.
     /// </summary>
     public class WebChartState : IStatusLineProvider
@@ -87,6 +88,44 @@ namespace SynapticSea.Core.Systems
         }
 
         public long GetKnownCount() => _entries.Count;
+
+        public const string SUMMARY_SCHEMA = "web_chart_v1";
+
+        /// <summary>
+        /// Unity-port addition (E2): Godot kept the chart session-only, so it was lost on every load. The run snapshot's
+        /// <c>web_chart_summary</c>: <c>{schema, entries: {marker_id: entry}}</c>.
+        /// </summary>
+        public GdDict GetSummary() => new GdDict
+        {
+            { "schema", SUMMARY_SCHEMA },
+            { "entries", _entries.DeepCopy() },
+        };
+
+        /// <summary>
+        /// Replaces the chart with a <see cref="GetSummary"/> payload. Anything else (null, empty, wrong schema) clears it and
+        /// returns false. JSON-reloaded numbers are coerced back to the recorded types (detail / size_class int).
+        /// </summary>
+        public bool ApplySummary(GdDict summary)
+        {
+            _entries.Clear();
+            if (summary == null || V.Str(summary.Get("schema", "")) != SUMMARY_SCHEMA)
+                return false;
+            if (!(summary.Get("entries", null) is GdDict entries))
+                return true;
+            foreach (object key in entries.Keys)
+            {
+                if (!(entries[key] is GdDict entry))
+                    continue;
+                string markerId = V.Str(key);
+                if (markerId.Length == 0)
+                    continue;
+                GdDict copy = entry.DeepCopy();
+                copy["detail"] = V.I64(copy.Get("detail", 0L));
+                copy["size_class"] = V.I64(copy.Get("size_class", 0L));
+                _entries[markerId] = copy;
+            }
+            return true;
+        }
 
         public IReadOnlyList<string> GetStatusLines() =>
             new List<string> { "WebChartState: known=" + _entries.Count };

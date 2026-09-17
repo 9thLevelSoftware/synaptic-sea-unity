@@ -55,10 +55,31 @@ namespace SynapticSea.Core.Session
 
         // ---- the @export vars
         public string LayoutPath = RunSession.DEFAULT_LAYOUT_PATH;
+        /// <summary>
+        /// The home kit document. Empty = resolve from the layout's <c>kit_id</c>; a kit without a complete
+        /// <c>modules[].godot_wrapper_scene</c> map falls back to v0 (<see cref="Procgen.ShipGenerator.KitPathForLayout"/>).
+        /// The resolved path is what <see cref="IShipSceneHost.LoadHomeShip"/> receives (<see cref="RunSession.KitPath"/>).
+        /// </summary>
         public string KitPath = RunSession.DEFAULT_KIT_PATH;
         public string GameplaySlicePath = RunSession.DEFAULT_GAMEPLAY_SLICE_PATH;
         public string BlueprintPath = "res://data/procgen/golden/coherent_ship_001/blueprint.json";
         public string StartingClassId = "engineer";
+
+        /// <summary>
+        /// The run difficulty (<c>data/procgen/difficulty/&lt;id&gt;.json</c>). Its dials apply to the HOME ship (threat count
+        /// and aggression, hazard seeding, loot quality, ambient intensity); derelicts keep Godot's depth-derived context.
+        /// "standard" (all dials 1.0) reproduces the Godot behaviour exactly.
+        /// </summary>
+        public string DifficultyId = Procgen.DifficultyProfile.STANDARD_ID;
+
+        /// <summary>
+        /// The run biome (<c>data/procgen/biomes/&lt;id&gt;.json</c>) for the home ship. "" = Godot's seed-selected loot biome
+        /// and no biome dials on the home ship.
+        /// </summary>
+        public string BiomeId = "";
+
+        /// <summary>The run seed recorded in saves; null = the home blueprint's seed.</summary>
+        public long? RunSeed;
 
         /// <summary>An externally injected AchievementState (the build script path); null = the session builds its own.</summary>
         public AchievementState AchievementState;

@@ -34,7 +34,7 @@ namespace SynapticSea.Core.Systems
     public class SaveLoadService : ITitleSaveService
     {
         public const string SAVE_PATH = "user://saves/current_run.json";
-        public const string CURRENT_SLICE_VERSION = "gate2-current-run-4";
+        public const string CURRENT_SLICE_VERSION = "gate2-current-run-5";
         public const string SAVES_DIR = "user://saves";
         public const string INDEX_PATH = "user://saves/index.json";
         public const string CORRUPT_DIR = "user://saves/.corrupt";

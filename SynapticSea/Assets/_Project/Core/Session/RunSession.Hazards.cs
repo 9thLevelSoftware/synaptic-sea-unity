@@ -55,7 +55,8 @@ namespace SynapticSea.Core.Session
             {
                 { "zone_ids", zoneIds },
                 { "max_oxygen", OxygenState.DEFAULT_MAX_OXYGEN },
-                { "drain_rate", OxygenState.DEFAULT_DRAIN_RATE },
+                // Unity port (C4): the home hazard dial scales the breach drain (exactly the default for "standard").
+                { "drain_rate", OxygenState.DEFAULT_DRAIN_RATE * HomeHazardModifier() },
                 { "regen_rate", OxygenState.DEFAULT_REGEN_RATE },
                 { "recovery_threshold", OxygenState.DEFAULT_RECOVERY_THRESHOLD },
                 { "safe_threshold", OxygenState.DEFAULT_SAFE_THRESHOLD },

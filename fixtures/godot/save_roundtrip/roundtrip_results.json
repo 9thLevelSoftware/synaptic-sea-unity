@@ -1,0 +1,188 @@
+{
+	"cases": [
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "1713068-7698",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"build_ok": true,
+			"file": "mid_run/saves/current_run.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/autosave_active.manifest.json",
+				"current_run.json",
+				"index.json"
+			],
+			"slice_complete_after_apply": false,
+			"slot_id": "autosave_active",
+			"world": false,
+			"written": true
+		},
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "2560775-826b",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"build_ok": true,
+			"file": "mid_run/saves/quicksave.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/quicksave.manifest.json",
+				"index.json",
+				"quicksave.json"
+			],
+			"slice_complete_after_apply": false,
+			"slot_id": "quicksave",
+			"world": false,
+			"written": true
+		},
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "3555342-a9a2",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"build_ok": true,
+			"file": "mid_run/saves/slot_01.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/slot_01.manifest.json",
+				"index.json",
+				"slot_01.json"
+			],
+			"slice_complete_after_apply": false,
+			"slot_id": "slot_01",
+			"world": false,
+			"written": true
+		},
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "4696120-997b",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"build_ok": true,
+			"file": "after_completion/saves/quicksave.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/quicksave.manifest.json",
+				"index.json",
+				"quicksave.json"
+			],
+			"slice_complete_after_apply": false,
+			"slot_id": "quicksave",
+			"world": false,
+			"written": true
+		},
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "5787351-322c",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"build_ok": true,
+			"file": "after_completion/saves/slot_01.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/slot_01.manifest.json",
+				"index.json",
+				"slot_01.json"
+			],
+			"slice_complete_after_apply": false,
+			"slot_id": "slot_01",
+			"world": false,
+			"written": true
+		},
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "6966621-705a",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"build_ok": true,
+			"file": "residual/saves/quicksave.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/quicksave.manifest.json",
+				"index.json",
+				"quicksave.json"
+			],
+			"slice_complete_after_apply": false,
+			"slot_id": "quicksave",
+			"world": false,
+			"written": true
+		},
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "8022498-1ba9",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"build_ok": true,
+			"file": "residual/saves/slot_01.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/slot_01.manifest.json",
+				"index.json",
+				"slot_01.json"
+			],
+			"slice_complete_after_apply": false,
+			"slot_id": "slot_01",
+			"world": false,
+			"written": true
+		},
+		{
+			"apply_ok": true,
+			"boot_objective_sequence": 1,
+			"boot_run_id": "9285442-5d28",
+			"boot_saves_files": [
+				"index.json"
+			],
+			"file": "mid_run/saves/world.json",
+			"file_run_id": "1647935-c8a8",
+			"load_ok": true,
+			"objective_sequence_after_apply": 2,
+			"save_ok": true,
+			"saves_files_after_save": [
+				".cloud/world.manifest.json",
+				"index.json",
+				"world.json"
+			],
+			"world": true,
+			"world_time_after_apply": 0.0,
+			"written": true
+		}
+	],
+	"engine": "4.7.1-stable (official)",
+	"schema": "parity.save_roundtrip.results.v1"
+}
