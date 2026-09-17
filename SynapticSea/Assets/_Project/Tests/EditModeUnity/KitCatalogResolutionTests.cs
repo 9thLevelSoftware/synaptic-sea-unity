@@ -65,8 +65,22 @@ namespace SynapticSea.Tests.Unity
         public void WrapperFolderParsesSceneDirectory()
         {
             Assert.AreEqual("ship_structural_v0", KitCatalogResolver.WrapperFolder("res://scenes/wrappers/structural/ship_structural_v0/floor_1x1.tscn"));
+            Assert.AreEqual("ithappy", KitCatalogResolver.WrapperFolder("res://scenes/wrappers/structural/ithappy/floor_1x1.tscn"));
             Assert.AreEqual("", KitCatalogResolver.WrapperFolder("floor.tscn"));
             Assert.AreEqual("ship_structural_v0", KitCatalogResolver.CatalogIdForKitDocument(new GdDict()));
+        }
+
+        [Test]
+        public void IthappyKitLoadsItsOwnPrefabCatalog()
+        {
+            var layout = new GdDict { { "kit_id", KitCatalog.ITHAPPY_KIT_ID } };
+            Assert.AreEqual("res://data/kits/ithappy_scifi_v0.json", KitCatalogResolver.KitPathForLayout(layout));
+            GdDict kit = CatalogRegistry.LoadDict("res://data/kits/ithappy_scifi_v0.json");
+            Assert.AreEqual("ithappy", KitCatalogResolver.CatalogIdForKitDocument(kit));
+            KitPrefabCatalog catalog = KitCatalogResolver.ForKitDocument(kit);
+            Assert.IsNotNull(catalog);
+            Assert.AreEqual(KitCatalog.ITHAPPY_KIT_ID, catalog.kitId);
+            Assert.AreSame(catalog, KitCatalogResolver.ForLayout(layout));
         }
 
         static IEnumerable<TestCaseData> Kits()

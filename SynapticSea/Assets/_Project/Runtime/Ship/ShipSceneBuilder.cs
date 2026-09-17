@@ -44,7 +44,12 @@ namespace SynapticSea.Runtime
 
         public ShipView View { get; }
 
-        /// <summary>Kit prefab catalog override; by default <see cref="KitCatalogResolver.ForKitDocument"/> (the loaded kit's wrapper folder, else v0).</summary>
+        /// <summary>
+        /// Kit prefab catalog override; by default <see cref="KitCatalogResolver.ForKitDocument"/> (the loaded kit's
+        /// wrapper folder, then its <c>kit_id</c>, else v0). Set a layout's <c>kit_id</c> to
+        /// <see cref="SynapticSea.Core.Procgen.KitCatalog.ITHAPPY_KIT_ID"/> to load the additive KEEP ithappy catalog
+        /// without changing <c>ship_structural_v0</c>.
+        /// </summary>
         public KitPrefabCatalog KitCatalog { get; set; }
 
         /// <summary>Kit path the catalog resolves from when <see cref="LoadFromDocuments"/> gets no <c>kit</c> source path

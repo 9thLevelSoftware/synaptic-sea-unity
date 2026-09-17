@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using NUnit.Framework;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
@@ -102,6 +103,63 @@ namespace SynapticSea.Tests.Procgen
             sorted.Sort(System.StringComparer.Ordinal);
             CollectionAssert.AreEqual(sorted, ids);
             CollectionAssert.Contains(ids, catalog.DefaultKitId());
+            CollectionAssert.Contains(ids, KitCatalog.ITHAPPY_KIT_ID);
+        }
+
+        [Test]
+        public void IthappyKit_SharesV0ModuleIds_AndIncludesWallXJunction()
+        {
+            var catalog = new KitCatalog();
+            Assert.That(catalog.Configure("res://data/kits/"), Is.GreaterThanOrEqualTo(4));
+            Assert.AreEqual(KitCatalog.DEFAULT_KIT_ID, catalog.DefaultKitId());
+            Assert.IsTrue(catalog.IsLoaded(KitCatalog.ITHAPPY_KIT_ID));
+
+            List<string> v0Ids = ModuleIds("res://data/kits/ship_structural_v0.json");
+            List<string> ithappyIds = ModuleIds("res://data/kits/ithappy_scifi_v0.json");
+            Assert.That(v0Ids, Is.EquivalentTo(new[]
+            {
+                "floor_1x1", "floor_2x1", "corridor_floor_1x1", "corridor_floor_1x2",
+                "wall_straight_1x1", "wall_end_cap", "wall_inner_corner", "wall_outer_corner",
+                "wall_t_junction", "doorway_frame_open_1x1", "bulkhead_portal_2x1",
+                "doorway_frame_blocked_1x1", "ramp_up_1x2", "pillar_support_1x1", "ceiling_cap_1x1",
+            }));
+            CollectionAssert.IsSubsetOf(v0Ids, ithappyIds);
+            CollectionAssert.Contains(ithappyIds, "wall_x_junction");
+
+            var sockets = new ModularSocketCatalog();
+            Assert.IsTrue(sockets.LoadKit(KitCatalog.ITHAPPY_KIT_ID));
+            Assert.AreEqual(KitCatalog.ITHAPPY_KIT_ID, sockets.KitId);
+            Assert.IsTrue(sockets.HasModule("floor_1x1"));
+            Assert.IsTrue(sockets.HasModule("wall_straight_1x1"));
+            Assert.IsTrue(sockets.HasModule("wall_x_junction"));
+            Assert.AreEqual(4, sockets.SocketsOf("wall_x_junction").Count);
+
+            string structuralRoot = Path.Combine(Fixtures.RepoRoot, "SynapticSea", "Assets", "Content", "Structural", "ithappy");
+            foreach (string moduleId in v0Ids)
+            {
+                Assert.IsTrue(File.Exists(Path.Combine(structuralRoot, moduleId, moduleId + ".glb")), moduleId);
+                Assert.IsTrue(File.Exists(Path.Combine(Fixtures.RepoRoot, "fixtures", "godot_wrappers", "ithappy", moduleId + ".tscn")), moduleId);
+            }
+            Assert.IsTrue(File.Exists(Path.Combine(structuralRoot, "wall_x_junction", "wall_x_junction.glb")));
+            Assert.IsTrue(File.Exists(Path.Combine(Fixtures.RepoRoot, "fixtures", "godot_wrappers", "ithappy", "wall_x_junction.tscn")));
+            Assert.IsTrue(File.Exists(Path.Combine(
+                Fixtures.StreamingDataRoot, "data", "placement", "contracts", "structural",
+                KitCatalog.ITHAPPY_KIT_ID, "wall_x_junction_contract.json")));
+        }
+
+        static List<string> ModuleIds(string kitPath)
+        {
+            var ids = new List<string>();
+            GdDict kit = CatalogRegistry.LoadDict(kitPath);
+            foreach (var entry in kit.GetArrayOrEmpty("modules"))
+            {
+                if (entry is GdDict module)
+                {
+                    string id = module.GetString("module_id");
+                    if (id.Length != 0) ids.Add(id);
+                }
+            }
+            return ids;
         }
 
         [Test]

@@ -4,8 +4,8 @@
   "kit_id": "ithappy_scifi_v0",
   "grid_step_m": 4.0,
   "source_workspace_root": "/Users/christopherwilloughby/off-the-rails-ai-infra/assets/_source/self_authored/ship_structural_v0/",
-  "catalog_path": "data/kits/ship_structural_v0.json",
-  "module_count": 15,
+  "catalog_path": "data/kits/ithappy_scifi_v0.json",
+  "module_count": 16,
   "default_role_module": "floor_1x1",
   "biome_preference": {
     "abyssal_synaptic_sea": 0.9
@@ -1144,7 +1144,29 @@
       "godot_contract": "res://data/placement/contracts/structural/ship_structural_v0/ceiling_cap_1x1_contract.tres",
       "provenance_id": "ship_structural_v0:ceiling_cap_1x1",
       "collision_policy": "static-body-proxy"
+    },
+    {
+      "module_id": "wall_x_junction",
+      "module_family": "junction",
+      "footprint_cells": [
+        1,
+        1
+      ],
+      "nav_blocker": true,
+      "role": "X / four-way wall junction for procgen",
+      "processed_asset_source": "assets/imported/structural/ithappy/wall_x_junction/wall_x_junction.glb",
+      "socket_names": [
+        "SOCK_wall_face_north_01",
+        "SOCK_wall_face_east_01",
+        "SOCK_wall_face_south_01",
+        "SOCK_wall_face_west_01"
+      ],
+      "pivot_policy": "edge-center",
+      "godot_wrapper_scene": "res://scenes/wrappers/structural/ithappy/wall_x_junction.tscn",
+      "godot_contract": "res://data/placement/contracts/structural/ithappy_scifi_v0/wall_x_junction_contract.json",
+      "provenance_id": "ithappy_scifi_v0:wall_x_junction",
+      "collision_policy": "static-body-proxy"
     }
   ],
-  "description": "ithappy Sci-Fi Props pack \u2014 all 15 structural modules"
+  "description": "ithappy KEEP structural spine \u2014 same module_id strings as ship_structural_v0, plus wall_x_junction. Visuals live under Assets/Content/Structural/ithappy."
 }

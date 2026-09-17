@@ -1,0 +1,189 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "modular_asset_spec",
+  "asset_id": "wall_x_junction",
+  "module_id": "wall_x_junction",
+  "category": "structural",
+  "kit_id": "ithappy_scifi_v0",
+  "module_family": "junction",
+  "grid_step_m": 4.0,
+  "bounds": {
+    "local_min_m": [
+      -2.0,
+      0.0,
+      -2.0
+    ],
+    "local_max_m": [
+      2.0,
+      3.0,
+      2.0
+    ],
+    "placement_origin": "edge-center",
+    "mesh_origin_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "notes": "Art-director pack authored at ~1x1x4 Z-up / edge-center. Contract sockets use the 4 m kit cell so procgen can bind the same wall_face kinds as wall_t_junction. Do not regenerate the GLB; recenter in the prefab if the mesh pivot is still Blender-local."
+  },
+  "footprint_cells": [
+    1,
+    1
+  ],
+  "sockets": [
+    {
+      "id": "wall_face_north_01",
+      "kind": "wall_face",
+      "position_m": [
+        0.0,
+        0.0,
+        -2.0
+      ],
+      "compatible_kinds": [
+        "wall_edge",
+        "portal_edge"
+      ]
+    },
+    {
+      "id": "wall_face_east_01",
+      "kind": "wall_face",
+      "position_m": [
+        2.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "wall_edge",
+        "portal_edge"
+      ]
+    },
+    {
+      "id": "wall_face_south_01",
+      "kind": "wall_face",
+      "position_m": [
+        0.0,
+        0.0,
+        2.0
+      ],
+      "compatible_kinds": [
+        "wall_edge",
+        "portal_edge"
+      ]
+    },
+    {
+      "id": "wall_face_west_01",
+      "kind": "wall_face",
+      "position_m": [
+        -2.0,
+        0.0,
+        0.0
+      ],
+      "compatible_kinds": [
+        "wall_edge",
+        "portal_edge"
+      ]
+    }
+  ],
+  "collision": {
+    "kind": "static-body-proxy",
+    "nav_blocker": true,
+    "proxy_shape": "box",
+    "notes": "four 4x3x0.2 wing boxes matching v0 wall_t_junction plus the south face"
+  },
+  "provenance": {
+    "source_platform": "ithappy-keep",
+    "license_state": "imported",
+    "provenance_id": "ithappy_scifi_v0:wall_x_junction"
+  },
+  "source_asset_path": "assets/imported/structural/ithappy/wall_x_junction/wall_x_junction.glb",
+  "wrapper_scene": "res://scenes/wrappers/structural/ithappy/wall_x_junction.tscn",
+  "contract_path": "res://data/placement/contracts/structural/ithappy_scifi_v0/wall_x_junction_contract.json",
+  "asset": {
+    "id": "wall_x_junction",
+    "module_id": "wall_x_junction",
+    "category": "structural",
+    "kit": {
+      "kit_id": "ithappy_scifi_v0",
+      "module_id": "wall_x_junction",
+      "module_family": "junction",
+      "pivot_policy": "edge-center"
+    },
+    "bounds": {
+      "local_min_m": [
+        -2.0,
+        0.0,
+        -2.0
+      ],
+      "local_max_m": [
+        2.0,
+        3.0,
+        2.0
+      ],
+      "placement_origin": "edge-center",
+      "mesh_origin_offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "notes": "Art-director pack authored at ~1x1x4 Z-up / edge-center. Contract sockets use the 4 m kit cell so procgen can bind the same wall_face kinds as wall_t_junction. Do not regenerate the GLB; recenter in the prefab if the mesh pivot is still Blender-local."
+    },
+    "footprint_cells": [
+      1,
+      1
+    ],
+    "sockets": [
+      {
+        "id": "wall_face_north_01",
+        "kind": "wall_face",
+        "position_m": [
+          0.0,
+          0.0,
+          -2.0
+        ],
+        "compatible_kinds": [
+          "wall_edge",
+          "portal_edge"
+        ]
+      },
+      {
+        "id": "wall_face_east_01",
+        "kind": "wall_face",
+        "position_m": [
+          2.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "wall_edge",
+          "portal_edge"
+        ]
+      },
+      {
+        "id": "wall_face_south_01",
+        "kind": "wall_face",
+        "position_m": [
+          0.0,
+          0.0,
+          2.0
+        ],
+        "compatible_kinds": [
+          "wall_edge",
+          "portal_edge"
+        ]
+      },
+      {
+        "id": "wall_face_west_01",
+        "kind": "wall_face",
+        "position_m": [
+          -2.0,
+          0.0,
+          0.0
+        ],
+        "compatible_kinds": [
+          "wall_edge",
+          "portal_edge"
+        ]
+      }
+    ]
+  }
+}

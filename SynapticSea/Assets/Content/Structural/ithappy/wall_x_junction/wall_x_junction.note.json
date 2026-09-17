@@ -1,0 +1,43 @@
+{
+  "module_id": "wall_x_junction",
+  "role": "X / four-way wall junction for procgen",
+  "method": "4x rotated copies (0/90/180/270) of ithappy wall_t_junction mesh data, welded; keeps Color UV atlas",
+  "grid_step_m": 4.0,
+  "pivot_policy": "edge-center (match siblings \u2014 eng may recenter)",
+  "socket_names_suggested": [
+    "SOCK_wall_face_north_01",
+    "SOCK_wall_face_east_01",
+    "SOCK_wall_face_south_01",
+    "SOCK_wall_face_west_01"
+  ],
+  "poly": {
+    "bbox": [
+      1.0000000596046448,
+      1.0000000596046448,
+      4.0
+    ],
+    "min": [
+      -0.5,
+      -0.5000000596046448,
+      0.0
+    ],
+    "max": [
+      0.5000000596046448,
+      0.5,
+      4.0
+    ],
+    "verts": 240,
+    "tris": 456,
+    "uv": 1,
+    "mats": 1
+  },
+  "source_ref": "the-synaptic-sea/assets/imported/structural/ithappy/wall_t_junction/",
+  "meshy": "not used",
+  "outputs": [
+    "wall_x_junction.glb",
+    "wall_x_junction.fbx",
+    "wall_x_junction.blend",
+    "wall_x_junction_preview.png",
+    "wall_x_junction.note.json"
+  ]
+}

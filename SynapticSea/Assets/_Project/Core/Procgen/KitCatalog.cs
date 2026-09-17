@@ -18,6 +18,13 @@ namespace SynapticSea.Core.Procgen
         /// <summary>Default kit id consulted when callers don't specify one.</summary>
         public const string DEFAULT_KIT_ID = "ship_structural_v0";
 
+        /// <summary>
+        /// Additive KEEP ithappy structural kit. Same module_id strings as <see cref="DEFAULT_KIT_ID"/>;
+        /// point a layout's <c>kit_id</c> at this value so <c>Resources/Catalogs/KitCatalog_ithappy_scifi_v0</c>
+        /// supplies the ithappy GLB prefabs. Does not replace the default kit.
+        /// </summary>
+        public const string ITHAPPY_KIT_ID = "ithappy_scifi_v0";
+
         // kit_id -> kit record (insertion order = directory walk order; see ProcgenCompat.ListResFiles).
         GdDict _kits = new GdDict();
         string _defaultKitId = "";

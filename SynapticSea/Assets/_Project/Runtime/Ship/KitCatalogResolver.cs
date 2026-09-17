@@ -13,9 +13,10 @@ namespace SynapticSea.Runtime
     ///
     /// Godot instantiates the wrapper scenes named by the kit's <c>modules[].godot_wrapper_scene</c>, so the prefab set
     /// is identified by those scenes' folder (<c>res://scenes/wrappers/structural/ship_structural_v0/floor_1x1.tscn</c>
-    /// → <c>KitCatalog_ship_structural_v0</c>), never by the kit id alone: <c>ship_structural_biomatter</c> reuses the
-    /// v0 wrappers. A kit without a complete wrapper map (<c>ship_structural_hazard</c>, <c>_industrial</c>) falls back
-    /// to v0, like <c>kit_path_for_layout</c>.
+    /// → <c>KitCatalog_ship_structural_v0</c>), not the kit id alone: <c>ship_structural_biomatter</c> reuses the
+    /// v0 wrappers. When that folder has no catalog asset, the kit's <c>kit_id</c> is tried (ithappy wrappers live in
+    /// <c>ithappy/</c> while the catalog is <c>KitCatalog_ithappy_scifi_v0</c>). A kit without a complete wrapper map
+    /// (<c>ship_structural_hazard</c>, <c>_industrial</c>) falls back to v0, like <c>kit_path_for_layout</c>.
     /// </summary>
     public static class KitCatalogResolver
     {
@@ -26,11 +27,21 @@ namespace SynapticSea.Runtime
         /// <summary>Resources loader; tests may swap it.</summary>
         public static Func<string, KitPrefabCatalog> LoadCatalog = id => Resources.Load<KitPrefabCatalog>(CatalogPrefix + id);
 
-        /// <summary>The catalog for a loaded kit document; the v0 catalog when the wrapper folder has none.</summary>
+        /// <summary>
+        /// The catalog for a loaded kit document. Lookup order: wrapper-scene folder, then the kit's <c>kit_id</c>
+        /// (ithappy wrappers live in <c>ithappy/</c> while the catalog is <c>KitCatalog_ithappy_scifi_v0</c>), then v0.
+        /// </summary>
         public static KitPrefabCatalog ForKitDocument(GdDict kit)
         {
             string id = CatalogIdForKitDocument(kit);
-            return LoadCatalog(id) ?? (id != DefaultKitId ? LoadCatalog(DefaultKitId) : null);
+            KitPrefabCatalog catalog = LoadCatalog(id);
+            if (catalog == null)
+            {
+                string kitId = V.Str(kit?.Get("kit_id", "") ?? "");
+                if (kitId.Length > 0 && !string.Equals(kitId, id, StringComparison.Ordinal))
+                    catalog = LoadCatalog(kitId);
+            }
+            return catalog ?? (id != DefaultKitId ? LoadCatalog(DefaultKitId) : null);
         }
 
         /// <summary>

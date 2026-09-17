@@ -1,0 +1,11 @@
+{
+  "kit_id": "ithappy_scifi_v0",
+  "content_root": "Assets/Content/Structural/ithappy",
+  "source_repo": "https://github.com/9thLevelSoftware/the-synaptic-sea",
+  "source_path": "assets/imported/structural/ithappy",
+  "cell_size_m": 4.0,
+  "naming": "{role}_{variant}_{size}",
+  "module_ids": "same strings as ship_structural_v0 plus wall_x_junction",
+  "art": "copied, not regenerated",
+  "wall_x_junction": "imported from the Art Director wall_x_junction_pack (GLB + note + preview)"
+}
