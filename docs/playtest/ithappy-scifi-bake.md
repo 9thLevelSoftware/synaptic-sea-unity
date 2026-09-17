@@ -13,9 +13,10 @@ python3 tools/test_import_ithappy_keep.py
 
 ## Exact Deviltop bake command
 
-Deviltop Unity is `F:\Unity\6000.6.0f1\Editor\Unity.exe` (same editor as `tools/build.ps1`). From the repo root, project path is the `SynapticSea` folder:
+Deviltop Unity is `F:\Unity\6000.6.0f1\Editor\Unity.exe` (same editor as `tools/build.ps1`). From the repo root, project path is the `SynapticSea` folder. `builds/logs` is gitignored — create it first so Unity can open `-logFile`:
 
 ```
+New-Item -ItemType Directory -Force builds\logs | Out-Null
 F:\Unity\6000.6.0f1\Editor\Unity.exe -batchmode -nographics -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.StructuralPrefabBuilder.BuildAll -quit -kit ithappy_scifi_v0 -logFile builds/logs/ithappy-scifi-bake.log
 ```
 
@@ -43,9 +44,11 @@ If the report lists a module as missing its companion `{module_id}.asset.json`, 
 ## After-bake EditMode checks (needs the project Editor)
 
 ```
-pwsh tools/test.ps1 -Mode EditMode -Filter KitCatalogResolution
 pwsh tools/test.ps1 -Mode Dotnet -Filter KitAuthorityAudit
+pwsh tools/test.ps1 -Mode EditMode -Filter KitCatalogResolution
 ```
+
+`KitCatalogResolution` only proves the ithappy catalog **asset** loads (`kitId == ithappy_scifi_v0`). It still passes when `modules: []`. Bake-complete is the checklist above (report `errors: []`, 16 ithappy prefab paths, `wall_x_junction` resolves).
 
 `FrameConventionTests` / `StructuralPrefabCollisionTests` still target the v0 catalog unless pointed at ithappy after bake.
 

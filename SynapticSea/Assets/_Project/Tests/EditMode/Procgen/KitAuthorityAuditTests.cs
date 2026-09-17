@@ -104,6 +104,11 @@ namespace SynapticSea.Tests.Procgen
             var companion = KitAuthorityAudit.CompanionFromKitRow(kitRow, "four 4x3x0.2 wing boxes");
             KitAuthorityModuleReport gated = KitAuthorityAudit.EvaluateModule(kitRow, contract, companion, hasV0Twin: false);
             Assert.IsFalse(gated.Ungated, string.Join("\n", gated.Issues));
+
+            companion["document_kind"] = "not_an_art_package";
+            KitAuthorityModuleReport wrongKind = KitAuthorityAudit.EvaluateModule(kitRow, contract, companion, hasV0Twin: false);
+            Assert.IsTrue(wrongKind.Ungated);
+            StringAssert.Contains(KitAuthorityAudit.CompanionDocumentKind, string.Join("\n", wrongKind.Issues));
         }
 
         [Test]

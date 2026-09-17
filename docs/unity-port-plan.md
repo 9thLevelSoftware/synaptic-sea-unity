@@ -229,7 +229,7 @@ Port these domains into `Core/Systems/<domain>/`:
   - `Sockets/<id>` empties with a `SocketMarker`.
   - `CollisionRoot` BoxColliders on the Structure layer.
   - `Visual/{Intact,Damaged,Breached}` GLB instances, with materials remapped through `StructuralMaterialTable` and any `Collision_*` / `*-col` nodes stripped. Ceilings go on the Ceiling layer with a `CeilingFadeTarget`.
-- **Report** to `builds/logs/structural-prefab-report.json`. It lists missing GLBs, socket mismatches against the kit, bounds drift, unmapped materials, and placeholder unit-cube collision. The known placeholders are `ramp_up_1x2` and `ceiling_cap_1x1`; derive their collision from contract bounds.
+- **Report** to `builds/logs/structural-prefab-report-{kitId}.json` (ithappy: `structural-prefab-report-ithappy_scifi_v0.json`). It lists missing GLBs, socket mismatches against the kit, companion `.asset.json` gate failures, bounds drift, unmapped materials, and placeholder unit-cube collision. The known placeholders are `ramp_up_1x2` and `ceiling_cap_1x1`; derive their collision from contract bounds.
 
 **`PropPrefabBuilder`** reads the sidecars and produces `Content/Prefabs/Props/<asset_id>.prefab` with `PropVisual`. The Visual child bakes the offset, rotation, and scale. It uses the Prop layer with no collider, and checks sha256 and bounds.
 

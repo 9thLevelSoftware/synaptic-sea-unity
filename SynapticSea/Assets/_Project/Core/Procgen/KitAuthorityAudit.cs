@@ -279,6 +279,9 @@ namespace SynapticSea.Core.Procgen
         static void ValidateCompanion(KitAuthorityModuleReport report, GdDict kitRow, GdDict companion)
         {
             string moduleId = report.ModuleId;
+            string kind = companion.GetString("document_kind");
+            if (kind.Length == 0 || kind != CompanionDocumentKind)
+                report.Issues.Add("companion document_kind must be " + CompanionDocumentKind);
             if (companion.GetString("module_id") != moduleId)
                 report.Issues.Add("companion module_id mismatch");
             if (companion.GetString("module_family") != kitRow.GetString("module_family"))
