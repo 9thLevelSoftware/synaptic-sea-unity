@@ -33,7 +33,19 @@ namespace SynapticSea.Runtime
                 foreach (var e in modules)
                     if (e != null && !string.IsNullOrEmpty(e.moduleId) && e.prefab != null) _lookup[e.moduleId] = e.prefab;
             }
-            return _lookup.TryGetValue(moduleId ?? string.Empty, out prefab);
+            if (_lookup.TryGetValue(moduleId ?? string.Empty, out prefab)) return true;
+            // Additive kits (ithappy) are selectable before StructuralPrefabBuilder fills this
+            // catalog: shared module_ids fall back to ship_structural_v0. Unique modules
+            // (wall_x_junction) stay unresolved until the ithappy prefab exists.
+            if (!string.IsNullOrEmpty(kitId) &&
+                !string.Equals(kitId, "ship_structural_v0", StringComparison.Ordinal) &&
+                !string.Equals(moduleId, "wall_x_junction", StringComparison.Ordinal))
+            {
+                var fallback = Resources.Load<KitPrefabCatalog>("Catalogs/KitCatalog_ship_structural_v0");
+                if (fallback != null && fallback != this) return fallback.TryGetPrefab(moduleId, out prefab);
+            }
+            prefab = null;
+            return false;
         }
 
         void OnValidate() => _lookup = null;

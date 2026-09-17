@@ -268,11 +268,53 @@ def rewrite_wrapper(text: str, module_id: str) -> str:
     return text
 
 
-def copy_wrappers(godot: Path, dest: Path) -> None:
+V0_COLLISION_MODULES = {
+    "wall_straight_1x1",
+    "wall_end_cap",
+    "wall_inner_corner",
+    "wall_outer_corner",
+    "wall_t_junction",
+    "doorway_frame_open_1x1",
+    "doorway_frame_blocked_1x1",
+}
+
+
+def overlay_v0_collision(keep_text: str, v0_text: str) -> str:
+    """Keep ithappy visuals; use v0 BoxShape3D trees so 4x4x4 KEEP cubes do not block cells."""
+    exts = re.findall(r"\[ext_resource[^\]]+\]\n", keep_text)
+    boxes = re.findall(r'\[sub_resource type="BoxShape3D"[^\]]*\]\nsize = Vector3\([^\)]*\)\n', v0_text)
+    root_name = re.search(r'\[node name="([^\"]+)" type="Node3D"\]', keep_text).group(1)
+    anchors = re.findall(r'(\[node name="Anchor_[^\"]+"[^\]]*\]\n(?:[^\[][^\n]*\n)*)', keep_text)
+    collision = re.search(r"(\[node name=\"CollisionRoot\".*)(?=\[node name=\"Visual\")", v0_text, re.S)
+    visual = re.search(r"(\[node name=\"Visual\".*)", keep_text, re.S)
+    if not boxes or collision is None or visual is None:
+        return keep_text
+    load_steps = len(exts) + len(boxes) + 1
+    return (
+        f"[gd_scene load_steps={load_steps} format=3]\n\n"
+        + "".join(exts)
+        + "\n"
+        + "".join(boxes)
+        + "\n"
+        + f'[node name="{root_name}" type="Node3D"]\n\n'
+        + "".join(anchors)
+        + ("\n" if anchors else "")
+        + collision.group(1).rstrip()
+        + "\n\n"
+        + visual.group(1).rstrip()
+        + "\n"
+    )
+
+
+def copy_wrappers(godot: Path, dest: Path, repo: Path) -> None:
     src = godot / "scenes/wrappers/structural/ithappy"
+    v0 = repo / "fixtures/godot_wrappers/ship_structural_v0"
     dest.mkdir(parents=True, exist_ok=True)
     for tscn in sorted(src.glob("*.tscn")):
         text = rewrite_wrapper(tscn.read_text(encoding="utf-8"), tscn.stem)
+        v0_path = v0 / tscn.name
+        if tscn.stem in V0_COLLISION_MODULES and v0_path.exists():
+            text = overlay_v0_collision(text, v0_path.read_text(encoding="utf-8"))
         write_text(dest / tscn.name, text)
 
 
@@ -281,10 +323,13 @@ def copy_contracts(repo: Path) -> None:
     dst = repo / "SynapticSea/Assets/StreamingAssets/data/placement/contracts/structural/ithappy_scifi_v0"
     dst.mkdir(parents=True, exist_ok=True)
     write_meta_for(dst, "folder")
+    allowed = set(SHARED_V0_MODULE_IDS)
     for src_file in sorted(src.glob("*_contract.json")):
         data = json.loads(src_file.read_text(encoding="utf-8"))
         rewrite_kit_id(data, "ithappy_scifi_v0")
         module_id = data.get("module_id") or src_file.name.replace("_contract.json", "")
+        if module_id not in allowed:
+            continue
         data["wrapper_scene"] = f"res://scenes/wrappers/structural/ithappy/{module_id}.tscn"
         data["source_asset_path"] = f"assets/imported/structural/ithappy/{module_id}/{module_id}.glb"
         data["contract_path"] = (
@@ -565,7 +610,7 @@ def main() -> None:
         raise SystemExit(f"missing Godot structural set: {structural_src}")
 
     copied = copy_tree_assets(structural_src, structural_dst, "structural")
-    copy_wrappers(godot, wrappers_dst)
+    copy_wrappers(godot, wrappers_dst, repo)
     copy_contracts(repo)
     import_wall_x(args.wall_x_pack, structural_dst, wrappers_dst, contracts_dst)
     update_kit_json(kit_json)
