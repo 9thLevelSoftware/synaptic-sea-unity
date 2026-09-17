@@ -694,12 +694,7 @@ namespace SynapticSea.Core.Session
             });
             InventoryState?.Reset();
             FireSuppressionState?.Configure(LoadJsonDict(SHIP_SUBSYSTEM_TUNING_PATH).GetDictOrEmpty("fire_suppression"));
-            ElectricalArcState?.Configure(new GdDict
-            {
-                { "zone_ids", new GdArray() },
-                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION },
-                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION },
-            });
+            ElectricalArcState?.Configure(ArcConfig(new GdArray()));
             VitalsState?.Configure(new GdDict());
             SanityState?.Configure(new GdDict());
             RadiationState?.Configure(new GdDict());

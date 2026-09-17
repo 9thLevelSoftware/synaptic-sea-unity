@@ -326,6 +326,20 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(4242L, loaded.RunSeed);
         }
 
+        [Test]
+        public void C4_HazardDial_ScalesArcDurations()
+        {
+            RunSession standard = Boot().Session;
+            Assert.AreEqual(ElectricalArcState.DEFAULT_ARCING_DURATION, standard.ElectricalArcState.ArcingDuration, "standard keeps Godot's arc timing");
+            Assert.AreEqual(ElectricalArcState.DEFAULT_DISCHARGED_DURATION, standard.ElectricalArcState.DischargedDuration);
+
+            RunSession deep = Boot(d => d.DifficultyId = "deep_dive").Session;
+            double hazard = deep.HomeDial(DifficultyProfile.DIAL_HAZARD);
+            Assert.Greater(hazard, 1.0);
+            Assert.AreEqual(ElectricalArcState.DEFAULT_ARCING_DURATION * hazard, deep.ElectricalArcState.ArcingDuration, 1e-12, "arcs last longer");
+            Assert.AreEqual(ElectricalArcState.DEFAULT_DISCHARGED_DURATION / hazard, deep.ElectricalArcState.DischargedDuration, 1e-12, "the safe window shrinks");
+        }
+
         // ================================================================== D3 threat attack event
 
         [Test]

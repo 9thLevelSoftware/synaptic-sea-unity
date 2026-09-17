@@ -357,6 +357,25 @@ namespace SynapticSea.Core.Session
         }
 
         // ------------------------------------------------------------------ electrical arc
+        /// <summary>Smallest hazard dial the arc timing divides by (a biome may push the combined dial toward 0).</summary>
+        const double ARC_MIN_HAZARD_MODIFIER = 0.1;
+
+        /// <summary>
+        /// Unity port (C4) tuning, not parity: the home hazard dial lengthens the arcing phase and shortens the safe
+        /// discharged window (<c>arcing x dial</c>, <c>discharged / dial</c>). Both durations are exactly Godot's defaults
+        /// for "standard" and away from home, like the breach drain.
+        /// </summary>
+        GdDict ArcConfig(GdArray zoneIds)
+        {
+            double modifier = System.Math.Max(ARC_MIN_HAZARD_MODIFIER, HomeHazardModifier());
+            return new GdDict
+            {
+                { "zone_ids", zoneIds },
+                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION * modifier },
+                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION / modifier },
+            };
+        }
+
         /// <summary><c>_build_arc_zone()</c>: configure the model (always), then one zone per resolved marker.</summary>
         void BuildArcZone()
         {
@@ -367,24 +386,14 @@ namespace SynapticSea.Core.Session
             ArcZoneResolvedRoomIds.Clear();
             if (ElectricalArcState == null)
                 ElectricalArcState = new ElectricalArcState();
-            ElectricalArcState.Configure(new GdDict
-            {
-                { "zone_ids", new GdArray() },
-                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION },
-                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION },
-            });
+            ElectricalArcState.Configure(ArcConfig(new GdArray()));
             List<GdDict> resolutions = ResolveArcZoneWorldPositions();
             if (resolutions.Count == 0)
                 return;
             var zoneIds = new GdArray();
             foreach (GdDict r in resolutions)
                 zoneIds.Add(V.Str(r.Get("zone_id", ARC_ZONE_FALLBACK_ID)));
-            ElectricalArcState.Configure(new GdDict
-            {
-                { "zone_ids", zoneIds },
-                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION },
-                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION },
-            });
+            ElectricalArcState.Configure(ArcConfig(zoneIds));
             foreach (GdDict r in resolutions)
             {
                 Vec3 pos = r.Get("position", Vec3.Inf) is Vec3 p ? p : Vec3.Inf;

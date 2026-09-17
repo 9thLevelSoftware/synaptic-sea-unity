@@ -299,10 +299,24 @@ namespace SynapticSea.App
             if (result.GetString("screen", "") == "save_load") RefreshContinueEnabled();
         }
 
+        /// <summary>
+        /// Unity port: the New Run setup's difficulty becomes the stored preference, so the next setup (and the settings
+        /// menu) opens on it. Persisted once through <see cref="AppServices.ApplySettings"/>; the coordinator's
+        /// <c>ApplySettingsSummary</c> is not used because it raises <c>SettingsChanged</c> and would save twice.
+        /// </summary>
+        void RememberNewRunDifficulty(string difficultyId)
+        {
+            SettingsState settings = Coordinator.SettingsState;
+            if (settings.GetDifficulty() == difficultyId || !settings.SetDifficulty(difficultyId)) return;
+            AppServices.Instance?.ApplySettings(settings.GetSummary());
+        }
+
         /// <summary>Godot <c>_instantiate_gameplay</c>: hand the run to the Playable scene.</summary>
         public bool Launch(RunLaunchRequest request)
         {
             if (_launching || request == null) return false;
+            if (request.Mode == RunLaunchMode.NewRun && !string.IsNullOrEmpty(request.DifficultyId))
+                RememberNewRunDifficulty(request.DifficultyId);
             // A New Run carries the setup's difficulty; loads restore the saved run's own context.
             if (request.Mode != RunLaunchMode.NewRun || string.IsNullOrEmpty(request.DifficultyId))
                 request.DifficultyId = Coordinator.SettingsState.GetDifficulty();

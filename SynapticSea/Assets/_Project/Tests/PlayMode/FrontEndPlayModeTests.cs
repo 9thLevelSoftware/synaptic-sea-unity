@@ -266,6 +266,23 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator NewRunStoresTheChosenDifficultyAsThePreference()
+        {
+            yield return BootToTitle();
+            int applied = 0;
+            AppServices.Instance.SettingsApplied += _ => applied++;
+            Assert.AreEqual("standard", _title.Coordinator.SettingsState.GetDifficulty());
+
+            Assert.IsTrue(_title.Launch(RunLaunchRequest.NewRun(5, RunLaunchRequest.DefaultBiomeId, "hardened")));
+            Assert.AreEqual("hardened", RunLaunchRequest.Pending.DifficultyId);
+            Assert.AreEqual(1, applied, "the preference is saved exactly once");
+            Assert.AreEqual("hardened", AppServices.Instance.Settings.GetDifficulty());
+            GdDict stored = UserSettingsStore.Load(_storage);
+            Assert.IsNotNull(stored, "preferences persisted");
+            Assert.AreEqual("hardened", stored.GetString("difficulty", ""));
+        }
+
+        [UnityTest]
         public IEnumerator SeedFieldAcceptsTypedDigits()
         {
             yield return BootToTitle();
