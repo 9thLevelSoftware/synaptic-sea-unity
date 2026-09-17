@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SynapticSea.Core.Procgen;
 using UnityEngine;
 
 namespace SynapticSea.Runtime
@@ -23,6 +24,9 @@ namespace SynapticSea.Runtime
         public float gridStepMetres = 4f;
         public List<Entry> modules = new List<Entry>();
 
+        /// <summary>Ithappy-only module; it has no v0 prefab, so the unbaked catalog must not fall back.</summary>
+        const string ExclusiveAdditiveModuleId = "wall_x_junction";
+
         Dictionary<string, StructuralModule> _lookup;
 
         public bool TryGetPrefab(string moduleId, out StructuralModule prefab)
@@ -38,10 +42,10 @@ namespace SynapticSea.Runtime
             // catalog: shared module_ids fall back to ship_structural_v0. Unique modules
             // (wall_x_junction) stay unresolved until the ithappy prefab exists.
             if (!string.IsNullOrEmpty(kitId) &&
-                !string.Equals(kitId, "ship_structural_v0", StringComparison.Ordinal) &&
-                !string.Equals(moduleId, "wall_x_junction", StringComparison.Ordinal))
+                !string.Equals(kitId, KitCatalog.DEFAULT_KIT_ID, StringComparison.Ordinal) &&
+                !string.Equals(moduleId, ExclusiveAdditiveModuleId, StringComparison.Ordinal))
             {
-                var fallback = Resources.Load<KitPrefabCatalog>("Catalogs/KitCatalog_ship_structural_v0");
+                var fallback = KitCatalogResolver.LoadCatalog(KitCatalog.DEFAULT_KIT_ID);
                 if (fallback != null && fallback != this) return fallback.TryGetPrefab(moduleId, out prefab);
             }
             prefab = null;

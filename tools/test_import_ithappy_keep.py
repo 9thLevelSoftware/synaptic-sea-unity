@@ -106,10 +106,53 @@ def test_write_catalog_creates_then_preserves() -> None:
         t("populated catalog is not wiped", "moduleId: floor_1x1" in path.read_text(encoding="utf-8"))
 
 
+def test_copy_tree_allowlists_inert_assets() -> None:
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        src = tmp / "godot"
+        repo = tmp / "repo"
+        dst = repo / "SynapticSea/Assets/Content/Structural/ithappy"
+        (src / "floor").mkdir(parents=True)
+        (src / "floor" / "floor.glb").write_text("glb", encoding="utf-8")
+        (src / "floor" / "floor_Color.png").write_bytes(b"png")
+        (src / "floor" / "note.json").write_text("{}", encoding="utf-8")
+        (src / "floor" / "floor.glb.meta").write_text("supplier-meta", encoding="utf-8")
+        (src / "Editor").mkdir()
+        (src / "Editor" / "Payload.cs").write_text("class Payload {}", encoding="utf-8")
+        (src / "Plugins").mkdir()
+        (src / "Plugins" / "evil.dll").write_bytes(b"MZ")
+        (src / "sneaky.cs").write_text("class Sneaky {}", encoding="utf-8")
+        link = src / "linked.glb"
+        try:
+            link.symlink_to(src / "floor" / "floor.glb")
+        except OSError:
+            link = None
+        copied = imp.copy_tree_assets(src, dst, "structural", repo)
+        names = {p.relative_to(dst).as_posix() for p in copied}
+        t("copies glb", "floor/floor.glb" in names)
+        t("copies png", "floor/floor_Color.png" in names)
+        t("copies json", "floor/note.json" in names)
+        t("skips supplier meta", "floor/floor.glb.meta" not in names)
+        t("skips scripts", "sneaky.cs" not in names)
+        t("skips Editor payload", "Editor/Payload.cs" not in names)
+        t("does not create Editor folder", not (dst / "Editor").exists())
+        t("skips Plugins dll", "Plugins/evil.dll" not in names)
+        if link is not None:
+            t("skips symlinks", "linked.glb" not in names)
+
+
+def test_overlay_without_root_returns_keep_text() -> None:
+    keep = '[gd_scene load_steps=1 format=3]\n\n[node name="Visual" type="MeshInstance3D"]\n'
+    v0 = '[sub_resource type="BoxShape3D" id="1"]\nsize = Vector3(1, 1, 1)\n[node name="CollisionRoot"]\n[node name="Visual"]\n'
+    t("missing Node3D root keeps text", imp.overlay_v0_collision(keep, v0) == keep)
+
+
 test_guid_is_repo_relative()
 test_guid_relative_vs_absolute_repo()
 test_dot_repo_matches_absolute()
 test_write_meta_stable_across_clones()
 test_write_meta_keeps_existing_guid()
 test_write_catalog_creates_then_preserves()
+test_copy_tree_allowlists_inert_assets()
+test_overlay_without_root_returns_keep_text()
 print("OK")

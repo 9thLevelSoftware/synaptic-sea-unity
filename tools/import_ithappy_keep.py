@@ -34,6 +34,8 @@ SHARED_V0_MODULE_IDS = [
     "ceiling_cap_1x1",
 ]
 PROP_STARTER_CATEGORIES = ["doors_hatches", "security"]
+ALLOWED_ASSET_SUFFIXES = frozenset({".glb", ".png", ".json"})
+BLOCKED_DIR_NAMES = frozenset({"editor", "plugins", "resources", "streamingassets"})
 
 
 def guid_for(*parts: str) -> str:
@@ -52,6 +54,22 @@ def repo_relative(repo: Path, path: Path) -> str:
 
 def guid_for_asset(kind: str, repo: Path, path: Path) -> str:
     return guid_for(kind, repo_relative(repo, path))
+
+
+def import_rel_blocked(rel: Path) -> bool:
+    return any(part.lower() in BLOCKED_DIR_NAMES for part in rel.parts)
+
+
+def is_allowed_import_path(src_file: Path, src_root: Path) -> bool:
+    """KEEP copies only inert glb/png/json; no scripts, metas, symlinks, or Unity special folders."""
+    if src_file.is_symlink():
+        return False
+    rel = src_file.relative_to(src_root)
+    if import_rel_blocked(rel):
+        return False
+    if src_file.is_dir():
+        return True
+    return src_file.suffix.lower() in ALLOWED_ASSET_SUFFIXES
 
 
 def write_text(path: Path, text: str) -> None:
@@ -258,7 +276,7 @@ def copy_tree_assets(src: Path, dst: Path, root_label: str, repo: Path) -> list[
     dst.mkdir(parents=True, exist_ok=True)
     write_meta_for(dst, "folder", repo)
     for src_file in sorted(src.rglob("*")):
-        if src_file.name.endswith(".import") or src_file.name.endswith(".uid"):
+        if not is_allowed_import_path(src_file, src):
             continue
         rel = src_file.relative_to(src)
         dest = dst / rel
@@ -313,7 +331,10 @@ def overlay_v0_collision(keep_text: str, v0_text: str) -> str:
     """Keep ithappy visuals; use v0 BoxShape3D trees so 4x4x4 KEEP cubes do not block cells."""
     exts = re.findall(r"\[ext_resource[^\]]+\]\n", keep_text)
     boxes = re.findall(r'\[sub_resource type="BoxShape3D"[^\]]*\]\nsize = Vector3\([^\)]*\)\n', v0_text)
-    root_name = re.search(r'\[node name="([^\"]+)" type="Node3D"\]', keep_text).group(1)
+    root_match = re.search(r'\[node name="([^\"]+)" type="Node3D"\]', keep_text)
+    if root_match is None:
+        return keep_text
+    root_name = root_match.group(1)
     anchors = re.findall(r'(\[node name="Anchor_[^\"]+"[^\]]*\]\n(?:[^\[][^\n]*\n)*)', keep_text)
     collision = re.search(r"(\[node name=\"CollisionRoot\".*)(?=\[node name=\"Visual\")", v0_text, re.S)
     visual = re.search(r"(\[node name=\"Visual\".*)", keep_text, re.S)
