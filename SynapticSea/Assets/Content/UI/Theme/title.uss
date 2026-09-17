@@ -1,0 +1,52 @@
+/* Title screen (ADR-0043 title flow on the shared theme). Nothing runs behind the title, so surface time badges are
+   hidden (visibility: the badge's inline display style would win over a display rule). */
+
+.title-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--ss-color-backing);
+}
+
+.title-screen .ss-badge {
+    visibility: hidden;
+}
+
+.title-screen .ss-menu {
+    width: 46%;
+    min-width: 420px;
+    max-width: 96%;
+}
+
+.title-screen.scale-150 .ss-menu,
+.title-screen.scale-200 .ss-menu {
+    width: 72%;
+}
+
+.title-screen .ss-menu .ss-surface__title {
+    font-size: var(--ss-font-h1);
+    color: var(--ss-color-text);
+}
+
+.title-footer {
+    position: absolute;
+    left: var(--ss-safe-inset);
+    right: var(--ss-safe-inset);
+    bottom: var(--ss-safe-inset);
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.title-status {
+    flex-direction: column;
+    flex-shrink: 1;
+}
+
+.title-release-badge {
+    border-left-width: 4px;
+    padding-left: var(--ss-space-2);
+    flex-shrink: 0;
+}

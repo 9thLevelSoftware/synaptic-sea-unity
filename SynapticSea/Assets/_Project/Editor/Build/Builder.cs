@@ -82,7 +82,8 @@ namespace SynapticSea.EditorTools.Build
             string exeName = target == BuildTarget.StandaloneOSX ? "TheSynapticSea.app"
                 : target == BuildTarget.StandaloneLinux64 ? "TheSynapticSea.x86_64" : "TheSynapticSea.exe";
             Directory.CreateDirectory(outputDir);
-            var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
+            Scenes.BuildSettingsSetup.EnsureScenes();
+            var scenes = Scenes.BuildSettingsSetup.ExistingEnabledScenes();
             if (scenes.Length == 0)
             {
                 Debug.LogError("[Builder] BUILD FAIL no enabled scenes in Build Settings");
