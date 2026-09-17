@@ -70,8 +70,16 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
     - Interaction: one `ProximitySensor` (kinematic trigger on the player) sets `CandidatePlayerInRange` on `InteractableView` triggers (Sensor layer), refreshed with `OverlapSphere` after spawn, teleport and re-peg. Which handler claims an interact is still `InteractionRegistry`; the focus highlight picks the in-range view with the earliest registry handler.
     - Zones: route gate / breach / arc are ZoneBlocker box colliders whose `enabled` follows `SessionZone.CollisionEnabled`; fire zones spawn `timed_fire`, closed route gates `biomatter_blockage` (the VfxCatalog hooks).
     - Structural integrity writes go through `StructuralModule.SetIntegrity` (the resolver's per-child visibility calls fold into it).
-    - Composition: `Game/` (`SynapticSea.Game`, references App and UI) holds `PlayableBootstrap` (uses `AppServices.Ensure()`, consumes `RunLaunchRequest`) and `SessionUiBridge`. No request (scene opened directly, tests) boots golden `coherent_ship_001`; a title New Run boots Godot's default start (`smoke/seed_000017`). The UI audio seam is `SessionUiAudio` over the session's `SessionAudio` models, so bus volumes have one source of truth.
+    - Composition: `Game/` (`SynapticSea.Game`, references App and UI) holds `PlayableBootstrap` (uses `AppServices.Ensure()`, consumes `RunLaunchRequest`) and `SessionUiBridge`. No request (scene opened directly, tests) and Title New Run both boot golden `coherent_ship_001` (Milestone A hub). Non-slice New Run seed/biome/difficulty fail closed with a readable reason and return to Title. The UI audio seam is `SessionUiAudio` over the session's `SessionAudio` models, so bus volumes have one source of truth.
     - Core change: `RunSession.Create(deps, beforeReady)`, so the scene can subscribe before `_ready` raises the boot events.
+
+24. **Milestone A New Run / first-away launch contract** (2026-09-17, Systems Designer lock + REQ-SLICE-001).
+    - New Run does **not** use `StartSceneBuilder`. Hub is golden `coherent_ship_001`.
+    - First away uses production `travel_to` → `ShipGenerator.GenerateFromSeed` with preferred seeds `[42, 777]` in authored order, contract biome `breach_field` / difficulty `standard`, plus standing start→goal. The first passing generated wreck is boarded via `_attach_derelict_active` (no `away_from_start` flag-flip).
+    - If no seed passes, travel is denied before marker/world changes (`first_run_contract_unsatisfied: …` on the scanner status). Hub stays put.
+    - `FirstRunContract.PickSeed` itself still matches Godot `96ecb2b0` (fallback to preferred[0]) for procgen parity tests. The live travel path does **not** use that fallback — later Godot and the locked product decision deny instead.
+    - `StartSceneBuilder.Build` stays null-with-log when the derelict has no dock. Do not invent docks to unblock New Run.
+    - Playtest verify path: `docs/playtest/milestone-a-new-run.md`.
 
 ## Light calibration (2026-09-11)
 
@@ -105,10 +113,11 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
 
 - Loading a Godot run save and building it again differs on 22 known paths (Godot's JSON load turns nested ints into floats; power grid, propulsion and sustenance summaries are recomputed; crafting stations re-register; the caption queue is not restored). `SessionSaveParityTests` pins that list. Not yet confirmed against a Godot load-then-save.
 - Damaged power subcomponents wear from 0.2 to about 0.04 over simulated seconds in the headless session; unverified against Godot.
-- Playable: non-default launch seeds, biomes and difficulties are not generated yet (the bootstrap warns and uses Godot's default start). World labels (`Label3D` affordances, arc/breach warnings) and the readability affordance props are not built by the scene yet.
-- Playable: the loader's `BlockedRoute_*` markers stay collidable after the powered gates open (both as in Godot; confirm against a Godot run).
+- Playable: world labels (`Label3D` affordances, arc/breach warnings) and the readability affordance props are not built by the scene yet.
+- Playable: the loader's `BlockedRoute_*` markers stay collidable after the powered gates open (Godot `96ecb2b0` parity for this slice; keep collidable if that matches Godot).
+- Milestone A New Run / first away: implemented. Non-slice seed/biome/difficulty fail closed. Verify path in `docs/playtest/milestone-a-new-run.md`.
 - `PlayableScenePlayModeTests` taps keys with queued `KeyboardState` events: `InputTestFixture.Press` has no keyboard state pointer in the batch-mode editor.
-- `StartSceneBuilder.Build` returns null for every seed tried, in Godot too: the legacy template pool generates derelicts without a dock room. Ported as is; needs a design decision.
+- `StartSceneBuilder.Build` returns null for every seed tried, in Godot too: the legacy template pool generates derelicts without a dock room. **Kept** (null / fail closed). Milestone A New Run does not use it.
 - Ramp collision needs a sloped collider (Godot used a placeholder cube).
 - VFX: fire zones and closed route gates are wired; the beacon and reactor landmark glows are not.
 - GPU Resident Drawer first frame. The GRD applies renderer and material changes only in its player-loop hook (`GPUResidentDrawer.PostPostLateUpdate` → `m_WorldProcessor.Update()`, injected before `PostLateUpdate.FinishFrameRendering`).

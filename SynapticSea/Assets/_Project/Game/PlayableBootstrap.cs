@@ -2,6 +2,7 @@
 // title handoff title_main.gd made: request_load() / apply_ui_settings_summary()).
 using System;
 using SynapticSea.App;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
@@ -24,8 +25,7 @@ namespace SynapticSea.Game
     /// <see cref="SessionUiBridge"/>, and honours <see cref="RunLaunchRequest.Consume"/>:
     /// <list type="bullet">
     /// <item>no request (scene opened directly, tests): a new run on the golden <c>coherent_ship_001</c>;</item>
-    /// <item>NewRun: Godot's default start (<c>RunSession.DEFAULT_LAYOUT_PATH</c>, smoke seed 17) for the default
-    /// seed; other seeds are not generated yet and fall back to it with a warning;</item>
+    /// <item>NewRun: Milestone A hub golden <c>coherent_ship_001</c>. Non-slice seed/biome/difficulty fail closed;</item>
     /// <item>Continue: <c>request_load()</c> on the world save; LoadSlot: the manual slot;</item>
     /// <item>SettingsSummary (when the title settings changed) is applied after any load.</item>
     /// </list>
@@ -35,7 +35,7 @@ namespace SynapticSea.Game
     [DisallowMultipleComponent]
     public sealed class PlayableBootstrap : MonoBehaviour
     {
-        public const string GoldenDir = "res://data/procgen/golden/coherent_ship_001/";
+        public const string GoldenDir = MilestoneALaunch.HubDir;
 
         /// <summary>The running bootstrap (null outside the Playable scene).</summary>
         public static PlayableBootstrap Current { get; private set; }
@@ -81,6 +81,17 @@ namespace SynapticSea.Game
             if (IsBooted) return;
             Current = this;
             Launch = RunLaunchRequest.Consume();
+            if (Launch != null && Launch.Mode == RunLaunchMode.NewRun
+                && !MilestoneALaunch.TryAccept(Launch.Seed, Launch.BiomeId, Launch.DifficultyId, out string closedReason))
+            {
+                BootFailure = closedReason;
+                RunReturnInfo.LastFailureReason = closedReason;
+                Debug.LogError("PlayableBootstrap: " + closedReason);
+                IsBooted = true;
+                if (SceneLoader != null) SceneLoader(RunLaunchRequest.TitleSceneName);
+                Booted?.Invoke(this);
+                return;
+            }
             Services = AppServices.Ensure();
             EnsureGlobalVolume();
             AtmosphereApplier.ApplyGodotDefaultEnvironment();
@@ -117,22 +128,13 @@ namespace SynapticSea.Game
             Booted?.Invoke(this);
         }
 
-        /// <summary>The session dependencies for a launch (paths, starting class).</summary>
+        /// <summary>The session dependencies for a launch (paths, starting class). Milestone A hub is always golden.</summary>
         public static RunSessionDeps DepsFor(RunLaunchRequest launch)
         {
-            var deps = new RunSessionDeps
-            {
-                LayoutPath = GoldenDir + "layout.json",
-                KitPath = RunSession.DEFAULT_KIT_PATH,
-                GameplaySlicePath = GoldenDir + "gameplay_slice.json",
-                BlueprintPath = GoldenDir + "blueprint.json",
-            };
+            var deps = new RunSessionDeps();
+            MilestoneALaunch.ApplyHubPaths(deps);
             if (launch == null) return deps;
             deps.StartingClassId = string.IsNullOrEmpty(launch.ClassId) ? RunLaunchRequest.DefaultClassId : launch.ClassId;
-            if (launch.Seed != RunLaunchRequest.DefaultSeed)
-                Debug.LogWarning($"PlayableBootstrap: seed {launch.Seed} start generation is not ported; using Godot's default start (seed {RunLaunchRequest.DefaultSeed})");
-            deps.LayoutPath = RunSession.DEFAULT_LAYOUT_PATH;
-            deps.GameplaySlicePath = RunSession.DEFAULT_GAMEPLAY_SLICE_PATH;
             return deps;
         }
 

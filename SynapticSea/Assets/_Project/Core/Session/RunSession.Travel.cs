@@ -137,19 +137,26 @@ namespace SynapticSea.Core.Session
                 EmitTravelDeniedSfx();
                 return new GdDict { { "success", false }, { "reason", "not_aboard_ship" } };
             }
+            GdDict firstRunResult = ApplyFirstRunContractToMarker(marker);
+            if (firstRunResult.GetBool("applicable") && !firstRunResult.GetBool("success"))
+            {
+                EmitTravelDeniedSfx();
+                return new GdDict
+                {
+                    { "success", false },
+                    { "reason", V.Str(firstRunResult.Get("reason", FirstRunAwayGate.UnsatisfiedReason)) },
+                };
+            }
+            bool firstRunContractApplied = firstRunResult.GetBool("applied");
             double playerOxygenBeforeTransition = OxygenState != null ? V.F64(OxygenState.GetSummary().Get("oxygen", -1.0)) : -1.0;
             Vec3 prevPlayerPos = SynapticSeaWorld.PlayerPosition;
             bool wasGenerated = SynapticSeaWorld.IsGenerated(marker.MarkerId);
-            bool firstRunContractApplied = ApplyFirstRunContractToMarker(marker);
             var opsT = new GdDict { { "propulsion", CurrentSystemsOps().GetBool("propulsion") } };
             GdDict runCtx = ResolveDerelictRunContext(marker);
-            if (firstRunContractApplied && FirstRunContract != null)
+            if (firstRunContractApplied)
             {
-                runCtx = new GdDict
-                {
-                    { "biome", V.Str(FirstRunContract.Contract.Get("biome_id", runCtx.Get("biome", ""))) },
-                    { "difficulty", V.Str(FirstRunContract.Contract.Get("difficulty_id", runCtx.Get("difficulty", ""))) },
-                };
+                GdDict contractCtx = firstRunResult.GetDictOrEmpty("run_context");
+                if (!contractCtx.IsEmpty) runCtx = contractCtx;
             }
             ShipGenerator.ConfigureRunContext(V.Str(runCtx.Get("biome", "")), V.Str(runCtx.Get("difficulty", "")));
             TravelAttemptResult result = TravelController.AttemptTravel(marker, opsT, SynapticSeaWorld, ShipGenerator, ScannerState.RangeRadius);

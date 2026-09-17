@@ -141,34 +141,44 @@ namespace SynapticSea.Core.Session
         }
 
         /// <summary>
-        /// The first away derelict is the only travel the first-run contract may redirect. The marker is regenerated on
-        /// every scan, so changing its seed affects this travel request only.
+        /// The first away derelict is the only travel the first-run contract may redirect. Candidates are generated
+        /// through the production <see cref="ShipGenerator"/> route (marker size/condition + contract biome/difficulty)
+        /// and accepted only when the complete first-run contract passes. Fail closed: no preferred-seed fallback.
         /// </summary>
-        bool ApplyFirstRunContractToMarker(ShipMarker marker)
+        GdDict ApplyFirstRunContractToMarker(ShipMarker marker)
         {
-            if (marker == null || FirstRunContract == null || FirstRunContract.Contract.IsEmpty)
-                return false;
-            if (VisitedShips.Count > 0 || string.IsNullOrEmpty(marker.MarkerId))
-                return false;
-            var layoutGenerator = new ShipLayoutGenerator();
-            var sliceBuilder = new GameplaySliceBuilder();
-            var candidates = new GdDict();
-            string biomeId = V.Str(FirstRunContract.Contract.Get("biome_id", ""));
-            string difficultyId = V.Str(FirstRunContract.Contract.Get("difficulty_id", ""));
-            foreach (object seedVariant in FirstRunContract.Contract.GetArrayOrEmpty("preferred_seeds"))
+            if (marker == null || string.IsNullOrEmpty(marker.MarkerId) || VisitedShips.Count > 0)
+                return new GdDict { { "applicable", false }, { "success", true }, { "applied", false } };
+            if (FirstRunContract == null || FirstRunContract.Contract.IsEmpty || ShipGenerator == null)
             {
-                long seedValue = V.I64(seedVariant);
-                var blueprint = new ShipBlueprint(marker.SizeClass, marker.Condition, seedValue);
-                GdDict layout = layoutGenerator.GenerateWithOptions(blueprint, new GdDict(), biomeId, difficultyId, true);
-                candidates[seedValue] = new GdDict
+                return new GdDict
                 {
-                    { "layout", layout },
-                    { "gameplay_slice", sliceBuilder.Build(layout) },
+                    { "applicable", true }, { "success", false }, { "applied", false },
+                    { "reason", FirstRunAwayGate.ReadableUnsatisfied("first-run contract is missing") },
                 };
             }
-            long chosenSeed = FirstRunContract.PickSeed(candidates);
-            marker.SeedValue = chosenSeed;
-            return true;
+            string biomeId = V.Str(FirstRunContract.Contract.Get("biome_id", ""));
+            string difficultyId = V.Str(FirstRunContract.Contract.Get("difficulty_id", ""));
+            ShipGenerator.ConfigureRunContext(biomeId, difficultyId);
+            FirstRunAwayGate.Result pick = FirstRunAwayGate.EvaluateCandidates(
+                FirstRunContract, marker.SizeClass, marker.Condition,
+                (seed, size, condition) => ShipGenerator.GenerateFromSeed(seed, size, condition));
+            if (!pick.Success)
+            {
+                return new GdDict
+                {
+                    { "applicable", true }, { "success", false }, { "applied", false },
+                    { "reason", pick.Reason },
+                };
+            }
+            marker.SeedValue = pick.Seed;
+            return new GdDict
+            {
+                { "applicable", true },
+                { "success", true },
+                { "applied", true },
+                { "run_context", new GdDict { { "biome", biomeId }, { "difficulty", difficultyId } } },
+            };
         }
 
         /// <summary><c>_configure_player_progression()</c>: idempotent class + hub-bonus setup.</summary>

@@ -26,7 +26,10 @@ namespace SynapticSea.Runtime.Session
         public const string PlayableSceneName = "Playable";
         public const string TitleSceneName = "Title";
 
-        /// <summary>Godot's fixed default start (<c>RunSession.DEFAULT_LAYOUT_PATH</c> = smoke/seed_000017).</summary>
+        /// <summary>
+        /// Title New Run sentinel. Milestone A hub is golden <c>coherent_ship_001</c>, not this seed's layout.
+        /// Away seeds come from the first-run contract preferred list.
+        /// </summary>
         public const long DefaultSeed = 17;
         /// <summary>Milestone A default biome (ui_presentation_program.md: "fixed default start, breach_field/standard").</summary>
         public const string DefaultBiomeId = "breach_field";
