@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -57,6 +58,39 @@ namespace SynapticSea.Tests.Procgen
             Assert.AreEqual(
                 "Assets/Content/Prefabs/Structural/ithappy_scifi_v0/wall_x_junction.prefab",
                 IthappyKitContactSheetSpec.PrefabAssetPath("wall_x_junction"));
+        }
+
+        [Test]
+        public void Spec_LocksTrueIsoFraming_PitchYawAndOrthoBand()
+        {
+            Assert.AreEqual(35.26438968f, IthappyKitContactSheetSpec.PitchDownDegrees, 1e-5f);
+            Assert.AreEqual(45f, IthappyKitContactSheetSpec.YawBiasDegrees);
+            Assert.AreEqual(18f, IthappyKitContactSheetSpec.OrthographicSizeMin);
+            Assert.AreEqual(22f, IthappyKitContactSheetSpec.OrthographicSizeMax);
+            Assert.AreEqual(22f, IthappyKitContactSheetSpec.ContactSheetOrthographicSize);
+            Assert.AreEqual(18f, IthappyKitContactSheetSpec.PerModuleOrthographicSize);
+            Assert.That(IthappyKitContactSheetSpec.ContactSheetOrthographicSize,
+                Is.InRange(IthappyKitContactSheetSpec.OrthographicSizeMin, IthappyKitContactSheetSpec.OrthographicSizeMax));
+            Assert.That(IthappyKitContactSheetSpec.PerModuleOrthographicSize,
+                Is.InRange(IthappyKitContactSheetSpec.OrthographicSizeMin, IthappyKitContactSheetSpec.OrthographicSizeMax));
+
+            IthappyKitContactSheetSpec.LockedIsoOffset(1f, out float x, out float y, out float z);
+            // Unity octant matches play iso after Frame (north up-left): -X, +Y, +Z.
+            Assert.Less(x, 0f);
+            Assert.Greater(y, 0f);
+            Assert.Greater(z, 0f);
+            Assert.AreEqual(Math.Abs(x), z, 1e-5f);
+            Assert.AreEqual(Math.Abs(x), y, 1e-5f);
+            float horizontal = (float)Math.Sqrt(x * x + z * z);
+            float pitch = (float)(Math.Atan(y / horizontal) * (180.0 / Math.PI));
+            Assert.AreEqual(IthappyKitContactSheetSpec.PitchDownDegrees, pitch, 1e-3f);
+            float yaw = (float)(Math.Atan2(Math.Abs(x), z) * (180.0 / Math.PI));
+            Assert.AreEqual(IthappyKitContactSheetSpec.YawBiasDegrees, yaw, 1e-3f);
+            IthappyKitContactSheetSpec.GodotEqualAxisOffset(IthappyKitContactSheetSpec.CameraDistanceM,
+                out float gx, out float gy, out float gz);
+            Assert.AreEqual(IthappyKitContactSheetSpec.CameraDistanceM, gx, 1e-5f);
+            Assert.AreEqual(IthappyKitContactSheetSpec.CameraDistanceM, gy, 1e-5f);
+            Assert.AreEqual(IthappyKitContactSheetSpec.CameraDistanceM, gz, 1e-5f);
         }
 
         [Test]

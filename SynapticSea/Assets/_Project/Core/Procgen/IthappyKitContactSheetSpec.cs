@@ -1,4 +1,5 @@
-// Path and grid contract for Art Director iso stills of baked ithappy_scifi_v0 prefabs.
+// Path, grid, and Art Director locked-iso framing for ithappy_scifi_v0 stills.
+using System;
 using System.Collections.Generic;
 using System.IO;
 using SynapticSea.Core.Variant;
@@ -16,6 +17,20 @@ namespace SynapticSea.Core.Procgen
         public const string ContactSheetFileName = "contact_sheet.png";
         public const float CellSpacingM = 8f;
         public const int GridColumns = 4;
+
+        /// <summary>True-iso pitch: atan(1/√2). Camera looks this many degrees down from horizontal.</summary>
+        public const float PitchDownDegrees = 35.26438968f;
+
+        /// <summary>45° yaw bias. Play-frame Unity offset is −X/+Z (north up-left after Frame).</summary>
+        public const float YawBiasDegrees = 45f;
+
+        public const float OrthographicSizeMin = 18f;
+        public const float OrthographicSizeMax = 22f;
+        public const float ContactSheetOrthographicSize = 22f;
+        public const float PerModuleOrthographicSize = 18f;
+
+        /// <summary>Godot-frame equal-axis offset. <c>Frame.ToUnity</c> yields Unity (−d, +d, +d).</summary>
+        public const float CameraDistanceM = 40f;
 
         public static readonly IReadOnlyList<string> HighlightModuleIds = new[]
         {
@@ -59,6 +74,28 @@ namespace SynapticSea.Core.Procgen
             int row = index / GridColumns;
             x = col * CellSpacingM;
             z = row * CellSpacingM;
+        }
+
+        /// <summary>
+        /// Unity-frame camera offset for the style-gate lock: pitch <see cref="PitchDownDegrees"/> down,
+        /// yaw bias <see cref="YawBiasDegrees"/>, same octant as play iso after Frame (−X, +Y, +Z).
+        /// </summary>
+        public static void LockedIsoOffset(float distance, out float x, out float y, out float z)
+        {
+            double elev = PitchDownDegrees * (Math.PI / 180.0);
+            double yaw = -YawBiasDegrees * (Math.PI / 180.0);
+            double cosElev = Math.Cos(elev);
+            x = (float)(Math.Sin(yaw) * cosElev * distance);
+            y = (float)(Math.Sin(elev) * distance);
+            z = (float)(Math.Cos(yaw) * cosElev * distance);
+        }
+
+        /// <summary>Godot (d, d, d) maps through Frame to Unity (−d, d, d), which is true iso.</summary>
+        public static void GodotEqualAxisOffset(float distance, out float x, out float y, out float z)
+        {
+            x = distance;
+            y = distance;
+            z = distance;
         }
     }
 }

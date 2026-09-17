@@ -18,6 +18,7 @@ namespace SynapticSea.EditorTools.Content
     ///   F:\Unity\6000.6.0f1\Editor\Unity.exe -batchmode -projectPath SynapticSea
     ///     -executeMethod SynapticSea.EditorTools.Content.IthappyKitContactSheet.Run -quit
     ///     -logFile builds/logs/ithappy-contact.log
+    /// Locked framing (Art Director style-gate): orthographic size 18–22, pitch 35.264° down, yaw bias 45°.
     /// Writes <c>artifacts/screenshots/ithappy_scifi_v0/contact_sheet.png</c> plus one PNG per module.
     /// </summary>
     public static class IthappyKitContactSheet
@@ -81,14 +82,17 @@ namespace SynapticSea.EditorTools.Content
 
                 var focus = new GameObject("Focus").transform;
                 focus.position = new Vector3(sheetBounds.center.x, 0f, sheetBounds.center.z);
+                IthappyKitContactSheetSpec.GodotEqualAxisOffset(IthappyKitContactSheetSpec.CameraDistanceM,
+                    out float godotX, out float godotY, out float godotZ);
                 var rig = new GameObject("IsoCameraRig").AddComponent<IsoCameraRig>();
+                rig.godotOffset = new Vector3(godotX, godotY, godotZ);
                 Camera cam = rig.EnsureCamera();
                 rig.SetShowCeilings(true);
                 var camData = cam.GetUniversalAdditionalCameraData();
                 camData.renderPostProcessing = true;
                 camData.antialiasing = AntialiasingMode.None;
                 rig.SetFollowTarget(focus);
-                cam.orthographicSize = Mathf.Max(sheetBounds.extents.x, sheetBounds.extents.z) * 1.15f;
+                cam.orthographicSize = IthappyKitContactSheetSpec.ContactSheetOrthographicSize;
                 rig.SyncToTarget();
 
                 string outDir = IthappyKitContactSheetSpec.OutputDirectory(repoRoot);
@@ -104,7 +108,7 @@ namespace SynapticSea.EditorTools.Content
                     var b = new Bounds(moduleRenderers[0].bounds.center, Vector3.zero);
                     foreach (var r in moduleRenderers) b.Encapsulate(r.bounds);
                     focus.position = new Vector3(b.center.x, 0f, b.center.z);
-                    cam.orthographicSize = Mathf.Max(Mathf.Max(b.extents.x, b.extents.z) * 1.35f, 3f);
+                    cam.orthographicSize = IthappyKitContactSheetSpec.PerModuleOrthographicSize;
                     rig.SyncToTarget();
                     Render(cam, ModuleWidth, ModuleHeight, IthappyKitContactSheetSpec.PerModulePath(repoRoot, id));
                 }

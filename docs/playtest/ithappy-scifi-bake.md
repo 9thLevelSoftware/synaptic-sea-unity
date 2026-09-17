@@ -65,8 +65,16 @@ Editor menu: **Synaptic Sea → Content → Capture Ithappy Kit Contact Sheet**.
 
 Writes (gitignored) `artifacts/screenshots/ithappy_scifi_v0/`:
 
-- `contact_sheet.png` — 4×4 grid, 1920×1080, locked iso (same `IsoCameraRig` offset / orthographic framing as `ScreenshotRunner`)
+- `contact_sheet.png` — 4×4 grid, 1920×1080
 - `{module_id}.png` — one 1024×1024 still per baked prefab (includes `floor_1x1`, `wall_straight_1x1`, `wall_t_junction`, `wall_x_junction`)
+
+Art Director style-gate lock (not play `IsoCameraRig` 16/18/16):
+
+| Lock | Value |
+|---|---|
+| Orthographic size | 22 (sheet) / 18 (per-module), band 18–22 |
+| Pitch | 35.264° down (`atan(1/√2)`) |
+| Yaw bias | 45° (Unity offset −X/+Z after Frame; north up-left) |
 
 Pass log line: `CONTACT SHEET PASS kit=ithappy_scifi_v0 modules=16`. Track A New Run / run-results wiring is unchanged.
 
