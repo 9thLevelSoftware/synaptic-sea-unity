@@ -219,5 +219,36 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(s.CompleteObjectiveSequence(2), "restore_systems opens the powered gates");
             Assert.AreEqual((0, false), loader.BlockedRouteCollisionCalls[loader.BlockedRouteCollisionCalls.Count - 1], "the open gate's route node stops colliding");
         }
+
+        [Test]
+        public void ApplyManualSlot_DerivesGameplaySliceBesideLayoutWhenMissing()
+        {
+            var rig = SessionHarness.CreateGolden();
+            RunSession s = rig.Session;
+            RunSnapshot snap = RunSnapshotAssembler.Build(s);
+            Assert.IsNotNull(snap);
+            string expected = snap.GameplaySlicePath;
+            Assert.IsNotEmpty(expected);
+            snap.GameplaySlicePath = "";
+            Assert.IsTrue(s.ApplyManualSlot(snap), "a legacy empty slice path must still apply");
+            Assert.AreEqual(expected, s.GameplaySlicePath);
+            Assert.IsTrue(s.PlayableStarted);
+        }
+
+        [Test]
+        public void RequestLoad_DerivesGameplaySliceBesideLayoutWhenMissing()
+        {
+            var rig = SessionHarness.CreateGolden();
+            RunSession s = rig.Session;
+            Assert.IsTrue(s.RequestSave(), "world save written");
+            WorldSnapshot world = s.SaveLoadService.LoadWorld();
+            Assert.IsNotNull(world);
+            world.HomeShip["gameplay_slice_path"] = "";
+            Assert.IsTrue(s.SaveLoadService.SaveWorld(world));
+
+            Assert.IsTrue(s.RequestLoad(), "Continue must apply a save that omitted gameplay_slice_path");
+            Assert.AreEqual(SessionHarness.GoldenDir + "gameplay_slice.json", s.GameplaySlicePath);
+            Assert.IsTrue(s.PlayableStarted);
+        }
     }
 }

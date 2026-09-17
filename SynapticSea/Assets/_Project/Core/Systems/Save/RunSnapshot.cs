@@ -1,4 +1,5 @@
 // Ported from scripts/systems/run_snapshot.gd @ 96ecb2b0
+using SynapticSea.Core.Services;
 using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Core.Systems
@@ -212,6 +213,16 @@ namespace SynapticSea.Core.Systems
                 { "saved_at", SavedAt },
                 { "saved_at_epoch", SavedAtEpoch },
             };
+        }
+
+        /// <summary>
+        /// Legacy and migrated saves may omit <c>gameplay_slice_path</c>. The slice lives next to <c>layout.json</c>.
+        /// </summary>
+        public static string ResolveGameplaySlicePath(string layoutPath, string gameplaySlicePath)
+        {
+            if (!string.IsNullOrEmpty(gameplaySlicePath)) return gameplaySlicePath;
+            if (string.IsNullOrEmpty(layoutPath)) return "";
+            return ResPath.GetBaseDir(layoutPath) + "/gameplay_slice.json";
         }
 
         /// <summary>

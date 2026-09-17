@@ -238,9 +238,7 @@ namespace SynapticSea.Game
             failure = "";
             home = home ?? new GdDict();
             string layout = home.GetString("layout_path", "");
-            string slice = home.GetString("gameplay_slice_path", "");
-            if (slice.Length == 0 && layout.Length != 0)
-                slice = ResPath.GetBaseDir(layout) + "/gameplay_slice.json";
+            string slice = RunSnapshot.ResolveGameplaySlicePath(layout, home.GetString("gameplay_slice_path", ""));
             if (layout.Length == 0 || !CatalogRegistry.Exists(layout))
             {
                 failure = "the " + label + " ship layout is missing (" + (layout.Length == 0 ? "no path" : layout) + ")";
