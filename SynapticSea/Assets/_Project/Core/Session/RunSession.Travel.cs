@@ -158,7 +158,7 @@ namespace SynapticSea.Core.Session
                 EmitTravelDeniedSfx();
                 return result.ToDict();
             }
-            IShipLoaderView newRoot = result.Ship is ShipDocuments docs ? ShipHost?.BuildShipScene(docs) : result.Ship as IShipLoaderView;
+            IShipLoaderView newRoot = result.Ship is ShipDocuments docs ? BuildShipSceneFromDocuments(docs) : result.Ship as IShipLoaderView;
             if (newRoot == null)
             {
                 EmitTravelDeniedSfx();
@@ -434,6 +434,7 @@ namespace SynapticSea.Core.Session
             }
             else
             {
+                ApplyThreatRunModifiers();
                 ThreatManager.ConfigureForLayout(CombatLayoutForCurrentShip(), CombatMarkersForCurrentShip(), anchor);
             }
             ApplyIntegrityNavGaps();
@@ -490,7 +491,7 @@ namespace SynapticSea.Core.Session
             ShipDocuments docs = ShipGenerator.Generate(blueprint);
             if (docs == null)
                 return null;
-            return ShipHost?.BuildShipScene(docs);
+            return BuildShipSceneFromDocuments(docs);
         }
 
         /// <summary>Regenerates geometry for a co-present derelict that is not the active ship (dock-edge endpoint).</summary>

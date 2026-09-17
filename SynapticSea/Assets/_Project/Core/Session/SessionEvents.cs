@@ -106,6 +106,22 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_hallucination_fx_overlay</c> intensity meta.</summary>
         public event Action<double> HallucinationFxIntensity;
 
+        // ---- Unity-port additions
+        /// <summary>
+        /// The session's <see cref="RunSession.TutorialState"/> was reset (HUD rebuild at boot / reload) or restored from a
+        /// save. Same instance every time; the Codex / banner re-read it.
+        /// </summary>
+        public event Action<Systems.TutorialState> TutorialStateReset;
+
+        /// <summary>The session's <see cref="RunSession.WoundState"/> changed (new wound, treatment, healing to zero, reset or restore).</summary>
+        public event Action<Systems.WoundState> WoundsChanged;
+
+        /// <summary>
+        /// A wound treatment request finished: <c>(result)</c> with <c>ok</c>, <c>action</c> ("bandage"/"treat"),
+        /// <c>wound_id</c>, <c>item_id</c> and, when refused, <c>reason</c> (see <see cref="RunSession.BandageWound"/>).
+        /// </summary>
+        public event Action<GdDict> WoundTreatmentResult;
+
         internal void RaiseInteractableSpawned(SessionInteractable i) => InteractableSpawned?.Invoke(i);
         internal void RaiseInteractableDespawned(SessionInteractable i) => InteractableDespawned?.Invoke(i);
         internal void RaiseZoneSpawned(SessionZone z) => ZoneSpawned?.Invoke(z);
@@ -133,5 +149,8 @@ namespace SynapticSea.Core.Session
         internal void RaiseHotbarSlots(GdArray labels, long selected) => HotbarSlots?.Invoke(labels, selected);
         internal void RaisePanelRequested(string panelId, GdDict args) => PanelRequested?.Invoke(panelId, args ?? new GdDict());
         internal void RaiseHallucinationFxIntensity(double v) => HallucinationFxIntensity?.Invoke(v);
+        internal void RaiseTutorialStateReset(Systems.TutorialState t) => TutorialStateReset?.Invoke(t);
+        internal void RaiseWoundsChanged(Systems.WoundState w) => WoundsChanged?.Invoke(w);
+        internal void RaiseWoundTreatmentResult(GdDict r) => WoundTreatmentResult?.Invoke(r);
     }
 }

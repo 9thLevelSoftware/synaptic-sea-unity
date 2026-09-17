@@ -133,6 +133,21 @@ namespace SynapticSea.Core.Session
             }
             if (s.ShipModificationState != null)
                 snapshot.ShipModificationSummary = s.ShipModificationState.GetSummary();
+            // Unity port (gate2-current-run-5): E2 wounds / chart / tutorial, E3 manual-slot state, C4 run context.
+            if (s.WoundState != null)
+                snapshot.WoundSummary = s.WoundState.GetSummary();
+            if (s.WebChartState != null)
+                snapshot.WebChartSummary = s.WebChartState.GetSummary();
+            if (s.TutorialState != null)
+                snapshot.TutorialSummary = s.TutorialState.GetSummary();
+            if (s.EquipmentState != null)
+                snapshot.EquipmentSummary = s.EquipmentState.GetSummary();
+            if (s.HomeShip != null)
+            {
+                snapshot.HomeLootedContainers = s.HomeShip.LootedContainerIds.ShallowCopy();
+                snapshot.HomeShipInventory = s.HomeShip.GetInventory().GetSummary();
+            }
+            snapshot.RunContext = s.GetRunContextSummary();
             // ADR-0046: real slot metadata.
             snapshot.PlayTimeSeconds = s.RunPlayTimeSeconds;
             snapshot.CurrentLocation = "home";

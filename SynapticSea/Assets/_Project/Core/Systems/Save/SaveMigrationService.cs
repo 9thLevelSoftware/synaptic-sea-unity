@@ -16,10 +16,14 @@ namespace SynapticSea.Core.Systems
             "gate2-current-run-1",  // legacy: 6 model summaries, no player_progression
             "gate2-current-run-2",  // added player_progression_summary (Phase 3)
             "gate2-current-run-3",  // added slot_id / slot_kind / parent_world_slot metadata (Task 11)
-            "gate2-current-run-4"   // added play_time_seconds / current_location / world_seed (ADR-0046)
+            "gate2-current-run-4",  // added play_time_seconds / current_location / world_seed (ADR-0046)
+            "gate2-current-run-5"   // Unity port: wounds / web chart / tutorial / equipment / home loot+inventory / run_context
         );
 
-        public const string TargetVersion = "gate2-current-run-4";
+        /// <summary>The last run schema Godot 96ecb2b0 wrote; run-5 is a Unity-port superset of it.</summary>
+        public const string GodotTargetVersion = "gate2-current-run-4";
+
+        public const string TargetVersion = "gate2-current-run-5";
         public const string WorldTargetVersion = "world-4";
 
         /// <summary>Returns <c>{dict, from_version, to_version, migrated}</c>; <c>dict</c> is null when rejected.</summary>
@@ -105,6 +109,7 @@ namespace SynapticSea.Core.Systems
                 case "gate2-current-run-1": return MigrateV1ToV2;
                 case "gate2-current-run-2": return MigrateV2ToV3;
                 case "gate2-current-run-3": return MigrateV3ToV4;
+                case "gate2-current-run-4": return MigrateV4ToV5;
             }
             return null;
         }
@@ -175,6 +180,31 @@ namespace SynapticSea.Core.Systems
             if (!output.Has("play_time_seconds")) output["play_time_seconds"] = 0.0;
             if (!output.Has("current_location")) output["current_location"] = "";
             if (!output.Has("world_seed")) output["world_seed"] = 0L;
+            return output;
+        }
+
+        /// <summary>
+        /// Unity port: the gate2-current-run-5 keys default to empty containers, which the session reads as "not saved"
+        /// (fresh wounds and tutorial state, empty chart, keep live equipment / loot / cargo, keep the run context).
+        /// </summary>
+        public static readonly GdDict V5Defaults = new GdDict
+        {
+            { "wound_summary", new GdDict() },
+            { "web_chart_summary", new GdDict() },
+            { "tutorial_summary", new GdDict() },
+            { "equipment_summary", new GdDict() },
+            { "home_looted_containers", new GdArray() },
+            { "home_ship_inventory", new GdDict() },
+            { "run_context", new GdDict() },
+        };
+
+        GdDict MigrateV4ToV5(GdDict dict)
+        {
+            GdDict output = dict.DeepCopy();
+            foreach (object key in V5Defaults.Keys)
+            {
+                if (!output.Has(key)) output[key] = V.DeepCopy(V5Defaults[key]);
+            }
             return output;
         }
 

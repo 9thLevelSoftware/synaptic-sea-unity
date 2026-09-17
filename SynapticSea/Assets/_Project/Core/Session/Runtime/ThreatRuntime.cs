@@ -28,6 +28,32 @@ namespace SynapticSea.Core.Session
         /// <summary><c>signal threat_killed(record)</c>. The record's <c>position</c> is a <see cref="Vec3"/>.</summary>
         public event Action<GdDict> ThreatKilled;
 
+        /// <summary><see cref="ThreatAttacked"/> target kind: a threat hit the player (result = the DamagePipeline vitals result).</summary>
+        public const string ATTACK_TARGET_PLAYER = "player";
+
+        /// <summary><see cref="ThreatAttacked"/> target kind: a threat applied structure damage (result = {structure_damage, source_id}).</summary>
+        public const string ATTACK_TARGET_STRUCTURE = "structure";
+
+        /// <summary><see cref="ThreatAttacked"/> target kind: the player's weapon hit this threat (result = the weapon attack result).</summary>
+        public const string ATTACK_TARGET_THREAT = "threat";
+
+        /// <summary>
+        /// Unity-port addition (D3): raised wherever <see cref="LastAttackResult"/> is set, plus structure attacks:
+        /// <c>(threat_instance_id, target_kind, damage, result)</c>. <c>target_kind</c> is one of the ATTACK_TARGET_*
+        /// constants; <c>damage</c> is the final damage (structure amount for structure attacks). <c>result</c> is a copy
+        /// that also carries <c>position</c>: the threat's world position (<see cref="Vec3"/>, Godot frame).
+        /// </summary>
+        public event Action<string, string, double, GdDict> ThreatAttacked;
+
+        /// <summary>
+        /// Unity-port addition (C4): scales the spawned count per encounter marker (fractional carry across markers keeps the
+        /// total at <c>sum(count) * modifier</c>). 1.0 = Godot.
+        /// </summary>
+        public double EncounterDensityModifier = 1.0;
+
+        /// <summary>Unity-port addition (C4): multiplies a newly spawned threat's attack damage and divides its attack interval. 1.0 = Godot.</summary>
+        public double AggressionModifier = 1.0;
+
         /// <summary>RUNTIME: <c>_spawn_placeholder(threat, index, anchor)</c> built a ThreatPlaceholderRenderer node at the threat's world position.</summary>
         public event Action<ThreatAIState, long> PlaceholderSpawned;
 
@@ -168,7 +194,7 @@ namespace SynapticSea.Core.Session
                 idx += 1;
             }
             EncounterMarkers = markers;
-            SpawnFromMarkers(markers, anchor);
+            SpawnFromMarkers(markers, anchor, false);
         }
 
         public void SetPlayerSignals(double noise, double light, double sight, bool crouching, string roomId = "")
@@ -246,9 +272,12 @@ namespace SynapticSea.Core.Session
                         { "status_effect_id", threat.StatusOnHit },
                         { "source_id", threat.InstanceId },
                     });
+                    RaiseAttacked(threat, ATTACK_TARGET_PLAYER, FinalDamage(LastAttackResult), LastAttackResult);
                     double structAmt = threat.StructureDamage;
                     if (structAmt > 0.0 && OnStructureAttack != null)
                         OnStructureAttack(threat, structAmt);
+                    if (structAmt > 0.0)
+                        RaiseAttacked(threat, ATTACK_TARGET_STRUCTURE, structAmt, new GdDict { { "structure_damage", structAmt }, { "source_id", threat.InstanceId } });
                     threat.ConsumeAttack();
                     CombatEngaged = true;
                 }
@@ -302,7 +331,19 @@ namespace SynapticSea.Core.Session
             result["ammo_remaining"] = ammoState != null && ammoItemId.Length > 0 ? ammoState.Loaded(weaponId) : -1L;
             LastAttackResult = result.DeepCopy();
             _lastAttackWeaponId = weaponId;
+            RaiseAttacked(target, ATTACK_TARGET_THREAT, FinalDamage(result), result);
             return result;
+        }
+
+        static double FinalDamage(GdDict result) => V.F64(result.Get("final_damage", result.Get("amount", 0.0)));
+
+        void RaiseAttacked(ThreatAIState threat, string targetKind, double damage, GdDict result)
+        {
+            if (ThreatAttacked == null || threat == null)
+                return;
+            GdDict copy = (result ?? new GdDict()).DeepCopy();
+            copy["position"] = threat.WorldPosition.Count >= 3 ? ThreatPos(threat) : Vec3.Zero;
+            ThreatAttacked(threat.InstanceId, targetKind, damage, copy);
         }
 
         public GdDict GetSummary()
@@ -389,16 +430,26 @@ namespace SynapticSea.Core.Session
             return count;
         }
 
-        void SpawnFromMarkers(GdArray markers, Vec3 anchor)
+        void SpawnFromMarkers(GdArray markers, Vec3 anchor, bool applyRunModifiers = true)
         {
             ClearRuntimeNodes();
             long idx = 0;
+            double density = applyRunModifiers ? Math.Max(0.0, EncounterDensityModifier) : 1.0;
+            double aggression = applyRunModifiers ? GdMath.Clampf(AggressionModifier, 0.1, 3.0) : 1.0;
+            double carry = 0.0;
             foreach (object markerObj in markers)
             {
                 if (!(markerObj is GdDict marker))
                     continue;
                 string encounterKind = NormalizeEncounterKind(V.Str(marker.Get("encounter_kind", "biomatter_swarm")));
                 long count = Math.Max(1L, V.I64(marker.Get("count", 1L)));
+                if (density != 1.0)
+                {
+                    double want = count * density + carry;
+                    long scaled = (long)Math.Floor(want + 1e-9);
+                    carry = Math.Max(0.0, want - scaled);
+                    count = scaled;
+                }
                 object localPos = marker.Get("local_position", null);
                 for (long i = 0; i < count; i++)
                 {
@@ -426,6 +477,11 @@ namespace SynapticSea.Core.Session
                             (double)anchor.Z + Math.Sin(idx) * 4.0);
                     }
                     threat.Configure(merged);
+                    if (aggression != 1.0)
+                    {
+                        threat.AttackDamage *= aggression;
+                        threat.AttackInterval /= aggression;
+                    }
                     Threats.Add(threat);
                     SpawnPlaceholder(threat, idx);
                     idx += 1;

@@ -1,0 +1,18 @@
+Initialize godot-rust (API v4.6.stable.official, runtime v4.7.1.stable.official, safeguards balanced)
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+The Synaptic Sea coherent proof ship bootstrap loaded.
+PLAYABLE SHIP READY player_spawned=true camera_spawned=true objectives=5 collision_shapes=112
+WARNING: AudioManager: stream file missing, path='res://data/audio/voice/log_beacon_01.ogg'
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] _load_stream_cached (res://scripts/audio/audio_manager.gd:437)
+       [1] _play_via_bus (res://scripts/audio/audio_manager.gd:476)
+       [2] play_voice_log (res://scripts/audio/audio_manager.gd:397)
+       [3] tick (res://scripts/audio/audio_manager.gd:287)
+       [4] _tick_audio_runtime (res://scripts/procgen/playable_generated_ship.gd:8673)
+       [5] _process (res://scripts/procgen/playable_generated_ship.gd:8572)
+       [6] _run_wear (res://scripts/validation/parity_fixtures/parity_capture_roundtrip_wear.gd:228)
+       [7] _boot (res://scripts/validation/parity_fixtures/parity_capture_roundtrip_wear.gd:88)
+META PAYOUT reason=death payout=0 meta_currency=0 runs_completed=0
+PARITY WEAR PASS ticks=120 samples=121 moved=false slice_flipped=true fullprec=true

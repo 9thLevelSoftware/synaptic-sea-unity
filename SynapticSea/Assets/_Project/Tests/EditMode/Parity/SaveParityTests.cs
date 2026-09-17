@@ -22,7 +22,9 @@ namespace SynapticSea.Tests.Parity
     ///     <c>user://saves</c> trees loads every slot and rewrites it to the same JSON tree (and index rows);
     ///     the migrate-on-load and corruption-backup paths reproduce Godot's files;
     /// (d) <c>GdJson.Stringify(parsed, "\t")</c> reproduces every captured JSON file byte for byte.
-    /// No volatile keys are ignored in (a), (b) or (d). (c) ignores only fields that depend on the rewritten byte
+    /// No volatile keys are ignored in (a), (b) or (d).
+    /// The port writes <c>gate2-current-run-5</c> (Godot's run-4 plus <see cref="RunSnapshot.PortExtensionFields"/>): Godot's
+    /// keys are compared exactly through <see cref="SavePortSchema.GodotView"/> and the added keys are asserted separately. (c) ignores only fields that depend on the rewritten byte
     /// count (<c>payload_size_bytes</c>, <c>payload_sha256</c>), the host (<c>device_id</c>) and wall-clock stamps
     /// the service writes itself (<c>updated_at</c>, manifest <c>created_at</c>), plus <c>build_id</c> (see
     /// <see cref="ServiceWrites_CloudManifests_MatchGodotShape"/>).
@@ -95,14 +97,16 @@ namespace SynapticSea.Tests.Parity
             GdDict exact = Fixtures.ReadDict(rel);
             RunSnapshot snap = RunSnapshot.FromDict(exact, exact.GetString("slice_version"), exact.GetString("godot_version"));
             Assert.IsNotNull(snap, "FromDict rejected the Godot save");
-            Assert.AreEqual(SaveLoadService.CURRENT_SLICE_VERSION, snap.SliceVersion);
-            AssertTree(exact, snap.ToDict(), "exact round trip");
+            Assert.AreEqual(SaveMigrationService.GodotTargetVersion, snap.SliceVersion);
+            AssertTree(exact, SavePortSchema.GodotView(snap.ToDict()), "exact round trip");
+            SavePortSchema.AssertExtensionDefaults(snap.ToDict(), "port keys default for a Godot save");
+            SavePortSchema.AssertExtensionOrder(snap.ToDict(), "port key order");
 
             // Game-facing Godot-faithful parse (every number a double): FromDict coerces the typed fields back.
             var parsed = (GdDict)GdJson.Parse(ReadLf(rel));
             RunSnapshot snap2 = RunSnapshot.FromDict(parsed, parsed.GetString("slice_version"), parsed.GetString("godot_version"));
             Assert.IsNotNull(snap2);
-            AssertTree(parsed, snap2.ToDict(), "Godot-parse round trip", new TreeDiff.Options { IntFloatEquivalent = true });
+            AssertTree(parsed, SavePortSchema.GodotView(snap2.ToDict()), "Godot-parse round trip", new TreeDiff.Options { IntFloatEquivalent = true });
             AssertTree(snap.ToDict(), snap2.ToDict(), "exact vs Godot-parse snapshot", new TreeDiff.Options { IntFloatEquivalent = true });
 
             // Embedded Wave 3 model summaries reproduce through the ported models.
@@ -123,15 +127,16 @@ namespace SynapticSea.Tests.Parity
             // fields back to int exactly as the GDScript does; those three fields are the only strict differences.
             const string rel = SaveRoot + "/legacy/save_migration_service_smoke/residual/saves/slot_legacy.migrated.json";
             GdDict exact = Fixtures.ReadDict(rel);
-            RunSnapshot snap = RunSnapshot.FromDict(exact, SaveLoadService.CURRENT_SLICE_VERSION, exact.GetString("godot_version"));
+            RunSnapshot snap = RunSnapshot.FromDict(exact, SaveMigrationService.GodotTargetVersion, exact.GetString("godot_version"));
             Assert.IsNotNull(snap);
-            var diffs = TreeDiff.Compare(exact, snap.ToDict());
+            var diffs = TreeDiff.Compare(exact, SavePortSchema.GodotView(snap.ToDict()));
             CollectionAssert.AreEquivalent(
                 new[] { "$.current_objective_sequence", "$.saved_at_epoch", "$.world_seed" },
                 diffs.Select(d => d.Substring(0, d.IndexOf(':'))).ToArray(),
                 TreeDiff.Format(diffs));
             Assert.IsTrue(diffs.All(d => d.Contains("expected float") && d.Contains("got int")), TreeDiff.Format(diffs));
-            AssertTree(exact, snap.ToDict(), "value round trip", new TreeDiff.Options { IntFloatEquivalent = true });
+            AssertTree(exact, SavePortSchema.GodotView(snap.ToDict()), "value round trip", new TreeDiff.Options { IntFloatEquivalent = true });
+            SavePortSchema.AssertExtensionDefaults(snap.ToDict(), "port keys");
         }
 
         [TestCaseSource(nameof(WorldSaveFiles))]
@@ -197,7 +202,21 @@ namespace SynapticSea.Tests.Parity
             var service = new SaveMigrationService();
             GdDict input = c.GetDict("input").DeepCopy();
             GdDict result = kind == "migrate_run" ? service.MigrateRun(input) : service.MigrateWorld(input);
-            AssertTree(c.Get("result"), result, $"{kind}:{caseName}");
+            var expected = (GdDict)((GdDict)c.Get("result")).DeepCopy();
+            if (caseName == "run_from_gate2-current-run-4")
+            {
+                // Godot's current version is the port's legacy one: the port runs its run-4 -> run-5 step.
+                Assert.IsFalse(expected.GetBool("migrated"));
+                expected["migrated"] = true;
+            }
+            AssertTree(expected, SavePortSchema.GodotView(result), $"{kind}:{caseName}");
+            // Every migrated run dict carries the port keys with their defaults (a newer-than-us dict is left alone).
+            if (result.Get("dict") is GdDict migrated)
+            {
+                GdDict run = kind == "migrate_run" ? migrated : migrated.GetDictOrEmpty("home_ship");
+                if (run.GetString("slice_version") == SaveMigrationService.TargetVersion)
+                    SavePortSchema.AssertExtensionDefaults(run, $"{kind}:{caseName} port keys");
+            }
             // The service must not mutate its input (Godot deep-copies before stepping).
             AssertTree(c.GetDict("input"), input, "input left untouched");
         }
@@ -206,8 +225,16 @@ namespace SynapticSea.Tests.Parity
         public void B_KnownVersionsMatchGodot()
         {
             GdDict all = Fixtures.ReadDict(SaveRoot + "/legacy/migration_cases.json");
-            AssertTree(all.Get("known_versions"), SaveMigrationService.KnownVersions, "known_versions");
-            Assert.AreEqual(all.GetString("target_version"), SaveMigrationService.TargetVersion);
+            // The port's chain is Godot's chain plus its own gate2-current-run-5.
+            GdArray known = SaveMigrationService.KnownVersions;
+            var godotChain = new GdArray();
+            for (int i = 0; i < known.Count - 1; i++)
+                godotChain.Add(known[i]);
+            AssertTree(all.Get("known_versions"), godotChain, "known_versions");
+            Assert.AreEqual("gate2-current-run-5", known.Back());
+            Assert.AreEqual(all.GetString("target_version"), SaveMigrationService.GodotTargetVersion);
+            Assert.AreEqual("gate2-current-run-5", SaveMigrationService.TargetVersion);
+            Assert.AreEqual(SaveMigrationService.TargetVersion, SaveLoadService.CURRENT_SLICE_VERSION);
             Assert.AreEqual(all.GetString("world_target_version"), SaveMigrationService.WorldTargetVersion);
         }
 
@@ -295,7 +322,14 @@ namespace SynapticSea.Tests.Parity
                 RunSnapshot snap = s.Service.LoadFromSlot(slotId);
                 Assert.IsNotNull(snap, $"{tree}: load_from_slot({slotId}) failed (version gate / manifest sha gate)");
                 Assert.IsTrue(s.Storage.FileExists(path), "a good load must not quarantine the file");
-                Assert.IsFalse(s.Storage.FileExists(GdString.TrimSuffix(path, ".json") + ".migrated.json"), "current-version saves are not migrated");
+                // Godot's current run-4 is legacy for the port: the load runs the run-4 -> run-5 step and persists the
+                // migrated form, which is Godot's file (as Godot parses it) plus the port keys at their defaults.
+                string migratedPath = GdString.TrimSuffix(path, ".json") + ".migrated.json";
+                Assert.IsTrue(s.Storage.FileExists(migratedPath), "Godot run-4 saves migrate to run-5 on load");
+                var migratedTree = (GdDict)GdJson.Parse(s.Storage.ReadText(migratedPath));
+                AssertTree(GdJson.Parse(original), SavePortSchema.GodotView(migratedTree), $"{tree}/{slotId} migrated form");
+                SavePortSchema.AssertExtensionDefaults(migratedTree, $"{tree}/{slotId} migrated port keys");
+                Assert.AreEqual(SaveMigrationService.GodotTargetVersion, ((GdDict)GdJson.Parse(original)).GetString("slice_version"));
 
                 // Write it back as the same run, at the same instant Godot indexed it.
                 GdDict row = IndexRow(s.Index, slotId);
@@ -304,11 +338,15 @@ namespace SynapticSea.Tests.Parity
                 s.Service.SetActiveRunId(snap.RunId);
                 Assert.IsTrue(s.Service.SaveToSlot(slotId, snap, row.GetString("slot_kind"), snap.IsQuicksave, row.GetString("display_name")));
                 string written = s.Storage.ReadText(path);
-                AssertRewrittenTree(GdJson.Parse(original), written, $"{tree}/{slotId} rewrite");
-                AssertOnlyIntLiteralsBecameFloats(original, written, $"{tree}/{slotId}");
+                var writtenTree = (GdDict)GdJson.Parse(written, exactNumbers: true);
+                Assert.AreEqual(SaveLoadService.CURRENT_SLICE_VERSION, writtenTree.GetString("slice_version"));
+                SavePortSchema.AssertExtensionDefaults(writtenTree, $"{tree}/{slotId} rewritten port keys");
+                string writtenGodotView = GdJson.Stringify(SavePortSchema.GodotView(writtenTree), "	");
+                AssertRewrittenTree(GdJson.Parse(original), writtenGodotView, $"{tree}/{slotId} rewrite");
+                AssertOnlyIntLiteralsBecameFloats(original, writtenGodotView, $"{tree}/{slotId}");
 
                 GdDict newRow = IndexRow((GdDict)GdJson.Parse(s.Storage.ReadText(SaveLoadService.INDEX_PATH)), slotId);
-                AssertTree(row, newRow, $"{slotId} index row", new TreeDiff.Options { IgnoreKeys = { "payload_size_bytes" } });
+                AssertTree(row, SavePortSchema.GodotView(newRow), $"{slotId} index row", new TreeDiff.Options { IgnoreKeys = { "payload_size_bytes" } });
                 Assert.AreEqual((double)Encoding.UTF8.GetByteCount(written), newRow.GetFloat("payload_size_bytes"));
             }
 
@@ -331,6 +369,15 @@ namespace SynapticSea.Tests.Parity
                 string written = s.Storage.ReadText(SaveLoadService.WORLD_SLOT_FILE);
                 AssertRewrittenTree(expected, written, $"{tree}/world rewrite");
                 if (!homeShipMigrated) AssertOnlyIntLiteralsBecameFloats(original, written, $"{tree}/world");
+                GdDict writtenHome = ((GdDict)GdJson.Parse(written)).GetDictOrEmpty("home_ship");
+                if (!writtenHome.IsEmpty && writtenHome.GetString("slice_version") == SaveLoadService.CURRENT_SLICE_VERSION)
+                {
+                    // Godot's keys through the Godot view; the port keys are the migration defaults.
+                    GdDict godotHome = ((GdDict)GdJson.Parse(original)).GetDictOrEmpty("home_ship");
+                    if (godotHome.GetString("slice_version") == SaveMigrationService.GodotTargetVersion)
+                        AssertTree(godotHome, SavePortSchema.GodotView(writtenHome), $"{tree}/world home_ship Godot keys");
+                    SavePortSchema.AssertExtensionDefaults(writtenHome, $"{tree}/world home_ship port keys");
+                }
 
                 GdDict newRow = IndexRow((GdDict)GdJson.Parse(s.Storage.ReadText(SaveLoadService.INDEX_PATH)), "world");
                 AssertTree(row, newRow, "world index row", new TreeDiff.Options { IgnoreKeys = { "payload_size_bytes" } });
@@ -338,7 +385,7 @@ namespace SynapticSea.Tests.Parity
 
             // After rewriting every slot, the whole index matches Godot's apart from the rewrite-dependent sizes and
             // the index's own write stamp.
-            AssertTree(s.Index, GdJson.Parse(s.Storage.ReadText(SaveLoadService.INDEX_PATH)), "index.json",
+            AssertTree(s.Index, SavePortSchema.GodotView(GdJson.Parse(s.Storage.ReadText(SaveLoadService.INDEX_PATH))), "index.json",
                 new TreeDiff.Options { IgnoreKeys = { "payload_size_bytes", "updated_at" } });
         }
 
@@ -366,7 +413,8 @@ namespace SynapticSea.Tests.Parity
             // ProjectSettings "application/config/version": Godot returns "" (the setting is registered with an ""
             // default, so the "0.0.0" fallback in cloud_manifest_state.gd never applies), while the Wave 1 port
             // (InfraCompat.ProjectVersion) uses "0.0.0". Reported, not changed here.
-            AssertTree(godot, port, "manifest", new TreeDiff.Options { IgnoreKeys = { "device_id", "created_at", "payload_sha256", "payload_size_bytes" } });
+            Assert.AreEqual(SaveLoadService.CURRENT_SLICE_VERSION, port.GetString("schema_version"));
+            AssertTree(godot, SavePortSchema.GodotView(port), "manifest", new TreeDiff.Options { IgnoreKeys = { "device_id", "created_at", "payload_sha256", "payload_size_bytes" } });
             string written = s.Storage.ReadText("user://saves/slot_01.json");
             Assert.AreEqual(GdString.Sha256Text(written), port.GetString("payload_sha256"));
             Assert.AreEqual((double)Encoding.UTF8.GetByteCount(written), port.GetFloat("payload_size_bytes"));
@@ -407,7 +455,10 @@ namespace SynapticSea.Tests.Parity
             Assert.IsTrue(migrated.PlayerProgressionSummary.Has("class_id"));
             string portMigrated = storage.ReadText("user://saves/slot_legacy.migrated.json");
             Assert.IsNotNull(portMigrated, "migrated form not persisted");
-            Assert.AreEqual(godotMigrated, portMigrated);
+            // Byte for byte on Godot's keys (the port additionally walks run-4 -> run-5 and adds its keys).
+            var portTree = (GdDict)GdJson.Parse(portMigrated, exactNumbers: true);
+            SavePortSchema.AssertExtensionDefaults(portTree, "migrated port keys");
+            Assert.AreEqual(godotMigrated, GdJson.Stringify(SavePortSchema.GodotView(portTree), "	"));
         }
 
         [Test]
