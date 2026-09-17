@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b8ea535d35a3b541a6a8215077c086a, type: 3}
+  m_Name: IconCatalog
+  m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.IconCatalog
+  entries:
+  - resPath: res://assets/ui/status/stim_focus.png
+    texture: {fileID: 2800000, guid: f44017ffd38a57e46a306d6488cf08c1, type: 3}
+  - resPath: res://assets/ui/status/stim_haste.png
+    texture: {fileID: 2800000, guid: 12e5c22fd955c994d826e92e0c0fd5c1, type: 3}
+  - resPath: res://assets/ui/status/stim_steady.png
+    texture: {fileID: 2800000, guid: bb873db2116539c4d8f9ace39f65c474, type: 3}
+  - resPath: res://assets/ui/status/utility_flare.png
+    texture: {fileID: 2800000, guid: 1c7de7a6847260d489b823f108778ea4, type: 3}
+  - resPath: res://assets/ui/status/utility_hack_chip_ready.png
+    texture: {fileID: 2800000, guid: 6fce93f2964ca674bb14885ed846280c, type: 3}
+  - resPath: res://assets/ui/status/utility_lockpick_ready.png
+    texture: {fileID: 2800000, guid: ed90c7edd1eb5434fb0b30d8bca820d8, type: 3}
+  - resPath: res://assets/ui/status/withdrawal_fatigue.png
+    texture: {fileID: 2800000, guid: f88d8d743f8e9234784daeb4d2ddabc8, type: 3}
+  - resPath: res://assets/ui/status/withdrawal_shakes.png
+    texture: {fileID: 2800000, guid: 61ecffee9419b4c4293b46a8be146606, type: 3}
+  - resPath: res://assets/ui/achievements/all_systems.png
+    texture: {fileID: 2800000, guid: dd03c6755d281494e801713ea99e6ccf, type: 3}
+  - resPath: res://assets/ui/achievements/calibrator.png
+    texture: {fileID: 2800000, guid: 0f980e2d8e520844bb9c43bcb000a2e5, type: 3}
+  - resPath: res://assets/ui/achievements/extracted.png
+    texture: {fileID: 2800000, guid: e54a28207a1341f4b971d63b48a02913, type: 3}
+  - resPath: res://assets/ui/achievements/first_breath.png
+    texture: {fileID: 2800000, guid: 3f90993819aeca74fbd6114a9b810f43, type: 3}
+  - resPath: res://assets/ui/achievements/first_loot.png
+    texture: {fileID: 2800000, guid: a14872b80264dae4e9f416d65e8ef89c, type: 3}
+  - resPath: res://assets/ui/achievements/first_repair.png
+    texture: {fileID: 2800000, guid: e45959c85c24e6447826b8fd86ba4b77, type: 3}
+  - resPath: res://assets/ui/achievements/objective_complete.png
+    texture: {fileID: 2800000, guid: c55565b02dbbff944920968ca7d32bea, type: 3}
+  - resPath: res://assets/ui/achievements/reactor_stabilized.png
+    texture: {fileID: 2800000, guid: f28f3975a631c5d4bb27500cea60c44b, type: 3}
+  categories:
+  - category: chart
+    texture: {fileID: 2800000, guid: cff6356b36367704c8ff9ffbe6ed3488, type: 3}
+  - category: consumable
+    texture: {fileID: 2800000, guid: 390d6f23fe76f8143b0c87e941042120, type: 3}
+  - category: equipment
+    texture: {fileID: 2800000, guid: 6ebefdc14e03d56499e0f6bc2c55be2f, type: 3}
+  - category: fluid
+    texture: {fileID: 2800000, guid: 6f76577f2964d3a48a3217027593019b, type: 3}
+  - category: food
+    texture: {fileID: 2800000, guid: 493298557415286418b8c00cd4a8343a, type: 3}
+  - category: junk
+    texture: {fileID: 2800000, guid: 4c81087a24c9b864ab6681df19c4ae53, type: 3}
+  - category: medicine
+    texture: {fileID: 2800000, guid: 17c2fd3147f15d742b1a97445f0d0b02, type: 3}
+  - category: part
+    texture: {fileID: 2800000, guid: 8d64fd87ee5b6124abdd94d772743b01, type: 3}
+  - category: raw
+    texture: {fileID: 2800000, guid: 2d878b70b823a0049b59aff90230b87b, type: 3}
+  - category: stimulant
+    texture: {fileID: 2800000, guid: 6f89d42a02e6812479ffaa9b4d2379a7, type: 3}
+  - category: supply
+    texture: {fileID: 2800000, guid: 844ab818e3a565c4ba0bfc757cbfe022, type: 3}
+  - category: tool
+    texture: {fileID: 2800000, guid: d1cbc0495d1c54b49998d0942692faaa, type: 3}
+  - category: trade
+    texture: {fileID: 2800000, guid: 3ed7fdeadc035e748989932ebbebe241, type: 3}
+  - category: utility
+    texture: {fileID: 2800000, guid: 123359c92bb8760438d12bdd07466c99, type: 3}
+  - category: unique
+    texture: {fileID: 2800000, guid: 1d2e39309d2c6c34a94bf9bcfabdde50, type: 3}
+  - category: item
+    texture: {fileID: 2800000, guid: 97069abba29e3f5459e5bd1f9ced3cb9, type: 3}
