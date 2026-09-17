@@ -17,7 +17,7 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 9 Rendering | Done (first pass) | URP Forward+, SSAO, decals, global volume; `SS_LitDitherFade` ceiling fade; hallucination full-screen pass; 4 VFX prefabs; light levels calibrated against the Godot captures (below) |
 | 10 UI | Done (first pass) | All 30 `scripts/ui` files ported as UI Toolkit presenters built to the UI presentation spec, with MenuCoordinator and ModalStack; `HudLayoutTests` enforces HUD coverage, protected zones and text sizes at three resolutions and three text scales. Wiring and the gamepad PlayMode journey wait on the session scene (`docs/ui-port-notes.md`) |
 | 11 Audio and input | Done (first pass) | AudioManager port with per-bus volumes; input actions mirror the Godot InputMap; typed wrapper generated |
-| 12 Builds and tooling | Started | Windows dev (Mono) and release (IL2CPP) and macOS dev (Mono, unsigned) builds pass; `tools/verify-headless.ps1` smoke-launches the Windows player clean; `tools/test.ps1 -Mode All` runs dotnet, EditMode and PlayMode; fixture exporter on the local `unity/parity-fixtures` Godot branch. Real scenes are not in Build Settings yet (SampleScene only). |
+| 12 Builds and tooling | Started | Windows dev (Mono) and release (IL2CPP) and macOS dev (Mono, unsigned) builds pass; `tools/verify-headless.ps1` smoke-launches the Windows player clean; `tools/test.ps1 -Mode All` runs dotnet, EditMode and PlayMode; fixture exporter on the local `unity/parity-fixtures` Godot branch. Build Settings list Boot → Title → Playable (`BuildSettingsSetup`; the Builder skips a missing scene with a warning); Boot composes `AppServices` and loads Title (`FrontEndSceneBuilder`, `FrontEndPlayModeTests`). |
 
 Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMode).
 
@@ -61,6 +61,12 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
     - It runs after post-processing (`HallucinationRendererFeature`, RenderGraph blit).
     - Intensity is a process-wide static (`HallucinationFx.Intensity`), because the feature lives on the pipeline asset. At 0 the pass is not enqueued.
 
+22. **Front end: Boot → Title → Playable.** `App/` (`SynapticSea.App`, references UI) holds the composition root and the title.
+    - `AppServices` (DontDestroyOnLoad) sets the `CoreServices` seams (StreamingAssets, `persistentDataPath`, clock, `UnityLog`), reads `build_stamp.json` (its kind and version override `build_metadata.json`), configures the demo gate, the shared `SynapticSeaInput`, an EventSystem with `InputSystemUIInputModule` on the input asset's UI map, and `AudioManager` (skipped in batch mode). Scenes call `AppServices.Ensure()`, so Title opens directly in the editor.
+    - Preferences live in `user://settings.json` (a `SettingsState` summary), per the spec's "one user preference source"; Godot had no standalone settings file. The env var seeds the text scale on first run.
+    - `TitleScreen` runs the real `MenuCoordinator` in `TitleMode` instead of Godot's title-local text menu and settings mirror. The title adds a Records row (Save / Load, achievements, skill tree, hub upgrades, class roster, audio, language, build info, credits), which Godot's title did not offer.
+    - The run handoff is `Runtime/Session/RunLaunchRequest.Pending` (mode NewRun / Continue / LoadSlot, slot id, seed 17, `breach_field`, difficulty from settings, meta-selected class, and the settings summary only when changed at the title), then `SceneManager.LoadScene("Playable")`. `RunReturnInfo` carries a failure reason or run outcome back to the title.
+
 ## Light calibration (2026-09-11)
 
 Method: `ScreenshotRunner.Sweep` renders one layout under several `(tonemap, dir, omni, ambient)` configs. `tools/image-luma.ps1` then compares the mean sRGB luma of matching 1920×1080 crops against `fixtures/godot/screens/`. Ceilings are hidden (`-ceilings hide`), as in the Godot captures.
@@ -103,3 +109,4 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
   - Games are unaffected: the hook runs every frame after `LateUpdate`, so `CeilingFadeController`'s swaps land in the same frame.
 - The legacy per-state albedo tint on damaged single-visual wrappers is not ported (decision 19).
 - The Godot-side exporter and screenshot scripts live on the local, unpushed `unity/parity-fixtures` branch of the Godot repo.
+- Title → Playable: the Playable bootstrap must consume `RunLaunchRequest` and, on failure or return, set `RunReturnInfo` and load Title. After merging Playable, re-run `BuildSettingsSetup` (or any build) so its scene GUID is recorded.
