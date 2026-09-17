@@ -29,7 +29,10 @@ namespace SynapticSea.Game
 
         public MenuCoordinator Coordinator { get; private set; }
         public UiInputRouter Router { get; private set; }
-        public AccessibilitySettings Accessibility { get; } = new AccessibilitySettings();
+        public AccessibilitySettings Accessibility { get; }
+
+        /// <summary>Persists changed preferences (AppServices.ApplySettings); null = session only.</summary>
+        public Action<GdDict> SettingsPersist;
         public IUiAudio Audio { get; private set; }
 
         public readonly InventoryPanel Inventory = new InventoryPanel();
@@ -53,11 +56,12 @@ namespace SynapticSea.Game
         (GdArray labels, long selected)? _pendingHotbar;
         GdDict _pendingTooltip;
 
-        public SessionUiBridge(HudRoot hud, UIDocument menuDocument, SynapticSeaInput input)
+        public SessionUiBridge(HudRoot hud, UIDocument menuDocument, SynapticSeaInput input, AccessibilitySettings accessibility)
         {
             Hud = hud;
             MenuDocument = menuDocument;
             Input = input;
+            Accessibility = accessibility ?? new AccessibilitySettings();
         }
 
         // ------------------------------------------------------------------ IRunUiState
@@ -149,7 +153,11 @@ namespace SynapticSea.Game
             Coordinator.WorldLoadRequested += () => session.RequestLoad();
             Coordinator.QuitRequested += session.QuitToTitle;
             Coordinator.SaveAndExitRequested += session.SaveAndExit;
-            Coordinator.SettingsChanged += summary => session.ApplyUiSettingsSummary(summary);
+            Coordinator.SettingsChanged += summary =>
+            {
+                session.ApplyUiSettingsSummary(summary);
+                SettingsPersist?.Invoke(summary);
+            };
             Coordinator.SlotSnapshotLoaded += (slotId, snapshot) => session.ApplyManualSlot(snapshot);
 
             Inventory.SetAudioManager(Audio);
@@ -370,7 +378,11 @@ namespace SynapticSea.Game
 
         public void Dispose()
         {
-            Router?.Disable();
+            if (Router == null) return;
+            Router.PanelToggleRequested -= OnPanelToggle;
+            Router.DevShortcutRequested -= OnDevShortcut;
+            Router.Disable();
+            Router = null;
         }
     }
 }

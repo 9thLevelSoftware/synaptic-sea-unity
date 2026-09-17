@@ -3,6 +3,7 @@
     "rootNamespace": "SynapticSea.Game",
     "references": [
         "SynapticSea.Core",
+        "SynapticSea.App",
         "SynapticSea.Runtime",
         "SynapticSea.UI",
         "SynapticSea.UI.Presenters",

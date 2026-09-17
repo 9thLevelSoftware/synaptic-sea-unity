@@ -37,7 +37,8 @@ namespace SynapticSea.Game
             bootstrap.HudDocument.panelSettings = hudCopy;
             bootstrap.MenuDocument.panelSettings = menuCopy;
             // Layout and repaint happen in the player loop: give the panels a few frames at the new size.
-            for (int i = 0; i < 4; i++) yield return new WaitForEndOfFrame();
+            // (Not WaitForEndOfFrame: it never resumes in batch mode.)
+            for (int i = 0; i < 4; i++) yield return null;
 
             bool ok = false;
             try

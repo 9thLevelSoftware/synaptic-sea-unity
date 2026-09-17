@@ -10,8 +10,7 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.RenderPipelines.GPUDriven.Runtime",
-        "SynapticSea.Game",
-        "SynapticSea.UI"
+        "SynapticSea.Game"
     ],
     "includePlatforms": [
         "Editor"

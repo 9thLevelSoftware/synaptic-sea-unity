@@ -1,4 +1,3 @@
-using SynapticSea.Core.Services;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
@@ -39,14 +38,6 @@ namespace SynapticSea.Game
             if (A != null) A.CurrentVoiceLogId = "";
             if (_manager != null) _manager.StopVoiceLog();
         }
-    }
-
-    /// <summary><see cref="ILog"/> onto the Unity console.</summary>
-    public sealed class UnityLog : ILog
-    {
-        public void Info(string message) => Debug.Log(message);
-        public void Warning(string message) => Debug.LogWarning(message);
-        public void Error(string message) => Debug.LogError(message);
     }
 
     /// <summary><see cref="IScannerHost"/> over the session (scan + travel run the session's scene surgery).</summary>

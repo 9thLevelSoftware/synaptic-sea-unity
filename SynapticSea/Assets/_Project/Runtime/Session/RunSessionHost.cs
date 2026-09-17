@@ -181,7 +181,7 @@ namespace SynapticSea.Runtime.Session
 
         void OnInteractableSpawned(SessionInteractable model)
         {
-            if (model == null || _interactables.ContainsKey(model) || !model.IsValid) return;
+            if (model == null || _interactables.ContainsKey(model) || !model.IsValid || (model.Parent != null && !model.Parent.IsValid)) return;
             _interactables[model] = InteractableView.Create(model, _interactionRoot, SceneState?.Sensor);
             SceneState?.Sensor?.Refresh();
         }
@@ -268,9 +268,10 @@ namespace SynapticSea.Runtime.Session
             foreach (T item in list) AddOne(item);
         }
 
+        /// <summary>A node parented to a freed ship root went with it (Godot freed the children with the root).</summary>
         void AddOne(SessionInteractable item)
         {
-            if (item != null && item.IsValid) _liveInteractables.Add(item);
+            if (item != null && item.IsValid && (item.Parent == null || item.Parent.IsValid)) _liveInteractables.Add(item);
         }
 
         void UpdateFocus()

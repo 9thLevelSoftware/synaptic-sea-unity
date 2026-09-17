@@ -12,10 +12,7 @@
         "UnityEngine.UI",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "SynapticSea.Game",
-        "SynapticSea.UI",
-        "SynapticSea.UI.Presenters",
-        "Unity.InputSystem.TestFramework"
+        "SynapticSea.Game"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
