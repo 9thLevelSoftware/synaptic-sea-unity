@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Variant;
 using SynapticSea.Runtime;
 using UnityEditor;
@@ -415,7 +416,10 @@ namespace SynapticSea.EditorTools.Content
             string relative = resPath.Substring(prefix.Length);
             string assetPath = "Assets/Content/Structural/" + relative;
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-            if (model == null && relative.StartsWith("ship_structural_v0/", StringComparison.Ordinal))
+            // KEEP ithappy wrappers may still name the v0 GLB path; only that kit may substitute.
+            if (model == null
+                && string.Equals(kitId, KitCatalog.ITHAPPY_KIT_ID, StringComparison.Ordinal)
+                && relative.StartsWith("ship_structural_v0/", StringComparison.Ordinal))
             {
                 string ithappyPath = "Assets/Content/Structural/ithappy/" + relative.Substring("ship_structural_v0/".Length);
                 model = AssetDatabase.LoadAssetAtPath<GameObject>(ithappyPath);
