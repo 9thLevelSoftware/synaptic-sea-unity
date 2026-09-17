@@ -15,7 +15,7 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 7 Content pipeline | Done (first pass) | 15 structural prefabs, 26 prop prefabs, catalogs, frame convention verified on 41 authored sockets |
 | 8 Runtime scene layer | Loader done | `ShipSceneBuilder` builds wrappers, markers, portals, zones, props, dressing and objective volumes, matching Godot loader fixtures; interaction sensors and session host wait on RunSession |
 | 9 Rendering | Done (first pass) | URP Forward+, SSAO, decals, global volume; `SS_LitDitherFade` ceiling fade; hallucination full-screen pass; 4 VFX prefabs; light levels calibrated against the Godot captures (below) |
-| 10 UI | In progress | 29 panels plus MenuCoordinator on UI Toolkit |
+| 10 UI | Done (first pass) | All 30 `scripts/ui` files ported as UI Toolkit presenters built to the UI presentation spec, with MenuCoordinator and ModalStack; `HudLayoutTests` enforces HUD coverage, protected zones and text sizes at three resolutions and three text scales. Wiring and the gamepad PlayMode journey wait on the session scene (`docs/ui-port-notes.md`) |
 | 11 Audio and input | Done (first pass) | AudioManager port with per-bus volumes; input actions mirror the Godot InputMap; typed wrapper generated |
 | 12 Builds and tooling | Started | Windows dev (Mono) and release (IL2CPP) and macOS dev (Mono, unsigned) builds pass; `tools/verify-headless.ps1` smoke-launches the Windows player clean; `tools/test.ps1 -Mode All` runs dotnet, EditMode and PlayMode; fixture exporter on the local `unity/parity-fixtures` Godot branch. Real scenes are not in Build Settings yet (SampleScene only). |
 
