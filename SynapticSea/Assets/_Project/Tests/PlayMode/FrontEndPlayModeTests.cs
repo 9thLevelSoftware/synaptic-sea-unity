@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using SynapticSea.App;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
@@ -280,6 +281,29 @@ namespace SynapticSea.Tests.PlayMode
             GdDict stored = UserSettingsStore.Load(_storage);
             Assert.IsNotNull(stored, "preferences persisted");
             Assert.AreEqual("hardened", stored.GetString("difficulty", ""));
+        }
+
+        [UnityTest]
+        public IEnumerator NewRunSetupIgnoresPersistedNonSliceDifficulty()
+        {
+            yield return BootToTitle();
+            Assert.IsTrue(_title.Coordinator.SettingsState.SetDifficulty("hardened"));
+            Assert.AreEqual("hardened", _title.Coordinator.SettingsState.GetDifficulty());
+
+            NewRunSetupPanel setup = _title.OpenNewRunSetup();
+            Assert.AreEqual(MilestoneALaunch.SliceBiomeId, setup.BiomeId);
+            Assert.AreEqual(MilestoneALaunch.SliceDifficultyId, setup.DifficultyId, "persisted hardened must not seed the New Run setup");
+            Assert.AreEqual(MilestoneALaunch.TitleStartSeed, setup.Seed);
+
+            setup.FocusRow(NewRunSetupPanel.RowStart);
+            setup.Consume(UiCommand.Accept);
+
+            RunLaunchRequest request = RunLaunchRequest.Pending;
+            Assert.IsNotNull(request);
+            Assert.AreEqual(MilestoneALaunch.TitleStartSeed, request.Seed);
+            Assert.AreEqual(MilestoneALaunch.SliceBiomeId, request.BiomeId);
+            Assert.AreEqual(MilestoneALaunch.SliceDifficultyId, request.DifficultyId);
+            Assert.IsTrue(MilestoneALaunch.TryAccept(request.Seed, request.BiomeId, request.DifficultyId, out string reason), reason);
         }
 
         [UnityTest]

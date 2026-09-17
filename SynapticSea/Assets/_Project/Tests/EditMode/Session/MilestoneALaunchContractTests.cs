@@ -46,7 +46,8 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(MilestoneALaunch.HubLayoutPath, deps.LayoutPath);
             StringAssert.Contains("coherent_ship_001", deps.LayoutPath);
             StringAssert.Contains("coherent_ship_001", deps.GameplaySlicePath);
-            StringAssert.Contains("coherent_ship_001", deps.BlueprintPath);
+            Assert.AreEqual(MilestoneALaunch.HubBlueprintPath, deps.BlueprintPath);
+            Assert.AreEqual(RunSession.DEFAULT_KIT_PATH, deps.KitPath);
             Assert.AreNotEqual(RunSession.DEFAULT_LAYOUT_PATH, deps.LayoutPath);
         }
 

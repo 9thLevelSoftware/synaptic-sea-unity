@@ -167,6 +167,28 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub()
+        {
+            const string savedLayout = "res://data/procgen/golden/coherent_ship_003/layout.json";
+            yield return BootPlayable(new RunLaunchRequest
+            {
+                Mode = RunLaunchMode.NewRun,
+                LayoutOverridePath = savedLayout,
+                Seed = RunLaunchRequest.DefaultSeed,
+                BiomeId = RunLaunchRequest.DefaultBiomeId,
+                DifficultyId = RunLaunchRequest.DefaultDifficultyId,
+            });
+            Assert.AreEqual(savedLayout, _s.LayoutPath, "precondition: Continue starts from a non-hub save");
+            Assert.IsTrue(_s.RequestSave(), "world save written");
+
+            yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            Assert.AreEqual(RunLaunchMode.Continue, _boot.Launch.Mode);
+            Assert.AreEqual(savedLayout, _s.LayoutPath, "Continue boots the saved home, not the Milestone A hub");
+            StringAssert.DoesNotContain("coherent_ship_001", _s.LayoutPath);
+            Assert.IsTrue(_boot.LaunchApplied, "the world save applied");
+        }
+
+        [UnityTest]
         public IEnumerator DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun()
         {
             yield return BootPlayable(RunLaunchRequest.NewRun());
