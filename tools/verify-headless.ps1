@@ -52,15 +52,24 @@ else {
     if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) { Write-Output 'VERIFY FAIL wsl.exe not found (Linux players run under WSL)'; exit 1 }
     $wslDir = ConvertTo-WslPath $buildDir
     $wslLog = ConvertTo-WslPath $log
-    # timeout sends SIGTERM after -Seconds (the player never quits by itself); exit 124 is the expected stop.
-    $script = "cd '$wslDir' && chmod +x ./TheSynapticSea.x86_64 && timeout -k 5 $Seconds ./TheSynapticSea.x86_64 -batchmode -nographics -logFile '$wslLog'; code=`$?; echo wsl_exit=`$code"
-    $wslOut = & wsl.exe -d $WslDistro -- bash -c $script 2>&1
+    # timeout sends SIGTERM after -Seconds (the player never quits by itself), so exit 124 is the expected stop.
+    # --exec runs bash directly: with `--` the distro's login shell would expand $? before bash sees it.
+    # The Linux player echoes its log to stdout as well; only -logFile is scanned.
+    $script = "cd '$wslDir' && chmod +x ./TheSynapticSea.x86_64 && timeout -k 5 $Seconds ./TheSynapticSea.x86_64 -batchmode -nographics -logFile '$wslLog' > /dev/null 2>&1; echo wsl_exit=`$?"
+    $wslOut = & wsl.exe -d $WslDistro --exec bash -c $script 2>&1
     $wslOut | ForEach-Object { Write-Output "  wsl: $_" }
+    $exitLine = $wslOut | Where-Object { "$_" -match '^wsl_exit=(\d+)$' } | Select-Object -Last 1
+    $wslExit = if ($exitLine -and "$exitLine" -match '^wsl_exit=(\d+)$') { [int]$Matches[1] } else { -1 }
 }
 Start-Sleep -Milliseconds 300
 if (-not (Test-Path $log)) { Write-Output "VERIFY FAIL player wrote no log ($log)"; exit 1 }
 
 $problems = 0
+# 124 = stopped by timeout after -Seconds, 0 = quit by itself; anything else (e.g. 139 SIGSEGV) is a crash.
+if ($Target -eq 'StandaloneLinux64' -and $wslExit -ne 124 -and $wslExit -ne 0) {
+    Write-Output "  player exit under WSL was $wslExit (expected 124 from timeout)"
+    $problems++
+}
 $composed = Select-String -Path $log -Pattern '\[AppServices\] composed .*\bbuild=(\w+)' | Select-Object -First 1
 if (-not $composed) {
     Write-Output '  no "[AppServices] composed" line: the player did not finish booting'
