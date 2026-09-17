@@ -23,6 +23,7 @@ namespace SynapticSea.EditorTools.Content
     ///  - glTFast-imported GLBs under Assets/Content/Structural/ (ship_structural_v0 or ithappy).
     ///    Wrapper <c>res://assets/imported/structural/...</c> paths map to that Content root.
     /// Output: Assets/Content/Prefabs/Structural/&lt;kit&gt;/&lt;module&gt;.prefab, a KitCatalog asset, and a JSON report.
+    ///   F:\Unity\6000.6.0f1\Editor\Unity.exe -batchmode -nographics -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.StructuralPrefabBuilder.BuildAll -quit -kit ithappy_scifi_v0 -logFile builds/logs/ithappy-scifi-bake.log
     ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.StructuralPrefabBuilder.BuildAll -quit [-kit ship_structural_v0] [-strict]
     ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.StructuralPrefabBuilder.BuildAll -quit -kit ithappy_scifi_v0
     /// </summary>
@@ -136,6 +137,15 @@ namespace SynapticSea.EditorTools.Content
             string contractPath = ResolveContractPath(kitId, moduleId);
             var contract = File.Exists(contractPath) ? GdJson.ParseDict(File.ReadAllText(contractPath)) : null;
             if (contract == null) report.Errors.Add($"{moduleId}: contract missing ({contractPath})");
+
+            // Companion {module_id}.asset.json beside the GLB is the art-package gate for new modules.
+            // Inherited v0 twins may omit it; mesh alone is not shippable for wall_x_junction and later modules.
+            string companionPath = KitAuthorityAudit.CompanionAssetJsonPath(ResolveStructuralContentRoot(kitId), moduleId);
+            GdDict companion = File.Exists(companionPath) ? GdJson.ParseDict(File.ReadAllText(companionPath)) : null;
+            bool hasV0Twin = File.Exists(Path.Combine(Application.streamingAssetsPath, "data", "placement",
+                "contracts", "structural", KitCatalog.DEFAULT_KIT_ID, moduleId + "_contract.json"));
+            foreach (string issue in KitAuthorityAudit.BakeErrors(module, contract, companion, hasV0Twin))
+                report.Errors.Add($"{moduleId}: {issue}");
 
             // ---- Godot wrapper scene (collision + visual variants)
             string tscnPath = ResolveWrapperPath(kitId, moduleId, module);
@@ -476,6 +486,18 @@ namespace SynapticSea.EditorTools.Content
                 if (File.Exists(path)) return path;
             }
             return Path.Combine(root, kitId, moduleId + "_contract.json");
+        }
+
+        /// <summary>
+        /// KEEP ithappy GLBs live under <c>Content/Structural/ithappy</c> (not a kit-id folder).
+        /// Companion <c>{module_id}.asset.json</c> sits beside the GLB.
+        /// </summary>
+        static string ResolveStructuralContentRoot(string kitId)
+        {
+            string folder = string.Equals(kitId, KitCatalog.ITHAPPY_KIT_ID, StringComparison.Ordinal)
+                ? "ithappy"
+                : kitId;
+            return Path.Combine(Application.dataPath, "Content", "Structural", folder);
         }
 
         static KitPrefabCatalog WriteCatalog(string kitId, double gridStep, List<KitPrefabCatalog.Entry> entries)

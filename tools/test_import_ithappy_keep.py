@@ -141,6 +141,28 @@ def test_copy_tree_allowlists_inert_assets() -> None:
             t("skips symlinks", "linked.glb" not in names)
 
 
+def test_wall_x_asset_json_matches_kit_authority() -> None:
+    companion = imp.wall_x_asset_json()
+    module = imp.wall_x_module()
+    t("document_kind is structural_art_package", companion["document_kind"] == "structural_art_package")
+    t("module_id", companion["module_id"] == "wall_x_junction")
+    t("module_family", companion["module_family"] == module["module_family"])
+    t("footprint_cells", companion["footprint_cells"] == module["footprint_cells"])
+    t(
+        "socket_names are kit SOCK_wall_face_*",
+        companion["socket_names"]
+        == [
+            "SOCK_wall_face_north_01",
+            "SOCK_wall_face_east_01",
+            "SOCK_wall_face_south_01",
+            "SOCK_wall_face_west_01",
+        ],
+    )
+    t("pivot_policy", companion["pivot_policy"] == module["pivot_policy"])
+    t("nav_blocker", companion["nav_blocker"] is True)
+    t("collision_note present", bool(companion.get("collision_note")))
+
+
 def test_overlay_without_root_returns_keep_text() -> None:
     keep = '[gd_scene load_steps=1 format=3]\n\n[node name="Visual" type="MeshInstance3D"]\n'
     v0 = '[sub_resource type="BoxShape3D" id="1"]\nsize = Vector3(1, 1, 1)\n[node name="CollisionRoot"]\n[node name="Visual"]\n'
@@ -154,5 +176,6 @@ test_write_meta_stable_across_clones()
 test_write_meta_keeps_existing_guid()
 test_write_catalog_creates_then_preserves()
 test_copy_tree_allowlists_inert_assets()
+test_wall_x_asset_json_matches_kit_authority()
 test_overlay_without_root_returns_keep_text()
 print("OK")

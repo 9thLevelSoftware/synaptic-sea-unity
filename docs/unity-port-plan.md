@@ -217,10 +217,11 @@ Port these domains into `Core/Systems/<domain>/`:
 - `FrameConventionTests` places `wall_straight_1x1` and the chiral `wall_outer_corner` at yaw 0/90/180/270 and compares socket world positions to the contract math `p + local.rotated(UP, yaw)`. It also compares the corner's renderer bounds.
 - The Godot yaw convention is south 0, west 90, north 180, east 270 (`structural_edge_plan.gd`).
 
-**`StructuralPrefabBuilder`** (menu item plus `-executeMethod …BuildAll -strict`) builds one prefab per module in `Content/Prefabs/Structural/ship_structural_v0/<module>.prefab`.
+**`StructuralPrefabBuilder`** (menu item plus `-executeMethod …BuildAll -strict`) builds one prefab per module in `Content/Prefabs/Structural/<kit_id>/<module>.prefab`. Ithappy uses `-kit ithappy_scifi_v0` (see `docs/playtest/ithappy-scifi-bake.md`).
 - **Inputs:**
-  - Kit JSON for module_id, family, footprint, nav_blocker, and pivot_policy.
-  - **Contract JSON for socket positions.** The wrapper `.tscn` markers all sit at the origin, and the `.manifest.json` files carry names only.
+  - Kit JSON for module_id, family, footprint, nav_blocker, pivot_policy, and `socket_names`.
+  - **Contract JSON for socket positions.** The wrapper `.tscn` markers all sit at the origin, and the `.manifest.json` files carry names only. Do not invent `SOCK_*` names.
+  - **Companion `{module_id}.asset.json` beside the GLB** for new modules (Forge art-package gate). Mesh alone is not shippable. Inherited v0 twins may omit it.
   - **Wrapper `.tscn` `BoxShape3D`s for collision**, parsed as text from `fixtures/godot_wrappers/`. The kit's `collision_proxy_records` are Z-up Blender boxes and must **not** be used.
   - The variant GLB paths.
 - **Output hierarchy:**
@@ -228,7 +229,7 @@ Port these domains into `Core/Systems/<domain>/`:
   - `Sockets/<id>` empties with a `SocketMarker`.
   - `CollisionRoot` BoxColliders on the Structure layer.
   - `Visual/{Intact,Damaged,Breached}` GLB instances, with materials remapped through `StructuralMaterialTable` and any `Collision_*` / `*-col` nodes stripped. Ceilings go on the Ceiling layer with a `CeilingFadeTarget`.
-- **Report** to `builds/logs/structural-prefab-report.json`. It lists missing GLBs, socket mismatches against the kit, bounds drift, unmapped materials, and placeholder unit-cube collision. The known placeholders are `ramp_up_1x2` and `ceiling_cap_1x1`; derive their collision from contract bounds.
+- **Report** to `builds/logs/structural-prefab-report-{kitId}.json` (ithappy: `structural-prefab-report-ithappy_scifi_v0.json`). It lists missing GLBs, socket mismatches against the kit, companion `.asset.json` gate failures, bounds drift, unmapped materials, and placeholder unit-cube collision. The known placeholders are `ramp_up_1x2` and `ceiling_cap_1x1`; derive their collision from contract bounds.
 
 **`PropPrefabBuilder`** reads the sidecars and produces `Content/Prefabs/Props/<asset_id>.prefab` with `PropVisual`. The Visual child bakes the offset, rotation, and scale. It uses the Prop layer with no collider, and checks sha256 and bounds.
 

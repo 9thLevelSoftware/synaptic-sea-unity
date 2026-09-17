@@ -549,6 +549,22 @@ def wall_x_module() -> dict:
     }
 
 
+def wall_x_asset_json() -> dict:
+    """Forge companion beside the GLB. Sockets come from the kit/contract rows; do not invent names."""
+    module = wall_x_module()
+    return {
+        "schema_version": "1.0.0",
+        "document_kind": "structural_art_package",
+        "module_id": module["module_id"],
+        "module_family": module["module_family"],
+        "footprint_cells": list(module["footprint_cells"]),
+        "socket_names": list(module["socket_names"]),
+        "pivot_policy": module["pivot_policy"],
+        "nav_blocker": module["nav_blocker"],
+        "collision_note": "four 4x3x0.2 wing boxes matching v0 wall_t_junction plus the south face",
+    }
+
+
 def update_kit_json(path: Path) -> None:
     data = json.loads(path.read_text(encoding="utf-8"))
     modules = data.setdefault("modules", [])
@@ -579,6 +595,9 @@ def import_wall_x(pack: Path, structural_dst: Path, wrappers_dst: Path, contract
     contract = contracts_dst / "wall_x_junction_contract.json"
     write_text(contract, json.dumps(wall_x_contract(), indent=2) + "\n")
     write_meta_for(contract, "json", repo)
+    companion = dest_dir / "wall_x_junction.asset.json"
+    write_text(companion, json.dumps(wall_x_asset_json(), indent=2) + "\n")
+    write_meta_for(companion, "json", repo)
 
 
 def write_prop_inventory(godot: Path, dest: Path, repo: Path) -> dict:

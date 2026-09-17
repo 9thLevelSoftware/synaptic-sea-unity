@@ -14,4 +14,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.KitPrefabCatalog
   kitId: ithappy_scifi_v0
   gridStepMetres: 4
-  modules: []
+  modules:
+  - moduleId: floor_1x1
+    prefab: {fileID: 3020436290004085663, guid: 7f367d6669d79ff4f80d42c241e07c77, type: 3}
+  - moduleId: floor_2x1
+    prefab: {fileID: 4189669885514968137, guid: 883c9febfc7766e4480362a1437f6613, type: 3}
+  - moduleId: corridor_floor_1x1
+    prefab: {fileID: 4581259593349602310, guid: d5b9d8f3eee0aa44b8334517f6483886, type: 3}
+  - moduleId: corridor_floor_1x2
+    prefab: {fileID: 2980735245117350961, guid: 2fcffb38a4bf96745abeec6d667bc4dc, type: 3}
+  - moduleId: wall_straight_1x1
+    prefab: {fileID: 8982664878992271536, guid: 03ccbadd3b7db894995b5ef7f5fbef63, type: 3}
+  - moduleId: wall_end_cap
+    prefab: {fileID: 7343952442452255815, guid: 4585871661132764cbf9f0850da31246, type: 3}
+  - moduleId: wall_inner_corner
+    prefab: {fileID: 6305590487100587041, guid: e8c862bf7060dbc41a4ab8bfabb014ea, type: 3}
+  - moduleId: wall_outer_corner
+    prefab: {fileID: 2580056808031108008, guid: 6b863fc7fa233bf4b80e1b51c10d3222, type: 3}
+  - moduleId: wall_t_junction
+    prefab: {fileID: 2987919343945959314, guid: 88d6a5cfac149f644b6e5dd34b786590, type: 3}
+  - moduleId: doorway_frame_open_1x1
+    prefab: {fileID: 7499407322792739651, guid: 40a2535f3f880034eb64937fe5b8c34f, type: 3}
+  - moduleId: bulkhead_portal_2x1
+    prefab: {fileID: 3505356102435017460, guid: e1ebe53fe3f322448912a7755d1ed03d, type: 3}
+  - moduleId: doorway_frame_blocked_1x1
+    prefab: {fileID: 1663037532304616429, guid: febacfaaa917491488cdebf6dbf277e1, type: 3}
+  - moduleId: ramp_up_1x2
+    prefab: {fileID: 2600170559463238294, guid: 3ab7b2f2a53391d4aa1d656dc7693797, type: 3}
+  - moduleId: pillar_support_1x1
+    prefab: {fileID: 454025931227795800, guid: 48c15274699725249a9719e37a6fe718, type: 3}
+  - moduleId: ceiling_cap_1x1
+    prefab: {fileID: 2850866188522844111, guid: 4292a11871bdca0409d10a28e49b35b7, type: 3}
+  - moduleId: wall_x_junction
+    prefab: {fileID: 5049994336562577852, guid: e1727310973ced9479b529522b3b170a, type: 3}
