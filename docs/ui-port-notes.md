@@ -59,6 +59,7 @@ In play, `Game/PlayableBootstrap` composes the UI and `Game/SessionUiBridge` doe
    - `LanguageChanged(id)`: persisted through the settings file. Godot's `LocalizationCatalog` only has `en` and no UI string reads it.
 8. **Combat feedback.** `RunSessionHost.PlayerDamaged` (from `ThreatRuntime.ThreatAttacked`, via `ThreatPlaceholderView.PlayerHit`) calls `HudRoot.ShowDamage`: the damage indicator and flash.
 9. **Pause and run end.** `coordinator.Stack.SimulationPaused` suspends the session tick. It is true while the pause stack or the run results are open, and false under LIVE inspection, where gameplay input is still blocked. When the run ends (`PlayableSliceCompleted`, death or completion), `PlayableBootstrap.ShowResults` opens `RunResultsPanel` as a TERMINAL surface with a seed · biome · difficulty context line.
+   - The panel shows a severity banner (symbol, wording and colour), a block of 44 px label/value rows (outcome, cause, time survived and only the counters the run tracked), the epitaph in its own block on death, and the context line (`RunResultsPanel.SetContextLine`). Styles are the `.ss-results*` rules in `panels.uss`. `BodyText` keeps Godot's line list.
    - Return to Title stores `RunReturnInfo`, and the title shows the last-run line.
    - New Run starts a fresh generated run with the same biome and difficulty.
 10. **Hallucination FX.** `HallucinationRendererFeature` reads `Runtime/Rendering/HallucinationFx.Intensity` and `MotionReduce`. `HallucinationView` (in `ThreatPlaceholderView.cs`) forwards `SessionEvents.HallucinationFxIntensity` to it. There is no UI-side presenter.
@@ -116,4 +117,3 @@ In play, `Game/PlayableBootstrap` composes the UI and `Game/SessionUiBridge` doe
 - The router only dispatches Menu-map navigation when no element has focus. UI Toolkit navigation itself comes from the EventSystem with `InputSystemUIInputModule` that `AppServices` creates.
 - The colour-blind palettes in `panels.uss` are provisional. They need contrast measurement on real backgrounds.
 - `ScannerHost` and `CraftingStationHost` are reference adapters. The session uses `SessionScannerHost` and `SessionRecipeHost` (`Game/SessionUiAudio.cs`) and owns the field-craft, salvage and hydroponics branches.
-- `RunResultsPanel` has no dedicated styles yet (it uses the generic surface classes).

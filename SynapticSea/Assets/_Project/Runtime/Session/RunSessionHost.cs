@@ -81,7 +81,7 @@ namespace SynapticSea.Runtime.Session
         bool _environmentDirty = true;
         string _focusPrompt = "";
         PlayerController _boundPlayer;
-        bool _affordancesDirty;
+        readonly List<IShipLoaderView> _affordanceDirtyRoots = new List<IShipLoaderView>();
         bool _breachMarkerDirty;
         bool _breachMarkerVisible;
 
@@ -110,7 +110,12 @@ namespace SynapticSea.Runtime.Session
 
             ShipHost = new UnityShipSceneHost(transform);
             ShipHost.RootAttached += _ => _environmentDirty = true;
-            ShipHost.RootFreed += _ => _environmentDirty = true;
+            ShipHost.RootFreed += r =>
+            {
+                _environmentDirty = true;
+                // A freed derelict loses its affordances even when no AffordancesCleared preceded the free (reload paths).
+                if (r is IShipLoaderView loader) OnAffordancesCleared(loader);
+            };
             SceneState = new UnityRunSceneState(transform, input);
             SceneState.PlayerSpawned += OnPlayerSpawned;
             SceneState.PlayerDespawned += OnPlayerDespawned;
@@ -129,6 +134,7 @@ namespace SynapticSea.Runtime.Session
                 s.Events.ZoneDespawned += OnZoneDespawned;
                 s.Events.ZoneStateChanged += OnZoneStateChanged;
                 s.Events.AffordancesRebuilt += OnAffordancesRebuilt;
+                s.Events.AffordancesCleared += OnAffordancesCleared;
                 s.Events.BlockedAffordancesCleared += OnBlockedAffordancesCleared;
                 s.Events.BreachUnsafeMarkerVisible += OnBreachUnsafeMarkerVisible;
                 s.Events.ComponentMarkersRebuilt += OnComponentMarkersRebuilt;
@@ -191,10 +197,12 @@ namespace SynapticSea.Runtime.Session
             Hallucinations.Bind(Session.HallucinationManager);
             Hallucinations.Sync();
             HallucinationView.SetMotionReduce(MotionReduce != null && MotionReduce());
-            if (_affordancesDirty)
+            if (_affordanceDirtyRoots.Count > 0)
             {
-                _affordancesDirty = false;
-                Affordances.Rebuild(Session);
+                var roots = new List<IShipLoaderView>(_affordanceDirtyRoots);
+                _affordanceDirtyRoots.Clear();
+                foreach (IShipLoaderView root in roots)
+                    if (root != null && root.IsValid) Affordances.Rebuild(Session, root);
                 _breachMarkerDirty = true;
             }
             if (_breachMarkerDirty)
@@ -216,7 +224,16 @@ namespace SynapticSea.Runtime.Session
 
         // ------------------------------------------------------------------ scene event views (D1/D2)
 
-        void OnAffordancesRebuilt() => _affordancesDirty = true;
+        void OnAffordancesRebuilt(IShipLoaderView root)
+        {
+            if (root != null && !_affordanceDirtyRoots.Contains(root)) _affordanceDirtyRoots.Add(root);
+        }
+
+        void OnAffordancesCleared(IShipLoaderView root)
+        {
+            _affordanceDirtyRoots.Remove(root);
+            Affordances?.Clear(root);
+        }
 
         void OnBlockedAffordancesCleared() => Affordances?.ClearBlocked();
 

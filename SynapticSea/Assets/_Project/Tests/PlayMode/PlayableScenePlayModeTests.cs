@@ -234,6 +234,12 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(PhysicsLayers.ZoneBlocker, gate.Blocker.gameObject.layer);
             var down = new Ray(gate.Blocker.bounds.center + Vector3.up * 5f, Vector3.down);
             Assert.IsTrue(gate.Blocker.Raycast(down, out _, 10f), "the gate collider is in the physics scene");
+            Assert.AreEqual(0L, V.I64(gate.Zone.Meta["blocked_route_index"]), "gate 1 maps to the first blocked-route node");
+            BoxCollider marker = _boot.Host.ShipHost.HomeLoader.View.GetBlockedRouteNodes()[0].GetComponentInChildren<BoxCollider>(true);
+            Assert.IsNotNull(marker, "the blocked-route node carries a collider");
+            Assert.IsTrue(marker.enabled, "the blocked-route node blocks while the gate is closed");
+            var markerDown = new Ray(marker.bounds.center + Vector3.up * 5f, Vector3.down);
+            Assert.IsTrue(marker.Raycast(markerDown, out _, 10f));
 
             Assert.IsTrue(_s.CompleteObjectiveSequence(1));
             Assert.IsTrue(_s.CompleteObjectiveSequence(2), "restore_systems opens the powered gates");
@@ -243,6 +249,8 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsFalse(gate.Visual.activeSelf);
             Physics.SyncTransforms();
             Assert.IsFalse(gate.Blocker.Raycast(down, out _, 10f), "the open gate no longer blocks");
+            Assert.IsFalse(marker.enabled, "the blocked-route node's collider follows its gate");
+            Assert.IsFalse(marker.Raycast(markerDown, out _, 10f), "the route is physically open");
             foreach (ZoneView breach in _boot.Host.ZoneViews.Values.Where(z => z.Zone.Kind == "breach"))
                 Assert.AreEqual(breach.Zone.CollisionEnabled, breach.Blocker.enabled, "breach collider follows the model");
         }
@@ -367,6 +375,12 @@ namespace SynapticSea.Tests.PlayMode
             var lifeboat = (SceneShipRoot)_s.LifeboatShip.SceneRoot;
             Assert.Less(Vector3.Distance(lifeboat.GameObject.transform.position, derelict.GameObject.transform.position), 60f, "the lifeboat docked to the derelict");
             Assert.IsTrue(_boot.Host.InteractableViews.Keys.Any(m => m is DockPortBarrier b && b.Parent == derelict), "derelict seam barrier view");
+            AffordanceView affordances = _boot.Host.Affordances;
+            Assert.IsTrue(affordances.HasSetFor(derelict), "the boarded derelict gets its readability props");
+            Assert.Greater(affordances.PropsFor(derelict).Count, 0);
+            string derelictPrefix = affordances.LabelPrefixFor(derelict);
+            Assert.AreNotEqual(AffordanceView.AffordanceLabelPrefix, derelictPrefix);
+            Assert.IsTrue(affordances.HasSetFor(_s.Loader), "the home ship keeps its set while away");
 
             Assert.IsTrue(_s.TravelHome());
             yield return null;
@@ -375,6 +389,9 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(derelict.GameObject == null, "and destroyed");
             Assert.Less(Vector3.Distance(Player.transform.position, _boot.Host.ShipHost.HomeLoader.GameObject.transform.position), 40f, "player carried home");
             Assert.IsFalse(_boot.Host.InteractableViews.Keys.Any(m => m.Parent == (IShipSceneRoot)derelict), "derelict views removed");
+            Assert.IsFalse(affordances.HasSetFor(derelict), "the derelict's readability props are dropped on return");
+            Assert.IsFalse(_boot.Host.WorldLabels.Entries.Keys.Any(k => k.StartsWith(derelictPrefix)), "and its world labels");
+            Assert.IsTrue(affordances.Props.ContainsKey(ReadabilityPropFactory.ENTRY_NAME), "home affordances survive the trip");
         }
 
         static List<string> WoundIds(WoundState wounds) =>
@@ -780,7 +797,9 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(affordances.Vfx.Any(v => v != null && v.name.Contains("reactor_green")), "reactor_green glow hook");
             Assert.IsTrue(_boot.Host.WorldLabels.Has(AffordanceView.AffordanceLabelPrefix + "objective_01"), "objective world label");
             Assert.Greater(_boot.Ui.Hud.WorldLabelLayer.childCount, 0, "labels are drawn into the HUD label layer");
-            Assert.AreEqual(_s.ComponentMarkers.Count, _boot.Host.ComponentMarkers.Markers.Count, "one placeholder per mounted component");
+            Assert.AreEqual(_s.ComponentMarkers.Count, _boot.Host.ComponentMarkers.Markers.Count, "one marker per mounted component");
+            Assert.IsTrue(_boot.Host.ComponentMarkers.Markers.Any(ComponentMarkerView.IsImported), "bound components mount their prop prefab");
+            Assert.IsTrue(affordances.Props.Values.Any(AffordanceView.IsImported), "a bound objective placement mounts its prop prefab");
 
             int blocked = affordances.BlockedVisibleCount;
             Assert.IsTrue(_s.CompleteObjectiveSequence(1));

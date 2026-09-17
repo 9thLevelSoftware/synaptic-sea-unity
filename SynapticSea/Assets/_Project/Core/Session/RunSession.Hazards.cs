@@ -328,6 +328,8 @@ namespace SynapticSea.Core.Session
                 gate.CollisionEnabled = !isOpen;
                 gate.VisualState = isOpen ? "open" : "closed";
                 gate.VisualVisible = !isOpen;
+                if (Loader != null && Loader.IsValid && gate.Meta.Has("blocked_route_index"))
+                    Loader.SetBlockedRouteCollisionEnabled(V.I32(gate.Meta["blocked_route_index"]), !isOpen);
                 Events.RaiseZoneStateChanged(gate);
             }
         }

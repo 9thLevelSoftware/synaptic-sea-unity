@@ -590,7 +590,7 @@ namespace SynapticSea.Core.Session
         void BuildSliceAffordanceLabels()
         {
             BlockedAffordancesCleared = false;
-            Events.RaiseAffordancesRebuilt();
+            Events.RaiseAffordancesRebuilt(Loader);
         }
 
         /// <summary><c>_build_route_control_gates()</c>: one powered gate per blocked-route node.</summary>
@@ -620,6 +620,8 @@ namespace SynapticSea.Core.Session
                     VisualState = "closed",
                 };
                 gate.Meta["required_system"] = "main_power_restored";
+                // Unity port: the gate's blocked-route node (same list order), whose collider follows the gate.
+                gate.Meta["blocked_route_index"] = (long)(index - 1);
                 RouteGateNodes.Add(gate);
                 Events.RaiseZoneSpawned(gate);
                 gateIds.Add(gateId);
