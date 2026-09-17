@@ -237,6 +237,15 @@ namespace SynapticSea.Core.Services
             return File.Exists(Full(resPath));
         }
 
+        /// <summary>File names directly inside a <c>res://</c> or <c>user://</c> directory, sorted ordinally (empty when missing).</summary>
+        public IReadOnlyList<string> ListFiles(string dir)
+        {
+            if (IsUserPath(dir)) return UserStorage?.ListFiles(dir) ?? (IReadOnlyList<string>)Array.Empty<string>();
+            string full = Full(dir);
+            if (!Directory.Exists(full)) return Array.Empty<string>();
+            return Directory.GetFiles(full).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        }
+
         public string ReadText(string resPath)
         {
             if (IsUserPath(resPath)) return UserStorage != null && UserStorage.FileExists(resPath) ? UserStorage.ReadText(resPath) : null;
