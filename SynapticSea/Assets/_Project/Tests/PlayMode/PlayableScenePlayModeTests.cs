@@ -475,28 +475,31 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ThreatAttackFeedbackReachesTheHudAndDenialsToast()
+        public IEnumerator ThreatAttackFeedbackReachesTheViewsAndDenialsToast()
         {
             yield return BootPlayable();
             _boot.Ui.OnPanelToggle("ui_open_map");
             StringAssert.Contains(SessionUiBridge.NoWebChartText, _boot.Ui.Hud.ToastText, "chart denial toast");
 
-            InjectThreatBesidePlayer();
-            var hits = new List<double>();
-            _boot.Host.PlayerDamaged += (damage, archetype, at) => hits.Add(damage);
-            float previousScale = Time.timeScale;
-            Time.timeScale = 4f;
-            try
+            ThreatAIState threat = InjectThreatBesidePlayer();
+            yield return null;
+            Assert.IsTrue(_boot.Host.Threats.Nodes.ContainsKey(threat.InstanceId), "the injected threat has a placeholder");
+            var handled = new List<string>();
+            var deaths = new List<string>();
+            _boot.Host.Threats.AttackHandled += (id, kind) => handled.Add(kind);
+            _boot.Host.Threats.DeathPlayed += id => deaths.Add(id);
+            _s.InventoryState.AddItem("crowbar", 1);
+            Assert.IsTrue(_s.EquipmentState.Equip("crowbar").GetBool("ok"));
+            for (int i = 0; i < 30 && deaths.Count == 0; i++)
             {
-                float deadline = Time.realtimeSinceStartup + 20f;
-                while (hits.Count == 0 && Time.realtimeSinceStartup < deadline && !_s.SliceComplete)
-                    yield return null;
+                _boot.Host.RequestAttack();
+                yield return null;
             }
-            finally
-            {
-                Time.timeScale = previousScale;
-            }
-            Assert.IsNotEmpty(hits, "the threat attacked the player");
+            Assert.Contains(ThreatRuntime.ATTACK_TARGET_THREAT, handled, "weapon hits reach the threat view");
+            Assert.Contains(threat.InstanceId, deaths, "the kill played the death effect");
+            Assert.IsFalse(_boot.Host.Threats.Nodes.ContainsKey(threat.InstanceId), "the dead threat left the view");
+
+            _boot.Ui.Hud.ShowDamage(7, threat.ArchetypeId);
             StringAssert.Contains("Hit", _boot.Ui.Hud.Vitals.DamageIndicatorText, "HUD damage indicator");
         }
     }
