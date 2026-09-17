@@ -1,5 +1,6 @@
 // Ported from scripts/procgen/playable_generated_ship.gd @ 96ecb2b0: the breach/oxygen integration (8863-9230), the arc
 // zone integration (9318-9606), route gates (8332-8365), and _refresh_player_vitals (9106-9141).
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -55,7 +56,8 @@ namespace SynapticSea.Core.Session
             {
                 { "zone_ids", zoneIds },
                 { "max_oxygen", OxygenState.DEFAULT_MAX_OXYGEN },
-                { "drain_rate", OxygenState.DEFAULT_DRAIN_RATE },
+                // Unity port (C4): the home hazard dial scales the breach drain (exactly the default for "standard").
+                { "drain_rate", OxygenState.DEFAULT_DRAIN_RATE * HomeHazardModifier() },
                 { "regen_rate", OxygenState.DEFAULT_REGEN_RATE },
                 { "recovery_threshold", OxygenState.DEFAULT_RECOVERY_THRESHOLD },
                 { "safe_threshold", OxygenState.DEFAULT_SAFE_THRESHOLD },
@@ -170,12 +172,14 @@ namespace SynapticSea.Core.Session
             }
             else
             {
+                double suitBefore = OxygenState.Oxygen;
                 OxygenState.Tick(deltaSeconds, new GdDict
                 {
                     { "player_in_breach_zone", !AwayFromStart && IsPlayerInBreachZone() },
                     { "field_atmosphere", false },
                     { "fire_oxygen_drain", fireO2 },
                 });
+                ApplySuitAirReserve(deltaSeconds, suitBefore);
             }
             ApplyBreachZoneSceneState();
             RefreshTrackerSystemStatusLines();
@@ -183,6 +187,37 @@ namespace SynapticSea.Core.Session
             GdDict oxygenSummary = OxygenState.GetSummary();
             if (V.F64(oxygenSummary.Get("oxygen", 100.0)) <= V.F64(oxygenSummary.Get("safe_threshold", 35.0)))
                 TriggerTutorial("vitals_warning", "oxygen_low");
+        }
+
+        /// <summary>
+        /// Unity port (decision 56): how fouled the home ship's air is, 0 (breathable) to 1 (the maximum atmosphere health
+        /// drain). 0 when away or when the suit reserve is disabled.
+        /// </summary>
+        internal double HomeAtmosphereSeverity()
+        {
+            if (AwayFromStart || Deps.HomeSuitAirReserveSeconds <= 0.0 || LifeSupportExpandedState == null)
+                return 0.0;
+            double max = LifeSupportExpandedState.MaxAtmosphereHealthDrain;
+            if (max <= 0.0)
+                return 0.0;
+            return GdMath.Clampf(LifeSupportExpandedState.GetHealthDrainPerSecond() / max, 0.0, 1.0);
+        }
+
+        /// <summary>True while the suit is supplying the player's air on the home ship (fouled air, suit O2 left).</summary>
+        public bool SuitFilteringShipAir => OxygenState != null && HomeAtmosphereSeverity() > 0.0 && OxygenState.Oxygen > 0.001;
+
+        /// <summary>
+        /// Unity port (decision 56): while the home air is fouled the suit supplies the player's air. The tick's regen is
+        /// withheld (breach-zone and fire drains still apply) and the reserve drains by severity, scaled by the hazard dial.
+        /// </summary>
+        void ApplySuitAirReserve(double deltaSeconds, double suitBefore)
+        {
+            double severity = HomeAtmosphereSeverity();
+            if (severity <= 0.0 || deltaSeconds <= 0.0 || OxygenState == null)
+                return;
+            double perSecond = severity * OxygenState.MaxOxygen / Deps.HomeSuitAirReserveSeconds * Math.Max(0.1, HomeHazardModifier());
+            double level = Math.Min(OxygenState.Oxygen, suitBefore);
+            OxygenState.Oxygen = Math.Max(0.0, level - perSecond * deltaSeconds);
         }
 
         /// <summary>True when suit O2 drains as hostile field atmosphere: aboard a derelict hull, not inside lifeboat/home.</summary>
@@ -327,6 +362,8 @@ namespace SynapticSea.Core.Session
                 gate.CollisionEnabled = !isOpen;
                 gate.VisualState = isOpen ? "open" : "closed";
                 gate.VisualVisible = !isOpen;
+                if (Loader != null && Loader.IsValid && gate.Meta.Has("blocked_route_index"))
+                    Loader.SetBlockedRouteCollisionEnabled(V.I32(gate.Meta["blocked_route_index"]), !isOpen);
                 Events.RaiseZoneStateChanged(gate);
             }
         }
@@ -356,6 +393,25 @@ namespace SynapticSea.Core.Session
         }
 
         // ------------------------------------------------------------------ electrical arc
+        /// <summary>Smallest hazard dial the arc timing divides by (a biome may push the combined dial toward 0).</summary>
+        const double ARC_MIN_HAZARD_MODIFIER = 0.1;
+
+        /// <summary>
+        /// Unity port (C4) tuning, not parity: the home hazard dial lengthens the arcing phase and shortens the safe
+        /// discharged window (<c>arcing x dial</c>, <c>discharged / dial</c>). Both durations are exactly Godot's defaults
+        /// for "standard" and away from home, like the breach drain.
+        /// </summary>
+        GdDict ArcConfig(GdArray zoneIds)
+        {
+            double modifier = System.Math.Max(ARC_MIN_HAZARD_MODIFIER, HomeHazardModifier());
+            return new GdDict
+            {
+                { "zone_ids", zoneIds },
+                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION * modifier },
+                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION / modifier },
+            };
+        }
+
         /// <summary><c>_build_arc_zone()</c>: configure the model (always), then one zone per resolved marker.</summary>
         void BuildArcZone()
         {
@@ -366,24 +422,14 @@ namespace SynapticSea.Core.Session
             ArcZoneResolvedRoomIds.Clear();
             if (ElectricalArcState == null)
                 ElectricalArcState = new ElectricalArcState();
-            ElectricalArcState.Configure(new GdDict
-            {
-                { "zone_ids", new GdArray() },
-                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION },
-                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION },
-            });
+            ElectricalArcState.Configure(ArcConfig(new GdArray()));
             List<GdDict> resolutions = ResolveArcZoneWorldPositions();
             if (resolutions.Count == 0)
                 return;
             var zoneIds = new GdArray();
             foreach (GdDict r in resolutions)
                 zoneIds.Add(V.Str(r.Get("zone_id", ARC_ZONE_FALLBACK_ID)));
-            ElectricalArcState.Configure(new GdDict
-            {
-                { "zone_ids", zoneIds },
-                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION },
-                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION },
-            });
+            ElectricalArcState.Configure(ArcConfig(zoneIds));
             foreach (GdDict r in resolutions)
             {
                 Vec3 pos = r.Get("position", Vec3.Inf) is Vec3 p ? p : Vec3.Inf;

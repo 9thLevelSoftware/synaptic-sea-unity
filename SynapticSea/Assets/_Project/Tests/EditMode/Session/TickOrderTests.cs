@@ -56,11 +56,24 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(TickOrder.AwayOrder.Count, away.Count, "AwayOrder has duplicates");
         }
 
+        /// <summary>Godot's branch with the port-added stages inserted (docs/TickOrder.md "Port-added stages").</summary>
+        static string[] WithPortStages(string[] godotBranch)
+        {
+            var list = godotBranch.ToList();
+            // E1: wounds tick right before survival_attrition, whose vitals context carries the bleed.
+            list.Insert(list.IndexOf("survival_attrition"), "wounds");
+            return list.ToArray();
+        }
+
         [Test]
         public void OrderTables_EqualTheGodotBranches()
         {
-            CollectionAssert.AreEqual(GodotAwayBranch, TickOrder.AwayOrder.ToArray());
-            CollectionAssert.AreEqual(GodotHomeBranch, TickOrder.HomeOrder.ToArray());
+            CollectionAssert.AreEqual(WithPortStages(GodotAwayBranch), TickOrder.AwayOrder.ToArray());
+            CollectionAssert.AreEqual(WithPortStages(GodotHomeBranch), TickOrder.HomeOrder.ToArray());
+            // Removing the port stages gives back Godot's branches exactly.
+            CollectionAssert.AreEqual(GodotAwayBranch, TickOrder.AwayOrder.Where(id => !TickOrder.PortAddedStages.Contains(id)).ToArray());
+            CollectionAssert.AreEqual(GodotHomeBranch, TickOrder.HomeOrder.Where(id => !TickOrder.PortAddedStages.Contains(id)).ToArray());
+            CollectionAssert.AreEqual(new[] { "wounds" }, TickOrder.PortAddedStages.ToArray());
         }
 
         [Test]

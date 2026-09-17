@@ -206,5 +206,18 @@ namespace SynapticSea.Tests.Session
             string handler = s.RequestInteract();
             Assert.AreNotEqual(InteractionRegistry.MissHandlerId, handler);
         }
+
+        [Test]
+        public void RouteGateOpening_DisablesItsBlockedRouteNodeCollider()
+        {
+            var rig = SessionHarness.CreateGolden();
+            RunSession s = rig.Session;
+            var loader = (FakeLoaderView)s.Loader;
+            Assert.AreEqual((0, true), loader.BlockedRouteCollisionCalls[loader.BlockedRouteCollisionCalls.Count - 1], "a closed gate keeps its route node collidable");
+            Assert.AreEqual(0L, V.I64(s.RouteGateNodes[0].Meta["blocked_route_index"]));
+            Assert.IsTrue(s.CompleteObjectiveSequence(1));
+            Assert.IsTrue(s.CompleteObjectiveSequence(2), "restore_systems opens the powered gates");
+            Assert.AreEqual((0, false), loader.BlockedRouteCollisionCalls[loader.BlockedRouteCollisionCalls.Count - 1], "the open gate's route node stops colliding");
+        }
     }
 }

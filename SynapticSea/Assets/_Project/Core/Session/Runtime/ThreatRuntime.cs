@@ -28,6 +28,32 @@ namespace SynapticSea.Core.Session
         /// <summary><c>signal threat_killed(record)</c>. The record's <c>position</c> is a <see cref="Vec3"/>.</summary>
         public event Action<GdDict> ThreatKilled;
 
+        /// <summary><see cref="ThreatAttacked"/> target kind: a threat hit the player (result = the DamagePipeline vitals result).</summary>
+        public const string ATTACK_TARGET_PLAYER = "player";
+
+        /// <summary><see cref="ThreatAttacked"/> target kind: a threat applied structure damage (result = {structure_damage, source_id}).</summary>
+        public const string ATTACK_TARGET_STRUCTURE = "structure";
+
+        /// <summary><see cref="ThreatAttacked"/> target kind: the player's weapon hit this threat (result = the weapon attack result).</summary>
+        public const string ATTACK_TARGET_THREAT = "threat";
+
+        /// <summary>
+        /// Unity-port addition (D3): raised wherever <see cref="LastAttackResult"/> is set, plus structure attacks:
+        /// <c>(threat_instance_id, target_kind, damage, result)</c>. <c>target_kind</c> is one of the ATTACK_TARGET_*
+        /// constants; <c>damage</c> is the final damage (structure amount for structure attacks). <c>result</c> is a copy
+        /// that also carries <c>position</c>: the threat's world position (<see cref="Vec3"/>, Godot frame).
+        /// </summary>
+        public event Action<string, string, double, GdDict> ThreatAttacked;
+
+        /// <summary>
+        /// Unity-port addition (C4): scales the spawned count per encounter marker (fractional carry across markers keeps the
+        /// total at <c>sum(count) * modifier</c>). 1.0 = Godot.
+        /// </summary>
+        public double EncounterDensityModifier = 1.0;
+
+        /// <summary>Unity-port addition (C4): multiplies a newly spawned threat's attack damage and divides its attack interval. 1.0 = Godot.</summary>
+        public double AggressionModifier = 1.0;
+
         /// <summary>RUNTIME: <c>_spawn_placeholder(threat, index, anchor)</c> built a ThreatPlaceholderRenderer node at the threat's world position.</summary>
         public event Action<ThreatAIState, long> PlaceholderSpawned;
 
@@ -64,6 +90,13 @@ namespace SynapticSea.Core.Session
 
         /// <summary>ADR-0049: pure nav graph for pathfollowing (null = legacy hold still).</summary>
         public ShipNavGraph NavGraph;
+
+        /// <summary>
+        /// Unity port: the scene's NavMesh agents, which move the threats when a ship is built
+        /// (<see cref="Session.IThreatNavigation"/>). Null headless, where the nav graph moves them instead. The
+        /// graph is still built either way: it resolves each threat's room and the FLEE goal.
+        /// </summary>
+        public Session.IThreatNavigation Navigation;
 
         /// <summary>instance_id -> {waypoints, index, target, repath_cooldown}.</summary>
         readonly GdDict _pathRuntime = new GdDict();
@@ -149,6 +182,28 @@ namespace SynapticSea.Core.Session
                 else if (pair is GdDict d)
                     NavGraph.BlockBulkhead(V.Str(d.Get("a", "")), V.Str(d.Get("b", "")));
             }
+            Navigation?.SetAvoidedCells(BurningCells(fireRooms), NavGraph.CellSize);
+        }
+
+        /// <summary>
+        /// The nav graph's cell centres inside burning rooms, for the scene's NavMesh to charge the same way the
+        /// graph does (<see cref="ShipNavGraph.ApplyFireCosts"/>).
+        /// </summary>
+        GdArray BurningCells(GdDict fireRooms)
+        {
+            var cells = new GdArray();
+            if (NavGraph == null || fireRooms == null || fireRooms.IsEmpty)
+                return cells;
+            foreach (object key in NavGraph.Nodes.Keys)
+            {
+                string nodeId = V.Str(key);
+                if (!fireRooms.Has(NavGraph.GetNodeRoom(nodeId)))
+                    continue;
+                Vec3 pos = NavGraph.GetNodePos(nodeId);
+                if (pos != Vec3.Inf)
+                    cells.Append(pos);
+            }
+            return cells;
         }
 
         public void InjectValidationEncounter(GdArray archetypeIds, Vec3 anchor)
@@ -168,7 +223,7 @@ namespace SynapticSea.Core.Session
                 idx += 1;
             }
             EncounterMarkers = markers;
-            SpawnFromMarkers(markers, anchor);
+            SpawnFromMarkers(markers, anchor, false);
         }
 
         public void SetPlayerSignals(double noise, double light, double sight, bool crouching, string roomId = "")
@@ -246,9 +301,12 @@ namespace SynapticSea.Core.Session
                         { "status_effect_id", threat.StatusOnHit },
                         { "source_id", threat.InstanceId },
                     });
+                    RaiseAttacked(threat, ATTACK_TARGET_PLAYER, FinalDamage(LastAttackResult), LastAttackResult);
                     double structAmt = threat.StructureDamage;
                     if (structAmt > 0.0 && OnStructureAttack != null)
                         OnStructureAttack(threat, structAmt);
+                    if (structAmt > 0.0)
+                        RaiseAttacked(threat, ATTACK_TARGET_STRUCTURE, structAmt, new GdDict { { "structure_damage", structAmt }, { "source_id", threat.InstanceId } });
                     threat.ConsumeAttack();
                     CombatEngaged = true;
                 }
@@ -302,7 +360,19 @@ namespace SynapticSea.Core.Session
             result["ammo_remaining"] = ammoState != null && ammoItemId.Length > 0 ? ammoState.Loaded(weaponId) : -1L;
             LastAttackResult = result.DeepCopy();
             _lastAttackWeaponId = weaponId;
+            RaiseAttacked(target, ATTACK_TARGET_THREAT, FinalDamage(result), result);
             return result;
+        }
+
+        static double FinalDamage(GdDict result) => V.F64(result.Get("final_damage", result.Get("amount", 0.0)));
+
+        void RaiseAttacked(ThreatAIState threat, string targetKind, double damage, GdDict result)
+        {
+            if (ThreatAttacked == null || threat == null)
+                return;
+            GdDict copy = (result ?? new GdDict()).DeepCopy();
+            copy["position"] = threat.WorldPosition.Count >= 3 ? ThreatPos(threat) : Vec3.Zero;
+            ThreatAttacked(threat.InstanceId, targetKind, damage, copy);
         }
 
         public GdDict GetSummary()
@@ -389,16 +459,26 @@ namespace SynapticSea.Core.Session
             return count;
         }
 
-        void SpawnFromMarkers(GdArray markers, Vec3 anchor)
+        void SpawnFromMarkers(GdArray markers, Vec3 anchor, bool applyRunModifiers = true)
         {
             ClearRuntimeNodes();
             long idx = 0;
+            double density = applyRunModifiers ? Math.Max(0.0, EncounterDensityModifier) : 1.0;
+            double aggression = applyRunModifiers ? GdMath.Clampf(AggressionModifier, 0.1, 3.0) : 1.0;
+            double carry = 0.0;
             foreach (object markerObj in markers)
             {
                 if (!(markerObj is GdDict marker))
                     continue;
                 string encounterKind = NormalizeEncounterKind(V.Str(marker.Get("encounter_kind", "biomatter_swarm")));
                 long count = Math.Max(1L, V.I64(marker.Get("count", 1L)));
+                if (density != 1.0)
+                {
+                    double want = count * density + carry;
+                    long scaled = (long)Math.Floor(want + 1e-9);
+                    carry = Math.Max(0.0, want - scaled);
+                    count = scaled;
+                }
                 object localPos = marker.Get("local_position", null);
                 for (long i = 0; i < count; i++)
                 {
@@ -426,6 +506,11 @@ namespace SynapticSea.Core.Session
                             (double)anchor.Z + Math.Sin(idx) * 4.0);
                     }
                     threat.Configure(merged);
+                    if (aggression != 1.0)
+                    {
+                        threat.AttackDamage *= aggression;
+                        threat.AttackInterval /= aggression;
+                    }
                     Threats.Add(threat);
                     SpawnPlaceholder(threat, idx);
                     idx += 1;
@@ -522,6 +607,7 @@ namespace SynapticSea.Core.Session
 
         void RemoveThreat(ThreatAIState threat)
         {
+            Navigation?.Release(threat.InstanceId);
             if (_placeholderNodes.Has(threat.InstanceId))
                 PlaceholderRemoved?.Invoke(threat.InstanceId);
             _placeholderNodes.Erase(threat.InstanceId);
@@ -538,21 +624,33 @@ namespace SynapticSea.Core.Session
             if (threat.State == ThreatAIState.STATE_IDLE || threat.State == ThreatAIState.STATE_STUN || threat.State == ThreatAIState.STATE_DEAD)
             {
                 _pathRuntime.Erase(threat.InstanceId);
+                Navigation?.Hold(threat.InstanceId);
                 return;
             }
             double speed = threat.EffectiveMoveSpeed();
             if (speed <= 0.0)
+            {
+                Navigation?.Hold(threat.InstanceId);
                 return;
+            }
             Vec3 current = ThreatPos(threat);
             Vec3 target = MotionTargetFor(threat, playerPosition);
             if (target == Vec3.Inf)
+            {
+                Navigation?.Hold(threat.InstanceId);
                 return;
+            }
             if (threat.State == ThreatAIState.STATE_ATTACK)
             {
                 double ar = threat.AttackRange;
                 if (current.DistanceTo(playerPosition) <= ar)
+                {
+                    Navigation?.Hold(threat.InstanceId);
                     return;
+                }
             }
+            if (AdvanceOnNavMesh(threat, current, target, playerPosition, speed, delta))
+                return;
             if (NavGraph == null || NavGraph.NodeCount() == 0)
             {
                 Vec3 step = current.MoveToward(target, (float)(speed * delta));
@@ -594,14 +692,62 @@ namespace SynapticSea.Core.Session
             Vec3 newPos = stepResult.Get("position", current) is Vec3 np ? np : current;
             rt["index"] = V.I64(stepResult.Get("path_index", 0L));
             _pathRuntime[threat.InstanceId] = rt;
-            threat.WorldPosition = GdArray.Of((double)newPos.X, (double)newPos.Y, (double)newPos.Z);
-            string nid = NavGraph.NearestNode(newPos);
-            if (nid.Length > 0)
+            ApplyMotionResult(threat, newPos);
+        }
+
+        /// <summary>Stores the position the threat reached and the room the nav graph puts it in.</summary>
+        void ApplyMotionResult(ThreatAIState threat, Vec3 position)
+        {
+            threat.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            if (NavGraph == null || NavGraph.NodeCount() == 0)
+                return;
+            string nodeId = NavGraph.NearestNode(position);
+            if (nodeId.Length == 0)
+                return;
+            string roomId = NavGraph.GetNodeRoom(nodeId);
+            if (roomId.Length > 0)
+                threat.RoomId = roomId;
+        }
+
+        /// <summary>
+        /// Unity port: in a scene the threat's <c>NavMeshAgent</c> walks it, and this only hands the agent its
+        /// destination and stores where the agent got to. False falls through to the ADR-0049 A* stepping, which is
+        /// what headless sessions run and what covers an agent that is off the NavMesh.
+        /// </summary>
+        bool AdvanceOnNavMesh(ThreatAIState threat, Vec3 current, Vec3 target, Vec3 playerPosition, double speed, double delta)
+        {
+            if (Navigation == null || !Navigation.HasNavMesh)
+                return false;
+            Vec3 goal = threat.State == ThreatAIState.STATE_FLEE ? FleeGoal(threat, current, playerPosition, delta) : target;
+            if (!Navigation.TryAdvance(threat.InstanceId, current, goal, speed, delta, out Vec3 position))
+                return false;
+            if (threat.State != ThreatAIState.STATE_FLEE)
+                _pathRuntime.Erase(threat.InstanceId);
+            ApplyMotionResult(threat, position);
+            return true;
+        }
+
+        /// <summary>
+        /// Where a fleeing threat runs to: the nav graph's farthest reachable node, kept for
+        /// <see cref="REPATH_INTERVAL"/> so the Dijkstra sweep does not run every frame (the graph path follower
+        /// repaths on the same interval). Without a graph it simply runs directly away from the player.
+        /// </summary>
+        Vec3 FleeGoal(ThreatAIState threat, Vec3 current, Vec3 playerPosition, double delta)
+        {
+            GdDict rt = _pathRuntime.Get(threat.InstanceId, null) as GdDict ?? new GdDict();
+            double cooldown = Math.Max(0.0, V.F64(rt.Get("repath_cooldown", 0.0)) - delta);
+            Vec3 goal = rt.Get("target", Vec3.Inf) is Vec3 stored ? stored : Vec3.Inf;
+            if (goal == Vec3.Inf || cooldown <= 0.0)
             {
-                string rid = NavGraph.GetNodeRoom(nid);
-                if (rid.Length > 0)
-                    threat.RoomId = rid;
+                goal = NavGraph != null && NavGraph.NodeCount() != 0
+                    ? ThreatPathfinder.FarthestPoint(NavGraph, current, playerPosition)
+                    : current + (current - playerPosition);
+                cooldown = REPATH_INTERVAL;
             }
+            rt["target"] = goal;
+            rt["repath_cooldown"] = cooldown;
+            _pathRuntime[threat.InstanceId] = rt;
+            return goal;
         }
 
         static Vec3 MotionTargetFor(ThreatAIState threat, Vec3 playerPosition)
@@ -635,6 +781,9 @@ namespace SynapticSea.Core.Session
 
         void ClearRuntimeNodes()
         {
+            if (Navigation != null)
+                foreach (ThreatAIState threat in Threats)
+                    if (threat != null) Navigation.Release(threat.InstanceId);
             PlaceholdersCleared?.Invoke();
             _placeholderNodes.Clear();
             _rewardedKills.Clear();

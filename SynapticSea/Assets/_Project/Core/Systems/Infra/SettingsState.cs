@@ -49,6 +49,7 @@ namespace SynapticSea.Core.Systems
             merged = SettingsStateSchema.Sanitize(merged);
             if (!SettingsStateSchema.Validate(merged)) return false;
             _payload = merged;
+            ApplyExtensions(partial);
             return true;
         }
 
@@ -161,7 +162,13 @@ namespace SynapticSea.Core.Systems
         }
 
         // Round-trip seam.
-        public GdDict GetSummary() => _payload.DeepCopy();
+        public GdDict GetSummary()
+        {
+            GdDict summary = _payload.DeepCopy();
+            // Unity port: preference extensions are written only once set, so Godot-shaped summaries (run saves) are unchanged.
+            foreach (var key in _extensions.Keys) summary[key] = V.DeepCopy(_extensions[key]);
+            return summary;
+        }
 
         public bool ApplySummary(GdDict summary)
         {
@@ -169,6 +176,77 @@ namespace SynapticSea.Core.Systems
             GdDict sanitized = SettingsStateSchema.Sanitize(summary);
             if (!SettingsStateSchema.Validate(sanitized)) return false;
             _payload = sanitized;
+            ApplyExtensions(summary);
+            return true;
+        }
+
+        // --- Unity port (gap closure B2/B5): user preferences Godot never persisted ---------------------------------
+        // Bus volumes / mutes (the audio settings screen) and the language choice live in the same preferences file.
+        // They are additive keys outside the Godot schema: absent until set (old files and Godot saves load unchanged),
+        // and a summary without them leaves the current values alone.
+
+        public const string AudioBusVolumesKey = "audio_bus_volumes_db";
+        public const string AudioBusMutedKey = "audio_bus_muted";
+        public const string LanguageKey = "language";
+        public const string DefaultLanguage = "en";
+
+        readonly GdDict _extensions = new GdDict();
+
+        void ApplyExtensions(GdDict source)
+        {
+            if (source.Get(AudioBusVolumesKey, null) is GdDict volumes)
+            {
+                var clean = new GdDict();
+                foreach (var bus in volumes.Keys)
+                {
+                    object v = volumes[bus];
+                    if (v is double || v is long) clean[V.Str(bus)] = GdMath.Clampf(V.F64(v), -60.0, 0.0);
+                }
+                _extensions[AudioBusVolumesKey] = clean;
+            }
+            if (source.Get(AudioBusMutedKey, null) is GdDict muted)
+            {
+                var clean = new GdDict();
+                foreach (var bus in muted.Keys)
+                {
+                    if (muted[bus] is bool b) clean[V.Str(bus)] = b;
+                }
+                _extensions[AudioBusMutedKey] = clean;
+            }
+            if (source.Get(LanguageKey, null) is string language && language.Length != 0)
+                _extensions[LanguageKey] = language;
+        }
+
+        /// <summary>Stored bus volumes (bus id → dB); empty until the player changes one.</summary>
+        public GdDict GetAudioBusVolumes() => (_extensions.Get(AudioBusVolumesKey, null) as GdDict ?? new GdDict()).DeepCopy();
+
+        /// <summary>Stored bus mutes (bus id → bool); empty until the player changes one.</summary>
+        public GdDict GetAudioBusMutes() => (_extensions.Get(AudioBusMutedKey, null) as GdDict ?? new GdDict()).DeepCopy();
+
+        public bool SetAudioBusVolumeDb(string busId, double volumeDb)
+        {
+            if (string.IsNullOrEmpty(busId)) return false;
+            GdDict volumes = GetAudioBusVolumes();
+            volumes[busId] = GdMath.Clampf(volumeDb, -60.0, 0.0);
+            _extensions[AudioBusVolumesKey] = volumes;
+            return true;
+        }
+
+        public bool SetAudioBusMuted(string busId, bool muted)
+        {
+            if (string.IsNullOrEmpty(busId)) return false;
+            GdDict mutes = GetAudioBusMutes();
+            mutes[busId] = muted;
+            _extensions[AudioBusMutedKey] = mutes;
+            return true;
+        }
+
+        public string GetLanguage() => V.Str(_extensions.Get(LanguageKey, DefaultLanguage));
+
+        public bool SetLanguage(string languageId)
+        {
+            if (string.IsNullOrEmpty(languageId)) return false;
+            _extensions[LanguageKey] = languageId;
             return true;
         }
 

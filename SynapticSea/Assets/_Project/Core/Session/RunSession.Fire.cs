@@ -379,10 +379,12 @@ namespace SynapticSea.Core.Session
                 breached[V.Str(c)] = true;
             if (!ctx.GetBool("ship_oxygen_present", true))
                 return;
+            // Unity port (C4): the home hazard dial scales the seeded fire intensity (clamped by Ignite; 1.0 for "standard").
+            double intensity = 1.0 * HomeHazardModifier();
             foreach (object cid in ctx.GetArrayOrEmpty("damaged_compartments"))
             {
                 if (!breached.Has(V.Str(cid)))
-                    FireSuppressionState.Ignite(V.Str(cid), 1.0);
+                    FireSuppressionState.Ignite(V.Str(cid), intensity);
             }
         }
 
@@ -818,6 +820,8 @@ namespace SynapticSea.Core.Session
             {
                 InterruptWorkOnDamage();
                 PlaySfx(AudioEventSeam.SFX_COMBAT_HIT);
+                // Unity port (E1): combat damage opens wounds (Godot never applied WoundState.suggest_from_damage).
+                ApplyWoundFromCombatDamage(damage, ev);
             }
         }
 

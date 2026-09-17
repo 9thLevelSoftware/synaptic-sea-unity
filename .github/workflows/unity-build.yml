@@ -1,0 +1,64 @@
+# Player builds through Builder.PerformBuild (plan Phase 12, optional CI).
+#
+# Manual trigger only until the repository has the Unity license secrets:
+#   UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD   (see unity-tests.yml)
+# Builder.PerformBuild validates StreamingAssets data, stamps the version and build kind, sets SS_BUILD_<KIND>,
+# and builds with Mono. IL2CPP release builds need the IL2CPP toolchain, which the game-ci images for these
+# targets do not carry, so the Builder falls back to Mono with a warning.
+#
+# Local equivalent: pwsh tools/build.ps1 -Target <target> -Kind <kind>
+name: Unity build
+
+on:
+  workflow_dispatch:
+    inputs:
+      buildKind:
+        description: Build kind (dev = development build, demo = demo scope gate, release)
+        required: true
+        default: dev
+        type: choice
+        options: [dev, demo, release]
+
+concurrency:
+  group: unity-build-${{ github.ref }}-${{ inputs.buildKind }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.targetPlatform }} (${{ inputs.buildKind }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform: [StandaloneWindows64, StandaloneLinux64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0 # Builder stamps `git rev-parse --short HEAD`
+      - uses: actions/cache@v4
+        with:
+          path: SynapticSea/Library
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('SynapticSea/Packages/manifest.json', 'SynapticSea/Packages/packages-lock.json', 'SynapticSea/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-${{ matrix.targetPlatform }}-
+            Library-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: SynapticSea
+          unityVersion: 6000.6.0f1
+          targetPlatform: ${{ matrix.targetPlatform }}
+          buildMethod: SynapticSea.EditorTools.Build.Builder.PerformBuild
+          customParameters: -buildKind ${{ inputs.buildKind }} -outputPath /github/workspace/build/${{ matrix.targetPlatform }}/${{ inputs.buildKind }}
+          versioning: None
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TheSynapticSea-${{ matrix.targetPlatform }}-${{ inputs.buildKind }}
+          path: |
+            build/${{ matrix.targetPlatform }}/${{ inputs.buildKind }}
+            !build/**/*_BackUpThisFolder_ButDontShipItWithYourGame
+            !build/**/*_BurstDebugInformation_DoNotShip

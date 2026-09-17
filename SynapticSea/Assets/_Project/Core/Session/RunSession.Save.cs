@@ -42,6 +42,9 @@ namespace SynapticSea.Core.Session
                     foreach (object slotId in SaveSlotState.AutosaveSlotIds)
                         SaveLoadService.DeleteSlot(V.Str(slotId));
                 }
+                // Unity port: drop generated run directories no save references (a death keeps this run's; its frozen
+                // slots still point at it, and the title sweep collects it once they are gone).
+                new RunDirectoryJanitor(Storage, SaveLoadService, Log).Sweep(reason == "death" ? LayoutPath : "");
             }
             if (reason != "death")
                 EmitTrainingEvent("transmit_relay", reason);
@@ -311,7 +314,10 @@ namespace SynapticSea.Core.Session
                 return false;
             bool applied = RunSnapshotAssembler.Apply(this, snapshot);
             if (applied)
+            {
+                RunSnapshotAssembler.ApplyManualSlotWorldState(this, snapshot);
                 TriggerTutorial("manual_slot_loaded", "any");
+            }
             return applied;
         }
 
@@ -320,6 +326,19 @@ namespace SynapticSea.Core.Session
         internal void SyncPillarSummariesForSave() => SyncCurrentShipPillarSummaries();
         internal void SyncCombatSummaryForSave() => SyncCurrentShipCombatSummary();
         internal void SyncBreachEnvironmentForSave() => SyncCurrentShipBreachEnvironment();
+
+        /// <summary>
+        /// The home breach environment as a save records it, without mutating any ship: the live oxygen state while home,
+        /// else the summary synced when the player left.
+        /// </summary>
+        internal GdDict HomeBreachEnvironmentForSave()
+        {
+            if (HomeShip == null)
+                return new GdDict();
+            if (CurrentShip == HomeShip && OxygenState != null)
+                return BreachEnvironmentFrom(OxygenState.GetSummary());
+            return HomeShip.BreachEnvironmentSummary.DeepCopy();
+        }
         internal Vec3 HomePlayerPosition { get => _homePlayerPosition; set => _homePlayerPosition = value; }
         internal string RunIdInternal { get => _runId; set => _runId = value; }
         internal bool DemoCrossRunBlocked => DemoScopeGate != null && DemoScopeGate.IsBlocked("world_persistence.cross_run");
@@ -516,6 +535,7 @@ namespace SynapticSea.Core.Session
                 ShipModificationState.ApplySummary(snapshot.ShipModificationSummary);
                 ReapplyShipModRuntimeEffects();
             }
+            ApplyPortSnapshotExtensions(snapshot);
             EnsureConsumableHotbarAssignments();
             RefreshConsumableUi();
             ReconcileJunctionCalibratorMarkerAfterReload();
@@ -538,12 +558,53 @@ namespace SynapticSea.Core.Session
         }
 
         /// <summary>
+        /// Unity port (gate2-current-run-5): restores the keys Godot's run snapshot did not carry. An empty value (a
+        /// migrated Godot save) means "not saved": wounds and tutorial state stay at the fresh state the reload built, the
+        /// chart is cleared, and equipment / home loot / home cargo / run context keep their live values.
+        /// </summary>
+        void ApplyPortSnapshotExtensions(RunSnapshot snapshot)
+        {
+            ApplyRunContextSummary(snapshot.RunContext);
+            if (WoundState != null && !snapshot.WoundSummary.IsEmpty)
+            {
+                WoundState.ApplySummary(snapshot.WoundSummary);
+                Events.RaiseWoundsChanged(WoundState);
+            }
+            WebChartState?.ApplySummary(snapshot.WebChartSummary);
+            if (TutorialState != null && !snapshot.TutorialSummary.IsEmpty)
+            {
+                TutorialState.ApplySummary(snapshot.TutorialSummary);
+                Events.RaiseTutorialStateReset(TutorialState);
+            }
+            if (EquipmentState != null && !snapshot.EquipmentSummary.IsEmpty)
+            {
+                EquipmentState.ApplySummary(snapshot.EquipmentSummary);
+                RecomputePlayerEncumbrance();
+                RefreshWeaponHotbar();
+            }
+            if (HomeShip != null)
+            {
+                bool rebuildLoot = false;
+                if (!snapshot.HomeLootedContainers.IsEmpty)
+                {
+                    HomeShip.LootedContainerIds = snapshot.HomeLootedContainers.ShallowCopy();
+                    rebuildLoot = true;
+                }
+                if (!snapshot.HomeShipInventory.IsEmpty)
+                    HomeShip.GetInventory().ApplySummary(snapshot.HomeShipInventory);
+                if (rebuildLoot && !AwayFromStart)
+                    BuildLootContainers();
+            }
+        }
+
+        /// <summary>
         /// <c>_reset_runtime_for_reload()</c> (model half): return home when away (freeing every derelict root and severing
         /// dock cycles), tear down every interaction node, zone and HUD binding, drop the lifeboat + visited ships, and
         /// re-configure every model to its fresh state so the reload can re-apply the snapshot.
         /// </summary>
         void ResetRuntimeForReload()
         {
+            _woundRollCounter = 0;
             if (AwayFromStart)
             {
                 foreach (ShipInstance inst in AllKnownShips())
@@ -634,12 +695,7 @@ namespace SynapticSea.Core.Session
             });
             InventoryState?.Reset();
             FireSuppressionState?.Configure(LoadJsonDict(SHIP_SUBSYSTEM_TUNING_PATH).GetDictOrEmpty("fire_suppression"));
-            ElectricalArcState?.Configure(new GdDict
-            {
-                { "zone_ids", new GdArray() },
-                { "arcing_duration", ElectricalArcState.DEFAULT_ARCING_DURATION },
-                { "discharged_duration", ElectricalArcState.DEFAULT_DISCHARGED_DURATION },
-            });
+            ElectricalArcState?.Configure(ArcConfig(new GdArray()));
             VitalsState?.Configure(new GdDict());
             SanityState?.Configure(new GdDict());
             RadiationState?.Configure(new GdDict());

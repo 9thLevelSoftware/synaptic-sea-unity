@@ -213,6 +213,16 @@ namespace SynapticSea.Core.Session
 
         double ResolveCurrentLootQualityModifier()
         {
+            double quality = ResolveCurrentLootBiomeQualityModifier();
+            // Unity port (C4): the run difficulty's loot dial on the home ship (exactly 1.0 for "standard").
+            double difficultyMult = HomeDifficultyLootMultiplier();
+            if (difficultyMult != 1.0)
+                quality = GdMath.Clampf(quality * difficultyMult, DifficultyProfile.COMBINED_MODIFIER_MIN, DifficultyProfile.COMBINED_MODIFIER_MAX);
+            return quality;
+        }
+
+        double ResolveCurrentLootBiomeQualityModifier()
+        {
             string biomeId = ResolveCurrentLootBiomeId();
             if (biomeId.Length == 0)
                 return 1.0;
@@ -237,6 +247,9 @@ namespace SynapticSea.Core.Session
 
         string ResolveCurrentLootBiomeId()
         {
+            // Unity port (C4): an explicit run biome skins / loots the home ship (and the lifeboat built there).
+            if (BiomeId.Length > 0 && !AwayFromStart)
+                return BiomeId;
             List<string> biomeIds = LootBiomeIds();
             if (biomeIds.Count == 0)
                 return "abyssal_synaptic_sea";

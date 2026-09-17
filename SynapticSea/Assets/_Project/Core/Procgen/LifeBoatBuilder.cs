@@ -72,6 +72,12 @@ namespace SynapticSea.Core.Procgen
             public List<RoomNode> Rooms = new List<RoomNode>();
             public List<WrapperRecord> Wrappers = new List<WrapperRecord>();
 
+            /// <summary>
+            /// Unity-port addition (A4): the res:// kit document whose wrapper map was actually used (<see cref="ModuleSceneMap"/>
+            /// falls back to v0 when the layout's kit has no wrapper scenes). The Runtime resolves its prefab catalog from it.
+            /// </summary>
+            public string KitPath = DEFAULT_KIT_PATH;
+
             /// <summary>GDScript <c>get_airlock_node()</c>: the airlock room record.</summary>
             public RoomNode AirlockRoom()
             {
@@ -101,7 +107,7 @@ namespace SynapticSea.Core.Procgen
                 return null;
             }
 
-            var result = new BuildResult { Layout = layout };
+            var result = new BuildResult { Layout = layout, KitPath = ResolveKitPath(V.Str(layout.Get("kit_id", DEFAULT_KIT_ID))) };
             var roomNodes = new Dictionary<string, RoomNode>();
             foreach (GdDict roomDef in ROOMS)
             {
@@ -326,11 +332,29 @@ namespace SynapticSea.Core.Procgen
             return true;
         }
 
+        /// <summary>
+        /// Unity-port addition (A4): the kit path <see cref="ModuleSceneMap"/> reads for <paramref name="kitId"/> (a missing
+        /// kit, or one with no wrapper scenes, resolves to <see cref="DEFAULT_KIT_PATH"/>).
+        /// </summary>
+        public static string ResolveKitPath(string kitId)
+        {
+            string kitPath = "res://data/kits/" + kitId + ".json";
+            if (!CatalogRegistry.Exists(kitPath)) return DEFAULT_KIT_PATH;
+            return ModuleSceneMapAt(kitPath).IsEmpty ? DEFAULT_KIT_PATH : kitPath;
+        }
+
         /// <summary>module_id -&gt; godot_wrapper_scene from the kit JSON (falls back to the default kit).</summary>
         public static GdDict ModuleSceneMap(string kitId)
         {
             string kitPath = "res://data/kits/" + kitId + ".json";
             if (!CatalogRegistry.Exists(kitPath)) kitPath = DEFAULT_KIT_PATH;
+            GdDict moduleToScene = ModuleSceneMapAt(kitPath);
+            if (moduleToScene.IsEmpty && kitPath != DEFAULT_KIT_PATH) return ModuleSceneMap(DEFAULT_KIT_ID);
+            return moduleToScene;
+        }
+
+        static GdDict ModuleSceneMapAt(string kitPath)
+        {
             GdDict parsed = CatalogRegistry.LoadDict(kitPath);
             var moduleToScene = new GdDict();
             if (parsed != null && parsed.Get("modules", new GdArray()) is GdArray modules)
@@ -343,7 +367,6 @@ namespace SynapticSea.Core.Procgen
                     if (moduleId.Length != 0 && scenePath.Length != 0) moduleToScene[moduleId] = scenePath;
                 }
             }
-            if (moduleToScene.IsEmpty && kitPath != DEFAULT_KIT_PATH) return ModuleSceneMap(DEFAULT_KIT_ID);
             return moduleToScene;
         }
 

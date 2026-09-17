@@ -54,6 +54,40 @@ namespace SynapticSea.Core.Systems
         // PKG-D2.6: hub ship modification install manifest (power budget / plating).
         public GdDict ShipModificationSummary = new GdDict();
 
+        // Unity port, gate2-current-run-5 (not in Godot's schema; SaveMigrationService gives older saves these empty defaults).
+        // E2: wounds, web chart and tutorial/codex state; E3: what a manual slot must restore that only rode world.json;
+        // C4: the run's seed / biome / difficulty.
+        public GdDict WoundSummary = new GdDict();
+        public GdDict WebChartSummary = new GdDict();
+        public GdDict TutorialSummary = new GdDict();
+        public GdDict EquipmentSummary = new GdDict();
+        public GdArray HomeLootedContainers = new GdArray();
+        public GdDict HomeShipInventory = new GdDict();
+        public GdDict RunContext = new GdDict();
+        // gate2-current-run-6: the rest of what only rode world.json (home carts, the home breach environment, meta
+        // progression, unique items and the retained-ship registry), so a manual slot restores them too.
+        public GdArray HomeShipCarts = new GdArray();
+        public GdDict HomeBreachEnvironment = new GdDict();
+        public GdDict MetaProgressionSummary = new GdDict();
+        public GdDict UniqueItemSummary = new GdDict();
+        public GdDict VisitedShips = new GdDict();
+
+        /// <summary>The keys gate2-current-run-5/6 added over Godot's gate2-current-run-4 schema, in ToDict order.</summary>
+        public static readonly GdArray PortExtensionFields = GdArray.Of(
+            "wound_summary",
+            "web_chart_summary",
+            "tutorial_summary",
+            "equipment_summary",
+            "home_looted_containers",
+            "home_ship_inventory",
+            "run_context",
+            "home_ship_carts",
+            "home_breach_environment",
+            "meta_progression_summary",
+            "unique_item_summary",
+            "visited_ships"
+        );
+
         // ADR-0046: real slot metadata.
         public double PlayTimeSeconds = 0.0;
         public string CurrentLocation = "";
@@ -152,6 +186,18 @@ namespace SynapticSea.Core.Systems
                 { "component_placement_summary", ComponentPlacementSummary.DeepCopy() },
                 { "work_action_summary", WorkActionSummary.DeepCopy() },
                 { "ship_modification_summary", ShipModificationSummary.DeepCopy() },
+                { "wound_summary", WoundSummary.DeepCopy() },
+                { "web_chart_summary", WebChartSummary.DeepCopy() },
+                { "tutorial_summary", TutorialSummary.DeepCopy() },
+                { "equipment_summary", EquipmentSummary.DeepCopy() },
+                { "home_looted_containers", HomeLootedContainers.ShallowCopy() },
+                { "home_ship_inventory", HomeShipInventory.DeepCopy() },
+                { "run_context", RunContext.DeepCopy() },
+                { "home_ship_carts", HomeShipCarts.DeepCopy() },
+                { "home_breach_environment", HomeBreachEnvironment.DeepCopy() },
+                { "meta_progression_summary", MetaProgressionSummary.DeepCopy() },
+                { "unique_item_summary", UniqueItemSummary.DeepCopy() },
+                { "visited_ships", VisitedShips.DeepCopy() },
                 { "play_time_seconds", PlayTimeSeconds },
                 { "current_location", CurrentLocation },
                 { "world_seed", WorldSeed },
@@ -218,6 +264,31 @@ namespace SynapticSea.Core.Systems
             snapshot.ComponentPlacementSummary = DeepCopyDict(dict.Get("component_placement_summary", new GdDict()));
             snapshot.WorkActionSummary = DeepCopyDict(dict.Get("work_action_summary", new GdDict()));
             snapshot.ShipModificationSummary = DeepCopyDict(dict.Get("ship_modification_summary", new GdDict()));
+            snapshot.WoundSummary = DeepCopyDict(dict.Get("wound_summary", new GdDict()));
+            snapshot.WebChartSummary = DeepCopyDict(dict.Get("web_chart_summary", new GdDict()));
+            snapshot.TutorialSummary = DeepCopyDict(dict.Get("tutorial_summary", new GdDict()));
+            snapshot.EquipmentSummary = DeepCopyDict(dict.Get("equipment_summary", new GdDict()));
+            snapshot.HomeLootedContainers = new GdArray();
+            if (dict.Get("home_looted_containers", new GdArray()) is GdArray looted)
+            {
+                foreach (object cid in looted)
+                    snapshot.HomeLootedContainers.Add(V.Str(cid));
+            }
+            snapshot.HomeShipInventory = DeepCopyDict(dict.Get("home_ship_inventory", new GdDict()));
+            snapshot.RunContext = DeepCopyDict(dict.Get("run_context", new GdDict()));
+            snapshot.HomeShipCarts = new GdArray();
+            if (dict.Get("home_ship_carts", new GdArray()) is GdArray carts)
+            {
+                foreach (object cart in carts)
+                {
+                    if (cart is GdDict cartDict)
+                        snapshot.HomeShipCarts.Add(cartDict.DeepCopy());
+                }
+            }
+            snapshot.HomeBreachEnvironment = DeepCopyDict(dict.Get("home_breach_environment", new GdDict()));
+            snapshot.MetaProgressionSummary = DeepCopyDict(dict.Get("meta_progression_summary", new GdDict()));
+            snapshot.UniqueItemSummary = DeepCopyDict(dict.Get("unique_item_summary", new GdDict()));
+            snapshot.VisitedShips = DeepCopyDict(dict.Get("visited_ships", new GdDict()));
             snapshot.PlayTimeSeconds = V.F64(dict.Get("play_time_seconds", 0.0));
             snapshot.CurrentLocation = V.Str(dict.Get("current_location", ""));
             snapshot.WorldSeed = V.I64(dict.Get("world_seed", 0L));

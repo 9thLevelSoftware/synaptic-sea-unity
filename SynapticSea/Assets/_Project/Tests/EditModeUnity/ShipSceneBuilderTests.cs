@@ -66,8 +66,56 @@ namespace SynapticSea.Tests.Unity
                 StringAssert.EndsWith(fixtureSummary.GetString(key), emitted.GetString(key), key);
 
             GdDict actual = Record(builder.View, caseName, loaded, fixture.GetBool("is_away"), failure, emitted);
+            ApplyVertexWrapperDeviation(fixture, LoaderParity.LoadInput(inputs.GetString("layout")));
             var diffs = TreeDiff.Compare(fixture, actual, LoaderParity.Options("inputs", "layout_path", "kit_path", "gameplay_slice_path"));
             Assert.IsEmpty(diffs, TreeDiff.Format(diffs));
+        }
+
+        /// <summary>
+        /// Rewrites Godot's captured tree with the one deliberate structural deviation before the diff, so the rest
+        /// of the parity stays exact. Godot builds every multi-wing vertex wrapper at an edge midpoint, where its
+        /// wings land half a cell off (see <see cref="VertexWrapperPlacement"/>); the port builds them at the cell
+        /// centre, which drops the wrappers whose edges a wing now covers and swaps the ones that cannot be placed
+        /// for a straight wall. Nothing else about those nodes changes.
+        /// </summary>
+        static void ApplyVertexWrapperDeviation(GdDict fixture, GdDict layout)
+        {
+            GdDict plan = layout.GetDict("structural_plan");
+            if (plan == null || plan.IsEmpty) return;
+            VertexWrapperPlacement.Result resolved = VertexWrapperPlacement.Resolve(plan);
+            if (resolved.Covered.Count == 0 && resolved.Fallbacks.Count == 0) return;
+            KitPrefabCatalog kit = KitCatalogResolver.ForLayout(layout);
+            Assert.IsNotNull(kit, "no kit catalog for the parity layout");
+
+            var moduleByEdge = new Dictionary<string, string>();
+            foreach (object placementVariant in plan.GetArrayOrEmpty("placements"))
+                if (placementVariant is GdDict placement)
+                    moduleByEdge[placement.GetString("edge_key")] = placement.GetString("module_id");
+
+            GdDict nodes = fixture.GetDict("nodes");
+            var keys = nodes.GetArray("module_keys");
+            var integrity = nodes.GetDict("integrity_states");
+            long shapes = V.I64(fixture.Get("count_collision_shapes", 0L));
+
+            foreach (string edgeKey in resolved.Covered)
+            {
+                string moduleKey = "edge/" + edgeKey;
+                Assert.IsTrue(keys.Remove(moduleKey), "capture has no node for covered edge " + edgeKey);
+                integrity?.Erase(moduleKey);
+                shapes -= ShapeCount(kit, moduleByEdge[edgeKey]);
+            }
+            foreach (string edgeKey in resolved.Fallbacks)
+                shapes += ShapeCount(kit, StructuralEdgeCompiler.WALL_MODULE) - ShapeCount(kit, moduleByEdge[edgeKey]);
+            fixture["count_collision_shapes"] = shapes;
+
+            GdDict summary = fixture.GetDict("summary");
+            summary["instantiated_count"] = V.I64(summary.Get("instantiated_count", 0L)) - resolved.Covered.Count;
+        }
+
+        static long ShapeCount(KitPrefabCatalog kit, string moduleId)
+        {
+            Assert.IsTrue(kit.TryGetPrefab(moduleId, out StructuralModule prefab), "no prefab for " + moduleId);
+            return prefab.GetComponentsInChildren<Collider>(true).Length;
         }
 
         [Test]

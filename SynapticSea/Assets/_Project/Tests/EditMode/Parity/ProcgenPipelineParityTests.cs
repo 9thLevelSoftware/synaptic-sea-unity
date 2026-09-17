@@ -22,7 +22,7 @@ namespace SynapticSea.Tests.Parity
         public static IEnumerable<string> Tags()
         {
             string dir = Path.Combine(Fixtures.FixturesDir, "godot", "procgen");
-            if (!Directory.Exists(dir)) yield break;
+            if (!Directory.Exists(Fixtures.FixturesDir)) yield break; // stripped checkout: nothing to replay
             foreach (string f in Directory.GetFiles(dir, "recipe_*.json").OrderBy(x => x, StringComparer.Ordinal))
                 yield return Path.GetFileNameWithoutExtension(f).Substring("recipe_".Length);
         }
@@ -119,7 +119,7 @@ namespace SynapticSea.Tests.Parity
         {
             GdDict recipe = Fixtures.ReadDict($"{Dir}/recipe_{tag}.json");
             GdDict fingerprints = recipe.GetDictOrEmpty("fingerprints");
-            if (!fingerprints.Has("layout_fnv1a_64_raw_stringify_2space")) Assert.Ignore("recipe has no raw fingerprint");
+            Assert.IsTrue(fingerprints.Has("layout_fnv1a_64_raw_stringify_2space"), $"recipe_{tag} has no raw fingerprint (every captured recipe records one)");
             long rawHash = Regenerate(recipe).RawHash;
             long expected = fingerprints.GetInt("layout_fnv1a_64_raw_stringify_2space");
             Assert.AreEqual(expected, rawHash, "raw JSON.stringify(layout, \"  \") fnv1a_64");

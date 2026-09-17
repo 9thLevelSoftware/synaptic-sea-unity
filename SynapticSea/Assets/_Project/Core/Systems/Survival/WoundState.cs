@@ -293,6 +293,56 @@ namespace SynapticSea.Core.Systems
             }
         }
 
+        /// <summary>
+        /// Unity-port addition (E1; Godot wounds never healed): reduces the severity of treated wounds by
+        /// <paramref name="treatedPerSecond"/> and of bandaged-only wounds by <paramref name="bandagedPerSecond"/>, scaling
+        /// their bleed rate with the severity ratio. Untreated, unbandaged wounds do not heal. Returns how many wounds
+        /// reached zero severity this call.
+        /// </summary>
+        public long Heal(double deltaSeconds, double treatedPerSecond, double bandagedPerSecond)
+        {
+            if (deltaSeconds <= 0.0) return 0;
+            long closed = 0;
+            for (int i = 0; i < Wounds.Count; i++)
+            {
+                if (!(Wounds[i] is GdDict e)) continue;
+                double sev = V.F64(e.Get("severity", 0.0));
+                if (sev <= 0.0) continue;
+                double rate = V.Bool(e.Get("treated", false)) ? treatedPerSecond : (V.Bool(e.Get("bandaged", false)) ? bandagedPerSecond : 0.0);
+                if (rate <= 0.0) continue;
+                double next = Math.Max(0.0, sev - rate * deltaSeconds);
+                e["bleed_rate"] = next <= 0.0 ? 0.0 : V.F64(e.Get("bleed_rate", 0.0)) * (next / sev);
+                e["severity"] = next;
+                if (sev > 0.001 && next <= 0.001) closed += 1;
+            }
+            return closed;
+        }
+
+        /// <summary>
+        /// Unity-port addition (E1): applies a damage wound, or worsens an open wound of the same kind and body part that
+        /// is neither bandaged nor treated (severity adds, bleed and infection are re-derived). Returns the wound id or "".
+        /// </summary>
+        public string ApplyOrWorsenWound(GdDict @event)
+        {
+            string kind = V.Str(@event.Get("kind", KIND_LACERATION));
+            if (!Contains(VALID_KINDS, kind)) return "";
+            string body = V.Str(@event.Get("body_part", BODY_TORSO));
+            if (!Contains(VALID_BODY, body)) body = BODY_TORSO;
+            foreach (object w in Wounds)
+            {
+                if (!(w is GdDict e)) continue;
+                if (V.Str(e.Get("kind", "")) != kind || V.Str(e.Get("body_part", "")) != body) continue;
+                if (V.Bool(e.Get("treated", false)) || V.Bool(e.Get("bandaged", false))) continue;
+                if (V.F64(e.Get("severity", 0.0)) <= 0.001) continue;
+                double sev = GdMath.Clampf(V.F64(e.Get("severity", 0.0)) + GdMath.Clampf(V.F64(@event.Get("severity", 0.3)), 0.05, 1.0), 0.05, 1.0);
+                e["severity"] = sev;
+                e["bleed_rate"] = BaseBleed(kind, sev);
+                e["infection_chance"] = Math.Max(V.F64(e.Get("infection_chance", 0.0)), BaseInfection(kind, sev));
+                return V.Str(e.Get("wound_id", ""));
+            }
+            return ApplyWound(@event);
+        }
+
         /// <summary>Converts a damage-pipeline result into a wound event suggestion ({} below 2 damage).</summary>
         public static GdDict SuggestFromDamage(double finalDamage, string damageType = "", string bodyPart = BODY_TORSO)
         {

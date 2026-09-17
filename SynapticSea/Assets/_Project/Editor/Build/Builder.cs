@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using SynapticSea.Core.Services;
 using SynapticSea.Core.Variant;
 using UnityEditor;
 using UnityEditor.Build;
@@ -12,9 +13,11 @@ using Debug = UnityEngine.Debug;
 namespace SynapticSea.EditorTools.Build
 {
     /// <summary>
-    /// Player build entry point (plan Phase 12). Validates the synced data, stamps the version from
-    /// data/release/build_metadata.json + git, sets the build-kind define, picks the scripting backend
+    /// Player build entry point (plan Phase 12). Validates the synced data (<see cref="DataManifestValidator"/>), stamps the
+    /// version from data/release/build_metadata.json + git, sets the build-kind define, picks the scripting backend
     /// (Mono for dev/demo, IL2CPP for release, falling back to Mono when no C++ toolchain is present), and builds.
+    /// <c>StreamingAssets/build_stamp.json</c> exists only for the duration of a build: the player reads its kind and
+    /// version (AppServices), and the editor must never inherit the last build's kind.
     ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Build.Builder.PerformBuild
     ///             -buildTarget StandaloneWindows64 -buildKind dev|demo|release -outputPath &lt;dir&gt;
     /// </summary>
@@ -39,11 +42,13 @@ namespace SynapticSea.EditorTools.Build
 
         public static bool Build(BuildTarget target, string kind, string outputDir)
         {
-            if (!DataIsValid(out string dataError))
+            DataManifestReport data = DataManifestValidator.Validate(Application.streamingAssetsPath);
+            if (!data.IsValid)
             {
-                Debug.LogError("[Builder] BUILD FAIL data: " + dataError);
+                Debug.LogError("[Builder] BUILD FAIL data: " + data.Describe());
                 return false;
             }
+            Debug.Log($"[Builder] data valid files={data.FileCount} asset_refs={data.AssetReferenceCount}");
 
             var named = NamedBuildTarget.FromBuildTargetGroup(BuildPipeline.GetBuildTargetGroup(target));
             string version = ReadVersion();
@@ -62,6 +67,7 @@ namespace SynapticSea.EditorTools.Build
                 PlayerSettings.SetScriptingDefineSymbols(named, previousDefines);
                 PlayerSettings.SetScriptingBackend(named, previousBackend);
                 PlayerSettings.bundleVersion = previousVersion;
+                RemoveStamp();
                 AssetDatabase.SaveAssets();
             }
         }
@@ -105,28 +111,6 @@ namespace SynapticSea.EditorTools.Build
             return s.result == BuildResult.Succeeded;
         }
 
-        /// <summary>Every StreamingAssets JSON must parse with the Godot-faithful reader.</summary>
-        static bool DataIsValid(out string error)
-        {
-            error = "";
-            string root = Path.Combine(Application.streamingAssetsPath, "data");
-            if (!Directory.Exists(root))
-            {
-                error = "StreamingAssets/data missing (run tools/sync-godot-data.ps1)";
-                return false;
-            }
-            foreach (string f in Directory.GetFiles(root, "*.json", SearchOption.AllDirectories))
-            {
-                try { GdJson.Parse(File.ReadAllText(f)); }
-                catch (GdJson.ParseError e)
-                {
-                    error = f + ": " + e.Message;
-                    return false;
-                }
-            }
-            return true;
-        }
-
         static string ReadVersion()
         {
             string path = Path.Combine(Application.streamingAssetsPath, "data", "release", "build_metadata.json");
@@ -150,6 +134,23 @@ namespace SynapticSea.EditorTools.Build
             string path = Path.Combine(Application.streamingAssetsPath, "build_stamp.json");
             File.WriteAllText(path, GdJson.Stringify(stamp, "\t"));
             AssetDatabase.ImportAsset("Assets/StreamingAssets/build_stamp.json");
+        }
+
+        static string StampPath => Path.Combine(Application.streamingAssetsPath, "build_stamp.json");
+
+        /// <summary>Deletes the build stamp (and its .meta) so the editor reports the manifest's kind again.</summary>
+        public static void RemoveStamp()
+        {
+            bool removed = false;
+            foreach (string path in new[] { StampPath, StampPath + ".meta" })
+            {
+                if (!File.Exists(path)) continue;
+                File.Delete(path);
+                removed = true;
+            }
+            if (!removed) return;
+            AssetDatabase.Refresh();
+            Debug.Log("[Builder] stamp removed");
         }
 
         static string GitShortSha()
@@ -178,7 +179,13 @@ namespace SynapticSea.EditorTools.Build
 
         static bool Il2CppToolchainAvailable(BuildTarget target)
         {
-            if (target != BuildTarget.StandaloneWindows64) return true; // other targets validate themselves
+            if (target == BuildTarget.StandaloneLinux64)
+            {
+                // Only the linux-mono module is installed; IL2CPP needs the linux-il2cpp variation (and its sysroot toolchain).
+                string variations = Path.Combine(EditorApplication.applicationContentsPath, "PlaybackEngines", "LinuxStandaloneSupport", "Variations");
+                return Directory.Exists(variations) && Directory.GetDirectories(variations, "*il2cpp*").Length > 0;
+            }
+            if (target != BuildTarget.StandaloneWindows64) return true; // macOS validates itself
             string[] roots = { @"F:\Tools\VSBuildTools", @"C:\Program Files\Microsoft Visual Studio", @"C:\Program Files (x86)\Microsoft Visual Studio" };
             return roots.Any(r => Directory.Exists(r) && Directory.GetDirectories(r, "MSVC", SearchOption.AllDirectories).Length > 0);
         }

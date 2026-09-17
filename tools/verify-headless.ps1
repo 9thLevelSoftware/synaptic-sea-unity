@@ -1,42 +1,104 @@
 <#
 .SYNOPSIS
-  Smoke-launches a built Windows player headless and fails on any exception or error in its log.
+  Smoke-launches a built player headless and fails on any exception or error in its log, or on the wrong build kind.
 
 .DESCRIPTION
-  Runs builds/<Target>/<Kind>/TheSynapticSea.exe with -batchmode -nographics for a few seconds (the player has no
-  -quit of its own, so it is stopped after -Seconds), then scans the player log for exceptions, errors and
-  missing-script warnings. Build first with tools/build.ps1.
+  Runs builds/<Target>/<Kind>/<player> with -batchmode -nographics (the player has no -quit of its own). A Windows player
+  is stopped -SettleSeconds after "[TitleScreen] ready" appears, or after -Seconds; a Linux player runs for -Seconds.
+  Then:
+    - requires AppServices' boot line to report the built kind ("[AppServices] composed ... build=<Kind>"), which proves
+      build_stamp.json reached the player and the demo scope gate reads the right kind;
+    - scans the player log for exceptions, errors and missing-script warnings.
+  Windows players run directly. Linux players run inside WSL (default distribution Ubuntu, override with -WslDistro).
+  Build first with tools/build.ps1.
 
 .EXAMPLE
   pwsh tools/verify-headless.ps1
-  pwsh tools/verify-headless.ps1 -Kind release -Seconds 20
+  pwsh tools/verify-headless.ps1 -Kind demo
+  pwsh tools/verify-headless.ps1 -Target StandaloneLinux64 -Kind dev -Seconds 20
 #>
 param(
+    [ValidateSet('StandaloneWindows64', 'StandaloneLinux64')]
+    [string]$Target = 'StandaloneWindows64',
     [ValidateSet('dev', 'demo', 'release')]
     [string]$Kind = 'dev',
-    [int]$Seconds = 10
+    # Upper bound. Windows players stop early once the title is ready; Linux players always run this long.
+    [int]$Seconds = 30,
+    [int]$SettleSeconds = 3,
+    [string]$WslDistro = 'Ubuntu'
 )
 
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$exe = Join-Path $repo "builds\StandaloneWindows64\$Kind\TheSynapticSea.exe"
-if (-not (Test-Path $exe)) { Write-Output "VERIFY FAIL missing $exe (run tools/build.ps1 -Kind $Kind)"; exit 1 }
+$buildDir = Join-Path $repo "builds\$Target\$Kind"
 $logs = Join-Path $repo 'builds\logs'
 New-Item -ItemType Directory -Force $logs | Out-Null
-$log = Join-Path $logs "player-headless-$Kind.log"
+$suffix = if ($Target -eq 'StandaloneWindows64') { $Kind } else { "linux-$Kind" }
+$log = Join-Path $logs "player-headless-$suffix.log"
 Remove-Item $log -ErrorAction SilentlyContinue
 
-$proc = Start-Process -FilePath $exe -ArgumentList @('-batchmode', '-nographics', '-logFile', $log) -PassThru
-if (-not $proc.WaitForExit($Seconds * 1000)) { Stop-Process -Id $proc.Id -Force; $proc.WaitForExit() }
+function ConvertTo-WslPath([string]$windowsPath) {
+    $full = [System.IO.Path]::GetFullPath($windowsPath)
+    $drive = $full.Substring(0, 1).ToLowerInvariant()
+    return "/mnt/$drive" + ($full.Substring(2) -replace '\\', '/')
+}
+
+if ($Target -eq 'StandaloneWindows64') {
+    $exe = Join-Path $buildDir 'TheSynapticSea.exe'
+    if (-not (Test-Path $exe)) { Write-Output "VERIFY FAIL missing $exe (run tools/build.ps1 -Kind $Kind)"; exit 1 }
+    $proc = Start-Process -FilePath $exe -ArgumentList @('-batchmode', '-nographics', '-logFile', $log) -PassThru
+    # Stop as soon as the title is up (plus a short settle for late errors), or after -Seconds at the latest.
+    $deadline = (Get-Date).AddSeconds($Seconds)
+    while (-not $proc.HasExited -and (Get-Date) -lt $deadline) {
+        if ((Test-Path $log) -and (Select-String -Path $log -Pattern '\[TitleScreen\] ready' -Quiet)) { Start-Sleep -Seconds $SettleSeconds; break }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force; $proc.WaitForExit() }
+}
+else {
+    $player = Join-Path $buildDir 'TheSynapticSea.x86_64'
+    if (-not (Test-Path $player)) { Write-Output "VERIFY FAIL missing $player (run tools/build.ps1 -Target $Target -Kind $Kind)"; exit 1 }
+    if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) { Write-Output 'VERIFY FAIL wsl.exe not found (Linux players run under WSL)'; exit 1 }
+    $wslDir = ConvertTo-WslPath $buildDir
+    $wslLog = ConvertTo-WslPath $log
+    # timeout sends SIGTERM after -Seconds (the player never quits by itself), so exit 124 is the expected stop.
+    # --exec runs bash directly: with `--` the distro's login shell would expand $? before bash sees it.
+    # The Linux player echoes its log to stdout as well; only -logFile is scanned.
+    $script = "cd '$wslDir' && chmod +x ./TheSynapticSea.x86_64 && timeout -k 5 $Seconds ./TheSynapticSea.x86_64 -batchmode -nographics -logFile '$wslLog' > /dev/null 2>&1; echo wsl_exit=`$?"
+    $wslOut = & wsl.exe -d $WslDistro --exec bash -c $script 2>&1
+    $wslOut | ForEach-Object { Write-Output "  wsl: $_" }
+    $exitLine = $wslOut | Where-Object { "$_" -match '^wsl_exit=(\d+)$' } | Select-Object -Last 1
+    $wslExit = if ($exitLine -and "$exitLine" -match '^wsl_exit=(\d+)$') { [int]$Matches[1] } else { -1 }
+}
 Start-Sleep -Milliseconds 300
-if (-not (Test-Path $log)) { Write-Output 'VERIFY FAIL player wrote no log'; exit 1 }
+if (-not (Test-Path $log)) { Write-Output "VERIFY FAIL player wrote no log ($log)"; exit 1 }
+
+$problems = 0
+# 124 = stopped by timeout after -Seconds, 0 = quit by itself; anything else (e.g. 139 SIGSEGV) is a crash.
+if ($Target -eq 'StandaloneLinux64' -and $wslExit -ne 124 -and $wslExit -ne 0) {
+    Write-Output "  player exit under WSL was $wslExit (expected 124 from timeout)"
+    $problems++
+}
+$composed = Select-String -Path $log -Pattern '\[AppServices\] composed .*\bbuild=(\w+)' | Select-Object -First 1
+if (-not $composed) {
+    Write-Output '  no "[AppServices] composed" line: the player did not finish booting'
+    $problems++
+}
+elseif ($composed.Matches[0].Groups[1].Value -ne $Kind) {
+    Write-Output ("  build kind mismatch: player reports build={0}, expected {1}" -f $composed.Matches[0].Groups[1].Value, $Kind)
+    $problems++
+}
 
 $patterns = @('Exception', '\bError\b', 'The referenced script .* is missing', 'NullReference', 'Failed to load')
 $hits = Select-String -Path $log -Pattern $patterns | Where-Object { $_.Line -notmatch 'Fallback handler could not load library|d3d12' }
 if ($hits) {
     $hits | Select-Object -First 20 | ForEach-Object { Write-Output ("  {0}: {1}" -f $_.LineNumber, $_.Line.Trim()) }
-    Write-Output "VERIFY FAIL problems=$(@($hits).Count) log=$log"
+    $problems += @($hits).Count
+}
+if ($problems -gt 0) {
+    Write-Output "VERIFY FAIL target=$Target kind=$Kind problems=$problems log=$log"
     exit 1
 }
 $lines = (Get-Content $log | Measure-Object -Line).Lines
-Write-Output "VERIFY PASS kind=$Kind log_lines=$lines log=$log"
+$reported = $composed.Matches[0].Groups[1].Value
+Write-Output "VERIFY PASS target=$Target kind=$Kind build=$reported log_lines=$lines log=$log"

@@ -54,7 +54,9 @@ namespace SynapticSea.Tests.Unity
             var plan = layout.GetDict("structural_plan");
             var result = new StructuralLayoutBuilder().Build(layout, Kit(), _parent.transform);
             Assert.IsNotNull(result, "build failed");
-            Assert.AreEqual(plan.GetArray("placements").Count, result.EdgeCount);
+            // Edges a relocated vertex wrapper's wing now walls build nothing of their own (VertexWrapperPlacement).
+            int covered = VertexWrapperPlacement.Resolve(plan).Covered.Count;
+            Assert.AreEqual(plan.GetArray("placements").Count - covered, result.EdgeCount);
             Assert.AreEqual(plan.GetArray("floor_placements").Count, result.FloorCount);
             Assert.AreEqual(plan.GetArrayOrEmpty("ceiling_placements").Count, result.CeilingCount);
             Assert.AreEqual(result.Modules.Count, result.ByModuleKey.Count, "module keys must be unique (Godot module_key meta)");

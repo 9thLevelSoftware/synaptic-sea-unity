@@ -23,6 +23,12 @@ namespace SynapticSea.Core.Services
         /// <summary>File names (not paths) directly inside <paramref name="dir"/>, sorted ordinally.</summary>
         IReadOnlyList<string> ListFiles(string dir);
 
+        /// <summary>Directory names (not paths) directly inside <paramref name="dir"/>, sorted ordinally (empty when missing).</summary>
+        IReadOnlyList<string> ListDirectories(string dir);
+
+        /// <summary>Deletes a directory and everything under it; false when it does not exist.</summary>
+        bool DeleteDirectory(string path);
+
         /// <summary>Absolute OS path for diagnostics (<c>ProjectSettings.globalize_path</c>).</summary>
         string Globalize(string path);
     }
@@ -142,6 +148,28 @@ namespace SynapticSea.Core.Services
                 .ToList();
         }
 
+        public IReadOnlyList<string> ListDirectories(string dir)
+        {
+            string prefix = Key(dir);
+            if (prefix.Length > 0) prefix += "/";
+            return _dirs
+                .Where(k => k.Length > prefix.Length && k.StartsWith(prefix, StringComparison.Ordinal) && k.IndexOf('/', prefix.Length) < 0)
+                .Select(k => k.Substring(prefix.Length))
+                .OrderBy(k => k, StringComparer.Ordinal)
+                .ToList();
+        }
+
+        public bool DeleteDirectory(string path)
+        {
+            string k = Key(path);
+            if (k.Length == 0 || !_dirs.Contains(k)) return false;
+            string prefix = k + "/";
+            foreach (string f in _files.Keys.Where(f => f.StartsWith(prefix, StringComparison.Ordinal)).ToList())
+                _files.Remove(f);
+            _dirs.RemoveWhere(d => d == k || d.StartsWith(prefix, StringComparison.Ordinal));
+            return true;
+        }
+
         public string Globalize(string path) => "memory://" + Key(path);
     }
 
@@ -200,24 +228,72 @@ namespace SynapticSea.Core.Services
             if (!Directory.Exists(full)) return Array.Empty<string>();
             return Directory.GetFiles(full).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToList();
         }
+
+        public IReadOnlyList<string> ListDirectories(string dir)
+        {
+            string full = Globalize(dir);
+            if (!Directory.Exists(full)) return Array.Empty<string>();
+            return Directory.GetDirectories(full).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        }
+
+        public bool DeleteDirectory(string path)
+        {
+            string full = Globalize(path);
+            if (!Directory.Exists(full) || Path.GetFullPath(full).TrimEnd(Path.DirectorySeparatorChar) == _root.TrimEnd(Path.DirectorySeparatorChar))
+                return false;
+            Directory.Delete(full, true);
+            return true;
+        }
     }
 
     /// <summary>
     /// <c>res://</c> reader over a directory that mirrors the Godot project root
     /// (Unity: <c>StreamingAssets</c>, where <c>data/**</c> is copied verbatim).
+    /// <c>user://</c> paths (Godot's <c>FileAccess</c> read both schemes; the port writes generated run layouts under
+    /// <c>user://runs/</c>) resolve through <see cref="UserStorage"/>, which defaults to <see cref="CoreServices.UserStorage"/>
+    /// at call time. Directory listing (<c>ProcgenCompat</c>, <c>InfraCompat</c>) keeps using <see cref="Root"/> for
+    /// <c>res://</c> directories.
     /// </summary>
     public sealed class FileSystemResourceReader : IResourceReader
     {
         static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
         readonly string _root;
+        readonly IStorage _userStorage;
 
-        public FileSystemResourceReader(string rootDirectory) => _root = Path.GetFullPath(rootDirectory);
+        public FileSystemResourceReader(string rootDirectory, IStorage userStorage = null)
+        {
+            _root = Path.GetFullPath(rootDirectory);
+            _userStorage = userStorage;
+        }
 
         public string Root => _root;
 
+        /// <summary>The storage <c>user://</c> paths read from (the explicit one, else <see cref="CoreServices.UserStorage"/>).</summary>
+        public IStorage UserStorage => _userStorage ?? CoreServices.UserStorage;
+
+        public static bool IsUserPath(string path) => path != null && path.StartsWith(ResPath.UserScheme, StringComparison.Ordinal);
+
         string Full(string resPath) => Path.Combine(_root, ResPath.StripRes(resPath).Replace('/', Path.DirectorySeparatorChar));
 
-        public bool Exists(string resPath) => File.Exists(Full(resPath));
-        public string ReadText(string resPath) => File.Exists(Full(resPath)) ? File.ReadAllText(Full(resPath), Utf8NoBom) : null;
+        public bool Exists(string resPath)
+        {
+            if (IsUserPath(resPath)) return UserStorage?.FileExists(resPath) ?? false;
+            return File.Exists(Full(resPath));
+        }
+
+        /// <summary>File names directly inside a <c>res://</c> or <c>user://</c> directory, sorted ordinally (empty when missing).</summary>
+        public IReadOnlyList<string> ListFiles(string dir)
+        {
+            if (IsUserPath(dir)) return UserStorage?.ListFiles(dir) ?? (IReadOnlyList<string>)Array.Empty<string>();
+            string full = Full(dir);
+            if (!Directory.Exists(full)) return Array.Empty<string>();
+            return Directory.GetFiles(full).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToList();
+        }
+
+        public string ReadText(string resPath)
+        {
+            if (IsUserPath(resPath)) return UserStorage != null && UserStorage.FileExists(resPath) ? UserStorage.ReadText(resPath) : null;
+            return File.Exists(Full(resPath)) ? File.ReadAllText(Full(resPath), Utf8NoBom) : null;
+        }
     }
 }

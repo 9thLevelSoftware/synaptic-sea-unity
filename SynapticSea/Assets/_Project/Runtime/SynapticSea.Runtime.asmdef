@@ -3,6 +3,7 @@
     "rootNamespace": "SynapticSea.Runtime",
     "references": [
         "SynapticSea.Core",
+        "Unity.AI.Navigation",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"

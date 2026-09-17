@@ -1,5 +1,5 @@
 // Ported from scripts/procgen/playable_generated_ship.gd @ 96ecb2b0: weapon hotbar / attack / reload / armor (7088-7401),
-// the consumable pipeline + hotbar (7481-7589), wounds (3850-3935), and the gameplay-input verbs of _input (11826-11859).
+// the consumable pipeline + hotbar (7481-7589) and the gameplay-input verbs of _input (11826-11859). Wounds: RunSession.Wounds.cs.
 using System.Collections.Generic;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -318,51 +318,6 @@ namespace SynapticSea.Core.Session
             Events.RaiseInventoryItems(InventoryHotbarIds());
             Events.RaiseHotbarSlots(GetConsumableSlotLabels(), 0);
             RefreshWeaponHotbar();
-        }
-
-        // ------------------------------------------------------------------ wounds
-        string FirstInventoryItem(IReadOnlyList<string> itemIds)
-        {
-            if (InventoryState == null)
-                return "";
-            foreach (string id in itemIds)
-            {
-                if (InventoryState.GetQuantity(id) > 0)
-                    return id;
-            }
-            return "";
-        }
-
-        /// <summary>Bandage a wound if the inventory holds a bandage item (consumes 1); the panel's selection is passed in.</summary>
-        public bool TryBandageWound(string woundId)
-        {
-            if (WoundState == null || InventoryState == null)
-                return false;
-            string itemId = FirstInventoryItem(BANDAGE_ITEM_IDS);
-            if (itemId.Length == 0)
-                return false;
-            if (!WoundState.Bandage(woundId))
-                return false;
-            InventoryState.RemoveItem(itemId, 1);
-            PlaySfx(AudioEventSeam.SFX_WOUND_BANDAGE);
-            EmitTrainingEvent("bandage_wound", woundId);
-            return true;
-        }
-
-        /// <summary>Treat a wound if the inventory holds a medical item (consumes 1).</summary>
-        public bool TryTreatWound(string woundId)
-        {
-            if (WoundState == null || InventoryState == null)
-                return false;
-            string itemId = FirstInventoryItem(TREAT_ITEM_IDS);
-            if (itemId.Length == 0)
-                return false;
-            if (!WoundState.Treat(woundId, 0.35))
-                return false;
-            InventoryState.RemoveItem(itemId, 1);
-            PlaySfx(AudioEventSeam.SFX_WOUND_TREAT);
-            EmitTrainingEvent("treat_wound", woundId);
-            return true;
         }
     }
 }

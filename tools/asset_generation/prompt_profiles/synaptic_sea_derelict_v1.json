@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "asset_prompt_profile",
+  "profile_id": "synaptic_sea_derelict_v1",
+  "style_vocabulary": "Grounded utilitarian industrial science fiction; late-20th-century analog technology translated into space; heavy serviceable construction; matte desaturated painted alloy; dark oxidized steel; black rubber seals; restrained safety-yellow accents; asymmetrical field repairs; localized corrosion and grime; large readable forms; readable from a high locked-isometric camera.",
+  "reference_prompt_template": "{style_vocabulary} Single isolated {visual_brief}. {neutral_presentation}",
+  "neutral_presentation": "No environment, no floor, no cast shadow, no readable text, no logo, no floating parts, no duplicate components, no dramatic perspective, no depth of field, no baked lighting.",
+  "texture_guidance": "Reuse the style_vocabulary for grounded derelict spacecraft materials; keep surfaces PBR, low-gloss, and readable at medium scale; concentrate grime in seams and hand-contact areas; use manual emission masks where needed; do not bake lighting, shadows, logos, or readable text.",
+  "generation_policy": {
+    "geometry_first": true,
+    "should_texture": false,
+    "target_formats": ["glb"]
+  },
+  "review_matrix": {
+    "seeds": [42, 777],
+    "lighting_modes": ["normal", "emergency", "dark"],
+    "camera": "locked_isometric",
+    "environment": "breach_field"
+  }
+}

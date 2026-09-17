@@ -38,6 +38,11 @@ artifacts/
 # ---- Local-only art library (1.8 GB third-party pack) ----
 art-library/
 
+# ---- Steam SDK drop-in (Facepunch.Steamworks + native libs; see Assets/_Project/Platform/Steam/README.md) ----
+SynapticSea/Assets/_Project/Platform/Steam/Plugins/
+SynapticSea/Assets/_Project/Platform/Steam/Plugins.meta
+SynapticSea/steam_appid.txt
+
 # ---- Tooling ----
 tools/dotnet/**/bin/
 tools/dotnet/**/obj/

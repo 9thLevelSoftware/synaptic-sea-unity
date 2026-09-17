@@ -8,10 +8,31 @@ using UnityEngine.UIElements;
 namespace SynapticSea.UI
 {
     /// <summary>
+    /// The session's wound treatment surface (<c>RunSession.GetTreatableWounds / BandageWound / TreatWound</c>): the
+    /// session picks and consumes the item, plays the SFX, emits the training event and explains refusals.
+    /// </summary>
+    public interface IWoundTreatmentHost
+    {
+        WoundState WoundState { get; }
+
+        /// <summary>Open wounds with <c>can_bandage / bandage_item_id / bandage_reason / can_treat / treat_item_id / treat_reason</c>.</summary>
+        GdArray GetTreatableWounds();
+
+        /// <summary><c>{ok, action, wound_id, item_id, reason}</c>.</summary>
+        GdDict BandageWound(string woundId);
+
+        /// <summary><c>{ok, action, wound_id, item_id, reason}</c>.</summary>
+        GdDict TreatWound(string woundId);
+    }
+
+    /// <summary>
     /// PKG-D9d survivor wounds (LIVE inspection). Wound list + Bandage / Treat through the pure <see cref="WoundState"/>
     /// calls, with the Godot deny paths ("no wound", "bandage failed", "treat failed"). Spec: critical condition first
     /// (rows are ranked by severity, stable), body part shown only because the model supplies it, severity carries
     /// wording + symbol, and Bandage/Treat are focusable buttons (plus Submit = Treat) for keyboard and gamepad.
+    /// In play the panel is bound to an <see cref="IWoundTreatmentHost"/> (the session): each row names the item a
+    /// treatment will use or why it is refused, and the buttons go through the host so items are consumed. Binding a bare
+    /// <see cref="WoundState"/> keeps the Godot model-only path (tests, tools).
     /// </summary>
     public sealed class WoundsPanel : SurfacePanel
     {
@@ -19,6 +40,8 @@ namespace SynapticSea.UI
         public event Action<string, string> TreatmentApplied;
 
         WoundState _woundState;
+        IWoundTreatmentHost _host;
+        bool _statusDeny;
         bool _open;
         int _selected;
         string _status = "";
@@ -59,9 +82,23 @@ namespace SynapticSea.UI
 
         public void Bind(WoundState woundState)
         {
+            _host = null;
             _woundState = woundState;
             Render();
         }
+
+        /// <summary>Binds the session treatment surface (the panel reads its wound model through it).</summary>
+        public void Bind(IWoundTreatmentHost host)
+        {
+            _host = host;
+            _woundState = host?.WoundState;
+            Render();
+        }
+
+        public IWoundTreatmentHost Host => _host;
+
+        /// <summary>The last treatment result from the host (empty before one).</summary>
+        public GdDict LastResult { get; private set; } = new GdDict();
 
         public void SetAudioManager(IUiAudio audio) => _audio = audio;
 
@@ -73,6 +110,7 @@ namespace SynapticSea.UI
             SetViewVisible(true);
             _selected = 0;
             _status = "";
+            _statusDeny = false;
             Render();
         }
 
@@ -120,19 +158,20 @@ namespace SynapticSea.UI
             string wid = GetSelectedWoundId();
             if (wid.Length == 0 || _woundState == null)
             {
-                _status = "no wound";
+                SetStatus("no wound", true);
                 Render();
                 PlayDeny();
                 return false;
             }
+            if (_host != null) return ApplyThroughHost("bandage", wid);
             if (!_woundState.Bandage(wid))
             {
-                _status = "bandage failed";
+                SetStatus("bandage failed", true);
                 Render();
                 PlayDeny();
                 return false;
             }
-            _status = "bandaged " + wid;
+            SetStatus("bandaged " + wid, false);
             Reanchor(wid);
             TreatmentApplied?.Invoke(wid, "bandage");
             Render();
@@ -144,23 +183,71 @@ namespace SynapticSea.UI
             string wid = GetSelectedWoundId();
             if (wid.Length == 0 || _woundState == null)
             {
-                _status = "no wound";
+                SetStatus("no wound", true);
                 Render();
                 PlayDeny();
                 return false;
             }
+            if (_host != null) return ApplyThroughHost("treat", wid);
             if (!_woundState.Treat(wid, severityReduce))
             {
-                _status = "treat failed";
+                SetStatus("treat failed", true);
                 Render();
                 PlayDeny();
                 return false;
             }
-            _status = "treated " + wid;
+            SetStatus("treated " + wid, false);
             Reanchor(wid);
             TreatmentApplied?.Invoke(wid, "treat");
             Render();
             return true;
+        }
+
+        /// <summary>
+        /// The session path: the host consumes the item and plays the cue (including the refusal cue), so the panel only
+        /// reports. Status: "bandaged w1 with bandage_kit" or "cannot bandage: no bandage item".
+        /// </summary>
+        bool ApplyThroughHost(string action, string woundId)
+        {
+            GdDict result = action == "bandage" ? _host.BandageWound(woundId) : _host.TreatWound(woundId);
+            LastResult = result ?? new GdDict();
+            bool ok = LastResult.GetBool("ok");
+            string item = LastResult.GetString("item_id");
+            if (ok)
+            {
+                SetStatus((action == "bandage" ? "bandaged " : "treated ") + woundId + (item.Length != 0 ? " with " + item : ""), false);
+                Reanchor(woundId);
+                TreatmentApplied?.Invoke(woundId, action);
+            }
+            else
+            {
+                SetStatus("cannot " + action + ": " + ReasonText(LastResult.GetString("reason")), true);
+            }
+            Render();
+            return ok;
+        }
+
+        void SetStatus(string text, bool deny)
+        {
+            _status = text ?? "";
+            _statusDeny = deny;
+        }
+
+        /// <summary>Player wording for a session refusal reason (<c>no_bandage_item</c> → "no bandage item").</summary>
+        public static string ReasonText(string reason)
+        {
+            switch (reason ?? "")
+            {
+                case "": return "unavailable";
+                case "no_bandage_item": return "no bandage item";
+                case "no_treatment_item": return "no medical item";
+                case "already_bandaged": return "already bandaged";
+                case "already_treated": return "already treated";
+                case "wound_healed": return "wound healed";
+                case "unknown_wound": return "wound not found";
+                case "wounds_unavailable": return "wounds unavailable";
+                default: return reason.Replace('_', ' ');
+            }
         }
 
         /// <summary>Keeps the cursor on the same wound (stable identity) after a treatment re-ranks the list; when the
@@ -213,7 +300,8 @@ namespace SynapticSea.UI
         {
             var output = new List<GdDict>();
             if (_woundState == null) return output;
-            foreach (object w in _woundState.Wounds)
+            IEnumerable<object> source = _host != null ? (IEnumerable<object>)_host.GetTreatableWounds() : _woundState.Wounds;
+            foreach (object w in source)
             {
                 if (!(w is GdDict e)) continue;
                 if (e.GetFloat("severity", 0.0) <= 0.001) continue;
@@ -275,6 +363,9 @@ namespace SynapticSea.UI
                     + "severity " + GdString.FormatFixed(sev, 2)
                     + " · bleed " + GdString.FormatFixed(e.GetFloat("bleed_rate", 0.0), 2)
                     + (flags.Count > 0 ? " · " + string.Join(", ", flags) : " · untreated");
+                if (_host != null)
+                    detail += "\n" + TreatmentLine("Bandage", e.GetBool("can_bandage"), e.GetString("bandage_item_id"), e.GetString("bandage_reason"))
+                        + " · " + TreatmentLine("Treat", e.GetBool("can_treat"), e.GetString("treat_item_id"), e.GetString("treat_reason"));
                 items.Add(new SelectableList.Item
                 {
                     Id = V.Str(e.Get("wound_id", "")),
@@ -293,9 +384,12 @@ namespace SynapticSea.UI
                 _summary.text = "Work speed ×" + GdString.FormatFixed(_woundState.WorkSpeedMultiplier(), 2)
                     + " · Bleed " + GdString.FormatFixed(_woundState.TotalBleedRate(), 2);
             }
-            bool deny = _status == "no wound" || _status == "bandage failed" || _status == "treat failed";
-            StatusText.Set(_status, _status.Length == 0 ? Severity.None : deny ? Severity.Caution : Severity.Success);
+            StatusText.Set(_status, _status.Length == 0 ? Severity.None : _statusDeny ? Severity.Caution : Severity.Success);
         }
+
+        /// <summary>"Bandage: bandage_kit" when allowed, "Bandage: no bandage item" when refused.</summary>
+        public static string TreatmentLine(string verb, bool allowed, string itemId, string reason) =>
+            verb + ": " + (allowed ? itemId : ReasonText(reason));
 
         protected override bool OnCommand(UiCommand command)
         {

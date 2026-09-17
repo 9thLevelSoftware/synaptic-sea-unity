@@ -50,11 +50,20 @@ namespace SynapticSea.Core.Session
             return false;
         }
 
+        /// <summary>
+        /// Unity-port fix: a terminal of the ship the player already pilots does not claim the interact. Godot's
+        /// <c>t.try_login(player)</c> claimed every in-range press, and the terminal sits on its command room's centre,
+        /// where the life boat's repair and fire suppression points are also placed (<c>LifeboatLocalRepairPositions</c>),
+        /// so those points could never be used. Logging in again changes nothing (access is already claimed and the ship
+        /// is already piloted), so the press falls through to the next handler instead.
+        /// </summary>
         internal bool TryBridgeTerminals(Vec3 p)
         {
             foreach (BridgeTerminal t in new List<BridgeTerminal>(BridgeTerminals))
             {
-                if (t.IsValid && t.TryLogin(p))
+                if (!t.IsValid || (PilotedShip != null && PilotedShip.ShipId == t.ShipId))
+                    continue;
+                if (t.TryLogin(p))
                     return true;
             }
             return false;

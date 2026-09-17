@@ -1,4 +1,5 @@
 // Ported from scripts/procgen/room_assigner.gd @ 96ecb2b0
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -7,16 +8,6 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Core.Procgen
 {
     /// <summary>
-    /// Anything with a <c>pick(role, room_index, seed, biome)</c> method (GDScript duck typing via
-    /// <c>has_method("pick")</c> in <see cref="RoomAssigner"/>). <see cref="RoomVariantSelector"/> is accepted
-    /// directly without implementing it.
-    /// </summary>
-    public interface IRoomVariantPicker
-    {
-        string Pick(string role, long roomIndex, long seedValue, string biome);
-    }
-
-    /// <summary>
     /// Fills template zones with concrete rooms. Each zone produces 1..N rooms based on its count field. Roles are
     /// picked from the zone's role_pool using archetype weights when available. Each room gets a footprint based on
     /// <see cref="ROOM_FOOTPRINT_OPTIONS"/> and the blueprint size.
@@ -24,6 +15,14 @@ namespace SynapticSea.Core.Procgen
     public sealed class RoomAssigner
     {
         static GdArray Fps(params Vec2i[] fps) => new GdArray(fps);
+
+        /// <summary>
+        /// Unity-port addition: guaranteed roles whose absence the caller tolerates, so a skipped guarantee for them is
+        /// logged at info level instead of Godot's warning. Empty by default (Godot parity). The home-start path
+        /// (<see cref="StartSceneBuilder.BuildHomeStart"/>) tolerates <c>dock</c>: its start gate anchors the life boat at
+        /// the boarding/airlock cell when there is no dock room.
+        /// </summary>
+        public readonly HashSet<string> ToleratedMissingRoles = new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Footprint options per role (<c>Vector2i</c> choices). SMALL / LIFE_BOAT blueprints pick from the first
@@ -75,8 +74,7 @@ namespace SynapticSea.Core.Procgen
         public GodotRandom Rng = new GodotRandom();
 
         /// <summary>
-        /// Set by <see cref="AssignWithSelector"/>: a <see cref="RoomVariantSelector"/>, an
-        /// <see cref="IRoomVariantPicker"/>, any other object (no <c>pick</c> method: "standard"), or null.
+        /// Set by <see cref="AssignWithSelector"/>: a <see cref="RoomVariantSelector"/>, any other object (no <c>pick</c> method: "standard"), or null.
         /// </summary>
         public object VariantSelector;
 
@@ -253,8 +251,9 @@ namespace SynapticSea.Core.Procgen
                 }
                 if (bestIndex < 0)
                 {
-                    CoreServices.Log.Warning("RoomAssigner: guaranteed role '" + wanted +
-                                             "' has no eligible zone in this template; guarantee skipped");
+                    string skipped = "RoomAssigner: guaranteed role '" + wanted + "' has no eligible zone in this template; guarantee skipped";
+                    if (ToleratedMissingRoles.Contains(wanted)) CoreServices.Log.Info(skipped);
+                    else CoreServices.Log.Warning(skipped);
                     continue;
                 }
 
@@ -285,8 +284,6 @@ namespace SynapticSea.Core.Procgen
             if (VariantSelector == null) return "standard";
             if (VariantSelector is RoomVariantSelector selector)
                 return selector.Pick(role, roomIndex, blueprint.SeedValue, biome);
-            if (VariantSelector is IRoomVariantPicker picker)
-                return V.Str(picker.Pick(role, roomIndex, blueprint.SeedValue, biome));
             // GDScript: not variant_selector.has_method("pick") -> "standard".
             return "standard";
         }

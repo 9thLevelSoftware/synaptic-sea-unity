@@ -270,6 +270,9 @@ namespace SynapticSea.Core.Session
             {
                 atmoDrain = LifeSupportExpandedState.GetHealthDrainPerSecond();
                 tempMult *= LifeSupportExpandedState.GetThirstMultiplier();
+                // Unity port (decision 56): the suit supplies the player's air while its reserve lasts.
+                if (SuitFilteringShipAir)
+                    atmoDrain = 0.0;
             }
             double oxygenHealthDrain = 0.0;
             if (OxygenState != null && IsFieldSuitPressureActive())
@@ -298,6 +301,9 @@ namespace SynapticSea.Core.Session
                 { "sanity_health_drain", V.F64(hteeth["health_drain_per_second"]) },
                 { "sanity_stamina_recovery_mult", V.F64(hteeth["stamina_recovery_mult"]) },
                 { "encumbrance_health_drain", encumbDrain },
+                // Unity port (E1): wound bleed and wound thirst (VitalsState's SimKeys; 0.0 / 1.0 without wounds).
+                { SimKeys.WoundHealthDrain, WoundState != null ? WoundState.TotalBleedRate() : 0.0 },
+                { SimKeys.WoundThirstMult, WoundState != null ? WoundState.ThirstDrainMultiplier() : 1.0 },
                 { "moving", HasPlayer && PlayerMoving },
             });
             ApplyVitalsActionGating();
@@ -340,7 +346,11 @@ namespace SynapticSea.Core.Session
         {
             if (!HasPlayer || VitalsState == null || Scene == null)
                 return;
-            Scene.SetMovementSpeedMultiplier(VitalsState.GetMovementSpeedMultiplier());
+            double mult = VitalsState.GetMovementSpeedMultiplier();
+            // Unity port (E1): leg fractures slow the player (exactly 1.0 without one).
+            if (WoundState != null)
+                mult *= WoundState.MovementSpeedMultiplier();
+            Scene.SetMovementSpeedMultiplier(mult);
         }
 
         /// <summary>Domain 3: spoilage + in-progress production (both branches; deliberately not paused while away).</summary>

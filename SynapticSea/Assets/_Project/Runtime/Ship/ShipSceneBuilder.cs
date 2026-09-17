@@ -45,11 +45,16 @@ namespace SynapticSea.Runtime
         public ShipView View { get; }
 
         /// <summary>
-        /// Kit prefab catalog override; by default <c>Resources/Catalogs/KitCatalog_&lt;kit_id&gt;</c>.
-        /// Set a layout's <c>kit_id</c> to <see cref="SynapticSea.Core.Procgen.KitCatalog.ITHAPPY_KIT_ID"/>
-        /// to load the additive KEEP ithappy catalog without changing ship_structural_v0.
+        /// Kit prefab catalog override; by default <see cref="KitCatalogResolver.ForKitDocument"/> (the loaded kit's
+        /// wrapper folder, then its <c>kit_id</c>, else v0). Set a layout's <c>kit_id</c> to
+        /// <see cref="SynapticSea.Core.Procgen.KitCatalog.ITHAPPY_KIT_ID"/> to load the additive KEEP ithappy catalog
+        /// without changing <c>ship_structural_v0</c>.
         /// </summary>
         public KitPrefabCatalog KitCatalog { get; set; }
+
+        /// <summary>Kit path the catalog resolves from when <see cref="LoadFromDocuments"/> gets no <c>kit</c> source path
+        /// (<c>ShipDocuments.KitPath</c>); the kit document itself is the last fallback.</summary>
+        public string KitPath { get; set; } = "";
 
         /// <summary>Prop prefab catalog override; by default <c>Resources/Catalogs/PropCatalog</c>.</summary>
         public PropCatalog PropCatalog { get; set; }
@@ -128,7 +133,7 @@ namespace SynapticSea.Runtime
 
             GdDict verdict = ValidateStructuralPlan(layout);
             if (!V.Bool(verdict.Get("ok", false))) return FailLoad("layout structural plan validation failed: " + V.Str(verdict.Get("errors", new GdArray())));
-            KitPrefabCatalog kitCatalog = ResolveKitCatalog(kit);
+            KitPrefabCatalog kitCatalog = ResolveKitCatalog(kit, kitAbs.Length > 0 ? kitAbs : KitPath);
             if (!PreflightStructuralWrappers(moduleIds, kitCatalog, layout.Get("structural_plan", new GdDict()) as GdDict ?? new GdDict()))
                 return FailLoad("structural wrapper preflight failed");
 
@@ -244,11 +249,10 @@ namespace SynapticSea.Runtime
             return new StructuralPlanValidator().Validate(plan, layout);
         }
 
-        KitPrefabCatalog ResolveKitCatalog(GdDict kit)
+        KitPrefabCatalog ResolveKitCatalog(GdDict kit, string kitPath)
         {
             if (KitCatalog != null) return KitCatalog;
-            string kitId = V.Str(kit.Get("kit_id", ""));
-            return kitId.Length == 0 ? null : Resources.Load<KitPrefabCatalog>("Catalogs/KitCatalog_" + kitId);
+            return KitCatalogResolver.ForKitPath(kitPath, kit);
         }
 
         /// <summary>
@@ -329,6 +333,8 @@ namespace SynapticSea.Runtime
             var box = body.AddComponent<BoxCollider>();
             box.size = size;
             box.center = center;
+            // A marker that blocks the player's route blocks the threats' NavMesh too (decision 59).
+            if (collisionLayer == PhysicsLayers.ZoneBlocker) Session.NavMeshBlocker.Attach(box);
             return marker;
         }
 
