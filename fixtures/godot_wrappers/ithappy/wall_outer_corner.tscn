@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/imported/structural/ithappy/wall_outer_corner/wall_outer_corner.glb" id="1_visual"]
+[ext_resource type="PackedScene" path="res://assets/imported/structural/ithappy/wall_outer_corner/wall_outer_corner_damaged.glb" id="2_visual_damaged"]
+[ext_resource type="PackedScene" path="res://assets/imported/structural/ithappy/wall_outer_corner/wall_outer_corner_breached.glb" id="3_visual_breached"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(4, 4, 4)
+
+[node name="Wall_Outer_Corner" type="Node3D"]
+
+[node name="Anchor_SOCK_wall_face_north_01" type="Marker3D" parent="."]
+[node name="Anchor_SOCK_wall_face_east_01" type="Marker3D" parent="."]
+
+[node name="CollisionRoot" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CollisionRoot"]
+shape = SubResource("BoxShape3D_1")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="VisualInstance_Intact" parent="Visual" instance=ExtResource("1_visual")]
+visible = true
+[node name="VisualInstance_Damaged" parent="Visual" instance=ExtResource("2_visual_damaged")]
+visible = false
+[node name="VisualInstance_Breached" parent="Visual" instance=ExtResource("3_visual_breached")]
+visible = false

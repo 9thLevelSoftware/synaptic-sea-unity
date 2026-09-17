@@ -44,7 +44,11 @@ namespace SynapticSea.Runtime
 
         public ShipView View { get; }
 
-        /// <summary>Kit prefab catalog override; by default <c>Resources/Catalogs/KitCatalog_&lt;kit_id&gt;</c>.</summary>
+        /// <summary>
+        /// Kit prefab catalog override; by default <c>Resources/Catalogs/KitCatalog_&lt;kit_id&gt;</c>.
+        /// Set a layout's <c>kit_id</c> to <see cref="SynapticSea.Core.Procgen.KitCatalog.ITHAPPY_KIT_ID"/>
+        /// to load the additive KEEP ithappy catalog without changing ship_structural_v0.
+        /// </summary>
         public KitPrefabCatalog KitCatalog { get; set; }
 
         /// <summary>Prop prefab catalog override; by default <c>Resources/Catalogs/PropCatalog</c>.</summary>

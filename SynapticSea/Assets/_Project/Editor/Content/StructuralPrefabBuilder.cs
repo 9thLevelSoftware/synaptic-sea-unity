@@ -19,9 +19,11 @@ namespace SynapticSea.EditorTools.Content
     ///  - placement contract JSON: socket positions and bounds (the wrapper Marker3D sockets all sit at the origin)
     ///  - Godot wrapper .tscn (fixtures/godot_wrappers/&lt;kit&gt;/): the BoxShape3D collision truth and visual variants
     ///    (the kit's collision_proxy_records are Z-up Blender boxes and are NOT used)
-    ///  - glTFast-imported GLBs under Assets/Content/Structural/&lt;kit&gt;/
+    ///  - glTFast-imported GLBs under Assets/Content/Structural/ (ship_structural_v0 or ithappy).
+    ///    Wrapper <c>res://assets/imported/structural/...</c> paths map to that Content root.
     /// Output: Assets/Content/Prefabs/Structural/&lt;kit&gt;/&lt;module&gt;.prefab, a KitCatalog asset, and a JSON report.
     ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.StructuralPrefabBuilder.BuildAll -quit [-kit ship_structural_v0] [-strict]
+    ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.StructuralPrefabBuilder.BuildAll -quit -kit ithappy_scifi_v0
     /// </summary>
     public static class StructuralPrefabBuilder
     {
@@ -108,14 +110,14 @@ namespace SynapticSea.EditorTools.Content
             var entry = new GdDict { { "module_id", moduleId } };
             report.Modules.Add(entry);
 
-            // ---- contract (sockets + bounds)
-            string contractPath = Path.Combine(Application.streamingAssetsPath, "data", "placement", "contracts", "structural", kitId, moduleId + "_contract.json");
+            // ---- contract (sockets + bounds). Additive kits may reuse v0 JSON contracts.
+            string contractPath = ResolveContractPath(kitId, moduleId);
             var contract = File.Exists(contractPath) ? GdJson.ParseDict(File.ReadAllText(contractPath)) : null;
             if (contract == null) report.Errors.Add($"{moduleId}: contract missing ({contractPath})");
 
             // ---- Godot wrapper scene (collision + visual variants)
-            string tscnPath = Path.Combine(RepoRoot, "fixtures", "godot_wrappers", kitId, moduleId + ".tscn");
-            if (!File.Exists(tscnPath))
+            string tscnPath = ResolveWrapperPath(kitId, moduleId, module);
+            if (string.IsNullOrEmpty(tscnPath) || !File.Exists(tscnPath))
             {
                 report.Errors.Add($"{moduleId}: wrapper scene missing ({tscnPath})");
                 return null;
@@ -314,8 +316,15 @@ namespace SynapticSea.EditorTools.Content
                 report.Errors.Add($"{moduleId}: unexpected visual path {resPath}");
                 return null;
             }
-            string assetPath = "Assets/Content/Structural/" + resPath.Substring(prefix.Length);
+            string relative = resPath.Substring(prefix.Length);
+            string assetPath = "Assets/Content/Structural/" + relative;
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+            if (model == null && relative.StartsWith("ship_structural_v0/", StringComparison.Ordinal))
+            {
+                string ithappyPath = "Assets/Content/Structural/ithappy/" + relative.Substring("ship_structural_v0/".Length);
+                model = AssetDatabase.LoadAssetAtPath<GameObject>(ithappyPath);
+                if (model != null) assetPath = ithappyPath;
+            }
             if (model == null)
             {
                 report.Errors.Add($"{moduleId}: missing GLB {assetPath}");
@@ -344,6 +353,30 @@ namespace SynapticSea.EditorTools.Content
         static bool IsCollisionProxyName(string name) =>
             name.StartsWith("Collision_", StringComparison.Ordinal) || name.EndsWith("-col", StringComparison.Ordinal) ||
             name.EndsWith("-colonly", StringComparison.Ordinal) || name.EndsWith("-convcol", StringComparison.Ordinal);
+
+        static string ResolveWrapperPath(string kitId, string moduleId, GdDict module)
+        {
+            var candidates = new List<string>();
+            string scene = module.GetString("godot_wrapper_scene");
+            const string prefix = "res://scenes/wrappers/structural/";
+            if (scene.StartsWith(prefix, StringComparison.Ordinal))
+                candidates.Add(Path.Combine(RepoRoot, "fixtures", "godot_wrappers", scene.Substring(prefix.Length).Replace('/', Path.DirectorySeparatorChar)));
+            candidates.Add(Path.Combine(RepoRoot, "fixtures", "godot_wrappers", kitId, moduleId + ".tscn"));
+            if (kitId.IndexOf("ithappy", StringComparison.OrdinalIgnoreCase) >= 0)
+                candidates.Add(Path.Combine(RepoRoot, "fixtures", "godot_wrappers", "ithappy", moduleId + ".tscn"));
+            return candidates.FirstOrDefault(File.Exists) ?? candidates[0];
+        }
+
+        static string ResolveContractPath(string kitId, string moduleId)
+        {
+            string root = Path.Combine(Application.streamingAssetsPath, "data", "placement", "contracts", "structural");
+            foreach (string folder in new[] { kitId, "ship_structural_v0" })
+            {
+                string path = Path.Combine(root, folder, moduleId + "_contract.json");
+                if (File.Exists(path)) return path;
+            }
+            return Path.Combine(root, kitId, moduleId + "_contract.json");
+        }
 
         static KitPrefabCatalog WriteCatalog(string kitId, double gridStep, List<KitPrefabCatalog.Entry> entries)
         {
