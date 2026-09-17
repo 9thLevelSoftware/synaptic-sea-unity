@@ -217,10 +217,11 @@ Port these domains into `Core/Systems/<domain>/`:
 - `FrameConventionTests` places `wall_straight_1x1` and the chiral `wall_outer_corner` at yaw 0/90/180/270 and compares socket world positions to the contract math `p + local.rotated(UP, yaw)`. It also compares the corner's renderer bounds.
 - The Godot yaw convention is south 0, west 90, north 180, east 270 (`structural_edge_plan.gd`).
 
-**`StructuralPrefabBuilder`** (menu item plus `-executeMethod …BuildAll -strict`) builds one prefab per module in `Content/Prefabs/Structural/ship_structural_v0/<module>.prefab`.
+**`StructuralPrefabBuilder`** (menu item plus `-executeMethod …BuildAll -strict`) builds one prefab per module in `Content/Prefabs/Structural/<kit_id>/<module>.prefab`. Ithappy uses `-kit ithappy_scifi_v0` (see `docs/playtest/ithappy-scifi-bake.md`).
 - **Inputs:**
-  - Kit JSON for module_id, family, footprint, nav_blocker, and pivot_policy.
-  - **Contract JSON for socket positions.** The wrapper `.tscn` markers all sit at the origin, and the `.manifest.json` files carry names only.
+  - Kit JSON for module_id, family, footprint, nav_blocker, pivot_policy, and `socket_names`.
+  - **Contract JSON for socket positions.** The wrapper `.tscn` markers all sit at the origin, and the `.manifest.json` files carry names only. Do not invent `SOCK_*` names.
+  - **Companion `{module_id}.asset.json` beside the GLB** for new modules (Forge art-package gate). Mesh alone is not shippable. Inherited v0 twins may omit it.
   - **Wrapper `.tscn` `BoxShape3D`s for collision**, parsed as text from `fixtures/godot_wrappers/`. The kit's `collision_proxy_records` are Z-up Blender boxes and must **not** be used.
   - The variant GLB paths.
 - **Output hierarchy:**

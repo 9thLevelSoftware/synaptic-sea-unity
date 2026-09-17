@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "structural_art_package",
+  "module_id": "wall_x_junction",
+  "module_family": "junction",
+  "footprint_cells": [
+    1,
+    1
+  ],
+  "socket_names": [
+    "SOCK_wall_face_north_01",
+    "SOCK_wall_face_east_01",
+    "SOCK_wall_face_south_01",
+    "SOCK_wall_face_west_01"
+  ],
+  "pivot_policy": "edge-center",
+  "nav_blocker": true,
+  "collision_note": "four 4x3x0.2 wing boxes matching v0 wall_t_junction plus the south face"
+}
