@@ -1,5 +1,6 @@
 // Unity-port addition (plan C1): the title's New Run setup. Godot's title started a run with the fixed default start
-// (title_main.gd _instantiate_gameplay); the port generates the home ship, so the title asks for biome, difficulty and seed.
+// (title_main.gd _instantiate_gameplay). Milestone A New Run boots golden coherent_ship_001 for the slice defaults
+// (seed 17 / breach_field / standard); a non-slice choice fails closed. The setup still asks for biome, difficulty and seed.
 using System;
 using System.Collections.Generic;
 using System.Globalization;

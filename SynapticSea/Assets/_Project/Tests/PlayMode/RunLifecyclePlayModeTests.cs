@@ -1,12 +1,10 @@
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using SynapticSea.App;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Session;
-using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 using SynapticSea.Game;
 using SynapticSea.Runtime;
@@ -21,10 +19,10 @@ using Object = UnityEngine.Object;
 namespace SynapticSea.Tests.PlayMode
 {
     /// <summary>
-    /// The run lifecycle on the real scenes: a New Run generates its home ship from seed / biome / difficulty into
-    /// <c>user://runs/</c> (same seed → same layout, a different seed differs), the life boat docks, a direct-open scene
-    /// uses the same generation, Continue reloads a generated run by path, death pauses into the results and returns to
-    /// the title with the last-run line, and boot/load failures return to the title with the error.
+    /// The run lifecycle on the real scenes: Title New Run and a direct-open scene boot the Milestone A hub
+    /// (golden <c>coherent_ship_001</c>), a non-slice New Run fails closed back to Title, Continue reloads that hub
+    /// by path, death pauses into the results and returns to the title with the last-run line, and boot/load failures
+    /// return to the title with the error.
     /// </summary>
     public class RunLifecyclePlayModeTests
     {
@@ -34,16 +32,6 @@ namespace SynapticSea.Tests.PlayMode
         MemoryStorage _storage;
         PlayableBootstrap _boot;
         RunSession _s;
-        readonly List<string> _warningsAndErrors = new List<string>();
-
-        void OnLog(string message, string stackTrace, LogType type)
-        {
-            if (type != LogType.Log) _warningsAndErrors.Add(type + ": " + message);
-        }
-
-        /// <summary>A generated boot is clean: no warning, error, assert or exception was logged since the test started.</summary>
-        void AssertNoWarningsOrErrorsLogged(string what) =>
-            Assert.IsEmpty(_warningsAndErrors, what + " logged: " + string.Join(" | ", _warningsAndErrors));
 
         [SetUp]
         public void SetUp()
@@ -55,14 +43,11 @@ namespace SynapticSea.Tests.PlayMode
             AppServices.StorageOverride = _storage;
             RunLaunchRequest.Pending = null;
             RunReturnInfo.Clear();
-            _warningsAndErrors.Clear();
-            Application.logMessageReceived += OnLog;
         }
 
         [TearDown]
         public void TearDown()
         {
-            Application.logMessageReceived -= OnLog;
             foreach (RunSessionHost host in Object.FindObjectsByType<RunSessionHost>()) Object.DestroyImmediate(host.gameObject);
             foreach (PlayableBootstrap boot in Object.FindObjectsByType<PlayableBootstrap>()) Object.DestroyImmediate(boot.gameObject);
             foreach (TitleScreen title in Object.FindObjectsByType<TitleScreen>()) Object.DestroyImmediate(title.gameObject);
@@ -111,76 +96,61 @@ namespace SynapticSea.Tests.PlayMode
             found(title);
         }
 
-        string LayoutText(RunSession s) => _storage.ReadText(s.LayoutPath);
-
         [UnityTest]
-        public IEnumerator NewRunGeneratesTheHomeShipAndDocksTheLifeboat()
+        public IEnumerator NewRunBootsTheMilestoneAHubAndDocksTheLifeboat()
         {
-            yield return BootPlayable(RunLaunchRequest.NewRun(1234, "breach_field", "hardened"));
+            yield return BootPlayable(RunLaunchRequest.NewRun());
             Assert.AreEqual(RunLaunchMode.NewRun, _boot.Launch.Mode);
-            Assert.IsNotNull(_boot.GeneratedStart, "the home ship was generated");
-            StringAssert.StartsWith(PlayableBootstrap.RunsDir, _s.LayoutPath);
-            StringAssert.StartsWith(_boot.RunDirectory, _s.GameplaySlicePath);
-            Assert.IsTrue(_storage.FileExists(_boot.RunDirectory + "layout.json"));
-            Assert.IsTrue(_storage.FileExists(_boot.RunDirectory + "gameplay_slice.json"));
-            Assert.IsTrue(_storage.FileExists(_boot.RunDirectory + "blueprint.json"));
-            Assert.AreEqual(_boot.GeneratedStart.Documents.LayoutJson, LayoutText(_s), "the written layout is the generated text");
-            Assert.AreEqual(_boot.GeneratedStart.Seed, _s.RunSeed);
+            Assert.IsNull(_boot.GeneratedStart, "Milestone A hub is authored, not generated");
+            StringAssert.Contains("coherent_ship_001", _s.LayoutPath);
+            Assert.AreEqual(MilestoneALaunch.HubLayoutPath, _s.LayoutPath);
+            Assert.AreEqual(RunLaunchRequest.DefaultSeed, _s.RunSeed);
             Assert.AreEqual("breach_field", _s.BiomeId);
-            Assert.AreEqual("hardened", _s.DifficultyId);
-            Assert.AreEqual(_boot.GeneratedStart.Documents.KitPath, _s.KitPath);
+            Assert.AreEqual("standard", _s.DifficultyId);
             GdDict ctx = _s.GetRunContextSummary();
-            Assert.AreEqual(_boot.GeneratedStart.Seed, V.I64(ctx["seed"]));
-            AssertNoWarningsOrErrorsLogged("the generated New Run boot (seed 1234, breach_field, hardened)");
+            Assert.AreEqual(RunLaunchRequest.DefaultSeed, V.I64(ctx["seed"]));
 
             Assert.IsTrue(_s.PlayableStarted);
-            Assert.Greater(_s.Interactables.Count, 0, "objectives from the generated gameplay slice");
+            Assert.Greater(_s.Interactables.Count, 0, "objectives from the hub gameplay slice");
             Assert.IsNotNull(_boot.Host.SceneState.Player, "player spawned");
-            Assert.IsNotEmpty(_boot.GeneratedStart.AnchorSource, "the start gate found a life boat anchor");
             Assert.IsNotNull(_s.LifeboatShip, "life boat built");
-            Assert.AreSame(_s.HomeShip, _s.LifeboatShip.ParentShip, "the life boat docked to the generated home ship");
+            Assert.AreSame(_s.HomeShip, _s.LifeboatShip.ParentShip, "the life boat docked to the hub");
             var lifeboat = (SceneShipRoot)_s.LifeboatShip.SceneRoot;
             Assert.IsTrue(lifeboat.IsInsideTree && lifeboat.GameObject.activeInHierarchy, "the life boat is placed in the scene");
             Assert.Less(Vector3.Distance(lifeboat.GameObject.transform.position, _boot.Host.ShipHost.HomeLoader.GameObject.transform.position), 80f);
         }
 
         [UnityTest]
-        public IEnumerator SameSeedGivesTheSameLayoutAndADifferentSeedDiffers()
+        public IEnumerator NonSliceNewRunFailsClosedAndReturnsToTitle()
         {
-            yield return BootPlayable(RunLaunchRequest.NewRun(501, "dead_fleet", "standard"));
-            string first = LayoutText(_s);
-            string firstDir = _boot.RunDirectory;
-            long firstHash = SeedDeterminismContract.Fnv1a64(first);
-
-            yield return BootPlayable(RunLaunchRequest.NewRun(501, "dead_fleet", "standard"));
-            Assert.AreNotEqual(firstDir, _boot.RunDirectory, "each run gets its own directory");
-            Assert.AreEqual(firstHash, SeedDeterminismContract.Fnv1a64(LayoutText(_s)), "same seed, same layout hash");
-
-            yield return BootPlayable(RunLaunchRequest.NewRun(502, "dead_fleet", "standard"));
-            Assert.AreNotEqual(firstHash, SeedDeterminismContract.Fnv1a64(LayoutText(_s)), "a different seed gives a different layout");
+            RunLaunchRequest.Pending = RunLaunchRequest.NewRun(99, "dead_fleet", "hardened");
+            SceneManager.LoadScene(RunLaunchRequest.PlayableSceneName);
+            TitleScreen title = null;
+            yield return WaitForTitle(t => title = t);
+            StringAssert.Contains("Load failed: non_slice_launch", title.StatusText);
+            StringAssert.Contains("seed=99", title.StatusText);
+            Assert.IsTrue(PlayableBootstrap.Current == null || !PlayableBootstrap.Current, "the failed playable scene unloaded");
+            Assert.IsFalse(Object.FindObjectsByType<RunSessionHost>().Any(h => h.Session != null && h.Session.PlayableStarted), "the wrong layout is never loaded");
         }
 
         [UnityTest]
-        public IEnumerator DirectOpenUsesTheDefaultGeneratedStart()
+        public IEnumerator DirectOpenBootsTheMilestoneAHub()
         {
             yield return BootPlayable(null);
             Assert.IsTrue(_boot.DirectOpen);
             Assert.AreEqual(RunLaunchMode.NewRun, _boot.Launch.Mode);
-            Assert.IsNotNull(_boot.GeneratedStart, "no request = the same generation path");
-            StringAssert.StartsWith(PlayableBootstrap.RunsDir, _s.LayoutPath);
-            StringAssert.DoesNotContain("coherent_ship_001", _s.LayoutPath, "golden only by explicit request");
-            Assert.AreEqual(RunLaunchRequest.DefaultSeed, _boot.GeneratedStart.RequestedSeed);
+            Assert.IsNull(_boot.GeneratedStart, "no request = the same hub path");
+            StringAssert.Contains("coherent_ship_001", _s.LayoutPath);
+            Assert.AreEqual(RunLaunchRequest.DefaultSeed, _s.RunSeed);
             Assert.AreEqual(RunLaunchRequest.DefaultBiomeId, _s.BiomeId);
             Assert.AreEqual(RunLaunchRequest.DefaultDifficultyId, _s.DifficultyId);
-            AssertNoWarningsOrErrorsLogged("the default generated boot");
         }
 
         [UnityTest]
-        public IEnumerator ContinueReloadsAGeneratedRunFromUserRuns()
+        public IEnumerator ContinueReloadsTheHubRun()
         {
-            yield return BootPlayable(RunLaunchRequest.NewRun(777, "breach_field", "deep_dive"));
+            yield return BootPlayable(RunLaunchRequest.NewRun());
             string layoutPath = _s.LayoutPath;
-            string layout = LayoutText(_s);
             long seed = _s.RunSeed;
             Assert.IsTrue(_s.RequestSave(), "world save written");
 
@@ -188,11 +158,10 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(RunLaunchMode.Continue, _boot.Launch.Mode);
             Assert.IsNull(_boot.GeneratedStart, "Continue does not generate");
             Assert.IsTrue(_boot.LaunchApplied, "the world save applied");
-            Assert.AreEqual(layoutPath, _s.LayoutPath, "the generated layout reloads by its user://runs path");
-            Assert.AreEqual(layout, LayoutText(_s));
+            Assert.AreEqual(layoutPath, _s.LayoutPath, "the hub layout reloads by path");
             Assert.AreEqual(seed, _s.RunSeed);
             Assert.AreEqual("breach_field", _s.BiomeId);
-            Assert.AreEqual("deep_dive", _s.DifficultyId);
+            Assert.AreEqual("standard", _s.DifficultyId);
             Assert.IsNotNull(_boot.Host.ShipHost.HomeLoader);
             Assert.IsTrue(_boot.Host.ShipHost.HomeLoader.IsInsideTree);
         }
@@ -200,7 +169,7 @@ namespace SynapticSea.Tests.PlayMode
         [UnityTest]
         public IEnumerator DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun()
         {
-            yield return BootPlayable(RunLaunchRequest.NewRun(31, "breach_field", "hardened"));
+            yield return BootPlayable(RunLaunchRequest.NewRun());
             _s.VitalsState.Health = 0.0;
             yield return null;
             yield return null;
@@ -215,7 +184,7 @@ namespace SynapticSea.Tests.PlayMode
             StringAssert.Contains("Objectives completed:", results.BodyText);
             var context = results.Q<Label>("run-results-context");
             Assert.IsNotNull(context);
-            StringAssert.Contains("seed " + _s.RunSeed + " · breach_field · hardened", context.text);
+            StringAssert.Contains("seed " + _s.RunSeed + " · breach_field · standard", context.text);
             double pausedTime = _s.WorldTime;
             yield return null;
             yield return null;
@@ -228,7 +197,7 @@ namespace SynapticSea.Tests.PlayMode
             }
             TitleScreen title = null;
             yield return WaitForTitle(t => title = t);
-            StringAssert.Contains("Last run: death — seed " + _s.RunSeed + " · breach_field · hardened", title.StatusText);
+            StringAssert.Contains("Last run: death — seed " + _s.RunSeed + " · breach_field · standard", title.StatusText);
             StringAssert.Contains("Progress: objectives", title.StatusText);
         }
 

@@ -182,7 +182,7 @@ namespace SynapticSea.Tests.PlayMode
             CollectionAssert.AreEqual(new[] { "standard", "hardened", "deep_dive" }, setup.DifficultyIds.ToArray(), "difficulties from data/procgen/difficulty");
             Assert.AreEqual("breach_field", setup.BiomeId);
             Assert.AreEqual("standard", setup.DifficultyId, "the title difficulty setting");
-            Assert.AreEqual(4242, setup.Seed, "a random seed by default");
+            Assert.AreEqual(RunLaunchRequest.DefaultSeed, setup.Seed, "the Milestone A start seed by default");
 
             setup.FocusRow(NewRunSetupPanel.RowStart);
             setup.Consume(UiCommand.Accept);
@@ -192,11 +192,11 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsNotNull(request);
             Assert.AreEqual(RunLaunchMode.NewRun, request.Mode);
             Assert.AreEqual("", request.SlotId);
-            Assert.AreEqual(4242, request.Seed);
+            Assert.AreEqual(RunLaunchRequest.DefaultSeed, request.Seed);
             Assert.AreEqual("breach_field", request.BiomeId);
             Assert.AreEqual("standard", request.DifficultyId);
             Assert.AreEqual("engineer", request.ClassId);
-            Assert.AreEqual("", request.LayoutOverridePath, "a title run is generated");
+            Assert.AreEqual("", request.LayoutOverridePath, "Title New Run has no layout override; the hub is applied at boot");
             Assert.IsNull(request.SettingsSummary, "untouched title settings are not handed off");
             Assert.AreSame(request, RunLaunchRequest.Consume());
             Assert.IsNull(RunLaunchRequest.Pending);
@@ -225,8 +225,8 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual("hardened", setup.DifficultyId);
             yield return Tap(gamepad.dpad.down);
             yield return Tap(gamepad.dpad.right);
-            Assert.AreEqual(4243, setup.Seed, "Right steps the seed");
-            Assert.AreEqual("4243", setup.RowValue(NewRunSetupPanel.RowSeed));
+            Assert.AreEqual(RunLaunchRequest.DefaultSeed + 1, setup.Seed, "Right steps the seed");
+            Assert.AreEqual((RunLaunchRequest.DefaultSeed + 1).ToString(), setup.RowValue(NewRunSetupPanel.RowSeed));
             yield return Tap(gamepad.dpad.down);
             NewRunSetupPanel.RandomSeed = () => 777;
             yield return Tap(gamepad.buttonSouth);
@@ -259,7 +259,7 @@ namespace SynapticSea.Tests.PlayMode
             RunLaunchRequest request = RunLaunchRequest.Pending;
             Assert.IsNotNull(request);
             Assert.AreEqual(RunLaunchMode.NewRun, request.Mode);
-            Assert.AreEqual(99, request.Seed);
+            Assert.AreEqual(RunLaunchRequest.DefaultSeed, request.Seed);
             Assert.AreEqual("dead_fleet", request.BiomeId);
             Assert.AreEqual("deep_dive", request.DifficultyId);
             Assert.AreEqual("engineer", request.ClassId);

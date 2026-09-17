@@ -7,7 +7,7 @@ namespace SynapticSea.Runtime.Session
     /// <summary>How the Playable scene should start the run.</summary>
     public enum RunLaunchMode
     {
-        /// <summary>Fresh run (Godot title "New Run"): generate the home ship from seed / biome / difficulty.</summary>
+        /// <summary>Fresh run (Godot title "New Run"): Milestone A hub golden <c>coherent_ship_001</c> for the slice defaults.</summary>
         NewRun,
         /// <summary>Continue the world save (Godot title "Continue": <c>request_load()</c> on the world slot).</summary>
         Continue,
@@ -19,14 +19,18 @@ namespace SynapticSea.Runtime.Session
     /// What the Title scene asks the Playable scene to do. A plain object: the title stores it in <see cref="Pending"/>
     /// and then loads <see cref="PlayableSceneName"/>; the playable bootstrap calls <see cref="Consume"/> once.
     /// When <see cref="Pending"/> is null (Playable opened directly in the editor) the bootstrap behaves as
-    /// <see cref="NewRun"/> with the defaults, through the same generation path.
+    /// <see cref="NewRun"/> with the defaults, through the same Milestone A hub path.
     /// </summary>
     public sealed class RunLaunchRequest
     {
         public const string PlayableSceneName = "Playable";
         public const string TitleSceneName = "Title";
 
-        /// <summary>The seed a request starts with (and a direct-open run uses). The title's New Run setup randomizes it.</summary>
+        /// <summary>
+        /// Title New Run sentinel (and a direct-open run's seed). Milestone A hub is golden <c>coherent_ship_001</c>,
+        /// not this seed's layout. Away seeds come from the first-run contract preferred list. The title's New Run
+        /// setup starts on this seed; Randomize rolls a new one, and a non-slice launch fails closed.
+        /// </summary>
         public const long DefaultSeed = 17;
         /// <summary>Milestone A default biome (ui_presentation_program.md: "fixed default start, breach_field/standard").</summary>
         public const string DefaultBiomeId = "breach_field";
@@ -43,7 +47,7 @@ namespace SynapticSea.Runtime.Session
         /// <summary>Slot id for <see cref="RunLaunchMode.LoadSlot"/>; <see cref="WorldSlotId"/> for Continue; "" for a new run.</summary>
         public string SlotId = "";
 
-        /// <summary>The home ship seed for a new run (the generator reseeds deterministically if it is not viable).</summary>
+        /// <summary>The New Run seed. Slice default <see cref="DefaultSeed"/> boots the Milestone A hub; any other seed fails closed.</summary>
         public long Seed = DefaultSeed;
 
         /// <summary>Biome id (<c>data/procgen/biomes/&lt;id&gt;.json</c>).</summary>
