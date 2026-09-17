@@ -386,7 +386,8 @@ namespace SynapticSea.Core.Session
             ResetRuntimeForReload();
             LayoutPath = snapshot.LayoutPath;
             KitPath = snapshot.KitPath;
-            GameplaySlicePath = snapshot.GameplaySlicePath;
+            GameplaySlicePath = RunSnapshot.ResolveGameplaySlicePath(snapshot.LayoutPath, snapshot.GameplaySlicePath);
+            snapshot.GameplaySlicePath = GameplaySlicePath;
             PlayableStarted = false;
             LoadFromPaths(LayoutPath, KitPath, GameplaySlicePath);
             if (!PlayableStarted)

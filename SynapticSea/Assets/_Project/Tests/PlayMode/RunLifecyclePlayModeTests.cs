@@ -167,6 +167,28 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub()
+        {
+            const string savedLayout = "res://data/procgen/golden/coherent_ship_003/layout.json";
+            yield return BootPlayable(new RunLaunchRequest
+            {
+                Mode = RunLaunchMode.NewRun,
+                LayoutOverridePath = savedLayout,
+                Seed = RunLaunchRequest.DefaultSeed,
+                BiomeId = RunLaunchRequest.DefaultBiomeId,
+                DifficultyId = RunLaunchRequest.DefaultDifficultyId,
+            });
+            Assert.AreEqual(savedLayout, _s.LayoutPath, "precondition: Continue starts from a non-hub save");
+            Assert.IsTrue(_s.RequestSave(), "world save written");
+
+            yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            Assert.AreEqual(RunLaunchMode.Continue, _boot.Launch.Mode);
+            Assert.AreEqual(savedLayout, _s.LayoutPath, "Continue boots the saved home, not the Milestone A hub");
+            StringAssert.DoesNotContain("coherent_ship_001", _s.LayoutPath);
+            Assert.IsTrue(_boot.LaunchApplied, "the world save applied");
+        }
+
+        [UnityTest]
         public IEnumerator DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun()
         {
             yield return BootPlayable(RunLaunchRequest.NewRun());
@@ -198,6 +220,40 @@ namespace SynapticSea.Tests.PlayMode
             TitleScreen title = null;
             yield return WaitForTitle(t => title = t);
             StringAssert.Contains("Last run: death — seed " + _s.RunSeed + " · breach_field · standard", title.StatusText);
+            StringAssert.Contains("Progress: objectives", title.StatusText);
+        }
+
+        [UnityTest]
+        public IEnumerator ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun()
+        {
+            yield return BootPlayable(RunLaunchRequest.NewRun());
+            _s.EndRun("extraction");
+            yield return null;
+            yield return null;
+            Assert.IsTrue(_s.SliceComplete, "extraction ended the run");
+            RunResultsPanel results = _boot.Results;
+            Assert.IsNotNull(results, "extract shows the run results");
+            Assert.AreSame(results, _boot.Coordinator.Stack.Top);
+            Assert.IsTrue(_boot.Coordinator.Stack.SimulationPaused, "the terminal results pause the simulation");
+            Assert.AreEqual("extraction", results.NormalizedOutcome());
+            StringAssert.Contains("Outcome: extraction", results.BodyText);
+            StringAssert.Contains("Time survived:", results.BodyText);
+            var context = results.Q<Label>("run-results-context");
+            Assert.IsNotNull(context);
+            StringAssert.Contains("seed " + _s.RunSeed + " · breach_field · standard", context.text);
+            double pausedTime = _s.WorldTime;
+            yield return null;
+            yield return null;
+            Assert.AreEqual(pausedTime, _s.WorldTime, "no ticks under the results");
+
+            using (NavigationSubmitEvent submit = NavigationSubmitEvent.GetPooled())
+            {
+                submit.target = results.ReturnButton;
+                results.ReturnButton.SendEvent(submit);
+            }
+            TitleScreen title = null;
+            yield return WaitForTitle(t => title = t);
+            StringAssert.Contains("Last run: extraction — seed " + _s.RunSeed + " · breach_field · standard", title.StatusText);
             StringAssert.Contains("Progress: objectives", title.StatusText);
         }
 

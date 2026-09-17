@@ -1,0 +1,50 @@
+# Playtest QA — Milestone A death / extract → RunResultsPanel
+
+Death or extract must open `RunResultsPanel` with an outcome. A silent Title dump (`RunReturnInfo` only) fails this exit.
+
+Automated coverage:
+
+- EditModeUnity assembly `SynapticSea.Tests.EditModeUnity` (not `SynapticSea.Tests.EditMode`): `SessionUiBridgeRunResultsTests` (death, extract, slice-complete, Return to Title seam, quit does not open or replace results)
+- PlayMode: `RunLifecyclePlayModeTests.DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun` and `ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun`
+
+Exact EditModeUnity verify (Unity Test Runner or CLI):
+
+| Field | Value |
+| --- | --- |
+| Assembly | `SynapticSea.Tests.EditModeUnity` (`autoReferenced: false`) |
+| Filter | `SessionUiBridgeRunResults` |
+
+```
+# Must compile SynapticSea.Tests.EditModeUnity — do not select SynapticSea.Tests.EditMode
+pwsh tools/test.ps1 -Mode EditMode -Filter SessionUiBridgeRunResults
+# unity test SynapticSea --mode EditMode --filter SessionUiBridgeRunResults
+
+pwsh tools/test.ps1 -Mode PlayMode -Filter RunLifecyclePlayModeTests
+```
+
+A filter of `SessionUiBridgeRunResults` against `SynapticSea.Tests.EditMode` (or the default engine-free EditMode assembly) matches 0 tests. Select **SynapticSea.Tests.EditModeUnity**.
+
+## Acceptance
+
+### 1. Die once → RunResultsPanel
+
+1. Title → New Run (slice defaults). Confirm the hub is live.
+2. Die once (stand until incapacitated, or set health to 0 in a debug boot).
+3. Expect **RUN ENDED — DEATH** (`RunResultsPanel`) over the paused run: outcome death, time survived, seed · biome · difficulty context. Simulation must not keep ticking.
+4. Do **not** land on Title without this panel.
+
+### 2. Extract once → RunResultsPanel
+
+1. Title → New Run (slice defaults). Confirm the hub is live.
+2. Complete the hub slice (all `coherent_ship_001` gameplay-slice objectives). That emits `PlayableSliceCompleted` with `reason=complete`, which the panel shows as **extraction**. First-away travel is not extract.
+3. Automation may also call `EndRun("extraction")` — same panel.
+4. Expect **RUN COMPLETE — EXTRACTION** over the paused run: outcome extraction, seed · biome · difficulty. Simulation must not keep ticking.
+5. Do **not** land on Title without this panel.
+
+### 3. From results, return to Title
+
+1. On either results panel, focus starts on **Return to Title**.
+2. Confirm. Title shows `Last run: death|extraction — seed … · biome · difficulty` and `Progress: objectives n/m`.
+3. New Run from results is a fresh Milestone A hub boot, not a silent replay of the finished run.
+
+Pause **Quit to Title** is not this flow: it may return to Title without a results panel. Death and extract must not use that path.

@@ -1,6 +1,6 @@
 # Playtest QA / eng — ithappy_scifi_v0 StructuralPrefabBuilder bake
 
-Verify path for KEEP ithappy kit authority after the additive import (decision 61) and the companion `{module_id}.asset.json` gate. Do **not** regenerate art. Track A New Run / run-results wiring is out of scope.
+Verify path for KEEP ithappy kit authority after the additive import (decision 61) and the companion `{module_id}.asset.json` gate (decision 63). Do **not** regenerate art. Track A New Run / run-results wiring is out of scope.
 
 Automated coverage (no Unity Editor):
 

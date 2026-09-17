@@ -33,14 +33,13 @@ namespace SynapticSea.Game
     /// <item>SettingsSummary (when the title settings changed) is applied after any load.</item>
     /// </list>
     /// A failed boot, generation or load stores <see cref="RunReturnInfo.LastFailureReason"/> and returns to the title (no
-    /// silent fresh run). Death or completion pauses the run and shows <see cref="RunResultsPanel"/>; its confirm stores
-    /// the outcome in <see cref="RunReturnInfo"/> and loads <see cref="RunLaunchRequest.TitleSceneName"/>.
+    /// silent fresh run). Death or extract opens <see cref="RunResultsPanel"/> via <see cref="SessionUiBridge"/>; confirm
+    /// stores the outcome in <see cref="RunReturnInfo"/> and loads <see cref="RunLaunchRequest.TitleSceneName"/>.
     /// </summary>
     [DefaultExecutionOrder(-100)]
     [DisallowMultipleComponent]
     public sealed class PlayableBootstrap : MonoBehaviour
     {
-        public const string GoldenDir = MilestoneALaunch.HubDir;
         /// <summary>Where generated run documents live (Continue / janitor). Milestone A New Run does not write here.</summary>
         public const string RunsDir = RunDirectoryJanitor.RunsDir + "/";
 
@@ -87,16 +86,15 @@ namespace SynapticSea.Game
         public StartSceneBuilder.HomeStart GeneratedStart { get; private set; }
         /// <summary>The <c>user://runs/&lt;run_id&gt;/</c> directory of a generated run ("" otherwise).</summary>
         public string RunDirectory { get; private set; } = "";
-        /// <summary>The end-of-run results surface once the run ended (null before).</summary>
-        public RunResultsPanel Results { get; private set; }
+        /// <summary>The end-of-run results surface once the run ended (null before). Owned by <see cref="SessionUiBridge"/>.</summary>
+        public RunResultsPanel Results => Ui?.Results;
         /// <summary>The completion summary shown on <see cref="Results"/>, with the run context added.</summary>
-        public GdDict ResultsSummary { get; private set; }
+        public GdDict ResultsSummary => Ui?.ResultsSummary;
 
         public PanelSettings HudPanelSettings { get => hudPanelSettings; set => hudPanelSettings = value; }
         public PanelSettings MenuPanelSettings { get => menuPanelSettings; set => menuPanelSettings = value; }
         public VolumeProfile GlobalVolumeProfile { get => globalVolumeProfile; set => globalVolumeProfile = value; }
 
-        GdDict _pendingCompletion;
         bool _leaving;
 
         void Start()
@@ -144,7 +142,6 @@ namespace SynapticSea.Game
             {
                 Ui.BindSessionEvents(s);
                 s.ReturnToTitleRequested += OnReturnToTitle;
-                s.PlayableSliceCompleted += OnSliceCompleted;
             });
             if (!session.PlayableStarted)
             {
@@ -152,6 +149,8 @@ namespace SynapticSea.Game
                 return;
             }
             Ui.BuildCoordinator(session, Host, Services.Audio);
+            Ui.ResultsReturnToTitleRequested += ConfirmResults;
+            Ui.ResultsNewRunRequested += StartNextRun;
             Ui.SettingsPersist = summary => Services.ApplySettings(summary);
             LaunchApplied = ApplyLaunch(session, Launch, out failure);
             if (!LaunchApplied)
@@ -163,7 +162,6 @@ namespace SynapticSea.Game
             IsBooted = true;
             CoreServices.Log.Info($"[PlayableBootstrap] booted {Launch} layout={session.LayoutPath} seed={session.RunSeed} biome={session.BiomeId} difficulty={session.DifficultyId}");
             Booted?.Invoke(this);
-            if (_pendingCompletion != null) ShowResults(_pendingCompletion);
         }
 
         // ------------------------------------------------------------------ launch → session dependencies
@@ -239,7 +237,7 @@ namespace SynapticSea.Game
             failure = "";
             home = home ?? new GdDict();
             string layout = home.GetString("layout_path", "");
-            string slice = home.GetString("gameplay_slice_path", "");
+            string slice = RunSnapshot.ResolveGameplaySlicePath(layout, home.GetString("gameplay_slice_path", ""));
             if (layout.Length == 0 || !CatalogRegistry.Exists(layout))
             {
                 failure = "the " + label + " ship layout is missing (" + (layout.Length == 0 ? "no path" : layout) + ")";
@@ -314,47 +312,8 @@ namespace SynapticSea.Game
 
         // ------------------------------------------------------------------ run end (A2)
 
-        void OnSliceCompleted(GdDict summary)
-        {
-            GdDict completion = (summary ?? new GdDict()).DeepCopy();
-            if (!IsBooted || Coordinator == null)
-            {
-                _pendingCompletion = completion;
-                return;
-            }
-            ShowResults(completion);
-        }
-
-        /// <summary>Pauses the run (TERMINAL surface on the modal stack) and shows the results with the run context.</summary>
-        void ShowResults(GdDict completion)
-        {
-            _pendingCompletion = null;
-            if (Results != null || _leaving) return;
-            RunSession s = Session;
-            GdDict summary = completion.DeepCopy();
-            if (s != null)
-            {
-                summary["seed"] = s.RunSeed;
-                summary["biome_id"] = s.BiomeId;
-                summary["difficulty_id"] = s.DifficultyId;
-            }
-            ResultsSummary = summary;
-            Results = new RunResultsPanel();
-            Results.SetRunSummary(summary);
-            Results.SetContextLine(ContextLine(summary));
-            Results.ReturnToTitleRequested += ConfirmResults;
-            Results.NewRunRequested += StartNextRun;
-            Coordinator.MenuState.CloseAll();
-            Coordinator.OpenInspection(Results);
-            RecordReturnInfo(summary, Results.NormalizedOutcome());
-        }
-
         /// <summary>The results / title context line, e.g. "seed 17 · breach_field · standard".</summary>
-        public static string ContextLine(GdDict summary)
-        {
-            string biome = summary.GetString("biome_id", "");
-            return "seed " + V.I64(summary.Get("seed", 0L)) + " · " + (biome.Length != 0 ? biome : "no biome") + " · " + summary.GetString("difficulty_id", "standard");
-        }
+        public static string ContextLine(GdDict summary) => SessionUiBridge.ContextLine(summary);
 
         static void RecordReturnInfo(GdDict summary, string outcome)
         {
@@ -368,7 +327,8 @@ namespace SynapticSea.Game
         /// <summary>Results confirm (Return to Title): record the outcome and load the title.</summary>
         public void ConfirmResults()
         {
-            if (ResultsSummary != null) RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());
+            if (Results != null && ResultsSummary != null)
+                RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());
             LeaveToTitle();
         }
 
@@ -378,7 +338,8 @@ namespace SynapticSea.Game
             if (_leaving) return;
             RunLaunchRequest next = RunLaunchRequest.NewRun();
             next.ClassId = Launch.ClassId;
-            if (ResultsSummary != null) RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());
+            if (Results != null && ResultsSummary != null)
+                RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());
             _leaving = true;
             Ui?.Dispose();
             RunLaunchRequest.Pending = next;
@@ -391,6 +352,8 @@ namespace SynapticSea.Game
 
         void OnReturnToTitle()
         {
+            // Death/extract already opened RunResultsPanel. Do not dump to Title over it.
+            if (Results != null) return;
             RunSession s = Session;
             if (s != null)
             {

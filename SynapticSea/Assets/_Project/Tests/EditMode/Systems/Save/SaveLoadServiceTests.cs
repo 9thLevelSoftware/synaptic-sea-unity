@@ -128,5 +128,15 @@ namespace SynapticSea.Tests.Systems
             Assert.IsNull(_service.LoadWorld());
             Assert.IsFalse(_storage.FileExists(SaveLoadService.WORLD_SLOT_FILE));
         }
+
+        [Test]
+        public void ResolveGameplaySlicePath_UsesSiblingWhenEmpty()
+        {
+            Assert.AreEqual("res://data/procgen/smoke/seed_000017/gameplay_slice.json",
+                RunSnapshot.ResolveGameplaySlicePath("res://data/procgen/smoke/seed_000017/layout.json", ""));
+            Assert.AreEqual("res://explicit/slice.json",
+                RunSnapshot.ResolveGameplaySlicePath("res://data/procgen/smoke/seed_000017/layout.json", "res://explicit/slice.json"));
+            Assert.AreEqual("", RunSnapshot.ResolveGameplaySlicePath("", ""));
+        }
     }
 }
