@@ -1,0 +1,74 @@
+# Test suites for the Unity port (plan Phase 12, optional CI).
+#
+# Manual trigger only until the repository has the Unity license secrets:
+#   UNITY_LICENSE   contents of the .ulf license file (Personal: activate once locally, see game.ci/docs/github/activation)
+#   UNITY_EMAIL     Unity account email
+#   UNITY_PASSWORD  Unity account password
+# Once they exist, add `push`/`pull_request` triggers here.
+#
+# Local equivalent: pwsh tools/test.ps1 -Mode All
+name: Unity tests
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: unity-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dotnet:
+    name: Core suite (dotnet, no Unity license)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false # Core and EditMode tests read JSON data and fixtures only
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: dotnet test
+        run: dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --logger "trx;LogFileName=dotnet-core.trx" --results-directory artifacts/dotnet
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dotnet-test-results
+          path: artifacts/dotnet
+
+  unity:
+    name: Unity ${{ matrix.testMode }}
+    runs-on: ubuntu-latest
+    needs: dotnet
+    strategy:
+      fail-fast: false
+      matrix:
+        testMode: [editmode, playmode]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true # GLBs, textures and audio are in LFS; PlayMode builds real ships from them
+      - uses: actions/cache@v4
+        with:
+          path: SynapticSea/Library
+          key: Library-tests-${{ hashFiles('SynapticSea/Packages/manifest.json', 'SynapticSea/Packages/packages-lock.json', 'SynapticSea/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-tests-
+            Library-
+      - uses: game-ci/unity-test-runner@v4
+        id: tests
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: SynapticSea
+          unityVersion: 6000.6.0f1
+          testMode: ${{ matrix.testMode }}
+          artifactsPath: artifacts/${{ matrix.testMode }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Unity ${{ matrix.testMode }} results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-${{ matrix.testMode }}-results
+          path: ${{ steps.tests.outputs.artifactsPath }}
