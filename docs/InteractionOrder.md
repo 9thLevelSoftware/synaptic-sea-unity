@@ -63,3 +63,8 @@ These rules carry over from the Godot handlers:
   `try_login` claimed every in-range press, and the life boat's repair and fire suppression points share its command
   room's centre, so they were unreachable (`docs/port-status.md` decision 33).
 - **Exterior portals.** An authored exterior portal returns the result of `travel_home()`.
+- **Station placement (port change).** Godot put the home crafting and production stations (rows 6 and 7) on the first
+  structural nodes, the airlock and corridor floor-cell centres, so they claimed interact next to the spawn ahead of
+  pickups and objectives. `Core/Session/StationPlacer.cs` places them by room role instead, only where their 1.8 m area
+  overlaps no other interaction area and the player start, never on a doorway cell, and falls back to the first free
+  legacy position. The order of the table is unchanged.
