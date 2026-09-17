@@ -68,11 +68,12 @@ namespace SynapticSea.Runtime.Session
             position = current;
             if (!HasNavMesh) return false;
             NavMeshAgent agent = AgentFor(instanceId, current);
-            if (agent == null || !agent.isOnNavMesh) return false;
-            // Core moved the threat itself (a load, a teleport, or the A* fallback): take the agent to it first.
+            if (agent == null) return false;
             Vector3 currentUnity = Frame.ToUnity(current);
-            if ((agent.transform.position - currentUnity).sqrMagnitude > WarpDistance * WarpDistance && !Warp(agent, currentUnity))
-                return false;
+            // An agent off the mesh keeps trying: the ship it needs may have been built after it spawned. One that
+            // Core moved itself (a load, a teleport, or the nav graph fallback) is taken to where Core put it.
+            bool away = (agent.transform.position - currentUnity).sqrMagnitude > WarpDistance * WarpDistance;
+            if ((!agent.isOnNavMesh || away) && !Warp(agent, currentUnity)) return false;
             agent.speed = (float)speed;
             agent.isStopped = _paused;
             if (!_paused && NavMesh.SamplePosition(Frame.ToUnity(target), out NavMeshHit hit, SampleRadius, agent.areaMask))
@@ -120,9 +121,9 @@ namespace SynapticSea.Runtime.Session
             agent.angularSpeed = 999f;
             agent.stoppingDistance = 0f;
             agent.updateRotation = false; // the placeholder's facing is the view's business (lunges, death).
-            agent.enabled = false;
+            agent.enabled = false; // it only starts steering once it is standing on the mesh.
             _agents[instanceId] = agent;
-            if (!Warp(agent, Frame.ToUnity(current))) return agent;
+            Warp(agent, Frame.ToUnity(current));
             return agent;
         }
 
