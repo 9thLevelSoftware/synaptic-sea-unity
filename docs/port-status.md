@@ -19,7 +19,7 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 11 Audio and input | Done | AudioManager port with per-bus volumes persisted in `user://settings.json`; Godot's 21 unused clips mapped, three music stems, ambient beds (decision 25); input actions mirror the Godot InputMap, and combat, reload, hotbar and hold-to-work are routed through `RunSessionHost` |
 | 12 Builds and tooling | Done | Builds pass for Windows dev (Mono), demo (Mono) and release (IL2CPP), Linux dev (Mono) and macOS dev (Mono, unsigned). `tools/verify-headless.ps1` boots Windows players and Linux players under WSL, and checks the reported build kind (`build=demo` for demo). `tools/publish-itch.ps1` stages each build and passes `butler validate` (dry run; nothing pushed). `Builder.PerformBuild` runs `DataManifestValidator` and removes the build stamp afterwards (decision 45). `tools/test.ps1` exits 8 for failing tests and 1 for infrastructure errors. Manual GitHub workflows (`.github/workflows`), an inert Steam scaffold behind `SS_STEAM`, and tooling continuity (`tools/python`, `tools/blender`, `docs/inventory`, `PromoteStructuralSource`, `MeshyRuntimeReview`, Import Library Asset). The fixture exporter is on `origin/unity/parity-fixtures` in the Godot repo. Build Settings list Boot → Title → Playable (`BuildSettingsSetup`); Boot composes `AppServices` and loads Title (`FrontEndSceneBuilder`, `FrontEndPlayModeTests`). |
 | Integration gap closure | Done | Plan `tender-swinging-badger` (2026-09-17). Wave 1: kit catalog resolution, mapped audio, icons, session gaps (wounds, hold-to-work, run context, saves run-5), fixture guards and round-trip replay. Wave 2: in-play integration, generated New Run, results and failure flow. Wave 3: real-loop PlayMode suite and these docs. `pwsh tools/test.ps1 -Mode All`: dotnet 626, EditMode 767, PlayMode 37, none skipped |
-| Open-item and Phase 12 closure | Done | Plan `compiled-noodling-minsky` (2026-09-17), branches `close/session`, `close/scene`, `close/build`, `close/tools`. Session and save: decisions 35–40. Scene, visuals and UI: decisions 41–43 and the amendments to 9 and 19. Builds, platform and tooling: decisions 44–54. The life boat overlap stays open (open items). `pwsh tools/test.ps1 -Mode All` on the merged result: dotnet 644, EditMode 837, PlayMode 38, none skipped |
+| Open-item and Phase 12 closure | Done | Plan `compiled-noodling-minsky` (2026-09-17), branches `close/session`, `close/scene`, `close/build`, `close/tools`. Session and save: decisions 35–40. Scene, visuals and UI: decisions 41–43 and the amendments to 9 and 19. Builds, platform and tooling: decisions 44–54. The follow-up decisions on the life boat spawn, suit air and ramps are 55–57. `pwsh tools/test.ps1 -Mode All` on the merged result: dotnet 644, EditMode 837, PlayMode 38, none skipped; after decisions 55–57: dotnet 648, EditMode 841, PlayMode 38 |
 
 Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Unity EditMode and PlayMode).
 
@@ -140,7 +140,7 @@ Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Uni
     - Propulsion is made flyable through the repair, fire suppression and breach seal points, with parts and repair skill given as setup. The test does not use `ForceRepairAll`.
     - Hull integrity caps thrust (`PropulsionState`: target = 100 × (powered ratio − hull penalty)), so golden 001 also needs its breaches sealed before the drive reaches the 50 % travel threshold.
     - Long simulated waits run at `Time.timeScale = 20`.
-    - Golden 001's idle player still dies at about 54 s (decision 39, open items), so no test waits idle for long.
+    - An idle player still dies after a few minutes on every home ship (decision 56, open items), so no test waits idle for long.
 35. **Manual slots restore world-only state (run schema `gate2-current-run-6`).** Godot's manual slot restored none of this; only its world save did.
     - The run snapshot's port extensions add `home_ship_carts`, `home_breach_environment`, `meta_progression_summary`, `unique_item_summary` and `visited_ships`. `SaveMigrationService` gives run-5 and older saves empty defaults, which mean "not saved" (`PortDefaults`).
     - `ApplyManualSlot` restores them after the reload through helpers shared with the world load. The world load is unchanged and ignores the embedded copies, so nothing is applied twice.
@@ -205,6 +205,20 @@ Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Uni
     - It reproduces the Godot capture: derelict, harness lighting, the locked (16,14,16) orthographic camera and the staged, contextual and non-blank pixel gates.
     - It writes the same 19 leaves with Python-canonical JSON, and the Python verifier re-derived identical evidence on a synthetic task.
     - Ceilings are hidden everywhere (decision 17). Evidence binding stays in Python.
+55. **The boot moves a spawn that overlaps wall geometry** (`Runtime/Session/SpawnClearance`, `RunSessionHost.ResolveSpawnClearance`). The docked life boat keeps overlapping the home airlock, because that overlap is the docking connection: its repair, fire suppression and breach seal points are reachable from the home airlock only through it, and derelicts dock the same way.
+    - What was wrong was the spawn: one of the boat's walls runs through the start marker, and the CharacterController pushed the player out on the first physics step.
+    - After the session boots, if the player capsule overlaps a Structure, ZoneBlocker or Portal collider, the host searches rings 0.5 m apart, up to 4 m, for the nearest clear spot standing on the home ship's floor, and teleports the player there. The session still spawns at the start marker, so saves and headless parity are unchanged.
+    - `BootBuildsTheGoldenShipPlayerCameraAndHud` asserts the move, a clear capsule over home floor, and no depenetration drift afterwards.
+56. **The suit supplies the player's air while the home atmosphere is fouled** (`RunSessionDeps.HomeSuitAirReserveSeconds = 150`, `RunSession.ApplySuitAirReserve`).
+    - Measured before the change: every generated New Run home ship (seeds 3, 17, 42, 777, 999, 7777; all biomes and difficulties) starts with 4–9 breaches, and an idle player died of the atmosphere in 24–30 s, threats or not, while the HUD's Suit O2 meter read 100 %. The power floor (decision 39) could not help, because the leaks outpace any recovery.
+    - Now, while `LifeSupportState.GetHealthDrainPerSecond()` is above 0 at home, the suit O2 meter drains at severity × 100 / 150 s × the hazard dial, its regen is withheld, and the atmosphere does no health damage. With the suit empty the air hurts again. Away from home nothing changes.
+    - The Suit O2 meter, its danger colour and the "O2 LOW" chip are the visible countdown; no new UI.
+    - The Godot session harness sets the reserve to 0 (`SuitAirReserveTests.GodotHarness_KeepsTheSuitOutOfShipAtmosphere`), so parity tests and saves are unchanged.
+    - After the change an idle player dies at about 100 s on every ship (86 s hardened), from the base survival clocks instead: radiation drains 1 HP/s from about 25–40 s at home, thirst empties at about 75 s (0.8/s, faster in a warm or cold ship), and sanity empties at about 67 s, adding 0.5 HP/s. Those are Godot's data-driven pacing values; retuning them is a playtest decision (open items).
+57. **Ramps and upper decks stay as in Godot.** Only the hand-authored golden `coherent_ship_001` and `coherent_ship_003` have a second deck. Every generated layout, and so every New Run and derelict, is single-deck.
+    - In both engines a ramp room joins deck 0 to the deck-1 cell 4 m directly above it, the ramp art rises 0.87 m, and the loader's `VisibleVerticalTransition_*` marker is a solid box in the middle. No path between decks exists in Godot or in the port; tests teleport to deck-1 objectives.
+    - The sloped collider (decision 9) makes the art walkable; its high end stopping at 0.87 m is expected.
+    - Walkable deck changes (a climb or lift interaction on `vertical_connections`) belong with multi-deck generation, when the generator produces decks.
 
 ## Light calibration (2026-09-11)
 
@@ -236,14 +250,10 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
 
 ## Open items
 
-- **Idle death on golden 001 after about 54 s (design decision pending).** The life-support floor (decision 39) removed the 29 s starvation. The remaining cascade is the engineering fire burning power to 0, then radiation draining 1 HP/s from about 25 s, then web damage raising breaches from 1 to 8 at about 35 s. Stopping it needs fire, radiation or web tuning. Tests avoid long idle waits on the golden ship.
-- **The docked life boat overlaps the home airlock (design decision pending).** The home dock port is the airlock room's centre (`DockPorts.ForDerelict` falls back to the airlock), and the life boat's airlock edge is aligned onto it (`ForLifeboat`), so a life boat wall runs through the home start marker. Parity with Godot.
-  - The player spawns inside that wall, and the CharacterController pushes it out by about 0.47 m on the first physics step. `BootBuildsTheGoldenShipPlayerCameraAndHud` reads the pose when the boot finishes and bounds the settle.
-  - Moving the port clear of the hull was tried in the closure plan and rejected. The boat reaches 4 m past its port, so it would dock about 8 m outside the airlock's solid west wall. Its repair, fire suppression and breach seal points would then be more than 1.8 m from any reachable floor, so the boat could never be made flyable in real play. PlayMode would not catch that, because the travel tests teleport. Derelicts connect through the same overlap: their port is the dock room's centre.
-  - The options are a docking doorway module at the seam, or keeping the overlap and moving the spawn marker off the boat's wall line.
-- **The ramp's high end is a ledge.** The derived slope follows the treads up to about 0.87 m, but both contract sockets sit at y = 0 (decision 9). Not walked in play yet.
+- **Survival pacing needs a playtest pass.** With the suit reserve (decision 56), an idle player dies at about 100 s on every home ship (86 s hardened). The limit is the base survival clocks: radiation at home from about 25–40 s, thirst empty at about 75 s, sanity empty at about 67 s. Golden 001 adds its own cascade: the engineering fire burns power to 0 by 22 s and web damage raises breaches from 1 to 8 at about 35 s. Tune the vitals, sanity and radiation data against real play, not idle runs.
+- **The docked life boat overlaps the home airlock by design** (decision 55). The overlap is the docking connection; the spawn is moved clear of its wall at boot.
 - **Silent audio events.** 12 events are still silent (decision 25; `AudioContentTests.ReportsEventsStillWithoutClips`).
-- **Publishing and platform setup that needs the owner:**
+- **Publishing and platform setup that needs the owner** (step-by-step in `docs/release-setup.md`):
   - The itch project slug is unknown, and butler needs `butler login` or `BUTLER_API_KEY` before any `-Push`.
   - The CI workflows need the `UNITY_LICENSE`, `UNITY_EMAIL` and `UNITY_PASSWORD` secrets.
   - Linux IL2CPP is not installed.
