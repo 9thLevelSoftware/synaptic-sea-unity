@@ -205,19 +205,42 @@ namespace SynapticSea.Core.Services
     /// <summary>
     /// <c>res://</c> reader over a directory that mirrors the Godot project root
     /// (Unity: <c>StreamingAssets</c>, where <c>data/**</c> is copied verbatim).
+    /// <c>user://</c> paths (Godot's <c>FileAccess</c> read both schemes; the port writes generated run layouts under
+    /// <c>user://runs/</c>) resolve through <see cref="UserStorage"/>, which defaults to <see cref="CoreServices.UserStorage"/>
+    /// at call time. Directory listing (<c>ProcgenCompat</c>, <c>InfraCompat</c>) keeps using <see cref="Root"/> for
+    /// <c>res://</c> directories.
     /// </summary>
     public sealed class FileSystemResourceReader : IResourceReader
     {
         static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
         readonly string _root;
+        readonly IStorage _userStorage;
 
-        public FileSystemResourceReader(string rootDirectory) => _root = Path.GetFullPath(rootDirectory);
+        public FileSystemResourceReader(string rootDirectory, IStorage userStorage = null)
+        {
+            _root = Path.GetFullPath(rootDirectory);
+            _userStorage = userStorage;
+        }
 
         public string Root => _root;
 
+        /// <summary>The storage <c>user://</c> paths read from (the explicit one, else <see cref="CoreServices.UserStorage"/>).</summary>
+        public IStorage UserStorage => _userStorage ?? CoreServices.UserStorage;
+
+        public static bool IsUserPath(string path) => path != null && path.StartsWith(ResPath.UserScheme, StringComparison.Ordinal);
+
         string Full(string resPath) => Path.Combine(_root, ResPath.StripRes(resPath).Replace('/', Path.DirectorySeparatorChar));
 
-        public bool Exists(string resPath) => File.Exists(Full(resPath));
-        public string ReadText(string resPath) => File.Exists(Full(resPath)) ? File.ReadAllText(Full(resPath), Utf8NoBom) : null;
+        public bool Exists(string resPath)
+        {
+            if (IsUserPath(resPath)) return UserStorage?.FileExists(resPath) ?? false;
+            return File.Exists(Full(resPath));
+        }
+
+        public string ReadText(string resPath)
+        {
+            if (IsUserPath(resPath)) return UserStorage != null && UserStorage.FileExists(resPath) ? UserStorage.ReadText(resPath) : null;
+            return File.Exists(Full(resPath)) ? File.ReadAllText(Full(resPath), Utf8NoBom) : null;
+        }
     }
 }
