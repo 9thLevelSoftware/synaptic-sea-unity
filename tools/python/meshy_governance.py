@@ -31,16 +31,19 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, NamedTuple, Optional, Tuple, Union
 
+from synaptic_layout import unity_relative
 
-STAGING_RELATIVE = Path("assets/_staging/meshy")
+
+# Unity port: Godot project paths mapped onto the Unity repository layout (synaptic_layout.py).
+STAGING_RELATIVE = unity_relative("assets/_staging/meshy")
 CREDIT_LOCK_RELATIVE = STAGING_RELATIVE / "_credit.lock"
 _ACCOUNT_LOCK_ID_RE = re.compile(r"^[0-9a-f]{64}$")
 _CREDIT_LOCK_DIRECTORY = Path(tempfile.gettempdir()).resolve(strict=False) / "synaptic-sea-meshy-credit-locks"
 PROTECTED_RUNTIME_RELATIVE_PATHS = (
-    Path("assets/imported"),
-    Path("data/combat"),
-    Path("data/props"),
-    Path("scenes/wrappers"),
+    unity_relative("assets/imported"),  # SynapticSea/Assets/Content
+    unity_relative("data/combat"),  # SynapticSea/Assets/StreamingAssets/data/combat
+    unity_relative("data/props"),  # SynapticSea/Assets/StreamingAssets/data/props
+    Path("fixtures/godot_wrappers"),  # Godot scenes/wrappers (collision truth for the prefab builders)
 )
 DEFAULT_FILE_MAX_BYTES = 64 * 1024 * 1024
 DEFAULT_TOTAL_MAX_BYTES = 256 * 1024 * 1024

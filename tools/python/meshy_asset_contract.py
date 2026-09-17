@@ -15,7 +15,7 @@ from string import Formatter
 from typing import Any, cast
 
 try:
-    from tools.meshy_governance import strict_load_json_bytes
+    from meshy_governance import strict_load_json_bytes
 except ModuleNotFoundError:  # pragma: no cover - supports direct script execution
     from meshy_governance import strict_load_json_bytes
 
@@ -23,7 +23,7 @@ SCHEMA_VERSION = "1.0.0"
 DOCUMENT_KIND = "ai_asset_contract"
 DEFAULT_PROMPT_PROFILE = "synaptic_sea_derelict_v1"
 PROMPT_PROFILE_ROOT = (
-    Path(__file__).resolve().parents[1] / "data/asset_generation/prompt_profiles"
+    Path(__file__).resolve().parents[1] / "asset_generation/prompt_profiles"
 )
 IDENTIFIER_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 KIT_TOKEN_RE = re.compile(r"(^|_)kit(_|$)")

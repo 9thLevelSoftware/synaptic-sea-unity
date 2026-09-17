@@ -8,11 +8,11 @@ transfer to the provider's standard sync CLI.
 
 Examples::
 
-    python tools/backup_structural_sources.py \\
+    python tools/python/backup_structural_sources.py \\
         --source-root /Volumes/Untitled/SynapticSeaAssets/meshes/source \\
         --backup-target /Volumes/Backups/SynapticSeaAssets
 
-    python tools/backup_structural_sources.py \\
+    python tools/python/backup_structural_sources.py \\
         --source-root /Volumes/Untitled/SynapticSeaAssets/meshes/source \\
         --backup-target s3://bucket/synaptic-sea/meshes/source \\
         --dry-run

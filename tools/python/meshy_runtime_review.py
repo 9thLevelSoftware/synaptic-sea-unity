@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Run a governed, no-promotion locked-isometric Meshy review.
+"""Verify a governed, no-promotion locked-isometric Meshy runtime review.
 
-The runtime review is intentionally task-bound.  It consumes only a selected
-Meshy task's canonical contract, SUCCEEDED generation record, cleaned GLB, and
-R4 Blender validation report.  Godot runs in a disposable project overlay and
-publishes six fixed captures followed by one immutable report through the
-shared governance writer.  Fixed leaves and atomic writes constrain this
-Python API; same-UID malicious raw filesystem writes outside this API remain
-outside its trusted-workspace guarantee.
+Unity port. The Godot tool rendered six captures in a disposable Godot project overlay and published them with
+``runtime-review.json``. In the Unity repository the captures are rendered by the Unity editor
+(``SynapticSea.EditorTools.Content.MeshyRuntimeReview``, which writes the same fixed leaves and the same canonical
+report into ``artifacts/validation-previews/meshy/<asset_id>/``). This module keeps the engine-free half: the
+report schema, the pixel gates re-derived from the PNG leaves, and ``verify_evidence_chain``, which
+``meshy_candidate_review`` calls when it binds promotion evidence.
+
+The governance layer (``meshy_governance``) is POSIX-only (fcntl, 0600/0700 modes): run on macOS, Linux or WSL.
+
+    python3 tools/python/meshy_runtime_review.py verify --project-root . --task-dir <task dir>
 """
 
 from __future__ import annotations
@@ -19,43 +22,27 @@ import json
 import math
 import os
 import re
-import shutil
 import stat
-import struct
 import sys
-import tempfile
 import zlib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterator, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 try:
-    from tools import meshy_governance as governance
-    from tools.meshy_asset_contract import AssetContract, canonical_json_bytes, load_contract
-    from tools.meshy_blender_master import _run_bounded_process as _master_run_bounded_process
+    import meshy_governance as governance
+    from meshy_asset_contract import canonical_json_bytes, load_contract
 except ModuleNotFoundError:  # pragma: no cover - direct script execution
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from tools import meshy_governance as governance
-    from tools.meshy_asset_contract import AssetContract, canonical_json_bytes, load_contract
-    from tools.meshy_blender_master import _run_bounded_process as _master_run_bounded_process
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import meshy_governance as governance
+    from meshy_asset_contract import canonical_json_bytes, load_contract
 
 
-GODOT = Path(os.environ.get("GODOT", "/opt/homebrew/bin/godot"))
-CAPTURE_TIMEOUT_SECONDS = 120.0
-MAX_CAPTURED_OUTPUT_BYTES = 64 * 1024
-PROTECTED_SNAPSHOT_MAX_FILE_BYTES = 1 * 1024 * 1024 * 1024
-PROTECTED_SNAPSHOT_MAX_TOTAL_BYTES = 4 * 1024 * 1024 * 1024
-PROTECTED_SNAPSHOT_MAX_ENTRIES = 20_000
-PROTECTED_SNAPSHOT_MAX_DEPTH = 128
-CAPTURE_SCRIPT = "res://scripts/validation/meshy_asset_review_capture.gd"
-REVIEW_ROOT_RELATIVE = Path("assets/_review/meshy")
 PREVIEW_ROOT_RELATIVE = Path("artifacts/validation-previews/meshy")
 SEEDS = (42, 777)
 LIGHTING_MODES = ("normal", "emergency", "dark")
 CAPTURE_SIZE = (1600, 900)
-CAPTURE_MARKER = "MESHY RUNTIME CAPTURE PASS"
-DIAGNOSTIC_MARKERS = ("WARNING:", "ERROR:", "SCRIPT ERROR:")
 IDENTIFIER_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 HASH_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -127,10 +114,6 @@ DEFAULT_CAMERA_TRANSFORM: Dict[str, Any] = {
 }
 
 
-class CaptureTimeout(RuntimeError):
-    """Raised when one bounded Godot capture times out."""
-
-
 class ReviewError(ValueError):
     """Raised when governed review input, evidence, or publication is invalid."""
 
@@ -149,18 +132,6 @@ class ValidatedTask:
     cleaned_glb_size: int = 0
     category: str = ""
     bounds_dimensions: Optional[Tuple[float, float, float]] = None
-
-
-@dataclass(frozen=True)
-class RunResult:
-    exit_code: int
-    reason: str = ""
-    report_path: Optional[Path] = None
-    dry_run: bool = False
-
-    @property
-    def success(self) -> bool:
-        return self.exit_code == 0
 
 
 def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -255,168 +226,6 @@ def _load_json(path: Path, label: str) -> Dict[str, Any]:
     return document
 
 
-def validate_task_dir(task_dir: Path, contract: AssetContract) -> ValidatedTask:
-    """Validate the fixed cleaned/report leaves for a disposable overlay.
-
-    Full task governance is performed by ``_load_runtime_inputs``.  This small
-    helper remains useful to callers that only construct an external overlay.
-    """
-
-    resolved_dir = _regular_directory(_absolute(task_dir), "task directory")
-    cleaned_glb = _regular_file(resolved_dir / "cleaned.glb", "cleaned.glb")
-    validation_path = _regular_file(
-        resolved_dir / "blender-validation.json", "blender-validation.json"
-    )
-    validation = _load_json(validation_path, "blender-validation.json")
-    try:
-        from tools.meshy_blender_validate import _validate_report_record
-
-        _validate_report_record(validation)
-    except (ImportError, OSError, TypeError, ValueError, RuntimeError) as exc:
-        raise ReviewError("Blender validation report is not canonical R4 evidence") from exc
-    raw_validation = validation_path.read_bytes()
-    cleaned_hash = hashlib.sha256(cleaned_glb.read_bytes()).hexdigest()
-    if (
-        validation.get("asset_id") != contract.asset_id
-        or validation.get("contract_sha256") != contract.sha256
-        or validation.get("sha256") != cleaned_hash
-        or validation.get("byte_size") != cleaned_glb.stat().st_size
-    ):
-        raise ReviewError("Blender validation evidence does not match the cleaned.glb and contract")
-    return ValidatedTask(
-        asset_id=contract.asset_id,
-        task_dir=resolved_dir,
-        cleaned_glb=cleaned_glb,
-        validation_report=validation_path,
-        contract_hash=contract.sha256,
-        cleaned_glb_hash=cleaned_hash,
-        task_id=str(validation.get("task_id") or resolved_dir.name),
-        blender_validation_hash=hashlib.sha256(raw_validation).hexdigest(),
-        cleaned_glb_size=cleaned_glb.stat().st_size,
-        category=str(contract.document.get("category", "")),
-        bounds_dimensions=(
-            float(validation["bounds"]["dimensions"][0]),
-            float(validation["bounds"]["dimensions"][1]),
-            float(validation["bounds"]["dimensions"][2]),
-        ),
-    )
-
-
-def review_overlay_path(project_root: Path, asset_id: str) -> Path:
-    """Return the disposable review asset path, never a live runtime path."""
-
-    if IDENTIFIER_RE.fullmatch(asset_id) is None:
-        raise ReviewError("asset_id must be a safe lowercase identifier")
-    root = _absolute(project_root)
-    result = root / REVIEW_ROOT_RELATIVE / asset_id
-    if not _contained(root, result):
-        raise ReviewError("review overlay path escapes the project")
-    return result
-
-
-def _skip_project_relative(relative: Path) -> bool:
-    parts = relative.parts
-    if not parts:
-        return False
-    if parts[0] in {".git", ".godot", ".pytest_cache", "__pycache__", ".mypy_cache", ".hermes", ".omh"}:
-        return True
-    if parts[:2] in (("assets", "imported"), ("assets", "_staging")):
-        return True
-    if parts[:2] == ("data", "training"):
-        return True
-    if parts[:3] in (("artifacts", "validation-previews", "meshy"), ("assets", "_review", "meshy")):
-        return True
-    return False
-
-
-def _copy_regular(source: Path, destination: Path, label: str) -> None:
-    _regular_file(source, label)
-    _reject_symlink(destination.parent, "overlay destination")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(source, destination, follow_symlinks=False)
-    _regular_file(destination, "overlay copy")
-
-
-def _copy_project_regular_files(project_root: Path, destination: Path) -> None:
-    for current, dirnames, filenames in os.walk(project_root, topdown=True, followlinks=False):
-        current_path = Path(current)
-        relative = current_path.relative_to(project_root)
-        if current_path == destination or destination in current_path.parents:
-            dirnames[:] = []
-            continue
-        kept_dirs = []
-        for name in sorted(dirnames):
-            child = current_path / name
-            child_relative = relative / name
-            if _skip_project_relative(child_relative) or child.is_symlink() or child == destination:
-                continue
-            kept_dirs.append(name)
-        dirnames[:] = kept_dirs
-        for name in sorted(filenames):
-            source = current_path / name
-            source_relative = relative / name
-            if _skip_project_relative(source_relative) or name.endswith(".import"):
-                continue
-            try:
-                mode = source.lstat().st_mode
-            except OSError as exc:
-                raise ReviewError("cannot inspect project source: {0}".format(source)) from exc
-            if stat.S_ISLNK(mode) or not stat.S_ISREG(mode):
-                continue
-            _copy_regular(source, destination / source_relative, "project source")
-
-
-def _copy_structural_runtime_files(project_root: Path, destination: Path) -> None:
-    source_root = project_root / "assets/imported/structural/ship_structural_v0"
-    if not source_root.is_dir():
-        return
-    for current, dirnames, filenames in os.walk(source_root, topdown=True, followlinks=False):
-        current_path = Path(current)
-        relative = current_path.relative_to(source_root)
-        dirnames[:] = sorted(name for name in dirnames if not (current_path / name).is_symlink())
-        for name in sorted(filenames):
-            source = current_path / name
-            if source.is_symlink():
-                continue
-            target = destination / "assets/imported/structural/ship_structural_v0" / relative / name
-            _copy_regular(source, target, "production structural runtime asset")
-
-
-def _copy_godot_import_cache(project_root: Path, destination: Path) -> None:
-    source_root = project_root / ".godot/imported"
-    if not source_root.is_dir():
-        return
-    for current, dirnames, filenames in os.walk(source_root, topdown=True, followlinks=False):
-        current_path = Path(current)
-        relative = current_path.relative_to(source_root)
-        dirnames[:] = sorted(name for name in dirnames if not (current_path / name).is_symlink())
-        for name in sorted(filenames):
-            source = current_path / name
-            if source.is_symlink():
-                continue
-            target = destination / ".godot/imported" / relative / name
-            _copy_regular(source, target, "Godot import cache")
-
-
-def build_review_overlay(project_root: Path, inputs: ValidatedTask, destination: Path) -> Path:
-    """Build an external project copy and mount the candidate below ``assets/_review``."""
-
-    project = _regular_directory(_absolute(project_root), "project root")
-    overlay = _absolute(destination)
-    _reject_symlink(overlay, "overlay destination")
-    if overlay.exists() or overlay.is_symlink():
-        raise ReviewError("overlay destination already exists: {0}".format(overlay))
-    overlay.mkdir(parents=True)
-    _copy_project_regular_files(project, overlay)
-    _copy_structural_runtime_files(project, overlay)
-    # Imports are regenerated by the disposable editor prime; copying the
-    # repository's potentially multi-gigabyte .godot cache is unnecessary.
-    staged_path = review_overlay_path(overlay, inputs.asset_id) / "cleaned.glb"
-    _copy_regular(inputs.cleaned_glb, staged_path, "cleaned.glb")
-    inputs.cleaned_glb_overlay = staged_path
-    return overlay
-
-
 def _fixed_preview_path(root: Path, asset_id: str, supplied: Optional[Path] = None) -> Path:
     if IDENTIFIER_RE.fullmatch(asset_id) is None:
         raise ReviewError("asset_id must be a safe lowercase identifier")
@@ -439,38 +248,6 @@ def _fixed_preview_path(root: Path, asset_id: str, supplied: Optional[Path] = No
     return expected
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--project-root", type=Path, required=True)
-    parser.add_argument("--contract", type=Path, required=True)
-    parser.add_argument("--task-dir", type=Path, required=True)
-    parser.add_argument("--preview-dir", type=Path, required=True)
-    parser.add_argument("--dry-run", action="store_true")
-    return parser
-
-
-def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    try:
-        project_root = governance.physical_project_root(args.project_root)
-        contract_path = _project_path(project_root, args.contract, "contract")
-        task_dir = _project_path(project_root, args.task_dir, "task directory")
-        caller_contract = load_contract(contract_path)
-        preview_dir = _fixed_preview_path(
-            project_root, caller_contract.asset_id, _project_path(project_root, args.preview_dir, "preview directory")
-        )
-        _reject_symlink(contract_path, "contract")
-        _reject_symlink(task_dir, "task directory")
-    except (OSError, TypeError, ValueError, ReviewError) as exc:
-        parser.error(str(exc))
-    args.project_root = project_root
-    args.contract = contract_path
-    args.task_dir = task_dir
-    args.preview_dir = preview_dir
-    return args
-
-
 def capture_name(seed: int, lighting: str) -> str:
     if seed not in SEEDS:
         raise ReviewError("unsupported review seed: {0}".format(seed))
@@ -488,101 +265,6 @@ def auxiliary_capture_name(seed: int, lighting: str, kind: str) -> str:
 
 def _auxiliary_capture_path(output: Path, seed: int, lighting: str, kind: str) -> Path:
     return output.parent / auxiliary_capture_name(seed, lighting, kind)
-
-
-def _bounded_text(value: object) -> str:
-    if isinstance(value, bytes):
-        return value.decode("utf-8", errors="replace")
-    return str(value or "")
-
-
-def _cap_text(value: object) -> str:
-    text = _bounded_text(value)
-    encoded = text.encode("utf-8")
-    if len(encoded) <= MAX_CAPTURED_OUTPUT_BYTES:
-        return text
-    marker = b"\n[output truncated]"
-    return (encoded[: MAX_CAPTURED_OUTPUT_BYTES - len(marker)] + marker).decode(
-        "utf-8", errors="replace"
-    )
-
-
-def _run_bounded_process(
-    command: Sequence[str], *, cwd: Optional[Path] = None, timeout: float = CAPTURE_TIMEOUT_SECONDS
-) -> Any:
-    """Reuse the audited process-group runner used by Blender master review."""
-
-    try:
-        return _master_run_bounded_process(command, cwd=cwd or Path.cwd(), timeout=timeout)
-    except CaptureTimeout:
-        raise
-    except Exception as exc:
-        raise ReviewError("bounded Godot process failed: " + (str(exc) or exc.__class__.__name__)) from exc
-
-
-def _check_process_output(result: Any) -> Tuple[str, str]:
-    stdout = _bounded_text(getattr(result, "stdout", ""))
-    stderr = _bounded_text(getattr(result, "stderr", ""))
-    if len(stdout.encode("utf-8")) + len(stderr.encode("utf-8")) > MAX_CAPTURED_OUTPUT_BYTES:
-        raise ReviewError("Godot capture output exceeded the bounded limit")
-    return stdout, stderr
-
-
-def _godot_render_args() -> Tuple[str, ...]:
-    """Select a real renderer on macOS and retain headless portability elsewhere."""
-
-    if sys.platform == "darwin":
-        return ("--display-driver", "macos", "--rendering-method", "gl_compatibility")
-    return ("--headless",)
-
-
-def build_godot_command(
-    overlay_root: Path,
-    seed: int,
-    lighting: str,
-    output: Path,
-    *,
-    asset_id: Optional[str] = None,
-    category: Optional[str] = None,
-) -> list[str]:
-    """Construct the exact no-shell bounded capture command."""
-
-    capture_name(seed, lighting)
-    user_args = [
-        "--seed",
-        str(seed),
-        "--lighting",
-        lighting,
-        "--output",
-        str(_absolute(output)),
-    ]
-    if asset_id is not None or category is not None:
-        if not isinstance(asset_id, str) or not isinstance(category, str):
-            raise ReviewError("asset_id and category must be supplied together")
-        user_args.extend(["--asset-id", asset_id, "--category", category])
-    return [
-        str(GODOT),
-        *_godot_render_args(),
-        "--path",
-        str(_absolute(overlay_root)),
-        "--script",
-        CAPTURE_SCRIPT,
-        "--",
-        *user_args,
-    ]
-
-
-def _parse_finite_vector(value: str, label: str) -> list[float]:
-    parts = value.split(",")
-    if len(parts) != 3:
-        raise ReviewError("camera {0} must contain three values".format(label))
-    try:
-        numbers = [float(part) for part in parts]
-    except ValueError as exc:
-        raise ReviewError("camera {0} is not numeric".format(label)) from exc
-    if any(not math.isfinite(number) for number in numbers):
-        raise ReviewError("camera {0} contains a non-finite value".format(label))
-    return numbers
 
 
 def _camera_size_limit(
@@ -696,124 +378,6 @@ def _validate_contextual_visibility(value: object) -> Dict[str, Any]:
         "changed_pixels": changed_pixels,
         "max_delta": float(max_delta),
     }
-
-
-def parse_capture_marker(stdout: str, seed: int, lighting: str) -> Dict[str, Any]:
-    """Parse the exact marker and retain the camera values emitted by Godot."""
-
-    if not isinstance(stdout, str):
-        raise ReviewError("Godot capture output must be text")
-    expected = "{0} seed={1} lighting={2} ".format(CAPTURE_MARKER, seed, lighting)
-    lines = [line.strip() for line in stdout.splitlines() if expected in line]
-    if len(lines) != 1:
-        raise ReviewError("Godot capture did not emit exactly one camera marker")
-    line = lines[0]
-    pattern = re.compile(
-        r"^" + re.escape(expected)
-        + r"camera_position=(?P<position>[^ ]+) camera_target=(?P<target>[^ ]+) "
-        + r"camera_size=(?P<size>[^ ]+) "
-        + r"staged_visibility=(?P<visibility>pass|fail) "
-        + r"staged_opaque_pixels=(?P<pixels>[0-9]+) "
-        + r"staged_luma_range=(?P<luma>[^ ]+)"
-        + r" contextual_visibility=(?P<contextual>pass|fail) "
-        + r"contextual_reference_pixels=(?P<reference>[0-9]+) "
-        + r"contextual_changed_pixels=(?P<changed>[0-9]+) "
-        + r"contextual_max_delta=(?P<delta>[^ ]+)"
-        + r"(?: output=(?P<output>.+))?$"
-    )
-    match = pattern.fullmatch(line)
-    if match is None:
-        raise ReviewError("Godot capture marker is not canonical")
-    try:
-        size = float(match.group("size"))
-    except ValueError as exc:
-        raise ReviewError("camera size is not numeric") from exc
-    try:
-        opaque_pixels = int(match.group("pixels"))
-        luma_range = float(match.group("luma"))
-    except ValueError as exc:
-        raise ReviewError("staged visibility evidence is not numeric") from exc
-    staged_visibility = _validate_staged_visibility(
-        {
-            "pass": match.group("visibility") == "pass",
-            "opaque_pixels": opaque_pixels,
-            "luma_range": luma_range,
-        }
-    )
-    try:
-        reference_pixels = int(match.group("reference"))
-        changed_pixels = int(match.group("changed"))
-        max_delta = float(match.group("delta"))
-    except ValueError as exc:
-        raise ReviewError("contextual visibility evidence is not numeric") from exc
-    contextual_visibility = _validate_contextual_visibility(
-        {
-            "pass": match.group("contextual") == "pass",
-            "reference_pixels": reference_pixels,
-            "changed_pixels": changed_pixels,
-            "max_delta": max_delta,
-        }
-    )
-    camera_transform = _validate_camera_transform(
-        {
-            "projection": "orthogonal",
-            "position": _parse_finite_vector(match.group("position"), "position"),
-            "target": _parse_finite_vector(match.group("target"), "target"),
-            "size": size,
-        }
-    )
-    camera_transform["staged_visibility"] = staged_visibility
-    camera_transform["contextual_visibility"] = contextual_visibility
-    return {
-        **camera_transform,
-    }
-
-
-def _prime_overlay_imports(overlay_root: Path) -> None:
-    """Populate disposable imports using a fixed dummy MCP token."""
-
-    command = [
-        "/usr/bin/env",
-        "GODOT_MCP_TOKEN=" + ("x" * 32),
-        str(GODOT),
-        *_godot_render_args(),
-        "--quiet",
-        "--editor",
-        "--path",
-        str(_absolute(overlay_root)),
-        "--quit",
-    ]
-    last_output = ""
-    for _attempt in range(2):
-        result = _run_bounded_process(command, cwd=overlay_root)
-        stdout, stderr = _check_process_output(result)
-        combined = "\n".join((stdout, stderr))
-        last_output = combined
-        if getattr(result, "returncode", 1) != 0:
-            raise ReviewError("overlay import failed exit={0}: {1}".format(result.returncode, _cap_text(combined)))
-        if not any(marker in combined for marker in DIAGNOSTIC_MARKERS):
-            return
-    raise ReviewError("overlay import emitted a diagnostic: {0}".format(_cap_text(last_output)))
-
-
-def check_capture_output(stdout: str, stderr: str, seed: int, lighting: str) -> bool:
-    """Accept only a canonical marker with no diagnostics or unbounded output."""
-
-    try:
-        stdout_text, stderr_text = _check_process_output(
-            type("Result", (), {"stdout": stdout, "stderr": stderr})()
-        )
-    except ReviewError:
-        return False
-    combined = "\n".join((stdout_text, stderr_text))
-    if any(marker in combined for marker in DIAGNOSTIC_MARKERS):
-        return False
-    marker = "{0} seed={1} lighting={2} ".format(CAPTURE_MARKER, seed, lighting)
-    try:
-        parse_capture_marker(stdout_text, seed, lighting)
-    except ReviewError:
-        return False
-    return marker in stdout_text
 
 
 def _png_chunks(raw: bytes, path: Path) -> Tuple[int, int, int, bytes]:
@@ -1028,87 +592,6 @@ def _derive_pixel_evidence(
     return staged_evidence, contextual_evidence
 
 
-def run_capture(
-    overlay_root: Path,
-    asset_id: str,
-    category: str,
-    seed: int,
-    lighting: str,
-    output: Path,
-) -> Dict[str, Any]:
-    command = build_godot_command(
-        overlay_root, seed, lighting, output, asset_id=asset_id, category=category
-    )
-    result = _run_bounded_process(command, cwd=overlay_root)
-    stdout, stderr = _check_process_output(result)
-    if getattr(result, "returncode", 1) != 0:
-        raise ReviewError(
-            "Godot capture failed seed={0} lighting={1} exit={2}: {3}".format(
-                seed, lighting, result.returncode, _cap_text(stderr or stdout)
-            )
-        )
-    if not check_capture_output(stdout, stderr, seed, lighting):
-        raise ReviewError(
-            "Godot capture emitted an unexpected marker or diagnostic seed={0} lighting={1}: {2}".format(
-                seed, lighting, _cap_text(stdout + "\n" + stderr)
-            )
-        )
-    camera_marker = parse_capture_marker(stdout, seed, lighting)
-    camera_transform = {
-        key: camera_marker[key] for key in ("projection", "position", "target", "size")
-    }
-    staged_path = _auxiliary_capture_path(output, seed, lighting, "staged")
-    reference_path = _auxiliary_capture_path(output, seed, lighting, "reference")
-    _validate_png(output)
-    _validate_png(staged_path)
-    _validate_png(reference_path)
-    if not _png_is_visible(output):
-        raise ReviewError("Godot capture is blank or near-uniform")
-    staged_visibility, contextual_visibility = _derive_pixel_evidence(
-        staged_path, reference_path, output
-    )
-    return {
-        "seed": seed,
-        "lighting": lighting,
-        "camera_transform": camera_transform,
-        "staged_visibility": staged_visibility,
-        "contextual_visibility": contextual_visibility,
-        "output_sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
-        "_staged_output_sha256": hashlib.sha256(staged_path.read_bytes()).hexdigest(),
-        "_reference_output_sha256": hashlib.sha256(reference_path.read_bytes()).hexdigest(),
-        "pass": True,
-        "reason": "pass",
-    }
-
-
-def build_runtime_review_report(
-    *,
-    contract_hash: str,
-    cleaned_glb_hash: str,
-    seed: int,
-    lighting: str,
-    camera_transform: Mapping[str, Any],
-    output_hash: str,
-    passed: bool,
-) -> Dict[str, Any]:
-    """Build the historical per-capture helper record.
-
-    New runtime runs use the closed ``CAPTURE_FIELDS`` record built by
-    ``run_capture``; this helper remains source-compatible for older callers.
-    """
-
-    capture_name(seed, lighting)
-    return {
-        "contract_hash": contract_hash,
-        "cleaned_glb_hash": cleaned_glb_hash,
-        "seed": seed,
-        "lighting": lighting,
-        "camera_transform": json.loads(canonical_json_bytes(dict(camera_transform)).decode("utf-8")),
-        "output_hash": output_hash,
-        "pass": bool(passed),
-    }
-
-
 def build_runtime_review_document(
     inputs: ValidatedTask, captures: Sequence[Mapping[str, Any]]
 ) -> Dict[str, Any]:
@@ -1186,25 +669,6 @@ def build_runtime_review_document(
     }
 
 
-def _normalise_capture_mapping(captures: Mapping[Any, Path]) -> Dict[Tuple[int, str], Path]:
-    normalised: Dict[Tuple[int, str], Path] = {}
-    for key, value in captures.items():
-        if isinstance(key, tuple) and len(key) == 2:
-            seed, lighting = int(key[0]), str(key[1])
-        elif isinstance(key, str):
-            match = re.fullmatch(r"seed-(\d+)-(normal|emergency|dark)\.png", key)
-            if match is None:
-                raise ReviewError("invalid capture key: {0}".format(key))
-            seed, lighting = int(match.group(1)), match.group(2)
-        else:
-            raise ReviewError("invalid capture key: {0}".format(key))
-        capture_name(seed, lighting)
-        if (seed, lighting) in normalised:
-            raise ReviewError("duplicate capture: seed={0} lighting={1}".format(seed, lighting))
-        normalised[(seed, lighting)] = _regular_file(Path(value), "staged capture")
-    return normalised
-
-
 def _output_entries(destination: Path) -> list[str]:
     if not destination.exists():
         return []
@@ -1231,28 +695,13 @@ def _validate_existing_leaf(path: Path, expected: Optional[bytes], label: str) -
         raise ReviewError("existing {0} differs from the requested evidence".format(label))
 
 
-def snapshot_runtime_surfaces(project_root: Path) -> tuple[Any, ...]:
-    """Use the shared immutable protected-surface authority."""
-
-    try:
-        return governance.snapshot_protected_surfaces(
-            _absolute(project_root),
-            max_file_bytes=PROTECTED_SNAPSHOT_MAX_FILE_BYTES,
-            max_total_bytes=PROTECTED_SNAPSHOT_MAX_TOTAL_BYTES,
-            max_entries=PROTECTED_SNAPSHOT_MAX_ENTRIES,
-            max_depth=PROTECTED_SNAPSHOT_MAX_DEPTH,
-        )
-    except (OSError, TypeError, ValueError, RuntimeError) as exc:
-        raise ReviewError("protected runtime snapshot failed: " + str(exc)) from exc
-
-
 def _load_runtime_inputs(
     project_root: Path, contract_path: Optional[Path], task_dir: Path
 ) -> Tuple[ValidatedTask, Dict[str, Any], Dict[str, Any], Path]:
     """Load the only permitted task, contract, generation, and R4 evidence."""
 
     try:
-        from tools import meshy_candidate_review as candidate_review
+        import meshy_candidate_review as candidate_review
 
         review_path, review, generation, root, _asset_root = candidate_review._load_task_record(
             project_root, task_dir
@@ -1300,7 +749,7 @@ def _load_runtime_inputs(
         )
         if r4_raw != canonical_json_bytes(r4):
             raise ReviewError("Blender validation report is not canonical JSON")
-        from tools import meshy_blender_validate as blender_validate
+        import meshy_blender_validate as blender_validate
 
         try:
             expected_r4 = blender_validate.verify_validation_report(
@@ -1467,179 +916,22 @@ def verify_evidence_chain(
     return document
 
 
-def _compare_surfaces(before: tuple[Any, ...], root: Path, label: str) -> None:
-    after = snapshot_runtime_surfaces(root)
-    if after != before:
-        raise ReviewError("protected runtime surfaces changed " + label)
-
-
-def run(args: argparse.Namespace) -> RunResult:
-    """Run the complete governed review, bind evidence, and publish no runtime asset."""
-
-    primary: Optional[BaseException] = None
-    result: Optional[RunResult] = None
-    try:
-        before = snapshot_runtime_surfaces(args.project_root)
-        inputs, _review, _generation, root = _load_runtime_inputs(
-            args.project_root, args.contract, args.task_dir
-        )
-        _fixed_preview_path(root, inputs.asset_id, args.preview_dir)
-        if args.dry_run:
-            _compare_surfaces(before, root, "during dry-run")
-            result = RunResult(0, "dry-run validation passed; no outputs written", dry_run=True)
-        else:
-            def publish_fixed_captures() -> Path:
-                """Publish only this run's real captures, report last."""
-
-                expected_keys = {(seed, lighting) for seed in SEEDS for lighting in LIGHTING_MODES}
-                normalised = _normalise_capture_mapping(captures)
-                if set(normalised) != expected_keys:
-                    raise ReviewError("runtime review requires all six captures before publication")
-                if set(document) != RUNTIME_DOCUMENT_FIELDS or document.get("pass") is not True:
-                    raise ReviewError("runtime review report is not canonical PASS")
-                if set(document.get("output_hashes", {})) != set(FIXED_OUTPUT_NAMES[:-1]):
-                    raise ReviewError("runtime review report lacks governed pixel hashes")
-                destination = _fixed_preview_path(root, inputs.asset_id)
-                if destination.exists():
-                    entries = _output_entries(destination)
-                    if any(entry not in FIXED_OUTPUT_NAMES for entry in entries):
-                        raise ReviewError("preview directory contains an unexpected entry")
-                payloads: Dict[str, bytes] = {}
-                for key, source in normalised.items():
-                    _validate_png(source)
-                    payloads[capture_name(*key)] = source.read_bytes()
-                    for kind in ("staged", "reference"):
-                        auxiliary_source = _auxiliary_capture_path(source, *key, kind)
-                        _validate_png(auxiliary_source)
-                        payloads[auxiliary_capture_name(*key, kind)] = auxiliary_source.read_bytes()
-                if set(payloads) != set(FIXED_OUTPUT_NAMES[:-1]):
-                    raise ReviewError("runtime pixel evidence publication is incomplete")
-                report_bytes = canonical_json_bytes(document)
-                report_path = destination / "runtime-review.json"
-
-                # An existing report is authoritative.  It is reusable only if
-                # every fixed byte, mode, and canonical field still matches.
-                if os.path.lexists(report_path):
-                    _validate_existing_leaf(report_path, report_bytes, "runtime-review.json")
-                    try:
-                        persisted, raw = governance.strict_load_json_bytes(
-                            report_path, "runtime runtime-review.json", 4 * 1024 * 1024
-                        )
-                    except (OSError, TypeError, ValueError, RecursionError) as exc:
-                        raise ReviewError("existing runtime-review.json is invalid") from exc
-                    if raw != report_bytes or persisted != document:
-                        raise ReviewError("existing runtime-review.json differs from the requested evidence")
-                    for name, payload in payloads.items():
-                        _validate_existing_leaf(destination / name, payload, "capture " + name)
-                    if sorted(_output_entries(destination)) != sorted(FIXED_OUTPUT_NAMES):
-                        raise ReviewError("authoritative preview directory is incomplete")
-                    return destination
-
-                # Validate all pre-existing leaves before writing any new leaf.
-                for name, payload in payloads.items():
-                    _validate_existing_leaf(destination / name, payload, "capture " + name)
-
-                try:
-                    for name in FIXED_OUTPUT_NAMES[:-1]:
-                        target = destination / name
-                        if os.path.lexists(target):
-                            continue
-                        governance.atomic_write_bytes(
-                            target,
-                            payloads[name],
-                            project_root=root,
-                            allowed_root=destination,
-                            mode=0o600,
-                        )
-                    # The report is deliberately the last public write.
-                    governance.atomic_write_json(
-                        report_path,
-                        document,
-                        project_root=root,
-                        allowed_root=destination,
-                        mode=0o600,
-                    )
-                except (OSError, TypeError, ValueError, RuntimeError) as exc:
-                    raise ReviewError("runtime evidence publication failed: " + str(exc)) from exc
-
-                _validate_existing_leaf(report_path, report_bytes, "runtime-review.json")
-                try:
-                    persisted, raw = governance.strict_load_json_bytes(
-                        report_path, "published runtime-review.json", 4 * 1024 * 1024
-                    )
-                except (OSError, TypeError, ValueError, RecursionError) as exc:
-                    raise ReviewError("published runtime-review.json is invalid") from exc
-                if raw != report_bytes or persisted != document:
-                    raise ReviewError("published runtime-review.json was not exact")
-                for name, payload in payloads.items():
-                    _validate_existing_leaf(destination / name, payload, "capture " + name)
-                return destination
-
-            category = inputs.category
-            captures: Dict[Tuple[int, str], Path] = {}
-            capture_records = []
-            with tempfile.TemporaryDirectory(prefix="meshy-runtime-review-") as temporary:
-                overlay_root = Path(temporary) / "project"
-                build_review_overlay(args.project_root, inputs, overlay_root)
-                _prime_overlay_imports(overlay_root)
-                capture_root = Path(temporary) / "captures"
-                capture_root.mkdir()
-                for seed in SEEDS:
-                    for lighting in LIGHTING_MODES:
-                        output = capture_root / capture_name(seed, lighting)
-                        capture_records.append(
-                            run_capture(
-                                overlay_root, inputs.asset_id, category, seed, lighting, output
-                            )
-                        )
-                        captures[(seed, lighting)] = output
-                _compare_surfaces(before, root, "before publication")
-                document = build_runtime_review_document(inputs, capture_records)
-                destination = publish_fixed_captures()
-                _compare_surfaces(before, root, "after capture publication")
-            from tools import meshy_candidate_review as candidate_review
-
-            bound = candidate_review.bind_promotion_evidence(root, inputs.task_dir)
-            if bound.get("state") != "promotion_ready":
-                raise ReviewError("evidence binder did not produce promotion_ready")
-            candidate_review.verify_review(root, inputs.task_dir)
-            _compare_surfaces(before, root, "after evidence binding")
-            result = RunResult(0, "runtime review passed and evidence bound", destination / "runtime-review.json")
-    except (CaptureTimeout, OSError, ReviewError, ValueError, RuntimeError, TypeError) as exc:
-        primary = exc
-    finally:
-        try:
-            if "before" in locals():
-                final = snapshot_runtime_surfaces(args.project_root)
-                if final != before and primary is None:
-                    primary = ReviewError("protected runtime surfaces changed during final review check")
-        except (OSError, TypeError, ValueError, RuntimeError) as exc:
-            if primary is None:
-                primary = ReviewError("final protected runtime snapshot failed: " + str(exc))
-    if primary is not None:
-        return RunResult(1, str(primary) or primary.__class__.__name__)
-    if result is None:
-        return RunResult(1, "runtime review did not produce a result")
-    return result
-
-
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    args = parse_args(argv)
-    result = run(args)
-    if result.success:
-        if result.dry_run:
-            print("MESHY RUNTIME REVIEW DRY-RUN PASS")
-        else:
-            print(
-                "MESHY RUNTIME REVIEW PASS asset={0} task_id={1} seeds=42,777 "
-                "lighting=normal,emergency,dark captures=6".format(
-                    args.contract.read_text(encoding="utf-8") and load_contract(args.contract).asset_id,
-                    args.task_dir.name,
-                )
-            )
-        return 0
-    print("meshy_runtime_review: " + result.reason, file=sys.stderr)
-    return result.exit_code
+    parser = argparse.ArgumentParser(description="Verify a published Meshy runtime review against its task evidence.")
+    sub = parser.add_subparsers(dest="command", required=True)
+    verify = sub.add_parser("verify", help="re-derive every capture gate and hash from the fixed preview leaves")
+    verify.add_argument("--project-root", type=Path, required=True)
+    verify.add_argument("--task-dir", type=Path, required=True)
+    args = parser.parse_args(argv)
+    try:
+        root = governance.physical_project_root(args.project_root)
+        document = verify_evidence_chain(root, _project_path(root, args.task_dir, "task directory"))
+    except (OSError, TypeError, ValueError, ReviewError) as exc:
+        print("meshy_runtime_review: " + str(exc), file=sys.stderr)
+        return 1
+    print("MESHY RUNTIME REVIEW VERIFY PASS asset={0} task_id={1} captures={2}".format(
+        document["asset_id"], document["task_id"], len(document["captures"])))
+    return 0
 
 
 if __name__ == "__main__":

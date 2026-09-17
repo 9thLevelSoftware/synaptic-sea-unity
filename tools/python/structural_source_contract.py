@@ -9,6 +9,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+try:
+    from synaptic_layout import unity_relative
+except ModuleNotFoundError:  # imported from another directory
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from synaptic_layout import unity_relative
+
 
 STRUCTURAL_SOURCE_MODULE_IDS: tuple[str, ...] = (
     "floor_1x1",
@@ -30,9 +38,10 @@ STRUCTURAL_SOURCE_MODULE_IDS: tuple[str, ...] = (
 
 FOCUSED_NINE_CANDIDATE_MODULE_IDS: tuple[str, ...] = ("pressure_door_1x1",)
 
-_CONTRACT_ROOT = Path("data/placement/contracts/structural/ship_structural_v0")
-_SOURCE_GLB_ROOT = Path("assets/imported/structural/ship_structural_v0")
-_CANDIDATE_SOURCE_ROOT = Path(
+# Godot project paths mapped onto the Unity repository layout (see synaptic_layout.py).
+_CONTRACT_ROOT = unity_relative("data/placement/contracts/structural/ship_structural_v0")
+_SOURCE_GLB_ROOT = unity_relative("assets/imported/structural/ship_structural_v0")
+_CANDIDATE_SOURCE_ROOT = unity_relative(
     "assets/_staging/focused_nine/structural/pressure_door_1x1"
 )
 _CANDIDATE_GLB_NAME = "pressure_door_1x1.glb"

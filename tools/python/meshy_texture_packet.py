@@ -18,10 +18,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools import meshy_governance as governance  # noqa: E402
-from tools.meshy_asset_contract import (  # noqa: E402
+import meshy_governance as governance  # noqa: E402
+from meshy_asset_contract import (  # noqa: E402
     AssetContract,
     canonical_json_bytes,
     load_contract,
@@ -30,7 +30,7 @@ from tools.meshy_asset_contract import (  # noqa: E402
 
 
 MATERIAL_VOCABULARY_PATH = (
-    Path(__file__).resolve().parents[1] / "data/asset_generation/material_vocabulary.json"
+    Path(__file__).resolve().parents[1] / "asset_generation/material_vocabulary.json"
 )
 TEXTURE_REQUEST_NAME = "texture_request.json"
 TEXTURE_MODEL = "meshy-7"
@@ -192,7 +192,7 @@ def _load_bound_task(
     caller_contract = _coerce_contract(contract, root)
 
     try:
-        from tools import meshy_candidate_review as candidate_review
+        import meshy_candidate_review as candidate_review
 
         review_path, review, generation, loaded_root, _asset_root = candidate_review._load_task_record(
             project_root, task_dir
@@ -238,7 +238,7 @@ def _load_bound_task(
         root, resolved_task, "blender-validation.json", "Blender validation evidence"
     )
     try:
-        from tools.meshy_blender_validate import _validate_report_record
+        from meshy_blender_validate import _validate_report_record
 
         _validate_report_record(report)
     except (ImportError, OSError, TypeError, ValueError, RuntimeError) as exc:

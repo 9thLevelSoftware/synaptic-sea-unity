@@ -12,8 +12,9 @@ from .contract_creator import create_draft_contract
 from .export import export_scene_to_staging
 
 
+# Unity repository layout: the Godot data/ tree is synced verbatim into StreamingAssets.
 _CONTRACT_RELATIVE = Path(
-    "data/placement/contracts/structural/ship_structural_v0"
+    "SynapticSea/Assets/StreamingAssets/data/placement/contracts/structural/ship_structural_v0"
 )
 
 
@@ -63,7 +64,7 @@ def _addon_preferences(context: Any) -> Any | None:
 
 
 def _repository_root() -> Path:
-    # operators.py -> structural_module_toolkit -> blender_addons -> tools -> repo
+    # operators.py -> structural_module_toolkit -> blender -> tools -> repo
     return Path(__file__).resolve().parents[3]
 
 

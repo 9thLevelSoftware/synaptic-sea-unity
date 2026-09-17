@@ -16,10 +16,10 @@ from collections.abc import Sequence
 from typing import Any
 
 try:
-    from tools.structural_source_contract import STRUCTURAL_SOURCE_MODULE_IDS
+    from structural_source_contract import STRUCTURAL_SOURCE_MODULE_IDS
 except ModuleNotFoundError:  # Blender runs a script with ``tools`` as sys.path[0].
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from tools.structural_source_contract import STRUCTURAL_SOURCE_MODULE_IDS
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from structural_source_contract import STRUCTURAL_SOURCE_MODULE_IDS
 
 
 _BPY: Any | None = None

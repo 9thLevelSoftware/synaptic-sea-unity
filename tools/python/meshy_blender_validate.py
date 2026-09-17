@@ -21,13 +21,13 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools import meshy_governance as governance  # noqa: E402
-from tools.meshy_asset_contract import AssetContract, canonical_json_bytes, load_contract  # noqa: E402
+import meshy_governance as governance  # noqa: E402
+from meshy_asset_contract import AssetContract, canonical_json_bytes, load_contract  # noqa: E402
 
 
-BLENDER_PATH = "/opt/homebrew/bin/blender"
+BLENDER_PATH = os.environ.get("BLENDER", "/opt/homebrew/bin/blender")  # Unity port: BLENDER overrides
 PathLike = Union[str, os.PathLike]
 Vector3 = Tuple[float, float, float]
 Matrix4 = Tuple[float, ...]
@@ -1152,7 +1152,7 @@ def _resolve_task_inputs(project_root: PathLike, contract_path: PathLike, task_d
     """Resolve only selected-task ``cleaned.glb`` and fixed report leaves."""
 
     try:
-        from tools import meshy_candidate_review as candidate_review
+        import meshy_candidate_review as candidate_review
         review_path, review, generation, root, _asset_root = candidate_review._load_task_record(project_root, task_dir)
     except Exception as exc:
         raise BlenderValidationError("task evidence is not fully governed: " + str(exc)) from exc
@@ -1205,7 +1205,7 @@ def _resolve_verify_inputs(
         project_root, contract_path, task_dir, glb_alias, report_alias
     )
     try:
-        from tools import meshy_candidate_review as candidate_review
+        import meshy_candidate_review as candidate_review
 
         review_path, review, generation, root, _asset_root = candidate_review._load_task_record(
             project_root, task_dir
@@ -1244,7 +1244,7 @@ def write_validation_report(project_root: PathLike, task_dir: PathLike, report: 
         raise BlenderValidationError("write_validation_report requires project root, task directory, and report")
     _validate_report_record(report)
     try:
-        from tools import meshy_candidate_review as candidate_review
+        import meshy_candidate_review as candidate_review
         review_path, review, generation, root, _asset_root = candidate_review._load_task_record(project_root, task_dir)
     except Exception as exc:
         raise BlenderValidationError("report task evidence is not fully governed: " + str(exc)) from exc
@@ -1328,7 +1328,7 @@ def _reimport_with_blender(glb_path: Path, expected_triangles: int) -> _BlenderR
 def _reimport_with_blender_process(glb_path: Path, expected_triangles: int) -> _BlenderReimportEvidence:
     """Obtain re-import authority from a bounded clean Blender process."""
 
-    from tools.meshy_blender_master import _run_bounded_process
+    from meshy_blender_master import _run_bounded_process
 
     task_dir = Path(glb_path).parent
     contract_path = task_dir / "contract.json"

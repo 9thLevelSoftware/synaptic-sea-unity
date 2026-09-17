@@ -7,22 +7,34 @@ reproducible build artifact, not a one-off asset.
 Produces the original Domain 9 proof clips plus the Task 1.5 slice content
 pack. Every clip is a short, deterministic procedural placeholder tone/noise
 until the final mix is available:
-  data/audio/sfx/*.wav       gameplay SFX and meta cues
-  data/audio/ui/*.wav        panel/vitals UI cues
-  data/audio/music/*.wav     exploration/tension/critical layers
+  SynapticSea/Assets/Content/Audio/SFX/*.wav    gameplay SFX and meta cues   (Godot data/audio/sfx)
+  SynapticSea/Assets/Content/Audio/UI/*.wav     panel/vitals UI cues         (Godot data/audio/ui)
+  SynapticSea/Assets/Content/Audio/Music/*.wav  exploration/tension/critical (Godot data/audio/music)
+
+Unity port: the output folders follow the Unity content layout; ``--out-root DIR`` writes the same tree below
+DIR instead (used to prove the committed clips are still byte-identical).
 
 Both are pure sine-wave synthesis with a linear fade-in/fade-out envelope so
 the loop point (music clip) and the transient (sfx clip) do not click.
 """
 from __future__ import annotations
 
+import argparse
 import math
 import os
 import struct
 import wave
 
 SAMPLE_RATE = 22050
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+AUDIO_ROOT = os.path.join(REPO_ROOT, "SynapticSea", "Assets", "Content", "Audio")
+# Godot data/audio/<group> -> Unity Content/Audio/<Folder>
+GROUP_FOLDERS = {"sfx": "SFX", "ui": "UI", "music": "Music"}
+
+
+def _clip_path(root: str, relative_path: str) -> str:
+    group, name = relative_path.split("/", 1)
+    return os.path.join(root, GROUP_FOLDERS[group], name)
 
 
 def _envelope(i: int, n: int, fade_samples: int) -> float:
@@ -70,15 +82,18 @@ def _write_sine_wav(
         wf.writeframes(bytes(frames))
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Write the deterministic placeholder clips.")
+    parser.add_argument("--out-root", default=AUDIO_ROOT, help="audio root (default: SynapticSea/Assets/Content/Audio)")
+    root = parser.parse_args(argv).out_root
     # SFX: a short two-tone "pickup" chirp (ascending interval), 0.25s.
-    sfx_path = os.path.join(ROOT, "data", "audio", "sfx", "tool_pickup.wav")
+    sfx_path = _clip_path(root, "sfx/tool_pickup.wav")
     _write_sine_wav(sfx_path, duration_s=0.25, frequencies=[880.0, 1320.0], amplitude=0.6, fade_s=0.02)
     print(f"wrote {sfx_path}")
 
     # Music base layer: a low sustained drone, 1.5s, loop-friendly (full-cycle
     # fade-in/out at the same envelope on both ends so LOOP_FORWARD does not click).
-    music_path = os.path.join(ROOT, "data", "audio", "music", "exploration_base.wav")
+    music_path = _clip_path(root, "music/exploration_base.wav")
     _write_sine_wav(music_path, duration_s=1.5, frequencies=[110.0, 220.0], amplitude=0.4, fade_s=0.05)
     print(f"wrote {music_path}")
 
@@ -102,7 +117,7 @@ def main() -> int:
         ("music/critical_pad.wav", 1.50, [82.41, 123.47], 0.34, 0.050, 0.015, 163),
     ]
     for relative_path, duration_s, frequencies, amplitude, fade_s, noise_level, seed in clips:
-        path = os.path.join(ROOT, "data", "audio", relative_path)
+        path = _clip_path(root, relative_path)
         _write_sine_wav(
             path,
             duration_s=duration_s,

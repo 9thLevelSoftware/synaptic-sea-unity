@@ -8,7 +8,7 @@ normal Python interpreter.
 Run it through Blender, for example::
 
     blender --background --factory-startup \
-        --python tools/export_structural_glb.py -- \
+        --python tools/python/export_structural_glb.py -- \
         --blend-path /absolute/path/module.blend \
         --staging-dir /absolute/path/staging \
         --module floor_1x1

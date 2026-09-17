@@ -30,25 +30,25 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, NamedTuple, Opt
 from urllib.parse import urlsplit
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools import meshy_governance as governance  # noqa: E402
-from tools.meshy_asset_contract import (  # noqa: E402
+import meshy_governance as governance  # noqa: E402
+from meshy_asset_contract import (  # noqa: E402
     IDENTIFIER_RE,
     AssetContract,
     canonical_json_bytes,
     load_contract,
     render_prompt_packet,
 )
-from tools.meshy_candidate_review import validate_review  # noqa: E402
+from meshy_candidate_review import validate_review  # noqa: E402
 
 
 ENDPOINTS = {
     "image_to_3d": "/openapi/v1/image-to-3d",
     "multi_image_to_3d": "/openapi/v1/multi-image-to-3d",
 }
-DEFAULT_PRICING_PATH = Path(__file__).resolve().parents[1] / "data/asset_generation/meshy_pricing_v1.json"
-STAGING_RELATIVE = Path("assets/_staging/meshy")
+DEFAULT_PRICING_PATH = Path(__file__).resolve().parents[1] / "asset_generation/meshy_pricing_v1.json"
+STAGING_RELATIVE = governance.STAGING_RELATIVE  # Unity port: artifacts/_staging/meshy
 PROTECTED_RELATIVE = governance.PROTECTED_RUNTIME_RELATIVE_PATHS
 _TASK_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 _BATCH_ID_RE = re.compile(r"^[0-9a-f]{32}$")

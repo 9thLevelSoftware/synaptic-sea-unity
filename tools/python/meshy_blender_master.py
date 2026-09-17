@@ -20,22 +20,20 @@ from pathlib import Path
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools.meshy_asset_contract import AssetContract, load_contract  # noqa: E402
-from tools import meshy_governance as governance  # noqa: E402
+from meshy_asset_contract import AssetContract, load_contract  # noqa: E402
+import meshy_governance as governance  # noqa: E402
 
 
-BLENDER_PATH = "/opt/homebrew/bin/blender"
-TRUSTED_MASTER_ROOT = Path("/Volumes/Untitled/SynapticSeaAssets/meshy/source")
+# Unity port: BLENDER and SYNAPTIC_SEA_MESHY_MASTER_ROOT override the macOS defaults.
+BLENDER_PATH = os.environ.get("BLENDER", "/opt/homebrew/bin/blender")
+TRUSTED_MASTER_ROOT = Path(
+    os.environ.get("SYNAPTIC_SEA_MESHY_MASTER_ROOT", "/Volumes/Untitled/SynapticSeaAssets/meshy/source")
+)
 MASTER_SOURCE_ROOT = TRUSTED_MASTER_ROOT
 MASTER_ROOT = TRUSTED_MASTER_ROOT
-PROTECTED_RELATIVE = (
-    Path("assets/imported"),
-    Path("data/combat"),
-    Path("data/props"),
-    Path("scenes/wrappers"),
-)
+PROTECTED_RELATIVE = governance.PROTECTED_RUNTIME_RELATIVE_PATHS
 PROTECTED_RUNTIME_PATHS = PROTECTED_RELATIVE
 _MAX_PROCESS_OUTPUT = 1024 * 1024
 _MAX_PROCESS_TIMEOUT = 120.0
@@ -111,7 +109,14 @@ def reject_protected_output_path(master_path: PathLike, project_root: Optional[P
     target = _as_path(master_path).resolve(strict=False)
     parts = target.parts
     for index in range(len(parts) - 1):
-        if parts[index:index + 2] in (("assets", "imported"), ("data", "combat"), ("data", "props"), ("scenes", "wrappers")):
+        if parts[index:index + 2] in (
+            ("assets", "imported"),
+            ("Assets", "Content"),
+            ("data", "combat"),
+            ("data", "props"),
+            ("scenes", "wrappers"),
+            ("fixtures", "godot_wrappers"),
+        ):
             raise BlenderMasterError("master output path is protected")
     if project_root is not None:
         root = _as_path(project_root).resolve(strict=False)
@@ -199,7 +204,7 @@ def _request_inputs(project_root: PathLike, contract_path: PathLike, task_dir: P
     if not isinstance(reviewer, str) or not reviewer.strip():
         raise BlenderMasterError("reviewer must be non-empty text")
     try:
-        from tools import meshy_candidate_review as candidate_review
+        import meshy_candidate_review as candidate_review
         review_path, review, generation, root, asset_root = candidate_review._load_task_record(project_root, task_dir)
     except Exception as exc:
         if isinstance(exc, BlenderMasterError):

@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools import meshy_governance as governance  # noqa: E402
-from tools.meshy_asset_contract import canonical_json_bytes  # noqa: E402
+import meshy_governance as governance  # noqa: E402
+from meshy_asset_contract import canonical_json_bytes  # noqa: E402
 
 
 SCHEMA_VERSION = "1.0.0"
@@ -367,7 +367,7 @@ def _load_task_record(
     # meshy_stage imports validate_review, so this import must remain local to
     # avoid the candidate-review/stage import cycle.
     try:
-        from tools import meshy_stage
+        import meshy_stage
 
         generation = meshy_stage.load_generation_record(generation_path)
     except Exception as exc:
@@ -478,7 +478,7 @@ def verify_review(
         # complete chain from the fixed task-local contract, R4 report, six
         # fixed captures, and report hash map before accepting it.
         try:
-            from tools import meshy_runtime_review as runtime_review
+            import meshy_runtime_review as runtime_review
 
             runtime_review.verify_evidence_chain(project_root, task_dir)
         except ReviewError:
@@ -515,7 +515,7 @@ def bind_promotion_evidence(
         raise ReviewError("promotion evidence requires SUCCEEDED generation evidence")
 
     try:
-        from tools import meshy_runtime_review as runtime_review
+        import meshy_runtime_review as runtime_review
 
         runtime_review.verify_evidence_chain(project_root, task_dir)
     except ReviewError:

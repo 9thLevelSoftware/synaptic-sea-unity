@@ -11,16 +11,17 @@ from pathlib import Path
 from typing import Any
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools.generate_prop_sidecars import (  # noqa: E402
+from generate_prop_sidecars import (  # noqa: E402
     DRESSING_SURFACES,
     OBJECTIVE_IDS,
     PROP_GROUPS,
     _ensure_contained,
     build_index,
 )
-from tools.prop_visual_metadata import read_glb_metadata, validate_sidecar  # noqa: E402
+from synaptic_layout import REPO_ROOT, project_path  # noqa: E402
+from prop_visual_metadata import read_glb_metadata, validate_sidecar  # noqa: E402
 
 
 EXPECTED_COUNTS = {"components": 11, "dressing": 11, "objectives": 4}
@@ -49,7 +50,7 @@ def _canonical_text(document: dict[str, Any]) -> str:
 
 
 def _load_component_ids(project_root: Path, errors: list[str]) -> set[str]:
-    path = project_root / "data/components/component_catalog.json"
+    path = project_path(project_root, "data/components/component_catalog.json")
     try:
         document = _load_json(path)
     except (OSError, ValueError) as exc:
@@ -76,7 +77,7 @@ def _walk_placement_ids(value: Any, found: set[str]) -> None:
 
 def _load_objective_ids(project_root: Path, errors: list[str]) -> set[str]:
     found: set[str] = set()
-    files = sorted((project_root / "data/procgen").rglob("gameplay_slice.json"))
+    files = sorted((project_path(project_root, "data/procgen")).rglob("gameplay_slice.json"))
     for path in files:
         try:
             _walk_placement_ids(_load_json(path), found)
@@ -93,7 +94,7 @@ def _expected_binding_ids(group: str, asset_id: str) -> list[str]:
 
 def _validate_inventory(project_root: Path, errors: list[str]) -> list[tuple[str, Path, Path, dict[str, Any] | None]]:
     inventory: list[tuple[str, Path, Path, dict[str, Any] | None]] = []
-    prop_root = project_root / "assets/imported/props"
+    prop_root = project_path(project_root, "assets/imported/props")
     for group in PROP_GROUPS:
         group_root = prop_root / group
         glbs = sorted(group_root.glob("*.glb"), key=lambda path: path.name)
@@ -220,7 +221,7 @@ def validate_project(project_root: Path, check_index: bool = False) -> list[str]
     inventory = _validate_inventory(project_root, errors)
     _validate_mappings(inventory, project_root, errors)
     if check_index:
-        index_path = project_root / "data/props/visual_bindings.generated.json"
+        index_path = project_path(project_root, "data/props/visual_bindings.generated.json")
         try:
             _ensure_contained(project_root, index_path)
         except ValueError as exc:
@@ -245,7 +246,7 @@ def validate_project(project_root: Path, check_index: bool = False) -> list[str]
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--project-root", type=Path, default=Path("."))
+    parser.add_argument("--project-root", type=Path, default=REPO_ROOT)
     parser.add_argument("--check-index", action="store_true")
     args = parser.parse_args(argv)
     project_root = args.project_root.expanduser().resolve()

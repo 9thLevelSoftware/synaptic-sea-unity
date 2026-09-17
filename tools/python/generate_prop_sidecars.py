@@ -11,9 +11,10 @@ from pathlib import Path
 from typing import Any
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools.prop_visual_metadata import read_glb_metadata, validate_sidecar, write_canonical_json
+from synaptic_layout import REPO_ROOT, project_path, res_path_for
+from prop_visual_metadata import read_glb_metadata, validate_sidecar, write_canonical_json
 
 
 PROP_GROUPS = ("components", "dressing", "objectives")
@@ -56,7 +57,7 @@ def _ensure_contained(project_root: Path, path: Path) -> None:
 
 def _res_path(project_root: Path, path: Path) -> str:
     _ensure_contained(project_root, path)
-    return f"res://{_relative(project_root, path)}"
+    return res_path_for(project_root, path)
 
 
 def _binding(prop_kind: str, asset_id: str) -> dict[str, Any]:
@@ -104,7 +105,7 @@ def _canonical_sidecar(project_root: Path, glb_path: Path, prop_kind: str) -> di
 
 
 def _iter_glbs(project_root: Path) -> list[tuple[str, Path]]:
-    prop_root = project_root / "assets/imported/props"
+    prop_root = project_path(project_root, "assets/imported/props")
     kind_by_group = {"components": "component", "dressing": "dressing", "objectives": "objective"}
     result: list[tuple[str, Path]] = []
     for prop_kind in PROP_GROUPS:
@@ -180,7 +181,7 @@ def _walk_placement_ids(value: Any, found: set[str]) -> None:
 
 
 def _load_component_ids(project_root: Path) -> set[str]:
-    path = project_root / "data/components/component_catalog.json"
+    path = project_path(project_root, "data/components/component_catalog.json")
     document = _load_json(path)
     components = document.get("components")
     if not isinstance(components, dict):
@@ -190,7 +191,7 @@ def _load_component_ids(project_root: Path) -> set[str]:
 
 def _load_objective_ids(project_root: Path) -> set[str]:
     found: set[str] = set()
-    for path in sorted((project_root / "data/procgen").rglob("gameplay_slice.json")):
+    for path in sorted((project_path(project_root, "data/procgen")).rglob("gameplay_slice.json")):
         _walk_placement_ids(_load_json(path), found)
     return found
 
@@ -356,7 +357,7 @@ def _check_sidecars(project_root: Path) -> list[str]:
                 expected[field] = copy.deepcopy(actual[field])
         if sidecar_path.read_text(encoding="utf-8") != _canonical_text(expected):
             errors.append(f"sidecar differs from canonical output: {relative}")
-    prop_root = project_root / "assets/imported/props"
+    prop_root = project_path(project_root, "assets/imported/props")
     for group in PROP_GROUPS:
         group_root = prop_root / group
         glb_names = {path.stem for path in group_root.glob("*.glb")}
@@ -368,7 +369,7 @@ def _check_sidecars(project_root: Path) -> list[str]:
 
 
 def _check_index(project_root: Path) -> list[str]:
-    path = project_root / "data/props/visual_bindings.generated.json"
+    path = project_path(project_root, "data/props/visual_bindings.generated.json")
     try:
         _ensure_contained(project_root, path)
         expected = build_index(project_root)
@@ -387,7 +388,7 @@ def _check_index(project_root: Path) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--project-root", type=Path, default=Path("."))
+    parser.add_argument("--project-root", type=Path, default=REPO_ROOT)
     parser.add_argument("--write-missing", action="store_true")
     parser.add_argument("--write-index", action="store_true")
     parser.add_argument("--refresh-derived", action="store_true")
@@ -408,7 +409,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.refresh_derived:
             diagnostics.append(_refresh_derived(project_root, args.asset_id))
         if args.write_index:
-            index_path = project_root / "data/props/visual_bindings.generated.json"
+            index_path = project_path(project_root, "data/props/visual_bindings.generated.json")
             _ensure_contained(project_root, index_path)
             write_canonical_json(index_path, build_index(project_root))
             diagnostics.append(f"wrote generated index: {_relative(project_root, index_path)}")

@@ -9,7 +9,7 @@ This script is intentionally source-only: it imports the contract-owned GLB for
 Run from the repository root with Blender, for example::
 
     blender --background --factory-startup \
-        --python tools/recover_modules.py -- \
+        --python tools/python/recover_modules.py -- \
         --project-root . \
         --source-root /tmp/ship-structural-source \
         --module floor_1x1
@@ -29,7 +29,7 @@ import tempfile
 from typing import Any, Sequence
 
 try:
-    from tools.structural_source_contract import (
+    from structural_source_contract import (
         STRUCTURAL_SOURCE_MODULE_IDS,
         StructuralSourceSpec,
         build_source_record,
@@ -38,8 +38,8 @@ try:
         source_output_paths,
     )
 except ModuleNotFoundError:  # Blender runs a script with ``tools`` as sys.path[0].
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from tools.structural_source_contract import (
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from structural_source_contract import (
         STRUCTURAL_SOURCE_MODULE_IDS,
         StructuralSourceSpec,
         build_source_record,

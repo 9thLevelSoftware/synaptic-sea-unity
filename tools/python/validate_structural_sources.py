@@ -12,7 +12,7 @@ import sys
 from typing import Any, Sequence
 
 try:
-    from tools.structural_source_contract import (
+    from structural_source_contract import (
         _COORDINATE_CONVERSION,
         _ORIENTATION_SOURCE,
         FOCUSED_NINE_CANDIDATE_MODULE_IDS,
@@ -23,8 +23,8 @@ try:
         source_output_paths,
     )
 except ModuleNotFoundError:
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from tools.structural_source_contract import (
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from structural_source_contract import (
         _COORDINATE_CONVERSION,
         _ORIENTATION_SOURCE,
         FOCUSED_NINE_CANDIDATE_MODULE_IDS,

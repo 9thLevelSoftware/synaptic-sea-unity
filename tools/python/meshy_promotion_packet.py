@@ -20,11 +20,12 @@ from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 from urllib.parse import parse_qsl, urlsplit
 
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools import meshy_candidate_review as candidate_review  # noqa: E402
-from tools import meshy_governance as governance  # noqa: E402
-from tools.meshy_asset_contract import canonical_json_bytes, load_contract  # noqa: E402
+import meshy_candidate_review as candidate_review  # noqa: E402
+import meshy_governance as governance  # noqa: E402
+from synaptic_layout import res_path_for  # noqa: E402
+from meshy_asset_contract import canonical_json_bytes, load_contract  # noqa: E402
 
 
 PROP_OVERLAY_NAME = "sidecar-overlay.json"
@@ -347,7 +348,8 @@ def _archetype_for(asset_id: str, archetype: Optional[str]) -> str:
 
 def _logical_cleaned_path(root: Path, task_dir: Path) -> str:
     cleaned = candidate_review._governed_artifact(root, task_dir, "cleaned.glb")
-    return "res://" + cleaned.relative_to(root).as_posix()
+    # Unity port: the staging tree lives in artifacts/_staging; proposals keep Godot's res://assets/_staging form.
+    return res_path_for(root, cleaned)
 
 
 def _validate_threat_mesh_path(
@@ -456,7 +458,7 @@ def build_threat_promotion_proposal(
             }
         ],
         "proposal_only": True,
-        "target_path": "data/combat/threat_visual_catalog.json",
+        "target_path": "data/combat/threat_visual_catalog.json",  # Godot path; Unity: StreamingAssets/data/combat
         "task_id": task_id,
     }
     asset_provenance = {

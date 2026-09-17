@@ -10,6 +10,8 @@ import struct
 from pathlib import Path
 from typing import Any, Optional
 
+from synaptic_layout import res_path_for, resolve_res
+
 
 FORBIDDEN_GAMEPLAY_FIELDS = {
     "mass",
@@ -454,8 +456,12 @@ def validate_sidecar(sidecar: dict, glb_path: Path, project_root: Path) -> list[
         errors.append("GLB path must be contained in project root")
         expected_res_path = f"res://{expected_glb.as_posix().lstrip('/')}"
     else:
-        expected_relative = expected_glb.relative_to(project_root).as_posix()
-        expected_res_path = f"res://{expected_relative}"
+        # Unity port: the GLB lives in the Unity layout, the sidecar keeps Godot's res:// path.
+        try:
+            expected_res_path = res_path_for(project_root, expected_glb)
+        except ValueError:
+            errors.append("GLB path must be inside a Godot-mapped folder")
+            expected_res_path = f"res://{expected_glb.relative_to(project_root).as_posix()}"
 
     asset_id = sidecar.get("asset_id")
     if not isinstance(asset_id, str) or not asset_id or re.fullmatch(r"[a-z0-9][a-z0-9_-]*", asset_id) is None:
@@ -477,7 +483,7 @@ def validate_sidecar(sidecar: dict, glb_path: Path, project_root: Path) -> list[
         if not raw_relative or raw_relative.startswith("/") or any(part in {".", ".."} for part in parts):
             errors.append("path must be a contained res:// path")
         else:
-            visual_candidate = (project_root / Path(*parts)).resolve()
+            visual_candidate = resolve_res(project_root, visual_scene_path).resolve()
             if visual_candidate != project_root and project_root not in visual_candidate.parents:
                 errors.append("path must be a contained res:// path")
             elif visual_candidate != expected_glb:
