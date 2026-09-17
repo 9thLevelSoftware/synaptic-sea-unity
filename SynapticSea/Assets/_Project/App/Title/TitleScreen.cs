@@ -60,9 +60,14 @@ namespace SynapticSea.App
 
         public RunLaunchRequest LastRequest { get; private set; }
 
+        /// <summary>The open New Run setup submenu (null when closed).</summary>
+        public NewRunSetupPanel NewRunSetup { get; private set; }
+
         string _lastBootError = "";
         string _lastRunOutcome = "";
         string _lastRunProgress = "";
+        string _lastRunContext = "";
+        string _lastRunTime = "";
         bool _launching;
         int _lastSelectResync = -1000;
 
@@ -72,6 +77,8 @@ namespace SynapticSea.App
         {
             if (Router == null || _launching) return;
             Router.Tick();
+            // The coordinator re-shows its menu panel on any refresh; the setup submenu replaces it while open.
+            if (NewRunSetup != null && Coordinator.MenuPanel.IsViewVisible) Coordinator.MenuPanel.SetShown(false);
             EnsureMenuFocus();
         }
 
@@ -174,6 +181,8 @@ namespace SynapticSea.App
             _lastBootError = RunReturnInfo.LastFailureReason ?? "";
             _lastRunOutcome = RunReturnInfo.LastRunOutcome ?? "";
             _lastRunProgress = RunReturnInfo.LastRunProgress ?? "";
+            _lastRunContext = RunReturnInfo.LastRunContext ?? "";
+            _lastRunTime = RunReturnInfo.LastRunTime ?? "";
             RunReturnInfo.Clear();
 
             RefreshContinueEnabled();
@@ -239,7 +248,36 @@ namespace SynapticSea.App
             return selected.Length != 0 ? selected : RunLaunchRequest.DefaultClassId;
         }
 
-        void OnTitleStart() => Launch(RunLaunchRequest.NewRun());
+        void OnTitleStart() => OpenNewRunSetup();
+
+        /// <summary>C1: New Run opens the setup submenu (biome, difficulty, seed) above the title menu.</summary>
+        public NewRunSetupPanel OpenNewRunSetup()
+        {
+            if (NewRunSetup != null || _launching) return NewRunSetup;
+            List<string> biomes = NewRunSetupPanel.LoadBiomeIds();
+            string biome = biomes.Contains(RunLaunchRequest.DefaultBiomeId) ? RunLaunchRequest.DefaultBiomeId : (biomes.Count > 0 ? biomes[0] : "");
+            var panel = new NewRunSetupPanel(biomes, NewRunSetupPanel.LoadDifficultyIds(), biome, Coordinator.SettingsState.GetDifficulty(),
+                NewRunSetupPanel.RandomSeed());
+            panel.SetGlyphResolver(Coordinator.GlyphFor);
+            panel.StartRequested += request => Launch(request);
+            panel.BackRequested += CloseNewRunSetup;
+            NewRunSetup = panel;
+            Coordinator.MenuPanel.SetShown(false);
+            Coordinator.MenuLayer.Add(panel);
+            Coordinator.Stack.Push(panel);
+            return panel;
+        }
+
+        /// <summary>Back from the setup: the title menu returns with focus on New Run.</summary>
+        public void CloseNewRunSetup()
+        {
+            NewRunSetupPanel panel = NewRunSetup;
+            if (panel == null) return;
+            NewRunSetup = null;
+            Coordinator.MenuPanel.SetShown(true);
+            Coordinator.Stack.Pop(panel);
+            panel.RemoveFromHierarchy();
+        }
 
         void OnTitleContinue() => Launch(RunLaunchRequest.ContinueWorld());
 
@@ -263,12 +301,16 @@ namespace SynapticSea.App
         public bool Launch(RunLaunchRequest request)
         {
             if (_launching || request == null) return false;
-            request.DifficultyId = Coordinator.SettingsState.GetDifficulty();
+            // A New Run carries the setup's difficulty; loads restore the saved run's own context.
+            if (request.Mode != RunLaunchMode.NewRun || string.IsNullOrEmpty(request.DifficultyId))
+                request.DifficultyId = Coordinator.SettingsState.GetDifficulty();
             request.ClassId = ResolveClassId();
             request.SettingsSummary = SettingsDirty ? Coordinator.GetSettingsSummary() : null;
             _lastBootError = "";
             _lastRunOutcome = "";
             _lastRunProgress = "";
+            _lastRunContext = "";
+            _lastRunTime = "";
             RunLaunchRequest.Pending = request;
             LastRequest = request;
             LaunchRequested?.Invoke(request);
@@ -291,7 +333,7 @@ namespace SynapticSea.App
         {
             StatusBox.Clear();
             if (_lastBootError.Length != 0) AddStatus("Load failed: " + _lastBootError, Severity.Danger);
-            if (_lastRunOutcome.Length != 0) AddStatus("Last run: " + _lastRunOutcome, Severity.Info);
+            if (_lastRunOutcome.Length != 0) AddStatus(LastRunLine(_lastRunOutcome, _lastRunContext, _lastRunTime), _lastRunOutcome == "death" ? Severity.Caution : Severity.Info);
             if (_lastRunProgress.Length != 0) AddStatus("Progress: " + _lastRunProgress, Severity.Info);
 
             ReleaseBadgeOverlay badge = Coordinator.ReleaseBadgeOverlay;
@@ -299,6 +341,15 @@ namespace SynapticSea.App
             ReleaseBadge.text = badge.GetBadgeText() + (meta != null ? "  " + meta.Version : "");
             Color color = badge.GetBadgeColor();
             ReleaseBadge.style.borderLeftColor = color;
+        }
+
+        /// <summary>"Last run: death — seed 17 · breach_field · standard — 03:12".</summary>
+        public static string LastRunLine(string outcome, string context, string time)
+        {
+            string line = "Last run: " + outcome;
+            if (!string.IsNullOrEmpty(context)) line += " — " + context;
+            if (!string.IsNullOrEmpty(time)) line += " — " + time;
+            return line;
         }
 
         void AddStatus(string text, Severity severity)

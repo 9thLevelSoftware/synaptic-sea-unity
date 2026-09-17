@@ -107,5 +107,15 @@ namespace SynapticSea.Core.Services
         public static IResourceReader Resources { get; set; }
         public static IStorage UserStorage { get; set; } = new MemoryStorage();
         public static IEngineInfo Engine { get; set; } = new FixedEngineInfo("unity-port");
+
+        /// <summary>
+        /// Godot <c>ProjectSettings application/config/version</c> (stamped into cloud manifests as <c>build_id</c>). The
+        /// composition root sets it from the build stamp or <c>Application.version</c>; "" (Godot's default) until then.
+        /// </summary>
+        public static string ProjectVersion
+        {
+            get => Systems.InfraCompat.ProjectVersion;
+            set => Systems.InfraCompat.ProjectVersion = value ?? "";
+        }
     }
 }

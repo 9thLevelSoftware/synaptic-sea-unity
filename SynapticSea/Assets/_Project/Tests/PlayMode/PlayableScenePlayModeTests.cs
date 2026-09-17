@@ -67,9 +67,11 @@ namespace SynapticSea.Tests.PlayMode
             base.TearDown();
         }
 
+        /// <summary>Boots the Playable scene; these scene-layer tests run on the golden ship unless a request says otherwise
+        /// (a request-less scene generates a New Run, see RunLifecyclePlayModeTests).</summary>
         IEnumerator BootPlayable(RunLaunchRequest request = null)
         {
-            RunLaunchRequest.Pending = request;
+            RunLaunchRequest.Pending = request ?? RunLaunchRequest.GoldenShip();
             SceneManager.LoadScene(RunLaunchRequest.PlayableSceneName);
             yield return WaitForBoot();
         }
@@ -119,7 +121,7 @@ namespace SynapticSea.Tests.PlayMode
         {
             yield return BootPlayable();
             Assert.IsTrue(_s.PlayableStarted);
-            StringAssert.Contains("coherent_ship_001", _s.LayoutPath, "no launch request = the golden home ship");
+            StringAssert.Contains("coherent_ship_001", _s.LayoutPath, "the explicit golden test request");
             Assert.AreEqual(5, _s.Interactables.Count);
             Assert.IsNotNull(Player, "player spawned");
             Assert.IsNotNull(_boot.Host.SceneState.CameraRig, "camera rig spawned");
@@ -327,13 +329,17 @@ namespace SynapticSea.Tests.PlayMode
             MenuCoordinator tc = title.Coordinator;
             tc.MenuState.SetFocusIndex(tc.MenuPanel.Rows.ToList().FindIndex(r => r.Id == "start"));
             tc.HandleUiInput(UiCommand.Accept);
+            Assert.IsNotNull(title.NewRunSetup, "New Run opens the setup");
+            title.NewRunSetup.SetSeed(RunLaunchRequest.DefaultSeed);
+            title.NewRunSetup.FocusRow(NewRunSetupPanel.RowStart);
+            title.NewRunSetup.Consume(UiCommand.Accept);
 
             yield return WaitForBoot();
             Assert.AreEqual(RunLaunchRequest.PlayableSceneName, SceneManager.GetActiveScene().name);
             Assert.IsNotNull(_boot.Launch, "the title's request was consumed");
             Assert.AreEqual(RunLaunchMode.NewRun, _boot.Launch.Mode);
             Assert.IsNull(RunLaunchRequest.Pending);
-            Assert.AreEqual(RunSession.DEFAULT_LAYOUT_PATH, _s.LayoutPath, "New Run = Godot's default start");
+            StringAssert.StartsWith(PlayableBootstrap.RunsDir, _s.LayoutPath, "New Run generates the home ship under user://runs/");
             Assert.IsNotNull(Player, "the player spawned");
 
             _s.QuitToTitle();

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Procgen;
+using SynapticSea.Core.Services;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
@@ -49,7 +50,10 @@ namespace SynapticSea.Runtime.Session
             string reason = "";
             builder.LoadFailed += r => reason = r;
             builder.ShipLoaded += s => LastLoadSummary = s;
-            if (!builder.LoadFromPaths(layoutPath, kitPath, gameplaySlicePath))
+            bool loaded = IsUserPath(layoutPath) || IsUserPath(gameplaySlicePath)
+                ? LoadThroughResources(builder, layoutPath, kitPath, gameplaySlicePath, ref reason)
+                : builder.LoadFromPaths(layoutPath, kitPath, gameplaySlicePath);
+            if (!loaded)
             {
                 failureReason = reason.Length > 0 ? reason : "load_failed";
                 LastFailure = failureReason;
@@ -63,6 +67,39 @@ namespace SynapticSea.Runtime.Session
             Physics.SyncTransforms();
             RootAttached?.Invoke(node);
             return node;
+        }
+
+        static bool IsUserPath(string path) => FileSystemResourceReader.IsUserPath(path);
+
+        /// <summary>
+        /// A generated run's layout and slice live under <c>user://runs/&lt;run_id&gt;/</c> in <see cref="CoreServices.UserStorage"/>,
+        /// which need not be a directory on disk (tests use memory storage), so they are read through
+        /// <see cref="CoreServices.Resources"/> (which resolves <c>user://</c>) and handed to
+        /// <see cref="ShipSceneBuilder.LoadFromDocuments"/>. The kit stays a <c>res://</c> file.
+        /// </summary>
+        static bool LoadThroughResources(ShipSceneBuilder builder, string layoutPath, string kitPath, string gameplaySlicePath, ref string reason)
+        {
+            GdDict layout = ReadDict(layoutPath);
+            GdDict kit = ReadDict(kitPath);
+            GdDict slice = ReadDict(gameplaySlicePath);
+            if (layout == null) reason = "layout not found or invalid: " + layoutPath;
+            else if (kit == null) reason = "kit not found or invalid: " + kitPath;
+            else if (slice == null) reason = "gameplay slice not found or invalid: " + gameplaySlicePath;
+            if (layout == null || kit == null || slice == null) return false;
+            return builder.LoadFromDocuments(layout, kit, slice, false, new GdDict
+            {
+                { "layout", layoutPath },
+                { "kit", ShipSceneBuilder.ResolvePath(kitPath) },
+                { "gameplay_slice", gameplaySlicePath },
+            });
+        }
+
+        static GdDict ReadDict(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            if (CoreServices.Resources == null) CoreServices.Resources = new FileSystemResourceReader(Application.streamingAssetsPath);
+            string text = CoreServices.Resources.ReadText(path);
+            return text == null ? null : GdJson.ParseString(text) as GdDict;
         }
 
         public IShipLoaderView BuildShipScene(ShipDocuments documents)
