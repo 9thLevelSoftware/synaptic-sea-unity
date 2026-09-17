@@ -176,11 +176,14 @@ namespace SynapticSea.Runtime.Session
                 if (it != null && it.IsValid && (home || ReferenceEquals(it.Parent, root))) objectives.Add(it);
 
             // _build_objective_affordance_props: one prop per placement (repair-junction steps share a placement).
+            Dictionary<long, string> slicePlacements = SlicePlacementIds(loader.GameplayDoc);
             var renderedPlacements = new HashSet<string>();
             foreach (ObjectiveInteractable it in objectives)
             {
                 if (it.PlacementId.Length != 0 && !renderedPlacements.Add(it.PlacementId)) continue;
-                Register(set, CreateObjectiveProp(it), it.GlobalPosition);
+                string placementId = it.PlacementId.Length != 0 ? it.PlacementId
+                    : slicePlacements.TryGetValue(it.Sequence, out string sliceId) ? sliceId : "";
+                Register(set, CreateObjectiveProp(it, placementId), it.GlobalPosition);
             }
 
             // _build_blocked_affordance_props
@@ -261,15 +264,33 @@ namespace SynapticSea.Runtime.Session
         }
 
         /// <summary>
+        /// The gameplay slice's <c>placement_id</c> per objective sequence. Godot's loader objective specs (and so the
+        /// interactables' <c>placement_id</c> meta) never carried it, so its objective binding lookup never matched; the
+        /// port reads the id from the slice here instead of changing the parity-captured specs.
+        /// </summary>
+        static Dictionary<long, string> SlicePlacementIds(GdDict gameplayDoc)
+        {
+            var output = new Dictionary<long, string>();
+            if (gameplayDoc == null || !(gameplayDoc.Get("objectives", null) is GdArray objectives)) return output;
+            foreach (object o in objectives)
+            {
+                if (!(o is GdDict objective)) continue;
+                string id = V.Str(objective.Get("placement_id", ""));
+                if (id.Length != 0) output[V.I64(objective.Get("sequence", 0L))] = id;
+            }
+            return output;
+        }
+
+        /// <summary>
         /// Godot <c>_build_objective_affordance_props</c>: <c>get_objective_binding(placement_id)</c> →
         /// <c>create_objective_visual</c>, else <see cref="ReadabilityPropFactory.CreateObjectiveProp"/>. The imported visual
         /// is wrapped in a root named like the procedural prop, so prop keys stay <c>ObjectiveAffordance_NN_kind</c>.
         /// </summary>
-        GameObject CreateObjectiveProp(ObjectiveInteractable it)
+        GameObject CreateObjectiveProp(ObjectiveInteractable it, string placementId)
         {
-            PropVisualBindingCatalog bindings = it.PlacementId.Length != 0 ? Bindings : null;
+            PropVisualBindingCatalog bindings = placementId.Length != 0 ? Bindings : null;
             GameObject imported = bindings != null
-                ? RuntimePropVisualBinder.CreateObjectiveVisual(bindings.GetObjectiveBinding(it.PlacementId), PropPrefabs)
+                ? RuntimePropVisualBinder.CreateObjectiveVisual(bindings.GetObjectiveBinding(placementId), PropPrefabs)
                 : null;
             if (imported == null) return ReadabilityPropFactory.CreateObjectiveProp(it.Sequence, it.ObjectiveType);
             var root = new GameObject(ReadabilityPropFactory.OBJECTIVE_PREFIX + GdString.FormatIntPadded(it.Sequence, 2) + "_"
