@@ -225,15 +225,16 @@ namespace SynapticSea.Tests.Parity
         public void B_KnownVersionsMatchGodot()
         {
             GdDict all = Fixtures.ReadDict(SaveRoot + "/legacy/migration_cases.json");
-            // The port's chain is Godot's chain plus its own gate2-current-run-5.
+            // The port's chain is Godot's chain plus its own gate2-current-run-5 and gate2-current-run-6.
             GdArray known = SaveMigrationService.KnownVersions;
             var godotChain = new GdArray();
-            for (int i = 0; i < known.Count - 1; i++)
+            for (int i = 0; i < known.Count - 2; i++)
                 godotChain.Add(known[i]);
             AssertTree(all.Get("known_versions"), godotChain, "known_versions");
-            Assert.AreEqual("gate2-current-run-5", known.Back());
+            Assert.AreEqual("gate2-current-run-5", known[known.Count - 2]);
+            Assert.AreEqual("gate2-current-run-6", known.Back());
             Assert.AreEqual(all.GetString("target_version"), SaveMigrationService.GodotTargetVersion);
-            Assert.AreEqual("gate2-current-run-5", SaveMigrationService.TargetVersion);
+            Assert.AreEqual("gate2-current-run-6", SaveMigrationService.TargetVersion);
             Assert.AreEqual(SaveMigrationService.TargetVersion, SaveLoadService.CURRENT_SLICE_VERSION);
             Assert.AreEqual(all.GetString("world_target_version"), SaveMigrationService.WorldTargetVersion);
         }

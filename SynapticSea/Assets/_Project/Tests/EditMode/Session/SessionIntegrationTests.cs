@@ -460,6 +460,21 @@ namespace SynapticSea.Tests.Session
             Assert.IsFalse(run4.Has("tutorial_summary"), "input not mutated");
         }
 
+        [Test]
+        public void E2_MigrationGivesRunFiveSavesTheEmptyDefaults()
+        {
+            var run5 = new GdDict { { "slice_version", "gate2-current-run-5" }, { "godot_version", "x" }, { "run_context", new GdDict { { "seed", 5L } } } };
+            GdDict result = new SaveMigrationService().MigrateRun(run5);
+            Assert.IsTrue(result.GetBool("migrated"));
+            var d = (GdDict)result["dict"];
+            Assert.AreEqual("gate2-current-run-6", d.GetString("slice_version"));
+            foreach (object key in SaveMigrationService.V6Defaults.Keys)
+                Assert.IsTrue(V.VariantEquals(SaveMigrationService.V6Defaults[key], d[key]), V.Str(key));
+            Assert.AreEqual(5L, d.GetDictOrEmpty("run_context").GetInt("seed"), "present keys are never overwritten");
+            Assert.IsFalse(d.Has("wound_summary"), "a run-5 save only gains the run-6 keys");
+            Assert.IsFalse(run5.Has("visited_ships"), "input not mutated");
+        }
+
         // ================================================================== E3 manual slots
 
         [Test]
@@ -471,11 +486,25 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(s.EquipmentState.Equip("crowbar").GetBool("ok"));
             s.HomeShip.LootedContainerIds.Add("start_supply_a");
             s.HomeShip.GetInventory().AddItem("scrap_metal", 3);
+            CartState savedCart = CartState.Create("slot_test_cart", 50.0);
+            savedCart.GetHold().AddItem("scrap_metal", 2);
+            s.HomeShip.GetCarts().Add(savedCart);
+            s.HomeShip.BreachEnvironmentSummary = new GdDict { { "hazard_kind", "oxygen" }, { "breach_open", false } };
+            Assert.IsTrue(s.MetaProgressionState.UnlockCodexEntry("slot_test_entry"));
+            Assert.IsTrue(s.UniqueItemState.Claim("slot_test_unique", "slot_seed"));
+            ShipInstance visited = ShipInstance.Create("slot_test_ship", "9:9:9", new ShipBlueprint(), new ShipSystemsManager(), null);
+            s.VisitedShips["9:9:9"] = visited;
             RunSnapshot slot = RunSnapshotAssembler.Build(s);
             Assert.IsNotNull(slot);
+            Assert.IsFalse(slot.HomeShipCarts.IsEmpty);
+            Assert.IsFalse(slot.HomeBreachEnvironment.IsEmpty);
+            Assert.IsTrue(slot.VisitedShips.Has("9:9:9"));
 
             s.EquipmentState.Unequip("primary_hand");
             Assert.IsTrue(s.EquipmentState.Equip("welding_lance").GetBool("ok"));
+            s.HomeShip.GetCarts().Clear();
+            s.MetaProgressionState.UnlockedCodexEntryIds.Clear();
+            s.UniqueItemState.Reset();
             TickSeconds(rig, 1.0);
 
             Assert.IsTrue(s.ApplyManualSlot(slot));
@@ -485,6 +514,18 @@ namespace SynapticSea.Tests.Session
             LootContainer searched = s.LootContainers.FirstOrDefault(c => c.ContainerId == "start_supply_a");
             if (searched != null)
                 Assert.IsTrue(searched.Searched, "the rebuilt container reads as searched");
+
+            // gate2-current-run-6: carts, breach environment, meta progression, unique items and visited ships.
+            CartState restoredCart = s.HomeShip.GetCarts().FirstOrDefault(c => c.CartId == "slot_test_cart");
+            Assert.IsNotNull(restoredCart, "home carts restored");
+            Assert.AreEqual(2, restoredCart.GetHold().GetQuantity("scrap_metal"), "cart hold restored");
+            foreach (CartState cart in s.HomeShip.GetCarts())
+                Assert.AreEqual(1, s.CartControls.Count(c => c.CartId == cart.CartId), "one control per cart: " + cart.CartId);
+            Assert.IsFalse(s.HomeShip.BreachEnvironmentSummary.IsEmpty, "home breach environment restored");
+            Assert.IsTrue(s.MetaProgressionState.IsCodexEntryUnlocked("slot_test_entry"), "meta progression restored");
+            Assert.IsTrue(s.UniqueItemState.IsClaimed("slot_test_unique"), "unique items restored");
+            Assert.IsTrue(s.VisitedShips.ContainsKey("9:9:9"), "visited ships restored");
+            Assert.AreEqual("slot_test_ship", s.VisitedShips["9:9:9"].ShipId);
         }
     }
 }

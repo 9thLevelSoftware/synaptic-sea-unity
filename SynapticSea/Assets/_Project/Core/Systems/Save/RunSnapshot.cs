@@ -64,8 +64,15 @@ namespace SynapticSea.Core.Systems
         public GdArray HomeLootedContainers = new GdArray();
         public GdDict HomeShipInventory = new GdDict();
         public GdDict RunContext = new GdDict();
+        // gate2-current-run-6: the rest of what only rode world.json (home carts, the home breach environment, meta
+        // progression, unique items and the retained-ship registry), so a manual slot restores them too.
+        public GdArray HomeShipCarts = new GdArray();
+        public GdDict HomeBreachEnvironment = new GdDict();
+        public GdDict MetaProgressionSummary = new GdDict();
+        public GdDict UniqueItemSummary = new GdDict();
+        public GdDict VisitedShips = new GdDict();
 
-        /// <summary>The keys gate2-current-run-5 added over Godot's gate2-current-run-4 schema, in ToDict order.</summary>
+        /// <summary>The keys gate2-current-run-5/6 added over Godot's gate2-current-run-4 schema, in ToDict order.</summary>
         public static readonly GdArray PortExtensionFields = GdArray.Of(
             "wound_summary",
             "web_chart_summary",
@@ -73,7 +80,12 @@ namespace SynapticSea.Core.Systems
             "equipment_summary",
             "home_looted_containers",
             "home_ship_inventory",
-            "run_context"
+            "run_context",
+            "home_ship_carts",
+            "home_breach_environment",
+            "meta_progression_summary",
+            "unique_item_summary",
+            "visited_ships"
         );
 
         // ADR-0046: real slot metadata.
@@ -181,6 +193,11 @@ namespace SynapticSea.Core.Systems
                 { "home_looted_containers", HomeLootedContainers.ShallowCopy() },
                 { "home_ship_inventory", HomeShipInventory.DeepCopy() },
                 { "run_context", RunContext.DeepCopy() },
+                { "home_ship_carts", HomeShipCarts.DeepCopy() },
+                { "home_breach_environment", HomeBreachEnvironment.DeepCopy() },
+                { "meta_progression_summary", MetaProgressionSummary.DeepCopy() },
+                { "unique_item_summary", UniqueItemSummary.DeepCopy() },
+                { "visited_ships", VisitedShips.DeepCopy() },
                 { "play_time_seconds", PlayTimeSeconds },
                 { "current_location", CurrentLocation },
                 { "world_seed", WorldSeed },
@@ -259,6 +276,19 @@ namespace SynapticSea.Core.Systems
             }
             snapshot.HomeShipInventory = DeepCopyDict(dict.Get("home_ship_inventory", new GdDict()));
             snapshot.RunContext = DeepCopyDict(dict.Get("run_context", new GdDict()));
+            snapshot.HomeShipCarts = new GdArray();
+            if (dict.Get("home_ship_carts", new GdArray()) is GdArray carts)
+            {
+                foreach (object cart in carts)
+                {
+                    if (cart is GdDict cartDict)
+                        snapshot.HomeShipCarts.Add(cartDict.DeepCopy());
+                }
+            }
+            snapshot.HomeBreachEnvironment = DeepCopyDict(dict.Get("home_breach_environment", new GdDict()));
+            snapshot.MetaProgressionSummary = DeepCopyDict(dict.Get("meta_progression_summary", new GdDict()));
+            snapshot.UniqueItemSummary = DeepCopyDict(dict.Get("unique_item_summary", new GdDict()));
+            snapshot.VisitedShips = DeepCopyDict(dict.Get("visited_ships", new GdDict()));
             snapshot.PlayTimeSeconds = V.F64(dict.Get("play_time_seconds", 0.0));
             snapshot.CurrentLocation = V.Str(dict.Get("current_location", ""));
             snapshot.WorldSeed = V.I64(dict.Get("world_seed", 0L));

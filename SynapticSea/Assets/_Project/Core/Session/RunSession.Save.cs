@@ -311,7 +311,10 @@ namespace SynapticSea.Core.Session
                 return false;
             bool applied = RunSnapshotAssembler.Apply(this, snapshot);
             if (applied)
+            {
+                RunSnapshotAssembler.ApplyManualSlotWorldState(this, snapshot);
                 TriggerTutorial("manual_slot_loaded", "any");
+            }
             return applied;
         }
 
@@ -320,6 +323,19 @@ namespace SynapticSea.Core.Session
         internal void SyncPillarSummariesForSave() => SyncCurrentShipPillarSummaries();
         internal void SyncCombatSummaryForSave() => SyncCurrentShipCombatSummary();
         internal void SyncBreachEnvironmentForSave() => SyncCurrentShipBreachEnvironment();
+
+        /// <summary>
+        /// The home breach environment as a save records it, without mutating any ship: the live oxygen state while home,
+        /// else the summary synced when the player left.
+        /// </summary>
+        internal GdDict HomeBreachEnvironmentForSave()
+        {
+            if (HomeShip == null)
+                return new GdDict();
+            if (CurrentShip == HomeShip && OxygenState != null)
+                return BreachEnvironmentFrom(OxygenState.GetSummary());
+            return HomeShip.BreachEnvironmentSummary.DeepCopy();
+        }
         internal Vec3 HomePlayerPosition { get => _homePlayerPosition; set => _homePlayerPosition = value; }
         internal string RunIdInternal { get => _runId; set => _runId = value; }
         internal bool DemoCrossRunBlocked => DemoScopeGate != null && DemoScopeGate.IsBlocked("world_persistence.cross_run");

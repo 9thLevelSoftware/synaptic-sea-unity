@@ -17,13 +17,14 @@ namespace SynapticSea.Core.Systems
             "gate2-current-run-2",  // added player_progression_summary (Phase 3)
             "gate2-current-run-3",  // added slot_id / slot_kind / parent_world_slot metadata (Task 11)
             "gate2-current-run-4",  // added play_time_seconds / current_location / world_seed (ADR-0046)
-            "gate2-current-run-5"   // Unity port: wounds / web chart / tutorial / equipment / home loot+inventory / run_context
+            "gate2-current-run-5",  // Unity port: wounds / web chart / tutorial / equipment / home loot+inventory / run_context
+            "gate2-current-run-6"   // Unity port: home carts / home breach environment / meta / unique items / visited ships
         );
 
-        /// <summary>The last run schema Godot 96ecb2b0 wrote; run-5 is a Unity-port superset of it.</summary>
+        /// <summary>The last run schema Godot 96ecb2b0 wrote; run-5 and run-6 are Unity-port supersets of it.</summary>
         public const string GodotTargetVersion = "gate2-current-run-4";
 
-        public const string TargetVersion = "gate2-current-run-5";
+        public const string TargetVersion = "gate2-current-run-6";
         public const string WorldTargetVersion = "world-4";
 
         /// <summary>Returns <c>{dict, from_version, to_version, migrated}</c>; <c>dict</c> is null when rejected.</summary>
@@ -110,6 +111,7 @@ namespace SynapticSea.Core.Systems
                 case "gate2-current-run-2": return MigrateV2ToV3;
                 case "gate2-current-run-3": return MigrateV3ToV4;
                 case "gate2-current-run-4": return MigrateV4ToV5;
+                case "gate2-current-run-5": return MigrateV5ToV6;
             }
             return null;
         }
@@ -198,12 +200,40 @@ namespace SynapticSea.Core.Systems
             { "run_context", new GdDict() },
         };
 
-        GdDict MigrateV4ToV5(GdDict dict)
+        /// <summary>
+        /// Unity port: the gate2-current-run-6 keys default to empty containers, which a manual-slot load reads as "not
+        /// saved" (keep the live carts, breach environment, meta progression, unique items and visited ships).
+        /// </summary>
+        public static readonly GdDict V6Defaults = new GdDict
+        {
+            { "home_ship_carts", new GdArray() },
+            { "home_breach_environment", new GdDict() },
+            { "meta_progression_summary", new GdDict() },
+            { "unique_item_summary", new GdDict() },
+            { "visited_ships", new GdDict() },
+        };
+
+        /// <summary>Every port extension key's migration default (<see cref="V5Defaults"/> then <see cref="V6Defaults"/>).</summary>
+        public static readonly GdDict PortDefaults = MergeDefaults(V5Defaults, V6Defaults);
+
+        static GdDict MergeDefaults(GdDict a, GdDict b)
+        {
+            GdDict output = a.DeepCopy();
+            foreach (object key in b.Keys)
+                output[key] = V.DeepCopy(b[key]);
+            return output;
+        }
+
+        GdDict MigrateV4ToV5(GdDict dict) => AddMissing(dict, V5Defaults);
+
+        GdDict MigrateV5ToV6(GdDict dict) => AddMissing(dict, V6Defaults);
+
+        static GdDict AddMissing(GdDict dict, GdDict defaults)
         {
             GdDict output = dict.DeepCopy();
-            foreach (object key in V5Defaults.Keys)
+            foreach (object key in defaults.Keys)
             {
-                if (!output.Has(key)) output[key] = V.DeepCopy(V5Defaults[key]);
+                if (!output.Has(key)) output[key] = V.DeepCopy(defaults[key]);
             }
             return output;
         }
