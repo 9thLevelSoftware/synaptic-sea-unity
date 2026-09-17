@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaptic-sea.invalid/schemas/meshy_generation_record_v1.schema.json",
+  "title": "Synaptic Sea Meshy generation record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "document_kind", "asset_id", "batch_id", "task_index", "task_id", "status", "endpoint",
+    "contract_sha256", "prompt_profile_id", "prompt_profile_sha256", "prompt_packet_sha256", "pricing_id", "pricing_sha256",
+    "provider_payload_sha256", "approved_credits", "cost_per_candidate", "maximum_credits", "contract_artifact_sha256",
+    "pricing_artifact_sha256", "request", "references", "input_image_hashes", "output_license", "created_at", "completed_at",
+    "consumed_credits", "outputs", "provenance", "error", "budget_violation"
+  ],
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "assetId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "batchId": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+    "taskId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$" },
+    "profileId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "timestamp": { "type": ["string", "null"], "minLength": 1 },
+    "reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["view", "basename", "media_type", "byte_size", "sha256"],
+      "properties": {
+        "view": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+        "basename": { "type": "string", "pattern": "^[^/\\\\]+$", "minLength": 1 },
+        "media_type": { "enum": ["image/png", "image/jpeg"] },
+        "byte_size": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "output": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sha256", "byte_size"],
+      "properties": {
+        "sha256": { "$ref": "#/$defs/hash" },
+        "byte_size": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "requestReference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["view", "basename", "media_type", "byte_size", "sha256"],
+      "properties": {
+        "view": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "minLength": 1 },
+        "basename": { "type": "string", "pattern": "^[^/\\\\]+$", "minLength": 1 },
+        "media_type": { "enum": ["image/png", "image/jpeg"] },
+        "byte_size": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "providerRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model_type", "ai_model", "target_polycount", "should_texture", "target_formats"],
+      "oneOf": [
+        { "required": ["image_url"], "not": { "required": ["image_urls"] } },
+        { "required": ["image_urls"], "not": { "required": ["image_url"] } }
+      ],
+      "properties": {
+        "model_type": { "enum": ["smart-topology", "standard"] },
+        "ai_model": { "enum": ["meshy-t2", "meshy-7", "latest"] },
+        "target_polycount": { "type": "integer", "minimum": 1 },
+        "should_texture": { "const": false },
+        "target_formats": { "type": "array", "const": ["glb"] },
+        "image_url": { "$ref": "#/$defs/requestReference" },
+        "image_urls": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/requestReference" } }
+      },
+      "allOf": [
+        { "if": { "required": ["image_url"] }, "then": { "properties": { "model_type": { "const": "smart-topology" }, "ai_model": { "const": "meshy-t2" } } } },
+        { "if": { "required": ["image_urls"] }, "then": { "properties": { "model_type": { "const": "standard" }, "ai_model": { "enum": ["meshy-7", "latest"] } } } }
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "document_kind": { "const": "meshy_generation_record" },
+    "asset_id": { "$ref": "#/$defs/assetId" },
+    "batch_id": { "$ref": "#/$defs/batchId" },
+    "task_index": { "type": "integer", "minimum": 0 },
+    "task_id": { "$ref": "#/$defs/taskId" },
+    "status": { "enum": ["PENDING", "SUCCEEDED", "FAILED"] },
+    "endpoint": { "enum": ["/openapi/v1/image-to-3d", "/openapi/v1/multi-image-to-3d"] },
+    "contract_sha256": { "$ref": "#/$defs/hash" },
+    "prompt_profile_id": { "$ref": "#/$defs/profileId" },
+    "prompt_profile_sha256": { "$ref": "#/$defs/hash" },
+    "prompt_packet_sha256": { "$ref": "#/$defs/hash" },
+    "pricing_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$" },
+    "pricing_sha256": { "$ref": "#/$defs/hash" },
+    "provider_payload_sha256": { "$ref": "#/$defs/hash" },
+    "approved_credits": { "type": "integer", "minimum": 1 },
+    "cost_per_candidate": { "type": "integer", "minimum": 1 },
+    "maximum_credits": { "type": "integer", "minimum": 1 },
+    "contract_artifact_sha256": { "$ref": "#/$defs/hash" },
+    "pricing_artifact_sha256": { "$ref": "#/$defs/hash" },
+    "request": { "$ref": "#/$defs/providerRequest" },
+    "references": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/reference" } },
+    "input_image_hashes": { "type": "object", "minProperties": 1, "additionalProperties": { "$ref": "#/$defs/hash" } },
+    "output_license": { "enum": ["paid-private", "free-cc-by-4.0"] },
+    "created_at": { "type": "string", "minLength": 1 },
+    "completed_at": { "$ref": "#/$defs/timestamp" },
+    "consumed_credits": { "type": ["integer", "null"], "minimum": 0 },
+    "budget_violation": { "type": "boolean" },
+    "outputs": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "raw.glb": { "$ref": "#/$defs/output" },
+        "thumbnail.png": { "$ref": "#/$defs/output" }
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "model", "license_state"],
+      "properties": {
+        "provider": { "const": "meshy" },
+        "model": { "type": "string", "minLength": 1 },
+        "license_state": { "enum": ["paid-private", "free-cc-by-4.0"] }
+      }
+    },
+    "error": { "type": ["string", "null"], "maxLength": 240 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "SUCCEEDED" } }, "required": ["status"] },
+      "then": {
+        "required": ["completed_at", "consumed_credits"],
+        "properties": {
+          "completed_at": { "type": "string", "minLength": 1 },
+          "consumed_credits": { "type": "integer", "minimum": 0 },
+          "budget_violation": { "const": false },
+          "outputs": { "required": ["raw.glb", "thumbnail.png"] },
+          "error": { "type": "null" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "PENDING" } }, "required": ["status"] },
+      "then": { "properties": { "completed_at": { "type": "null" }, "consumed_credits": { "type": "null" }, "budget_violation": { "const": false }, "outputs": { "maxProperties": 0 }, "error": { "type": "null" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "FAILED" } }, "required": ["status"] },
+      "then": { "required": ["error"], "properties": { "error": { "type": "string", "minLength": 1 }, "completed_at": { "type": "null" }, "consumed_credits": { "type": ["integer", "null"], "minimum": 0 }, "outputs": { "maxProperties": 0 } }, "oneOf": [ { "properties": { "budget_violation": { "const": false } } }, { "properties": { "budget_violation": { "const": true }, "consumed_credits": { "type": "integer", "minimum": 0 } } } ] }
+    }
+  ]
+}

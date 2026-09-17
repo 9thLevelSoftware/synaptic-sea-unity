@@ -1,0 +1,22 @@
+{
+  "systems": [
+    { "id": "alpha", "file": "tools/build_system_inventory.py", "name": "Alpha", "domain": "survival",
+      "kind": "simulation", "model_exists": true, "smoke": null, "reachable": true, "driven": true,
+      "driven_at": "x:1", "input": {"live": true, "desc": "i", "at": "x:1"},
+      "output": {"live": true, "desc": "o", "at": "x:1"}, "confidence": "V", "loops": ["l1"],
+      "integrations": [{"to": "beta", "via": "v", "at": "x:1", "health": "healthy"}],
+      "content": "sufficient", "content_note": "", "functional": null, "gaps": [], "subsystems": [] },
+    { "id": "beta", "file": "tools/build_system_inventory.py", "name": "Beta", "domain": "ship_systems",
+      "kind": "simulation", "model_exists": true, "smoke": null, "reachable": true, "driven": true,
+      "driven_at": "x:2", "input": {"live": true, "desc": "i", "at": "x:2"},
+      "output": {"live": false, "desc": "HUD only", "at": "x:2"}, "confidence": "V", "loops": ["l1"],
+      "integrations": [], "content": "partial", "content_note": "", "functional": null, "gaps": [], "subsystems": [] },
+    { "id": "infra1", "file": "tools/build_system_inventory.py", "name": "Infra", "domain": "infra",
+      "kind": "infra", "model_exists": true, "smoke": null, "reachable": false, "driven": false,
+      "driven_at": null, "input": {"live": false, "desc": "", "at": null},
+      "output": {"live": false, "desc": "", "at": null}, "confidence": "V", "loops": [],
+      "integrations": [], "content": "none", "content_note": "", "functional": true, "gaps": [], "subsystems": [] }
+  ],
+  "loops": [ { "id": "l1", "name": "L1", "closes": "partial",
+    "steps": [{"system": "alpha", "role": "core"}, {"system": "beta", "role": "sink"}], "break_points": [] } ]
+}

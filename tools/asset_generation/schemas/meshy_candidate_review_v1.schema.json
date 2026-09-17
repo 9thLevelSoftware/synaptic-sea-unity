@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaptic-sea.invalid/schemas/meshy_candidate_review_v1.schema.json",
+  "title": "Synaptic Sea Meshy candidate review v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_kind",
+    "asset_id",
+    "task_id",
+    "state",
+    "decision",
+    "checks",
+    "rejection_reasons",
+    "reviewer"
+  ],
+  "$defs": {
+    "assetIdentifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "taskIdentifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+    },
+    "nonEmptyText": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "allChecksTrue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "silhouette_readable",
+        "proportions_match_contract",
+        "functional_volume_present",
+        "movable_parts_separable",
+        "cleanup_bounded",
+        "camera_readability"
+      ],
+      "properties": {
+        "silhouette_readable": {"const": true},
+        "proportions_match_contract": {"const": true},
+        "functional_volume_present": {"const": true},
+        "movable_parts_separable": {"const": true},
+        "cleanup_bounded": {"const": true},
+        "camera_readability": {"const": true}
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "document_kind": {
+      "const": "meshy_candidate_review"
+    },
+    "asset_id": {
+      "$ref": "#/$defs/assetIdentifier"
+    },
+    "task_id": {
+      "$ref": "#/$defs/taskIdentifier"
+    },
+    "state": {
+      "enum": [
+        "pending",
+        "rejected",
+        "selected",
+        "blender_cleanup_pass",
+        "runtime_review_pass",
+        "promotion_ready"
+      ]
+    },
+    "decision": {
+      "enum": [
+        "pending",
+        "reject",
+        "accept_for_cleanup",
+        "cleanup_validated",
+        "runtime_validated",
+        "promotion_ready"
+      ]
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "silhouette_readable",
+        "proportions_match_contract",
+        "functional_volume_present",
+        "movable_parts_separable",
+        "cleanup_bounded",
+        "camera_readability"
+      ],
+      "properties": {
+        "silhouette_readable": {"type": "boolean"},
+        "proportions_match_contract": {"type": "boolean"},
+        "functional_volume_present": {"type": "boolean"},
+        "movable_parts_separable": {"type": "boolean"},
+        "cleanup_bounded": {"type": "boolean"},
+        "camera_readability": {"type": "boolean"}
+      }
+    },
+    "rejection_reasons": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/nonEmptyText"
+      }
+    },
+    "reviewer": {
+      "$ref": "#/$defs/nonEmptyText"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {"const": "pending"}
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "decision": {"const": "pending"},
+          "rejection_reasons": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {"const": "selected"}
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "decision": {"const": "accept_for_cleanup"},
+          "rejection_reasons": {"maxItems": 0},
+          "checks": {"$ref": "#/$defs/allChecksTrue"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {"const": "rejected"}
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "decision": {"const": "reject"},
+          "rejection_reasons": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {"const": "blender_cleanup_pass"}
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "decision": {"const": "cleanup_validated"},
+          "rejection_reasons": {"maxItems": 0},
+          "checks": {"$ref": "#/$defs/allChecksTrue"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {"const": "runtime_review_pass"}
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "decision": {"const": "runtime_validated"},
+          "rejection_reasons": {"maxItems": 0},
+          "checks": {"$ref": "#/$defs/allChecksTrue"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {"const": "promotion_ready"}
+        },
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "decision": {"const": "promotion_ready"},
+          "rejection_reasons": {"maxItems": 0},
+          "checks": {"$ref": "#/$defs/allChecksTrue"}
+        }
+      }
+    }
+  ]
+}
