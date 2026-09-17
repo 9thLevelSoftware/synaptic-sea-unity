@@ -187,9 +187,10 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>
         /// Average world_position of floor placements in the first room whose room_role == role_match OR whose id
-        /// begins with id_prefix. Returns <see cref="Vec3.Inf"/> if none.
+        /// begins with id_prefix. Returns <see cref="Vec3.Inf"/> if none. Public because the run coordinator calls the
+        /// GDScript <c>_room_floor_center</c> directly (cargo hold / cart park positions).
         /// </summary>
-        static Vec3 RoomFloorCenter(GdDict layout, string roleMatch, string idPrefix)
+        public static Vec3 RoomFloorCenter(GdDict layout, string roleMatch, string idPrefix)
         {
             foreach (object roomV in Rooms(layout))
             {
