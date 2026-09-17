@@ -82,7 +82,7 @@ Dependencies flow Core ← Procgen ← Runtime ← UI. Core and Procgen stay fre
    - `com.unity.test-framework`
    - `com.unity.ide.visualstudio`, which also generates VS Code csproj files
    - uGUI and TextMeshPro are built in. Use TMP only for world labels.
-   - **Deferred:** Addressables, Localization, AI Navigation, and Cinemachine. The hand-rolled replacements are explained below.
+   - **Deferred:** Addressables, Localization and Cinemachine. The hand-rolled replacements are explained below. (AI Navigation was deferred too, and is no longer: the threats walk on a real NavMesh, port-status decision 59.)
 6. **Set physics layers.** Use 6 Player, 7 Structure, 8 ZoneBlocker, 9 Sensor, 10 Threat, 11 Prop, 12 Portal, 13 Ceiling, 14 Hallucination, and 15 Walkable (reserved). The collision matrix is:
    - Player collides with Structure, ZoneBlocker, Portal, and Threat.
    - Sensor collides with Player only.

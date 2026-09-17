@@ -194,5 +194,39 @@ namespace SynapticSea.Tests.Systems
             Assert.IsTrue(disk.LoadFromDisk());
             Assert.AreEqual(state.GetUnlockCount(), disk.GetUnlockCount());
         }
+
+        [Test]
+        public void Unlocked_IsRaisedOncePerNewUnlock_NotOnRestore()
+        {
+            GdDict catalog = Data("res://data/release/achievement_catalog.json");
+            var state = new AchievementState(Storage, Clock);
+            state.Configure(catalog);
+            var raised = new System.Collections.Generic.List<string>();
+            state.Unlocked += raised.Add;
+            string first = V.Str(state.GetCatalogIds()[0]);
+            state.Unlock(first);
+            state.Unlock(first);
+            state.Unlock("totally_made_up_achievement");
+            Assert.AreEqual(new[] { first }, raised.ToArray());
+
+            var restored = new AchievementState(Storage, Clock);
+            restored.Configure(catalog);
+            restored.Unlocked += raised.Add;
+            Assert.IsTrue(restored.ApplySummary(state.GetSummary()));
+            Assert.AreEqual(1, raised.Count, "restores do not re-raise unlocks");
+        }
+
+        [Test]
+        public void CatalogIds_AreValidSteamApiNames()
+        {
+            var state = new AchievementState(Storage, Clock);
+            state.Configure(Data("res://data/release/achievement_catalog.json"));
+            Assert.AreEqual(8, state.GetCatalogSize());
+            Assert.IsEmpty(PlatformAchievementIds.InvalidSteamIds(state.GetCatalogIds()));
+            Assert.AreEqual("first_breath", PlatformAchievementIds.SteamApiNameFor("first_breath"));
+            Assert.IsFalse(PlatformAchievementIds.IsValidSteamApiName("First Breath"));
+            Assert.IsFalse(PlatformAchievementIds.IsValidSteamApiName(""));
+            Assert.IsFalse(PlatformAchievementIds.IsValidSteamApiName(new string('a', 129)));
+        }
     }
 }

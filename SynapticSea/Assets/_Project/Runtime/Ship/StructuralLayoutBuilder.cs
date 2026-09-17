@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Variant;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -28,6 +29,12 @@ namespace SynapticSea.Runtime
         public string LastError { get; private set; } = "";
 
         /// <summary>
+        /// Where this plan's multi-wing vertex wrappers actually belong (a port deviation; see
+        /// <see cref="VertexWrapperPlacement"/>). Rebuilt by every <see cref="Build"/>.
+        /// </summary>
+        VertexWrapperPlacement.Result _vertexWrappers = new VertexWrapperPlacement.Result();
+
+        /// <summary>
         /// Builds the structural tree under <paramref name="parent"/>. Returns null (and sets <see cref="LastError"/>)
         /// when the plan is missing or any record cannot be instantiated.
         /// </summary>
@@ -43,6 +50,7 @@ namespace SynapticSea.Runtime
                 return null;
             }
             var ceilings = plan.GetArray("ceiling_placements") ?? new GdArray();
+            _vertexWrappers = VertexWrapperPlacement.Resolve(plan);
 
             var result = new Result { Root = new GameObject("StructuralRoot") };
             result.Root.SetActive(false);
@@ -75,6 +83,11 @@ namespace SynapticSea.Runtime
                     return false;
                 }
                 string moduleId = record.GetString("module_id");
+                string edgeKey = layer == "edge" ? record.GetString("edge_key") : "";
+                // A neighbouring vertex wrapper's wing already walls this edge (see VertexWrapperPlacement).
+                if (edgeKey.Length > 0 && _vertexWrappers.Covered.Contains(edgeKey)) continue;
+                if (edgeKey.Length > 0 && _vertexWrappers.Fallbacks.Contains(edgeKey))
+                    moduleId = StructuralEdgeCompiler.WALL_MODULE;
                 if (string.IsNullOrEmpty(moduleId) || !kit.TryGetPrefab(moduleId, out StructuralModule prefab))
                 {
                     LastError = $"{layer} placement {record.GetString("placement_id")}: no prefab for module '{moduleId}' in kit '{kit.kitId}'";
@@ -86,6 +99,11 @@ namespace SynapticSea.Runtime
                     return false;
                 }
                 float yaw = (float)record.GetFloat("yaw_degrees", 0.0);
+                if (edgeKey.Length > 0 && _vertexWrappers.Poses.TryGetValue(edgeKey, out VertexWrapperPlacement.Pose pose))
+                {
+                    godotPos = pose.Position;
+                    yaw = (float)pose.YawDegrees;
+                }
 
                 var module = Object.Instantiate(prefab, result.Root.transform, false);
                 module.transform.localPosition = Frame.ToUnity(godotPos);

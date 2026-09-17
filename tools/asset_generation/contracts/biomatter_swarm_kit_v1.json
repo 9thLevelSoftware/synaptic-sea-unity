@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "ai_asset_contract",
+  "asset_id": "biomatter_swarm_kit_v1",
+  "category": "threat_kit",
+  "gameplay_role": "modular_biomatter_swarm",
+  "dimensions_m": [2.5, 1.0, 2.5],
+  "dimension_tolerance_m": 0.02,
+  "pivot": "bottom_center",
+  "forward_axis": "+Z",
+  "allowed_yaw_deg": [0, 90, 180, 270],
+  "required_states": ["living", "dead_burned"],
+  "state_derivation": "one_blender_master",
+  "collision_owner": "godot_wrapper",
+  "animation": {
+    "kind": "godot_multimesh_particles_behavior",
+    "meshy_rigging_allowed": false,
+    "rigging_target": "non_humanoid"
+  },
+  "budget": {
+    "triangles": {
+      "min": 300,
+      "max": 800,
+      "scope": "per_part"
+    },
+    "material_slots": 2,
+    "texture_resolution": 1024
+  },
+  "references": {
+    "required_views": ["front", "side", "back", "three_quarter"],
+    "input_layout": "separate_files",
+    "rights_state": "project-owned"
+  },
+  "generation": {
+    "provider": "meshy",
+    "mode": "image_to_3d",
+    "model_type": "smart-topology",
+    "ai_model": "meshy-t2",
+    "target_polycount": 800,
+    "should_texture": false,
+    "candidate_count": 3,
+    "target_formats": ["glb"]
+  },
+  "review": {
+    "seeds": [42, 777],
+    "lighting_modes": ["normal", "emergency", "dark"]
+  },
+  "prompt_profile": "synaptic_sea_derelict_v1",
+  "kit_parts": [
+    "body_a",
+    "body_b",
+    "body_c",
+    "larva_a",
+    "larva_b",
+    "ground_wall_cluster",
+    "strand",
+    "dead_burned_cluster"
+  ],
+  "visual_brief": "Modular biomatter swarm kit with three bodies, two larvae, a ground/wall cluster, a strand, and a dead/burned cluster. Keep each organism within 300-800 triangles and use one shared material atlas; Godot MultiMesh/particles own swarm behavior, not Meshy."
+}

@@ -1,0 +1,39 @@
+{
+	"engine": "4.7.1-stable (official)",
+	"notes": [
+		"Both runs start with user://saves deleted and every user:// root *.json removed; the capture script re-clears them before every fresh main.tscn instance (the user's real data is moved aside and restored afterwards).",
+		"Round trip, per file (fresh main.tscn instance each, coordinator _process disabled right after add_child so no engine tick runs): after boot user://saves is emptied again (no index, no .cloud manifest -> no sha gate), the fixture text (CRLF->LF) is written to the slot file, SaveLoadService.load_from_slot(slot_id) (current_run.json: slot 'autosave_active', i.e. load_current_run) -> PlayableGeneratedShip._apply_run_snapshot -> SaveLoadService.set_active_run_id(<file run_id>) -> save_to_slot(slot_id, _build_run_snapshot(false), kind, quick, display) (current_run.json: 'autosave_active', 'auto', false, 'current_run_alias' == save_current_run). The written slot file is copied byte-for-byte to save_roundtrip/<same relative path>.",
+		"World: mid_run/saves/world.json -> user://saves/world.json -> load_world -> _apply_world_snapshot -> set_active_run_id(<file run_id>) -> save_world(_build_world_snapshot()) -> save_roundtrip/mid_run/saves/world.json.",
+		"save_roundtrip/roundtrip_results.json records per file: load_ok, apply_ok, objective_sequence_after_apply, build/save results, and the user://saves listing right after boot and after the save.",
+		"saved_at / saved_at_epoch: the loaded RunSnapshot keeps the file's saved_at_epoch (save_to_slot only stamps it when 0) but _build_run_snapshot / _build_world_snapshot stamp a fresh saved_at, so saved_at is wall-clock.",
+		"Power wear trace: models/power_wear_coherent_ship_001.json (notes inside describe the tick setup)."
+	],
+	"runs": [
+		{
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/parity_fixtures/parity_capture_roundtrip_wear.gd -- --mode roundtrip --in F:/work/gap-core/fixtures/godot/save/capture_main_playable --out F:/work/gap-core/fixtures/godot/save_roundtrip --clean-user-data",
+			"exit_code": 0,
+			"id": "parity_capture_roundtrip",
+			"marker_line": "PARITY ROUNDTRIP PASS files=8 applied=8",
+			"output_log": "save_roundtrip/process_output_roundtrip.txt",
+			"pass": true,
+			"pass_marker": "PARITY ROUNDTRIP PASS",
+			"script": "res://scripts/validation/parity_fixtures/parity_capture_roundtrip_wear.gd",
+			"unexpected_error_or_warning_lines": []
+		},
+		{
+			"command": "\"F:/Tools/Godot/Godot_v4.7.1-stable_win64.exe\" --headless --path F:/work/godot-parity-fixtures/ --script res://scripts/validation/parity_fixtures/parity_capture_roundtrip_wear.gd -- --mode wear --out F:/work/gap-core/fixtures/godot/models --clean-user-data",
+			"exit_code": 0,
+			"id": "parity_capture_power_wear",
+			"marker_line": "PARITY WEAR PASS ticks=120 samples=121 moved=false slice_flipped=true fullprec=true",
+			"output_log": "models/power_wear_process_output.txt",
+			"pass": true,
+			"pass_marker": "PARITY WEAR PASS",
+			"script": "res://scripts/validation/parity_fixtures/parity_capture_roundtrip_wear.gd",
+			"unexpected_error_or_warning_lines": [
+				"WARNING: AudioManager: stream file missing, path='res://data/audio/voice/log_beacon_01.ogg'"
+			]
+		}
+	],
+	"schema": "parity.save.readme.v1",
+	"source_git_sha": "866067320d80d41eadfbbb37e767585ef1c06bbc"
+}

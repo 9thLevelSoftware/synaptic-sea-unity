@@ -119,6 +119,9 @@ namespace SynapticSea.Core.Session
             RestoreArcSummaryForCurrentShip();
             RestoreModuleIntegrityForCurrentShip();
             RestoreOrPopulateComponentPlacementForCurrentShip();
+            // Unity port: the derelict gets the home ship's readability props and labels (Godot built them for home only).
+            if (newRoot != null)
+                Events.RaiseAffordancesRebuilt(newRoot);
         }
 
         /// <summary>Validates + executes a jump to a marker (gated by the PILOTED ship's propulsion).</summary>
@@ -165,7 +168,7 @@ namespace SynapticSea.Core.Session
                 EmitTravelDeniedSfx();
                 return result.ToDict();
             }
-            IShipLoaderView newRoot = result.Ship is ShipDocuments docs ? ShipHost?.BuildShipScene(docs) : result.Ship as IShipLoaderView;
+            IShipLoaderView newRoot = result.Ship is ShipDocuments docs ? BuildShipSceneFromDocuments(docs) : result.Ship as IShipLoaderView;
             if (newRoot == null)
             {
                 EmitTravelDeniedSfx();
@@ -191,6 +194,8 @@ namespace SynapticSea.Core.Session
             SyncCurrentShipBreachEnvironment();
             SyncCurrentShipPillarSummaries();
             ShipInstance leaving = CurrentShip;
+            if (leaving.MarkerId != "" && leaving.SceneRoot is IShipLoaderView leavingLoader)
+                Events.RaiseAffordancesCleared(leavingLoader);
             if (leaving.MarkerId == "")
             {
                 if (HasPlayer)
@@ -244,6 +249,8 @@ namespace SynapticSea.Core.Session
             ShipInstance leaving = CurrentShip;
             if (leaving != null && leaving.MarkerId != "")
             {
+                if (leaving.SceneRoot is IShipLoaderView leavingLoader)
+                    Events.RaiseAffordancesCleared(leavingLoader);
                 if (leaving != PilotedShip && RootValid(leaving.SceneRoot))
                 {
                     ShipHost?.FreeShipRoot(leaving.SceneRoot);
@@ -317,16 +324,17 @@ namespace SynapticSea.Core.Session
         {
             if (CurrentShip == null || OxygenState == null)
                 return;
-            GdDict summary = OxygenState.GetSummary();
-            CurrentShip.BreachEnvironmentSummary = new GdDict
-            {
-                { "hazard_kind", "oxygen" },
-                { "breach_open", summary.GetBool("breach_open") },
-                { "breach_sealed", summary.GetBool("breach_sealed") },
-                { "passability_blocked", summary.GetBool("passability_blocked") },
-                { "breach_zone_ids", summary.GetArrayOrEmpty("breach_zone_ids").ShallowCopy() },
-            };
+            CurrentShip.BreachEnvironmentSummary = BreachEnvironmentFrom(OxygenState.GetSummary());
         }
+
+        static GdDict BreachEnvironmentFrom(GdDict oxygenSummary) => new GdDict
+        {
+            { "hazard_kind", "oxygen" },
+            { "breach_open", oxygenSummary.GetBool("breach_open") },
+            { "breach_sealed", oxygenSummary.GetBool("breach_sealed") },
+            { "passability_blocked", oxygenSummary.GetBool("passability_blocked") },
+            { "breach_zone_ids", oxygenSummary.GetArrayOrEmpty("breach_zone_ids").ShallowCopy() },
+        };
 
         /// <summary>PKG-D6.1: flush live module integrity + component placement onto the current ship.</summary>
         void SyncCurrentShipPillarSummaries()
@@ -441,6 +449,7 @@ namespace SynapticSea.Core.Session
             }
             else
             {
+                ApplyThreatRunModifiers();
                 ThreatManager.ConfigureForLayout(CombatLayoutForCurrentShip(), CombatMarkersForCurrentShip(), anchor);
             }
             ApplyIntegrityNavGaps();
@@ -497,7 +506,7 @@ namespace SynapticSea.Core.Session
             ShipDocuments docs = ShipGenerator.Generate(blueprint);
             if (docs == null)
                 return null;
-            return ShipHost?.BuildShipScene(docs);
+            return BuildShipSceneFromDocuments(docs);
         }
 
         /// <summary>Regenerates geometry for a co-present derelict that is not the active ship (dock-edge endpoint).</summary>
@@ -587,6 +596,27 @@ namespace SynapticSea.Core.Session
                     output.Add(marker.MarkerId);
             }
             return output;
+        }
+
+        /// <summary>
+        /// Unity-port validation helper (tests): the structural kit id an in-range marker's derelict generates with, through
+        /// the same run context and generator the travel path uses ("" for an unknown marker). The first-run contract, which
+        /// replaces the seed of the run's first travel, is not applied.
+        /// </summary>
+        public string MarkerKitId(string markerId)
+        {
+            if (SynapticSeaWorld == null || ScannerState == null || ShipGenerator == null)
+                return "";
+            foreach (ShipMarker marker in SynapticSeaWorld.MarkersInRange(ScannerState.RangeRadius))
+            {
+                if (marker.MarkerId != markerId)
+                    continue;
+                GdDict ctx = ResolveDerelictRunContext(marker);
+                ShipGenerator.ConfigureRunContext(V.Str(ctx.Get("biome", "")), V.Str(ctx.Get("difficulty", "")));
+                ShipDocuments built = ShipGenerator.GenerateFromSeed(marker.SeedValue, marker.SizeClass, marker.Condition);
+                return built != null && built.Layout != null ? V.Str(built.Layout.Get("kit_id", "")) : "";
+            }
+            return "";
         }
 
         static bool LayoutHasBridge(GdDict layout)

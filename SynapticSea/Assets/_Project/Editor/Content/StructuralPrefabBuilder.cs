@@ -40,6 +40,27 @@ namespace SynapticSea.EditorTools.Content
             public Vector3 Size;
         }
 
+        /// <summary>
+        /// Derives a module's colliders from its imported visual when every wrapper box is Godot's 1 m placeholder cube.
+        /// Returns the number of colliders added under <c>collisionRoot</c> (0 keeps the placeholder).
+        /// </summary>
+        delegate int CollisionOverride(string moduleId, GameObject collisionRoot, GameObject intactVisual, int layer, Report report);
+
+        /// <summary>
+        /// Port-status decision 9 keeps the Godot placeholder cubes for parity. The ramp is the exception: its 1 m cube sat at
+        /// the cell centre while the visible treads had no collision, so it gets a slope box derived from the treads. The
+        /// pillar and bulkhead keep their cubes; the ceiling's cube is on the Ceiling layer, which collides with nothing.
+        /// </summary>
+        static readonly Dictionary<string, CollisionOverride> CollisionOverrides = new Dictionary<string, CollisionOverride>(StringComparer.Ordinal)
+        {
+            ["ramp_up_1x2"] = BuildRampColliders,
+        };
+
+        public const string RampSlopeName = "RampSlope";
+        public const float RampSlopeThickness = 0.2f;
+
+        static bool IsPlaceholderCube(BoxSpec box) => box.Size == Vector3.one && box.GodotCenter == Vector3.zero;
+
         sealed class Report
         {
             public readonly List<string> Errors = new List<string>();
@@ -180,13 +201,19 @@ namespace SynapticSea.EditorTools.Content
                 var collisionRoot = new GameObject("CollisionRoot");
                 collisionRoot.layer = layer;
                 collisionRoot.transform.SetParent(root.transform, false);
-                foreach (var box in boxes)
+                bool placeholderOnly = boxes.Count > 0 && boxes.All(IsPlaceholderCube);
+                CollisionOverrides.TryGetValue(moduleId, out CollisionOverride collisionOverride);
+                if (!placeholderOnly) collisionOverride = null;
+                if (collisionOverride == null)
                 {
-                    var bc = collisionRoot.AddComponent<BoxCollider>();
-                    bc.center = new Vector3(-box.GodotCenter.x, box.GodotCenter.y, box.GodotCenter.z);
-                    bc.size = box.Size;
-                    if (box.Size == Vector3.one && box.GodotCenter == Vector3.zero)
-                        report.Warnings.Add($"{moduleId}: collision '{box.Name}' is the Godot 1 m placeholder cube (kept for parity)");
+                    foreach (var box in boxes)
+                    {
+                        var bc = collisionRoot.AddComponent<BoxCollider>();
+                        bc.center = new Vector3(-box.GodotCenter.x, box.GodotCenter.y, box.GodotCenter.z);
+                        bc.size = box.Size;
+                        if (IsPlaceholderCube(box))
+                            report.Warnings.Add($"{moduleId}: collision '{box.Name}' is the Godot 1 m placeholder cube (kept for parity)");
+                    }
                 }
 
                 // Visual variants.
@@ -198,6 +225,27 @@ namespace SynapticSea.EditorTools.Content
                 sm.breachedVisual = InstantiateVariant(kitId, moduleId, "Breached", variants, "3_visual_breached", visual.transform, layer, report);
                 if (sm.damagedVisual == null) sm.damagedVisual = sm.intactVisual;
                 if (sm.breachedVisual == null) sm.breachedVisual = sm.intactVisual;
+
+                int colliderCount = boxes.Count;
+                if (collisionOverride != null)
+                {
+                    colliderCount = collisionOverride(moduleId, collisionRoot, sm.intactVisual, layer, report);
+                    if (colliderCount > 0)
+                    {
+                        entry["collision_override"] = "derived";
+                    }
+                    else
+                    {
+                        report.Warnings.Add($"{moduleId}: derived collision failed; keeping the Godot placeholder cube");
+                        foreach (var box in boxes)
+                        {
+                            var bc = collisionRoot.AddComponent<BoxCollider>();
+                            bc.center = new Vector3(-box.GodotCenter.x, box.GodotCenter.y, box.GodotCenter.z);
+                            bc.size = box.Size;
+                        }
+                        colliderCount = boxes.Count;
+                    }
+                }
                 sm.SetIntegrity(StructuralModule.IntegrityIntact);
 
                 GameObjectUtility.SetStaticEditorFlags(root, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.ReflectionProbeStatic);
@@ -218,7 +266,7 @@ namespace SynapticSea.EditorTools.Content
                 }
 
                 entry["sockets"] = (long)contractSocketIds.Count;
-                entry["colliders"] = (long)boxes.Count;
+                entry["colliders"] = (long)colliderCount;
                 entry["layer"] = (long)layer;
 
                 string prefabPath = $"{prefabDir}/{moduleId}.prefab";
@@ -235,6 +283,54 @@ namespace SynapticSea.EditorTools.Content
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+        }
+
+        /// <summary>
+        /// One rotated box whose top face runs from the lowest tread top to the highest (extended half a tread past each end),
+        /// as wide as the treads. The tread renderers come from the imported GLB, so no dimension is hard-coded; renderer
+        /// bounds are already in the Unity frame (the module root sits at the origin while it is assembled).
+        /// </summary>
+        static int BuildRampColliders(string moduleId, GameObject collisionRoot, GameObject intactVisual, int layer, Report report)
+        {
+            if (intactVisual == null)
+            {
+                report.Errors.Add($"{moduleId}: no intact visual to derive the ramp collision from");
+                return 0;
+            }
+            Transform root = collisionRoot.transform.parent;
+            var treads = intactVisual.GetComponentsInChildren<Renderer>(true)
+                .Where(r => r.enabled && r.name.IndexOf("_tread_", StringComparison.Ordinal) >= 0)
+                .Select(r => r.bounds)
+                .OrderBy(b => b.max.y)
+                .ToList();
+            if (treads.Count < 2)
+            {
+                report.Errors.Add($"{moduleId}: expected tread meshes (_tread_) in the ramp visual, found {treads.Count}");
+                return 0;
+            }
+            Bounds low = treads[0], high = treads[treads.Count - 1];
+            float centerX = treads.Average(b => b.center.x);
+            var pLow = root.InverseTransformPoint(new Vector3(centerX, low.max.y, low.center.z));
+            var pHigh = root.InverseTransformPoint(new Vector3(centerX, high.max.y, high.center.z));
+            Vector3 along = pHigh - pLow;
+            if (along.sqrMagnitude < 1e-6f || Mathf.Abs(along.z) < 1e-3f)
+            {
+                report.Errors.Add($"{moduleId}: the treads do not rise along the ramp");
+                return 0;
+            }
+            Vector3 dir = along.normalized;
+            Quaternion rotation = Quaternion.LookRotation(dir, Vector3.up);
+            float treadDepth = treads.Average(b => b.size.z);
+            float width = treads.Max(b => b.size.x);
+            var slope = new GameObject(RampSlopeName) { layer = layer };
+            slope.transform.SetParent(collisionRoot.transform, false);
+            slope.transform.localRotation = rotation;
+            slope.transform.localPosition = (pLow + pHigh) * 0.5f - rotation * Vector3.up * (RampSlopeThickness * 0.5f);
+            var box = slope.AddComponent<BoxCollider>();
+            box.size = new Vector3(width, RampSlopeThickness, along.magnitude + treadDepth);
+            float degrees = Vector3.Angle(dir, new Vector3(dir.x, 0f, dir.z));
+            report.Warnings.Add($"{moduleId}: collision derived from {treads.Count} treads (rise {along.y:0.###} m over {Mathf.Abs(along.z):0.###} m, {degrees:0.#} deg) instead of the Godot placeholder cube");
+            return 1;
         }
 
         static List<BoxSpec> ParseCollisionBoxes(string tscn, string moduleId, Report report)

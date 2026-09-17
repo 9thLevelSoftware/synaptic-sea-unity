@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "ai_asset_contract",
+  "asset_id": "stalker_v1",
+  "category": "threat_character",
+  "gameplay_role": "stalking_humanoid_threat",
+  "dimensions_m": [0.9, 1.8, 0.9],
+  "dimension_tolerance_m": 0.02,
+  "pivot": "bottom_center",
+  "forward_axis": "+Z",
+  "allowed_yaw_deg": [0, 90, 180, 270],
+  "required_states": ["default"],
+  "state_derivation": "single_state",
+  "collision_owner": "godot_wrapper",
+  "animation": {
+    "kind": "optional_humanoid_biped_rig_after_selection",
+    "meshy_rigging_allowed": true,
+    "rigging_target": "humanoid_biped"
+  },
+  "budget": {
+    "triangles": {
+      "min": 6000,
+      "max": 12000,
+      "scope": "whole_asset"
+    },
+    "material_slots": 3,
+    "texture_resolution": 2048
+  },
+  "references": {
+    "required_views": ["front", "side", "back", "three_quarter"],
+    "input_layout": "separate_files",
+    "rights_state": "project-owned"
+  },
+  "generation": {
+    "provider": "meshy",
+    "mode": "multi_image_to_3d",
+    "model_type": "standard",
+    "ai_model": "meshy-7",
+    "target_polycount": 12000,
+    "should_texture": false,
+    "candidate_count": 4,
+    "target_formats": ["glb"]
+  },
+  "review": {
+    "seeds": [42, 777],
+    "lighting_modes": ["normal", "emergency", "dark"]
+  },
+  "prompt_profile": "synaptic_sea_derelict_v1",
+  "visual_brief": "Low stalking silhouette for a readable derelict-spacecraft threat; elongated cautious posture, clear bipedal structure, restrained asymmetry, and no disconnected anatomy. Meshy rigging is permitted only after candidate selection confirms a clearly structured humanoid biped."
+}

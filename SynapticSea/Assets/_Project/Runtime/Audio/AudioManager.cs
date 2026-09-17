@@ -29,7 +29,7 @@ namespace SynapticSea.Runtime
             { "ui.panel.open", "res://data/audio/ui/panel_open.wav" },
             { "ui.panel.close", "res://data/audio/ui/panel_close.wav" },
             { "sfx.fire.crackle", "res://data/audio/sfx/fire_crackle.wav" },
-            { "meta.hull.groan", "res://data/audio/sfx/breach_alarm.wav" },
+            { "meta.hull.groan", "res://assets/audio/hull_groan.wav" },
             { "sfx.combat.hit", "res://data/audio/sfx/combat_hit.wav" },
             { "sfx.combat.threat_alert", "res://data/audio/sfx/threat_alert.wav" },
             { "sfx.door.open", "res://data/audio/sfx/door_open.wav" },
@@ -39,7 +39,54 @@ namespace SynapticSea.Runtime
             { "layer.base", "res://data/audio/music/exploration_base.wav" },
             { "layer.tension_drone", "res://data/audio/music/tension_drone.wav" },
             { "layer.critical_pad", "res://data/audio/music/critical_pad.wav" },
+
+            // Godot's unreferenced slice clips (assets/audio, commit a779fac6), mapped by name and sound (docs/port-status.md).
+            { "sfx.work.weld", "res://assets/audio/weld.wav" },
+            { "sfx.work.cut", "res://assets/audio/cut.wav" },
+            { "sfx.work.patch", "res://assets/audio/patch.wav" },
+            { "sfx.work.unbolt", "res://assets/audio/unbolt_pry.wav" },
+            { "sfx.work.pry", "res://assets/audio/unbolt_pry.wav" },
+            { "sfx.work.mount", "res://assets/audio/unbolt_pry.wav" },
+            { "sfx.work.splice", "res://assets/audio/tool_use.wav" },
+            { "sfx.work.harvest", "res://assets/audio/pickup.wav" },
+            { "sfx.work.plant", "res://assets/audio/drop.wav" },
+            { "sfx.drop.item", "res://assets/audio/drop.wav" },
+            { "sfx.tool.use", "res://assets/audio/tool_use.wav" },
+            { "sfx.suit.breath", "res://assets/audio/suit_breath.wav" },
+            { "sfx.arc.zap", "res://assets/audio/weld.wav" },
+            { "sfx.wound.bandage", "res://assets/audio/patch.wav" },
+            { "sfx.wound.treat", "res://assets/audio/patch.wav" },
+            { "sfx.craft.complete", "res://assets/audio/dock_land.wav" },
+            { "sfx.repair.complete", "res://assets/audio/door_close.wav" },
+            { "meta.reactor.hum", "res://assets/audio/reactor_hum.wav" },
+            { "meta.biomatter.pulse", "res://assets/audio/biomatter_pulse.wav" },
+            { "ui.inventory.open", "res://data/audio/ui/panel_open.wav" },
+            { "ui.inventory.close", "res://data/audio/ui/panel_close.wav" },
+            { "ui.wounds.open", "res://data/audio/ui/panel_open.wav" },
+            { "ui.ship_mod.open", "res://data/audio/ui/panel_open.wav" },
+            { "ui.ship_mod.install", "res://assets/audio/unbolt_pry.wav" },
+            { "ui.ship_mod.uninstall", "res://assets/audio/unbolt_pry.wav" },
+            { "amb.docking", "res://assets/audio/ambient_docking.wav" },
+            { "amb.engine", "res://assets/audio/ambient_reactor.wav" },
+            { "amb.cargo", "res://assets/audio/ambient_engineering.wav" },
+            { "amb.med_bay", "res://assets/audio/ambient_medical.wav" },
+            { "amb.crew_quarters", "res://assets/audio/ambient_corridor.wav" },
         };
+
+        /// <summary>Music stems in layer order; a layer without a stream (combat percussion) keeps a silent source.</summary>
+        public static readonly string[] MusicStemLayers =
+        {
+            AudioEventSeam.MUSIC_LAYER_BASE, AudioEventSeam.MUSIC_LAYER_TENSION_DRONE,
+            AudioEventSeam.MUSIC_LAYER_COMBAT_PERCUSSION, AudioEventSeam.MUSIC_LAYER_CRITICAL_PAD,
+        };
+
+        /// <summary>Stem gain curve: Godot's collapsed music level (-24 dB at gain 0, 0 dB at gain 1); silent at (near) zero gain.</summary>
+        public const double MusicStemFloorDb = -24.0;
+        public const double SilentGain = 0.001;
+        public const double SilentDb = -80.0;
+
+        /// <summary>DSP lead time so every stem is scheduled on the same future sample.</summary>
+        public const double StemScheduleLeadSeconds = 0.1;
 
         /// <summary>Stream F: a voice log was scheduled (decode_signal training).</summary>
         public event Action<string> VoiceLogPlayed;
@@ -60,10 +107,28 @@ namespace SynapticSea.Runtime
         readonly Dictionary<AudioSource, (string bus, double db)> _sourceLevels = new Dictionary<AudioSource, (string, double)>();
         readonly Dictionary<string, List<AudioSource>> _spatialPool = new Dictionary<string, List<AudioSource>>(StringComparer.Ordinal);
         readonly HashSet<string> _warnedMissingPaths = new HashSet<string>(StringComparer.Ordinal);
+        readonly Dictionary<string, AudioSource> _musicStems = new Dictionary<string, AudioSource>(StringComparer.Ordinal);
+        AudioSource _ambientCurrent;
+        AudioSource _ambientPrevious;
         AudioListener _listener;
         Transform _listenerAnchor;
         bool _headless;
         bool _initialized;
+
+        /// <summary>The music model whose per-layer gains drive the stems (the session's; null = <see cref="MusicState"/>).</summary>
+        public DynamicMusicState MusicGainSource { get; set; }
+
+        /// <summary>The ambient model whose role track and crossfade drive the ambient beds (the session's; null = <see cref="AmbientZoneState"/>).</summary>
+        public AmbientZoneState AmbientSource { get; set; }
+
+        /// <summary>True once the stems were scheduled (clips assigned; playback is skipped in batch mode).</summary>
+        public bool MusicStemsStarted { get; private set; }
+
+        /// <summary>The DSP time every stem was scheduled to start on.</summary>
+        public double MusicStemStartDspTime { get; private set; }
+
+        /// <summary>Last level the session pushed through <see cref="SetMusicVolumeDb"/> (Godot's collapsed max-layer level).</summary>
+        public double SessionMusicLevelDb { get; private set; } = MusicStemFloorDb;
 
         public AudioCatalog Catalog
         {
@@ -93,6 +158,10 @@ namespace SynapticSea.Runtime
         {
             foreach (var p in _busPlayers.Values)
                 if (p != null) { p.Stop(); p.clip = null; }
+            foreach (var p in _musicStems.Values)
+                if (p != null) { p.Stop(); p.clip = null; }
+            foreach (var p in new[] { _ambientCurrent, _ambientPrevious })
+                if (p != null) { p.Stop(); p.clip = null; }
             foreach (var pool in _spatialPool.Values)
                 foreach (var p in pool)
                     if (p != null) { p.Stop(); p.clip = null; }
@@ -112,6 +181,21 @@ namespace SynapticSea.Runtime
                 _busPlayers[busId] = src;
                 _sourceLevels[src] = (busId, 0.0);
             }
+            foreach (string layer in MusicStemLayers) _musicStems[layer] = MakeLoopSource("MusicStem_" + layer, AudioEventSeam.BUS_MUSIC);
+            _ambientCurrent = MakeLoopSource("AmbientBed_Current", AudioEventSeam.BUS_AMBIENT);
+            _ambientPrevious = MakeLoopSource("AmbientBed_Previous", AudioEventSeam.BUS_AMBIENT);
+        }
+
+        AudioSource MakeLoopSource(string name, string busId)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+            var src = go.AddComponent<AudioSource>();
+            src.playOnAwake = false;
+            src.spatialBlend = 0f;
+            src.loop = true;
+            _sourceLevels[src] = (busId, SilentDb);
+            return src;
         }
 
         // ------------------------------------------------------------------ bus volumes
@@ -311,22 +395,108 @@ namespace SynapticSea.Runtime
         /// <summary>Godot <c>_play_spatial</c> at a Unity world position.</summary>
         public void PlaySpatialAt(string eventId, Vector3 unityPosition, string busId, double volumeDb) => PlaySpatial(eventId, unityPosition, busId, volumeDb);
 
-        /// <summary>Godot <c>_apply_music_layer_gains</c> with a session-resolved level (lazy base-layer start).</summary>
+        /// <summary>
+        /// Godot <c>_apply_music_layer_gains</c> for the session sink. Godot collapsed the four layers into one player at
+        /// <paramref name="volumeDb"/> (the loudest layer); here the stems start sample-aligned on the first call and each
+        /// follows its own layer gain from <see cref="MusicGainSource"/>. The ambient beds are refreshed on the same beat.
+        /// </summary>
         public void SetMusicVolumeDb(double volumeDb)
         {
-            if (!_busPlayers.TryGetValue(AudioEventSeam.BUS_MUSIC, out AudioSource player)) return;
-            if (player.clip == null && StreamCatalog.TryGetValue(AudioEventSeam.MUSIC_LAYER_BASE, out string basePath))
-            {
-                AudioClip clip = LoadClip(basePath);
-                if (clip != null)
-                {
-                    player.clip = clip;
-                    player.loop = true;
-                    if (!_headless) player.Play();
-                }
-            }
-            SetSourceDb(player, AudioEventSeam.BUS_MUSIC, volumeDb);
+            SessionMusicLevelDb = volumeDb;
+            ApplyMusicStemGains();
+            ApplyAmbientBeds();
         }
+
+        /// <summary>Points the stems and ambient beds at the session's models (RunSession.AudioManager owns them).</summary>
+        public void BindSessionModels(DynamicMusicState music, AmbientZoneState ambient)
+        {
+            MusicGainSource = music;
+            AmbientSource = ambient;
+        }
+
+        /// <summary>Schedules every stem that has a clip on one shared DSP start time (idempotent).</summary>
+        public bool StartMusicStems()
+        {
+            if (MusicStemsStarted) return true;
+            var ready = new List<AudioSource>();
+            foreach (string layer in MusicStemLayers)
+            {
+                if (!StreamCatalog.TryGetValue(layer, out string path)) continue;
+                AudioClip clip = LoadClip(path);
+                if (clip == null) continue;
+                AudioSource stem = _musicStems[layer];
+                stem.clip = clip;
+                stem.loop = true;
+                ready.Add(stem);
+            }
+            if (ready.Count == 0) return false;
+            MusicStemStartDspTime = AudioSettings.dspTime + StemScheduleLeadSeconds;
+            if (!_headless)
+                foreach (AudioSource stem in ready) stem.PlayScheduled(MusicStemStartDspTime);
+            MusicStemsStarted = true;
+            return true;
+        }
+
+        /// <summary>The stem source for a music layer (null for unknown layers).</summary>
+        public AudioSource GetMusicStem(string layerId) => _musicStems.TryGetValue(layerId ?? "", out var p) ? p : null;
+
+        /// <summary>Stem dB for a layer gain: <see cref="MusicStemFloorDb"/> + gain * 24, silent at (near) zero gain.</summary>
+        public static double StemDbForGain(double gain) =>
+            gain <= SilentGain ? SilentDb : MusicStemFloorDb + GdMath.Clampf(gain, 0.0, 1.0) * -MusicStemFloorDb;
+
+        /// <summary>The source's own dB before bus and master (stems, beds, bus players, spatial sources).</summary>
+        public double GetSourceDb(AudioSource src) => src != null && _sourceLevels.TryGetValue(src, out var level) ? level.db : SilentDb;
+
+        void ApplyMusicStemGains()
+        {
+            StartMusicStems();
+            GdDict gains = (MusicGainSource ?? MusicState).GetLayerGains();
+            foreach (string layer in MusicStemLayers)
+            {
+                AudioSource stem = _musicStems[layer];
+                SetSourceDb(stem, AudioEventSeam.BUS_MUSIC, stem.clip == null ? SilentDb : StemDbForGain(gains.GetFloat(layer, 0.0)));
+            }
+        }
+
+        /// <summary>Current / previous ambient bed of the role crossfade, each at crossfade gain * role intensity * threat multiplier.</summary>
+        void ApplyAmbientBeds()
+        {
+            AmbientZoneState model = AmbientSource ?? AmbientZoneState;
+            GdDict gains = model.GetLayerGains();
+            double threat = gains.GetFloat("threat_multiplier", 1.0);
+            string previousTrack = model.GetSummary().GetString("previous_track_id");
+            // A role change hands the playing bed to the previous-role source, so it fades out without restarting.
+            AudioClip previousClip = ClipForTrack(previousTrack);
+            if (previousClip != null && _ambientCurrent.clip == previousClip && _ambientPrevious.clip != previousClip)
+                (_ambientCurrent, _ambientPrevious) = (_ambientPrevious, _ambientCurrent);
+            ApplyAmbientBed(_ambientCurrent, model.GetCurrentTrackId(), gains.GetFloat("current_gain", 1.0) * gains.GetFloat("current_intensity", 0.0) * threat);
+            ApplyAmbientBed(_ambientPrevious, previousTrack, gains.GetFloat("previous_gain", 0.0) * gains.GetFloat("previous_intensity", 0.0) * threat);
+        }
+
+        void ApplyAmbientBed(AudioSource src, string trackId, double linearGain)
+        {
+            if (src == null) return;
+            AudioClip clip = ClipForTrack(trackId);
+            if (clip == null)
+            {
+                SetSourceDb(src, AudioEventSeam.BUS_AMBIENT, SilentDb);
+                src.Stop();
+                src.clip = null;
+                return;
+            }
+            if (src.clip != clip || (!_headless && !src.isPlaying))
+            {
+                src.clip = clip;
+                if (!_headless) src.Play();
+            }
+            SetSourceDb(src, AudioEventSeam.BUS_AMBIENT, linearGain <= SilentGain ? SilentDb : 20.0 * Math.Log10(linearGain));
+        }
+
+        AudioClip ClipForTrack(string trackId) =>
+            !string.IsNullOrEmpty(trackId) && StreamCatalog.TryGetValue(trackId, out string path) ? LoadClip(path) : null;
+
+        /// <summary>The ambient bed sources: 0 = current role, 1 = previous role (crossfading out).</summary>
+        public AudioSource GetAmbientBed(int index) => index == 0 ? _ambientCurrent : index == 1 ? _ambientPrevious : null;
 
         /// <summary><c>apply_spatial_attenuation</c> resolved with the session's resolver.</summary>
         public int ApplySpatialAttenuation(SpatialAudioResolver resolver)
@@ -427,21 +597,8 @@ namespace SynapticSea.Runtime
 
         void ApplyMusicLayerGains()
         {
-            if (!_busPlayers.TryGetValue(AudioEventSeam.BUS_MUSIC, out AudioSource player)) return;
-            if (player.clip == null && StreamCatalog.TryGetValue(AudioEventSeam.MUSIC_LAYER_BASE, out string basePath))
-            {
-                AudioClip clip = LoadClip(basePath);
-                if (clip != null)
-                {
-                    player.clip = clip;
-                    player.loop = true;
-                    if (!_headless) player.Play();
-                }
-            }
-            GdDict gains = MusicState.GetLayerGains();
-            double combined = 0.0;
-            foreach (object layer in AudioEventSeam.ALL_MUSIC_LAYERS) combined = Math.Max(combined, gains.GetFloat(layer, 0.0));
-            SetSourceDb(player, AudioEventSeam.BUS_MUSIC, -24.0 + combined * 24.0);
+            ApplyMusicStemGains();
+            ApplyAmbientBeds();
         }
 
         static string CatalogIdForMetaSchedule(string id)

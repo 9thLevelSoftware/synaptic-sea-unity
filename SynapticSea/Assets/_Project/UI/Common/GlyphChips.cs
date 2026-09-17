@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
+using SynapticSea.Core.Variant;
 using UnityEngine.UIElements;
 
 namespace SynapticSea.UI
@@ -21,6 +22,47 @@ namespace SynapticSea.UI
             { "move_forward", "move_up" },
             { "move_back", "move_down" },
         };
+
+        /// <summary>
+        /// Unity-side glyph rows for Player/Panels actions the synced Godot table (<c>input_glyphs.json</c>) never listed.
+        /// They mirror the bindings in <c>SynapticSea.inputactions</c>; an empty gamepad glyph means "no gamepad binding"
+        /// (the chip hides). Rows already present in the data table win.
+        /// </summary>
+        public static readonly IReadOnlyList<(string action, string keyboard, string xbox, string ps)> UnitySupplement = new[]
+        {
+            ("attack_primary", "[F]", "[RT]", "[R2]"),
+            ("reload_weapon", "[R]", "[X]", "[Square]"),
+            ("crouch", "[Ctrl]", "[B]", "[Circle]"),
+            ("field_craft", "[C]", "[D-Down]", "[D-Down]"),
+            ("toggle_ship_mod", "[U]", "", ""),
+            ("toggle_wounds", "[O]", "", ""),
+            ("hotbar_1", "[1]", "[D-Left]", "[D-Left]"),
+            ("hotbar_2", "[2]", "[D-Up]", "[D-Up]"),
+            ("hotbar_3", "[3]", "[D-Right]", "[D-Right]"),
+            ("quicksave_run", "[F6]", "", ""),
+        };
+
+        /// <summary>A copy of <paramref name="table"/> with the <see cref="UnitySupplement"/> rows appended (null → null).</summary>
+        public static GdDict WithUnitySupplement(GdDict table)
+        {
+            if (table == null) return new GdDict();
+            GdDict copy = table.DeepCopy();
+            var actions = copy.Get("actions", null) as GdArray;
+            if (actions == null) return copy;
+            var known = new HashSet<string>(StringComparer.Ordinal);
+            foreach (object entry in actions)
+                if (entry is GdDict d) known.Add(V.Str(d.Get("action", "")));
+            foreach (var row in UnitySupplement)
+            {
+                if (known.Contains(row.action)) continue;
+                actions.Add(new GdDict
+                {
+                    { "action", row.action },
+                    { "schemes", new GdDict { { "keyboard", row.keyboard }, { "gamepad_xbox", row.xbox }, { "gamepad_ps", row.ps } } },
+                });
+            }
+            return copy;
+        }
 
         public static string GlyphKeyFor(string inputActionId) =>
             inputActionId != null && ActionToGlyphKey.TryGetValue(inputActionId, out string key) ? key : inputActionId ?? "";
@@ -45,6 +87,7 @@ namespace SynapticSea.UI
         {
             var table = CatalogRegistry.LoadDict(GlyphTablePath);
             if (table == null) return null;
+            table = WithUnitySupplement(table);
             var state = new ControllerGlyphState(connectedJoypadCount);
             return state.Configure(table) ? state : null;
         }

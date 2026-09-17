@@ -147,8 +147,8 @@ namespace SynapticSea.EditorTools.Scenes
                     Finish(false, OutPath);
                     yield break;
                 }
-                // A fresh run is killed by the fallback stalker within seconds; the review capture wants the live HUD.
-                boot.Session.ThreatManager.Threats.Clear();
+                // No threat clearing: the default start is a generated New Run whose encounters sit in their own rooms
+                // (idle at boot), so the capture shows the live run exactly as a player gets it.
                 for (int i = 0; i < Frames; i++) yield return null;
                 bool ok = false;
                 yield return PlayableCapture.Capture(boot, OutPath, 1920, 1080, r => ok = r);

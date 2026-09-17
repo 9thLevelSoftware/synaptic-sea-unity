@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaptic-sea.invalid/schemas/ai_asset_contract_v1.schema.json",
+  "title": "Synaptic Sea governed AI asset contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_kind",
+    "asset_id",
+    "category",
+    "gameplay_role",
+    "dimensions_m",
+    "dimension_tolerance_m",
+    "pivot",
+    "forward_axis",
+    "allowed_yaw_deg",
+    "required_states",
+    "state_derivation",
+    "collision_owner",
+    "animation",
+    "budget",
+    "references",
+    "generation",
+    "review"
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "identifierList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/identifier"}
+    },
+    "positiveInteger": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "triangleBudget": {
+      "$comment": "The Python validator is authoritative for range objects and additionally enforces min <= max; draft 2020-12 has no sibling-value comparison keyword.",
+      "oneOf": [
+        {"$ref": "#/$defs/positiveInteger"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min", "max", "scope"],
+          "properties": {
+            "min": {"$ref": "#/$defs/positiveInteger"},
+            "max": {"$ref": "#/$defs/positiveInteger"},
+            "scope": {"enum": ["whole_asset", "per_part"]}
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "document_kind": {"const": "ai_asset_contract"},
+    "asset_id": {"$ref": "#/$defs/identifier"},
+    "category": {"$ref": "#/$defs/identifier"},
+    "gameplay_role": {"$ref": "#/$defs/identifier"},
+    "dimensions_m": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "number", "exclusiveMinimum": 0}
+      ],
+      "items": false
+    },
+    "dimension_tolerance_m": {"type": "number", "exclusiveMinimum": 0},
+    "pivot": {"enum": ["bottom_center", "attachment", "scene_origin"]},
+    "forward_axis": {"const": "+Z"},
+    "allowed_yaw_deg": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "number"}
+    },
+    "required_states": {"$ref": "#/$defs/identifierList"},
+    "state_derivation": {"enum": ["one_blender_master", "single_state"]},
+    "collision_owner": {"const": "godot_wrapper"},
+    "animation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "meshy_rigging_allowed", "rigging_target"],
+      "properties": {
+        "kind": {"type": "string", "minLength": 1},
+        "meshy_rigging_allowed": {"type": "boolean"},
+        "rigging_target": {"$ref": "#/$defs/identifier"}
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triangles", "material_slots", "texture_resolution"],
+      "properties": {
+        "triangles": {"$ref": "#/$defs/triangleBudget"},
+        "material_slots": {"$ref": "#/$defs/positiveInteger"},
+        "texture_resolution": {"$ref": "#/$defs/positiveInteger"}
+      }
+    },
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_views", "input_layout", "rights_state"],
+      "properties": {
+        "required_views": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["front", "side", "back", "left", "right", "three_quarter"]
+          }
+        },
+        "input_layout": {"const": "separate_files"},
+        "rights_state": {"enum": ["project-owned", "paid-private", "free-cc-by-4.0"]}
+      }
+    },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "mode",
+        "model_type",
+        "ai_model",
+        "target_polycount",
+        "should_texture",
+        "candidate_count",
+        "target_formats"
+      ],
+      "properties": {
+        "provider": {"const": "meshy"},
+        "mode": {"enum": ["image_to_3d", "multi_image_to_3d"]},
+        "model_type": {"enum": ["smart-topology", "standard"]},
+        "ai_model": {"enum": ["meshy-t2", "meshy-7", "latest"]},
+        "target_polycount": {"type": "integer", "minimum": 100, "maximum": 300000},
+        "should_texture": {"const": false},
+        "candidate_count": {"type": "integer", "minimum": 3, "maximum": 6},
+        "target_formats": {
+          "type": "array",
+          "prefixItems": [{"const": "glb"}],
+          "items": false,
+          "minItems": 1,
+          "maxItems": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "image_to_3d"}}, "required": ["mode"]},
+          "then": {
+            "properties": {
+              "model_type": {"const": "smart-topology"},
+              "ai_model": {"const": "meshy-t2"},
+              "target_polycount": {"type": "integer", "minimum": 100, "maximum": 15000}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"mode": {"const": "multi_image_to_3d"}}, "required": ["mode"]},
+          "then": {
+            "properties": {
+              "model_type": {"const": "standard"},
+              "ai_model": {"enum": ["meshy-7", "latest"]}
+            }
+          }
+        }
+      ]
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seeds", "lighting_modes"],
+      "properties": {
+        "seeds": {
+          "type": "array",
+          "prefixItems": [{"const": 42}, {"const": 777}],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "lighting_modes": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "normal"},
+            {"const": "emergency"},
+            {"const": "dark"}
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "prompt_profile": {"$ref": "#/$defs/identifier"},
+    "visual_brief": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "kit_parts": {"$ref": "#/$defs/identifierList"},
+    "deliverables": {"$ref": "#/$defs/identifierList"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"required_states": {"minItems": 2}},
+        "required": ["required_states"]
+      },
+      "then": {
+        "properties": {"state_derivation": {"const": "one_blender_master"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "animation": {
+            "properties": {"meshy_rigging_allowed": {"const": true}},
+            "required": ["meshy_rigging_allowed"]
+          }
+        },
+        "required": ["animation"]
+      },
+      "then": {
+        "properties": {
+          "animation": {
+            "properties": {"rigging_target": {"const": "humanoid_biped"}}
+          }
+        }
+      }
+    },
+    {
+      "not": {
+        "properties": {"category": {"pattern": "^structural(?:_|$)"}},
+        "required": ["category"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "generation": {
+            "properties": {"mode": {"const": "multi_image_to_3d"}},
+            "required": ["mode"]
+          }
+        },
+        "required": ["generation"]
+      },
+      "then": {
+        "properties": {
+          "references": {
+            "properties": {"required_views": {"minItems": 2, "maxItems": 4}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {"asset_id": {"pattern": "(^|_)kit(_|$)"}},
+            "required": ["asset_id"]
+          },
+          {
+            "properties": {"category": {"pattern": "(^|_)kit(_|$)"}},
+            "required": ["category"]
+          }
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {"required": ["kit_parts"]},
+          {"required": ["deliverables"]}
+        ]
+      }
+    }
+  ]
+}

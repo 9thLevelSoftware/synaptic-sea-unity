@@ -133,6 +133,32 @@ namespace SynapticSea.Core.Session
             }
             if (s.ShipModificationState != null)
                 snapshot.ShipModificationSummary = s.ShipModificationState.GetSummary();
+            // Unity port (gate2-current-run-5): E2 wounds / chart / tutorial, E3 manual-slot state, C4 run context.
+            if (s.WoundState != null)
+                snapshot.WoundSummary = s.WoundState.GetSummary();
+            if (s.WebChartState != null)
+                snapshot.WebChartSummary = s.WebChartState.GetSummary();
+            if (s.TutorialState != null)
+                snapshot.TutorialSummary = s.TutorialState.GetSummary();
+            if (s.EquipmentState != null)
+                snapshot.EquipmentSummary = s.EquipmentState.GetSummary();
+            if (s.HomeShip != null)
+            {
+                snapshot.HomeLootedContainers = s.HomeShip.LootedContainerIds.ShallowCopy();
+                snapshot.HomeShipInventory = s.HomeShip.GetInventory().GetSummary();
+                // gate2-current-run-6: what only rode world.json, so a manual slot restores it too.
+                var carts = new GdArray();
+                foreach (CartState c in s.HomeShip.GetCarts())
+                    carts.Add(c.GetSummary());
+                snapshot.HomeShipCarts = carts;
+                snapshot.HomeBreachEnvironment = s.HomeBreachEnvironmentForSave();
+            }
+            snapshot.RunContext = s.GetRunContextSummary();
+            if (s.MetaProgressionState != null)
+                snapshot.MetaProgressionSummary = s.MetaProgressionState.ToDict();
+            if (s.UniqueItemState != null)
+                snapshot.UniqueItemSummary = s.UniqueItemState.GetSummary();
+            snapshot.VisitedShips = WorldSnapshotAssembler.VisitedShipsForSave(s);
             // ADR-0046: real slot metadata.
             snapshot.PlayTimeSeconds = s.RunPlayTimeSeconds;
             snapshot.CurrentLocation = "home";
@@ -152,5 +178,28 @@ namespace SynapticSea.Core.Session
         /// sequence, and finally put the player at the saved position (the scene half).
         /// </summary>
         public static bool Apply(RunSession s, RunSnapshot snapshot) => s.ApplyRunSnapshotInternal(snapshot);
+
+        /// <summary>
+        /// Unity port (gate2-current-run-6): after a manual slot's reload, restore what Godot only restored through
+        /// world.json (home breach environment, home carts, meta progression, unique items, visited ships). An empty value
+        /// (a migrated older save) means "not saved" and keeps the live state. The world load path does not call this: it
+        /// applies the same helpers from the world-level fields.
+        /// </summary>
+        public static void ApplyManualSlotWorldState(RunSession s, RunSnapshot snapshot)
+        {
+            if (s.HomeShip != null)
+            {
+                if (!snapshot.HomeBreachEnvironment.IsEmpty)
+                    WorldSnapshotAssembler.ApplyHomeBreachEnvironment(s, snapshot.HomeBreachEnvironment);
+                if (!snapshot.HomeShipCarts.IsEmpty)
+                    WorldSnapshotAssembler.ApplyHomeCarts(s, snapshot.HomeShipCarts);
+            }
+            if (s.MetaProgressionState != null && !snapshot.MetaProgressionSummary.IsEmpty)
+                s.MetaProgressionState.ApplySummary(snapshot.MetaProgressionSummary);
+            if (s.UniqueItemState != null && !snapshot.UniqueItemSummary.IsEmpty)
+                s.UniqueItemState.ApplySummary(snapshot.UniqueItemSummary);
+            if (!snapshot.VisitedShips.IsEmpty)
+                WorldSnapshotAssembler.ApplyVisitedShips(s, snapshot.VisitedShips);
+        }
     }
 }

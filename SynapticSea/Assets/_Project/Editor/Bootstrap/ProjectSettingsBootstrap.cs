@@ -46,14 +46,35 @@ namespace SynapticSea.EditorTools.Bootstrap
             (0, Player), (0, Structure), (0, ZoneBlocker), (0, Threat), (0, Portal),
         };
 
+        /// <summary>
+        /// The NavMesh agent the threats path as. The player's own CharacterController is radius 0.35 / height 1.6,
+        /// and a ship's doorways leave a 1.2 m gap between their jambs, which Unity's built-in Humanoid agent
+        /// (radius 0.5) erodes shut, sealing every room off. Climb 0.3 matches the controller's step offset.
+        /// </summary>
+        /// <summary>
+        /// The NavMesh area a burning room's floor is marked with, at the cost the nav graph charges for fire
+        /// (<c>ShipNavGraph.FIRE_COST_MULT</c>), so a threat routes around a fire exactly as it did in Godot.
+        /// </summary>
+        public const string FireAreaName = "ThreatFire";
+        public const int FireAreaIndex = 8;
+        public const float FireAreaCost = 6f;
+
+        public const string ThreatAgentType = "Threat";
+        public const int ThreatAgentTypeId = 1734437751;
+        public const float ThreatAgentRadius = 0.35f;
+        public const float ThreatAgentHeight = 1.8f;
+        public const float ThreatAgentClimb = 0.3f;
+        public const float ThreatAgentSlope = 45f;
+
         [MenuItem("Synaptic Sea/Bootstrap/Apply Project Settings")]
         public static void Apply()
         {
             ApplyIdentity();
             ApplyLayers();
             ApplyCollisionMatrix();
+            ApplyNavAgentTypes();
             AssetDatabase.SaveAssets();
-            Debug.Log("[ProjectSettingsBootstrap] Applied identity, layers and collision matrix.");
+            Debug.Log("[ProjectSettingsBootstrap] Applied identity, layers, collision matrix and NavMesh agent types.");
             if (Application.isBatchMode) EditorApplication.Exit(0);
         }
 
@@ -112,6 +133,56 @@ namespace SynapticSea.EditorTools.Bootstrap
             // Physics.* setters write to the DynamicsManager asset; mark it dirty so SaveAssets persists it.
             var dynamics = AssetDatabase.LoadMainAssetAtPath("ProjectSettings/DynamicsManager.asset");
             if (dynamics != null) EditorUtility.SetDirty(dynamics);
+        }
+
+        /// <summary>
+        /// Registers the <see cref="ThreatAgentType"/> agent in ProjectSettings/NavMeshAreas.asset (the Navigation
+        /// window's Agents tab). The id is fixed so a re-run, and every scene or surface that stored it, keeps
+        /// pointing at the same agent.
+        /// </summary>
+        static void ApplyNavAgentTypes()
+        {
+            var asset = AssetDatabase.LoadMainAssetAtPath("ProjectSettings/NavMeshAreas.asset");
+            if (asset == null)
+            {
+                Debug.LogWarning("[ProjectSettingsBootstrap] ProjectSettings/NavMeshAreas.asset is missing; no agent type registered.");
+                return;
+            }
+            var so = new SerializedObject(asset);
+            SerializedProperty areas = so.FindProperty("areas");
+            if (areas != null && areas.arraySize > FireAreaIndex)
+            {
+                SerializedProperty area = areas.GetArrayElementAtIndex(FireAreaIndex);
+                area.FindPropertyRelative("name").stringValue = FireAreaName;
+                area.FindPropertyRelative("cost").floatValue = FireAreaCost;
+            }
+            SerializedProperty settings = so.FindProperty("m_Settings");
+            SerializedProperty names = so.FindProperty("m_SettingNames");
+            int index = -1;
+            for (int i = 0; i < names.arraySize; i++)
+                if (names.GetArrayElementAtIndex(i).stringValue == ThreatAgentType) index = i;
+            if (index < 0)
+            {
+                index = settings.arraySize;
+                settings.InsertArrayElementAtIndex(index);
+                names.InsertArrayElementAtIndex(index);
+            }
+            names.GetArrayElementAtIndex(index).stringValue = ThreatAgentType;
+            SerializedProperty s = settings.GetArrayElementAtIndex(index);
+            s.FindPropertyRelative("agentTypeID").intValue = ThreatAgentTypeId;
+            s.FindPropertyRelative("agentRadius").floatValue = ThreatAgentRadius;
+            s.FindPropertyRelative("agentHeight").floatValue = ThreatAgentHeight;
+            s.FindPropertyRelative("agentClimb").floatValue = ThreatAgentClimb;
+            s.FindPropertyRelative("agentSlope").floatValue = ThreatAgentSlope;
+            s.FindPropertyRelative("minRegionArea").floatValue = 2f;
+            s.FindPropertyRelative("manualCellSize").intValue = 0;
+            s.FindPropertyRelative("cellSize").floatValue = ThreatAgentRadius / 3f;
+            s.FindPropertyRelative("manualTileSize").intValue = 0;
+            s.FindPropertyRelative("tileSize").intValue = 256;
+            s.FindPropertyRelative("ledgeDropHeight").floatValue = 0f;
+            s.FindPropertyRelative("maxJumpAcrossDistance").floatValue = 0f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(asset);
         }
     }
 }

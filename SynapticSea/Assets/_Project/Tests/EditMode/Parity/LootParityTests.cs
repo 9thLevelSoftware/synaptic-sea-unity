@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -11,7 +10,7 @@ namespace SynapticSea.Tests.Parity
 {
     /// <summary>
     /// Loot determinism against Godot 4.7.1 (fixtures/godot/loot): every table × 5 seed sources through LootRoller,
-    /// and (once ported) LootDistribution × 2 contexts. Results must match item-for-item, including RNG seeds.
+    /// and LootDistribution × 2 contexts. Results must match item-for-item, including RNG seeds.
     /// </summary>
     public class LootParityTests
     {
@@ -60,11 +59,6 @@ namespace SynapticSea.Tests.Parity
         public void LootDistributionRollsMatchGodot()
         {
             Fixtures.Require(FixturePath);
-            var type = typeof(GdDict).Assembly.GetTypes().FirstOrDefault(t => t.Name == "LootDistribution");
-            if (type == null) Assert.Ignore("LootDistribution not ported yet");
-            var roll = type.GetMethod("Roll", BindingFlags.Public | BindingFlags.Static);
-            Assert.IsNotNull(roll, "LootDistribution.Roll not found");
-
             var fixture = Fixtures.ReadDict(FixturePath);
             var contexts = fixture.GetArray("contexts").Cast<GdDict>().ToDictionary(c => c.GetString("id"), c => c.GetDict("context"));
             var tables = LootRoller.LoadTables();
@@ -74,7 +68,7 @@ namespace SynapticSea.Tests.Parity
                 string table = r.GetString("table_id"), source = r.GetString("seed_source");
                 Assert.AreEqual(r.GetInt("rng_seed"), Math.Abs(GodotHash.StringHash(r.GetString("rng_seed_string"))), $"seed string {r.GetString("rng_seed_string")}");
                 var context = contexts[r.GetString("context_id")].DeepCopy();
-                var actual = roll.Invoke(null, new object[] { table, source, tables, context });
+                var actual = LootDistribution.Roll(table, source, tables, context);
                 var diffs = TreeDiff.Compare(r.Get("result"), actual);
                 Assert.IsEmpty(diffs, $"LootDistribution.Roll({table}, {source}, {r.GetString("context_id")}): {TreeDiff.Format(diffs)}");
             }

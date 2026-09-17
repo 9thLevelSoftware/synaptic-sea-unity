@@ -58,10 +58,25 @@ namespace SynapticSea.Tests
             return d;
         }
 
-        /// <summary>Skips (Inconclusive) when a fixture has not been captured yet.</summary>
+        /// <summary>Message used for the one allowed skip: the whole <c>fixtures/</c> tree is absent.</summary>
+        public const string NoFixturesTreeMessage =
+            "repo fixtures/ directory is absent (stripped checkout); Godot parity suites are skipped";
+
+        /// <summary>
+        /// Guards a fixture-driven test. When the repo's <c>fixtures/</c> tree exists a missing fixture is a real
+        /// failure (a parity suite must never pass silently); only a checkout without any <c>fixtures/</c> directory
+        /// is ignored, with <see cref="NoFixturesTreeMessage"/>.
+        /// </summary>
         public static void Require(string relative)
         {
-            if (!Exists(relative)) Assert.Ignore($"fixture not captured yet: fixtures/{relative}");
+            RequireTree();
+            if (!Exists(relative)) Assert.Fail($"fixture missing: fixtures/{relative} (fixtures/ exists, so every captured fixture must be present)");
+        }
+
+        /// <summary>Ignores the test only when the whole <c>fixtures/</c> tree is absent.</summary>
+        public static void RequireTree()
+        {
+            if (!Directory.Exists(FixturesDir)) Assert.Ignore(NoFixturesTreeMessage);
         }
     }
 }

@@ -162,7 +162,8 @@ namespace SynapticSea.Runtime
             go.transform.localPosition = Frame.ToUnity(pos);
         }
 
-        static string ObjectiveKind(string objectiveType)
+        /// <summary>The prop kind an objective type renders as (the <c>ObjectiveAffordance_NN_&lt;kind&gt;</c> name suffix).</summary>
+        public static string ObjectiveKind(string objectiveType)
         {
             switch (objectiveType)
             {

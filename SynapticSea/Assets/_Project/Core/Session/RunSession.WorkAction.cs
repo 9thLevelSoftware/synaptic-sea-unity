@@ -140,6 +140,57 @@ namespace SynapticSea.Core.Session
             });
         }
 
+        // ------------------------------------------------------------------ B3: hold vs tap (Unity-port input API)
+        bool _workHoldInput;
+
+        /// <summary>
+        /// True when work actions need interact held (the default); false when <see cref="SettingsState"/>
+        /// <c>hold_to_tap</c> is on (tap starts the action, it runs on its own, tap again cancels). Read live, so a settings
+        /// change applies to the next frame.
+        /// </summary>
+        public bool HoldToWorkEnabled => SettingsState == null || !SettingsState.IsHoldToTap();
+
+        /// <summary>True while the input layer holds interact (<see cref="BeginWorkHold"/>) or the frame reports it held.</summary>
+        public bool IsWorkInteractHeld => _workHoldInput || (_inTick && _frame.InteractHeld);
+
+        /// <summary>
+        /// The input layer calls this on EVERY interact press. Returns true when the press was consumed by an in-progress
+        /// work action (do not also call <see cref="RequestInteract"/>):
+        /// <list type="bullet">
+        /// <item>hold mode: an active action resumes while interact stays held (progress pauses on release, Godot);</item>
+        /// <item>tap mode: an active action is cancelled.</item>
+        /// </list>
+        /// Returns false when nothing is in progress: dispatch <see cref="RequestInteract"/> as usual (a work action it starts
+        /// progresses while the hold continues, or on its own in tap mode).
+        /// </summary>
+        public bool BeginWorkHold()
+        {
+            _workHoldInput = true;
+            if (WorkActionDriver == null || !WorkActionDriver.IsWorking())
+                return false;
+            if (!HoldToWorkEnabled)
+                CancelWorkAction();
+            return true;
+        }
+
+        /// <summary>The input layer calls this on interact release: in hold mode progress pauses until the next hold.</summary>
+        public void EndWorkHold()
+        {
+            _workHoldInput = false;
+        }
+
+        /// <summary>Cancels the in-progress work action (interrupt; progress is lost). False when nothing was in progress.</summary>
+        public bool CancelWorkAction()
+        {
+            if (WorkActionDriver == null || !WorkActionDriver.IsWorking())
+                return false;
+            WorkActionDriver.Work?.Interrupt();
+            _workRequiresHold = false;
+            PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
+            RefreshWorkActionHud();
+            return true;
+        }
+
         /// <summary>Lowest-priority interact: dismount/remount the nearest component (wrench) or weld/cut/pry structure.</summary>
         internal bool TryWorkActionInteract(Vec3 playerPos)
         {
@@ -260,7 +311,8 @@ namespace SynapticSea.Core.Session
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
                 return false;
             }
-            _workRequiresHold = true;
+            // Unity port (B3): hold-to-work unless the player chose hold_to_tap (then the action runs on its own).
+            _workRequiresHold = HoldToWorkEnabled;
             RefreshWorkActionHud();
             PlaySfx(AudioEventSeam.SFX_TOOL_USE);
             return true;
@@ -680,7 +732,10 @@ namespace SynapticSea.Core.Session
                 return;
             if (!WorkActionDriver.IsWorking())
                 return;
-            if (_workRequiresHold && !(_inTick && _frame.InteractHeld))
+            // Unity port (B3): switching to hold_to_tap mid-action releases the hold requirement.
+            if (_workRequiresHold && !HoldToWorkEnabled)
+                _workRequiresHold = false;
+            if (_workRequiresHold && !IsWorkInteractHeld)
             {
                 RefreshWorkActionHud();
                 return;

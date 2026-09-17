@@ -111,6 +111,8 @@ namespace SynapticSea.Runtime
             {
                 var visual = wrapper.transform.Find("Visual");
                 _structuralBlockerVisual = visual != null ? visual.gameObject : null;
+                // This wrapper opens when the portal does, so it is carved like the blocker instead of baked in.
+                Session.NavMeshBlocker.IgnoreFromBuild(wrapper.gameObject);
             }
             ApplyState();
         }
@@ -221,6 +223,8 @@ namespace SynapticSea.Runtime
             _blocker = go.AddComponent<BoxCollider>();
             _blocker.size = BlockerSize;
             _blocker.center = new Vector3(0f, BlockerSize.y * 0.5f, 0f);
+            // A closed portal blocks the threats' NavMesh too, by carving rather than baking: it opens mid-run.
+            Session.NavMeshBlocker.Attach(_blocker);
         }
 
         void EnsureVisual()

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaptic-sea.invalid/schemas/meshy_blender_validation_v1.schema.json",
+  "title": "Synaptic Sea Meshy Blender validation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "document_kind",
+    "status",
+    "task_id",
+    "asset_id",
+    "contract_sha256",
+    "sha256",
+    "byte_size",
+    "mesh_count",
+    "triangle_count",
+    "material_names",
+    "bounds",
+    "uvs_present",
+    "uv_evidence",
+    "blender_reimport_passed",
+    "master_provenance"
+  ],
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "assetId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "taskId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*$" },
+    "vec3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        { "type": "number" },
+        { "type": "number" },
+        { "type": "number" }
+      ],
+      "items": false
+    },
+    "uvEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mesh_index",
+        "primitive_index",
+        "accessor",
+        "vertex_count",
+        "uv_count",
+        "finite",
+        "range_valid"
+      ],
+      "properties": {
+        "mesh_index": { "type": "integer", "minimum": 0 },
+        "primitive_index": { "type": "integer", "minimum": 0 },
+        "accessor": { "type": "integer", "minimum": 0 },
+        "vertex_count": { "type": "integer", "minimum": 1 },
+        "uv_count": { "type": "integer", "minimum": 1 },
+        "finite": { "const": true },
+        "range_valid": { "const": true }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "document_kind": { "const": "meshy_blender_validation" },
+    "status": { "const": "PASS" },
+    "task_id": { "$ref": "#/$defs/taskId" },
+    "asset_id": { "$ref": "#/$defs/assetId" },
+    "contract_sha256": { "$ref": "#/$defs/hash" },
+    "sha256": { "$ref": "#/$defs/hash" },
+    "byte_size": { "type": "integer", "minimum": 1 },
+    "mesh_count": { "type": "integer", "minimum": 1 },
+    "triangle_count": { "type": "integer", "minimum": 1 },
+    "material_names": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max", "dimensions"],
+      "properties": {
+        "min": { "$ref": "#/$defs/vec3" },
+        "max": { "$ref": "#/$defs/vec3" },
+        "dimensions": { "$ref": "#/$defs/vec3" }
+      }
+    },
+    "uvs_present": { "const": true },
+    "uv_evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/uvEvidence" }
+    },
+    "blender_reimport_passed": { "const": true },
+    "master_provenance": { "type": "null" }
+  }
+}

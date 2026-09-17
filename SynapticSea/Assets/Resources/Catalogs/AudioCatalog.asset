@@ -13,6 +13,48 @@ MonoBehaviour:
   m_Name: AudioCatalog
   m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.AudioCatalog
   entries:
+  - resPath: res://assets/audio/ambient_corridor.wav
+    clip: {fileID: 8300000, guid: 9d605003528114f4e98bc8a6a50cc955, type: 3}
+  - resPath: res://assets/audio/ambient_docking.wav
+    clip: {fileID: 8300000, guid: 5b27f10b38b46da47a4770b32ff800f0, type: 3}
+  - resPath: res://assets/audio/ambient_engineering.wav
+    clip: {fileID: 8300000, guid: 1b2b66a862a694940855877b884b0293, type: 3}
+  - resPath: res://assets/audio/ambient_medical.wav
+    clip: {fileID: 8300000, guid: f3e40c2c58695cc47bfb43161712562d, type: 3}
+  - resPath: res://assets/audio/ambient_reactor.wav
+    clip: {fileID: 8300000, guid: 36e6ce93e1a96d34681eb90d8a96df3f, type: 3}
+  - resPath: res://assets/audio/biomatter_pulse.wav
+    clip: {fileID: 8300000, guid: af8237178dc132644b268eb1c3bca720, type: 3}
+  - resPath: res://assets/audio/cut.wav
+    clip: {fileID: 8300000, guid: c3135508b2cf9d84d83459d448a0e908, type: 3}
+  - resPath: res://assets/audio/dock_land.wav
+    clip: {fileID: 8300000, guid: 97db1b8dcc1ce1c4890f12eec4d056a5, type: 3}
+  - resPath: res://assets/audio/door_close.wav
+    clip: {fileID: 8300000, guid: f6afd7ececab6e34fae1446bb91fa042, type: 3}
+  - resPath: res://assets/audio/door_open.wav
+    clip: {fileID: 8300000, guid: 2591c814dd2b2a04298d0ac7f6e00336, type: 3}
+  - resPath: res://assets/audio/drop.wav
+    clip: {fileID: 8300000, guid: 85812e2c531098548a94d4a006aa881b, type: 3}
+  - resPath: res://assets/audio/fire_crackle.wav
+    clip: {fileID: 8300000, guid: f9a26dbf8019e294b8487440a9dddb4e, type: 3}
+  - resPath: res://assets/audio/footstep_metal.wav
+    clip: {fileID: 8300000, guid: 36f77422044263948b187a3e2d80a559, type: 3}
+  - resPath: res://assets/audio/hull_groan.wav
+    clip: {fileID: 8300000, guid: e8bd47fa55e5ee8458ddfedf1f17ee48, type: 3}
+  - resPath: res://assets/audio/patch.wav
+    clip: {fileID: 8300000, guid: e6ad8c0ff35bd9748a7bb7c09aa2f5aa, type: 3}
+  - resPath: res://assets/audio/pickup.wav
+    clip: {fileID: 8300000, guid: 56d8eb722fc98a94ab648c0d867ba4a7, type: 3}
+  - resPath: res://assets/audio/reactor_hum.wav
+    clip: {fileID: 8300000, guid: 6648baf7c1f00104488b49128eed159e, type: 3}
+  - resPath: res://assets/audio/suit_breath.wav
+    clip: {fileID: 8300000, guid: ecd12768f6370a745a811529aff406ec, type: 3}
+  - resPath: res://assets/audio/tool_use.wav
+    clip: {fileID: 8300000, guid: 52c9b58774561a04daf369ed492b19bf, type: 3}
+  - resPath: res://assets/audio/unbolt_pry.wav
+    clip: {fileID: 8300000, guid: 6fc069fc4efd1564fbdad3a1c0519ecc, type: 3}
+  - resPath: res://assets/audio/weld.wav
+    clip: {fileID: 8300000, guid: 0dfdcb14a5b7cdb499e5251ac3027d38, type: 3}
   - resPath: res://data/audio/music/critical_pad.wav
     clip: {fileID: 8300000, guid: bce76de00e83c1a4380e8be2e2d58740, type: 3}
   - resPath: res://data/audio/music/exploration_base.wav

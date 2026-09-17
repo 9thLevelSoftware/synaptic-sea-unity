@@ -1,5 +1,5 @@
 // Scene half of scripts/procgen/playable_generated_ship.gd @ 96ecb2b0: the node that owned the run (_ready, _process,
-// the interaction/zone/threat/hallucination children, _attach_ceiling_fade_controller and the travel scene surgery).
+// the interaction/zone/threat/hallucination children and the travel scene surgery; no ceiling fade, see port-status decision 17).
 using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Services;
@@ -19,10 +19,16 @@ namespace SynapticSea.Runtime.Session
     /// itself moves in <c>FixedUpdate</c> like Godot's <c>_physics_process</c>),</item>
     /// <item>calls <see cref="RunSession.Tick"/> unless <see cref="SimulationPaused"/> (the modal stack) says otherwise,</item>
     /// <item>applies the views: interaction nodes, zones, threat and phantom placeholders, hallucination FX, interact
-    /// focus, and — when the active ship root changes (travel, reload) — the environment, ceiling fade and sensors.</item>
+    /// focus, and — when the active ship root changes (travel, reload) — the environment and sensors.</item>
     /// </list>
-    /// Interact presses go to <see cref="RunSession.RequestInteract"/>, which resolves the claim through
-    /// <see cref="InteractionRegistry"/>; the scene only feeds overlap flags.
+    /// Interact presses go through <see cref="RunSession.BeginWorkHold"/> (an in-progress work action resumes or, in tap
+    /// mode, cancels) and otherwise to <see cref="RunSession.RequestInteract"/>, which resolves the claim through
+    /// <see cref="InteractionRegistry"/>; releases call <see cref="RunSession.EndWorkHold"/>. Attack, reload and the three
+    /// hotbar keys call the session's combat entry points (Godot <c>_input</c> gameplay tail). All gameplay input is
+    /// refused while the simulation is paused, the run has ended, or <see cref="GameplayInputBlocked"/> (the modal stack)
+    /// says a surface consumes input; the Player map is also disabled then.
+    /// The host also owns the presentation of the session's scene events: readability props, landmark VFX and world
+    /// labels (<see cref="Affordances"/>, <see cref="WorldLabels"/>), component markers, and threat combat feedback.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class RunSessionHost : MonoBehaviour
@@ -39,6 +45,12 @@ namespace SynapticSea.Runtime.Session
         /// <summary>Accessibility motion-reduce (hallucination FX); polled each frame. Null = off.</summary>
         public Func<bool> MotionReduce;
 
+        /// <summary>True while a surface consumes gameplay input (the modal stack); null = never blocked.</summary>
+        public Func<bool> GameplayInputBlocked;
+
+        /// <summary>A threat hit the player: (damage, archetype id, Godot-frame threat position).</summary>
+        public event Action<double, string, Vec3> PlayerDamaged;
+
         /// <summary>Raised when the interact focus changes (prompt text, or "" when nothing is in reach).</summary>
         public event Action<string> FocusPromptChanged;
 
@@ -53,7 +65,13 @@ namespace SynapticSea.Runtime.Session
         public IReadOnlyDictionary<SessionInteractable, InteractableView> InteractableViews => _interactables;
         public IReadOnlyDictionary<SessionZone, ZoneView> ZoneViews => _zones;
         public ThreatPlaceholderView Threats { get; private set; }
+
+        /// <summary>The NavMesh agents that move the threats (decision 59); null before the boot.</summary>
+        public NavMeshThreatNavigation ThreatNavigation { get; private set; }
         public HallucinationView Hallucinations { get; private set; }
+        public AffordanceView Affordances { get; private set; }
+        public ComponentMarkerView ComponentMarkers { get; private set; }
+        public WorldLabelLayer WorldLabels { get; private set; }
 
         Transform _interactionRoot;
         Transform _zoneRoot;
@@ -66,6 +84,9 @@ namespace SynapticSea.Runtime.Session
         bool _environmentDirty = true;
         string _focusPrompt = "";
         PlayerController _boundPlayer;
+        readonly List<IShipLoaderView> _affordanceDirtyRoots = new List<IShipLoaderView>();
+        bool _breachMarkerDirty;
+        bool _breachMarkerVisible;
 
         /// <summary>
         /// Composes the ports and boots the session (Godot <c>_ready</c>). <paramref name="configure"/> may adjust the
@@ -83,11 +104,21 @@ namespace SynapticSea.Runtime.Session
             _zoneRoot = MakeChild("ZoneRoot");
             _threatRoot = MakeChild("ThreatRoot");
             Threats = new ThreatPlaceholderView(_threatRoot);
+            Threats.PlayerPosition = () => SceneState?.Player != null ? SceneState.Player.transform.position : (Vector3?)null;
+            Threats.PlayerHit += (damage, id, archetype, at) => PlayerDamaged?.Invoke(damage, archetype, at);
             Hallucinations = new HallucinationView(_threatRoot);
+            WorldLabels = new WorldLabelLayer();
+            Affordances = new AffordanceView(MakeChild("AffordanceRoot"), WorldLabels);
+            ComponentMarkers = new ComponentMarkerView(MakeChild("ComponentMarkerRoot"));
 
             ShipHost = new UnityShipSceneHost(transform);
             ShipHost.RootAttached += _ => _environmentDirty = true;
-            ShipHost.RootFreed += _ => _environmentDirty = true;
+            ShipHost.RootFreed += r =>
+            {
+                _environmentDirty = true;
+                // A freed derelict loses its affordances even when no AffordancesCleared preceded the free (reload paths).
+                if (r is IShipLoaderView loader) OnAffordancesCleared(loader);
+            };
             SceneState = new UnityRunSceneState(transform, input);
             SceneState.PlayerSpawned += OnPlayerSpawned;
             SceneState.PlayerDespawned += OnPlayerDespawned;
@@ -96,6 +127,8 @@ namespace SynapticSea.Runtime.Session
             deps.Scene = SceneState;
             deps.ShipHost = ShipHost;
             deps.LosProbe = new PhysicsLineOfSightProbe();
+            ThreatNavigation = new NavMeshThreatNavigation(Threats);
+            deps.ThreatNavigation = ThreatNavigation;
             if (audio != null) deps.AudioSink = new AudioManagerSink(audio, () => SceneState.Player != null ? SceneState.Player.transform : null);
 
             Session = RunSession.Create(deps, s =>
@@ -105,13 +138,49 @@ namespace SynapticSea.Runtime.Session
                 s.Events.ZoneSpawned += OnZoneSpawned;
                 s.Events.ZoneDespawned += OnZoneDespawned;
                 s.Events.ZoneStateChanged += OnZoneStateChanged;
+                s.Events.AffordancesRebuilt += OnAffordancesRebuilt;
+                s.Events.AffordancesCleared += OnAffordancesCleared;
+                s.Events.BlockedAffordancesCleared += OnBlockedAffordancesCleared;
+                s.Events.BreachUnsafeMarkerVisible += OnBreachUnsafeMarkerVisible;
+                s.Events.ComponentMarkersRebuilt += OnComponentMarkersRebuilt;
                 beforeReady?.Invoke(s);
             });
+            // The music stems / ambient beds follow the session's audio models (explicit, instead of a host lookup).
+            if (audio != null && Session.AudioManager != null)
+                audio.BindSessionModels(Session.AudioManager.MusicState, Session.AudioManager.AmbientZoneState);
             Reconcile();
             ApplyActiveShipIfChanged(force: true);
+            ResolveSpawnClearance();
             SessionBooted?.Invoke(Session);
             return Session;
         }
+
+        /// <summary>
+        /// Where the boot spawned the player inside wall geometry (golden 001: a docked life boat wall runs through the
+        /// start marker), move them to the nearest clear spot standing on the home ship's floor (decision 55).
+        /// </summary>
+        void ResolveSpawnClearance()
+        {
+            PlayerController player = SceneState.Player;
+            if (player == null)
+                return;
+            Vector3 feet = player.transform.position;
+            Transform home = ShipHost.HomeLoader != null ? ShipHost.HomeLoader.GameObject.transform : null;
+            bool found = SpawnClearance.TryFindClear(feet, floor => home == null || floor.transform.IsChildOf(home), out Vector3 clear);
+            if (!found)
+            {
+                Debug.LogWarning($"[RunSessionHost] no clear spawn within {SpawnClearance.MaxSearchRadius} m of {feet}; the player keeps the start pose");
+                return;
+            }
+            if ((clear - feet).sqrMagnitude < 1e-6f)
+                return;
+            SpawnResolvedFrom = feet;
+            SceneState.TeleportPlayer(Frame.ToGodot(clear));
+            Debug.Log($"[RunSessionHost] spawn moved {Vector3.Distance(clear, feet):0.00} m clear of wall geometry");
+        }
+
+        /// <summary>The start pose the boot moved away from, when the spawn overlapped geometry (null otherwise).</summary>
+        public Vector3? SpawnResolvedFrom { get; private set; }
 
         Transform MakeChild(string name)
         {
@@ -126,6 +195,8 @@ namespace SynapticSea.Runtime.Session
         {
             if (Session == null) return;
             Paused = SimulationPaused != null && SimulationPaused();
+            // Agents walk in the engine's update, which a paused simulation does not stop.
+            ThreatNavigation?.SetPaused(Paused);
             if (!Paused) Session.Tick(BuildTickContext(Time.deltaTime));
             ApplyViews();
         }
@@ -161,14 +232,114 @@ namespace SynapticSea.Runtime.Session
             Hallucinations.Bind(Session.HallucinationManager);
             Hallucinations.Sync();
             HallucinationView.SetMotionReduce(MotionReduce != null && MotionReduce());
+            if (_affordanceDirtyRoots.Count > 0)
+            {
+                var roots = new List<IShipLoaderView>(_affordanceDirtyRoots);
+                _affordanceDirtyRoots.Clear();
+                foreach (IShipLoaderView root in roots)
+                    if (root != null && root.IsValid) Affordances.Rebuild(Session, root);
+                _breachMarkerDirty = true;
+            }
+            if (_breachMarkerDirty)
+            {
+                _breachMarkerDirty = false;
+                Affordances.SetBreachMarkerVisible(Session, _breachMarkerVisible);
+            }
+            Affordances.SyncArcLabels(Session.ArcZoneNodes);
             UpdateFocus();
+        }
+
+        void LateUpdate()
+        {
+            if (Session == null || WorldLabels == null) return;
+            PlayerController p = SceneState?.Player;
+            Camera cam = SceneState?.CameraRig != null ? SceneState.CameraRig.Camera : null;
+            WorldLabels.Update(cam, p != null ? p.transform.position : (Vector3?)null);
+        }
+
+        // ------------------------------------------------------------------ scene event views (D1/D2)
+
+        void OnAffordancesRebuilt(IShipLoaderView root)
+        {
+            if (root != null && !_affordanceDirtyRoots.Contains(root)) _affordanceDirtyRoots.Add(root);
+        }
+
+        void OnAffordancesCleared(IShipLoaderView root)
+        {
+            _affordanceDirtyRoots.Remove(root);
+            Affordances?.Clear(root);
+        }
+
+        void OnBlockedAffordancesCleared() => Affordances?.ClearBlocked();
+
+        void OnBreachUnsafeMarkerVisible(bool visible)
+        {
+            _breachMarkerVisible = visible;
+            _breachMarkerDirty = true;
+        }
+
+        void OnComponentMarkersRebuilt(IReadOnlyList<GdDict> records) => ComponentMarkers?.Rebuild(records);
+
+        // ------------------------------------------------------------------ gameplay input (A1, B3, A5)
+
+        /// <summary>Gameplay keys may act: booted, not paused, the run not over, and no surface consuming input.</summary>
+        public bool GameplayInputAllowed =>
+            Session != null && !Paused && !(SimulationPaused != null && SimulationPaused()) && !Session.SliceComplete
+            && !(GameplayInputBlocked != null && GameplayInputBlocked());
+
+        /// <summary><c>attack_primary</c>: <see cref="RunSession.AttackWithEquippedWeapon"/> (null when refused by the gate).</summary>
+        public GdDict RequestAttack()
+        {
+            if (!GameplayInputAllowed) return null;
+            GdDict result = Session.AttackWithEquippedWeapon();
+            ApplyViews();
+            return result;
+        }
+
+        /// <summary><c>reload_weapon</c>: <see cref="RunSession.BeginWeaponReload"/>. False when refused by the gate.</summary>
+        public bool RequestReload()
+        {
+            if (!GameplayInputAllowed) return false;
+            Session.BeginWeaponReload();
+            return true;
+        }
+
+        /// <summary><c>hotbar_1..3</c>: <see cref="RunSession.UseConsumableHotbarSlot"/> (null when refused by the gate).</summary>
+        public GdDict RequestHotbar(int slotIndex)
+        {
+            if (!GameplayInputAllowed) return null;
+            return Session.UseConsumableHotbarSlot(slotIndex);
+        }
+
+        /// <summary>
+        /// Interact pressed: an in-progress work action consumes the press (<see cref="RunSession.BeginWorkHold"/>: hold
+        /// resumes, tap cancels); otherwise the registry interact runs. Returns the claiming handler id ("" = none / work).
+        /// </summary>
+        public string PressInteract()
+        {
+            if (!GameplayInputAllowed) return "";
+            if (Session.BeginWorkHold())
+            {
+                ApplyViews();
+                return "";
+            }
+            return RequestInteract();
+        }
+
+        /// <summary>Interact released: work progress pauses in hold mode (<see cref="RunSession.EndWorkHold"/>).</summary>
+        public void ReleaseInteract() => Session?.EndWorkHold();
+
+        /// <summary>A movement key press: the <c>player_moved</c> tutorial (fires once per run).</summary>
+        public void NotifyMoveInput()
+        {
+            if (GameplayInputAllowed) Session.OnPlayerMoved();
         }
 
         /// <summary>Player interact (Godot <c>interact_requested</c>): overlap flags are current, the registry decides.</summary>
         public string RequestInteract()
         {
             if (Session == null) return "";
-            if (Paused) return "";
+            if (Paused || (GameplayInputBlocked != null && GameplayInputBlocked())) return "";
             SceneState.Sensor?.Refresh();
             foreach (InteractableView v in _interactables.Values) v.Sync();
             string handler = Session.RequestInteract();
@@ -297,22 +468,49 @@ namespace SynapticSea.Runtime.Session
 
         void OnPlayerSpawned(PlayerController player)
         {
-            if (_boundPlayer != null) _boundPlayer.InteractRequested -= OnPlayerInteract;
+            UnbindPlayer();
             _boundPlayer = player;
             player.InteractRequested += OnPlayerInteract;
+            player.InteractPressed += OnPlayerInteractPressed;
+            player.InteractReleased += OnPlayerInteractReleased;
             player.FieldCraftRequested += OnPlayerFieldCraft;
+            player.AttackRequested += OnPlayerAttack;
+            player.ReloadRequested += OnPlayerReload;
+            player.HotbarRequested += OnPlayerHotbar;
+            player.MoveInputPressed += OnPlayerMoveInput;
             foreach (InteractableView v in _interactables.Values) v.SetProximity(SceneState.Sensor);
             _environmentDirty = true;
         }
 
+        void UnbindPlayer()
+        {
+            if (_boundPlayer == null) return;
+            _boundPlayer.InteractRequested -= OnPlayerInteract;
+            _boundPlayer.InteractPressed -= OnPlayerInteractPressed;
+            _boundPlayer.InteractReleased -= OnPlayerInteractReleased;
+            _boundPlayer.FieldCraftRequested -= OnPlayerFieldCraft;
+            _boundPlayer.AttackRequested -= OnPlayerAttack;
+            _boundPlayer.ReloadRequested -= OnPlayerReload;
+            _boundPlayer.HotbarRequested -= OnPlayerHotbar;
+            _boundPlayer.MoveInputPressed -= OnPlayerMoveInput;
+            _boundPlayer = null;
+        }
+
         void OnPlayerDespawned()
         {
-            _boundPlayer = null;
+            UnbindPlayer();
+            Session?.EndWorkHold();
             FocusedView = null;
             _environmentDirty = true;
         }
 
         void OnPlayerInteract(PlayerController _) => RequestInteract();
+        void OnPlayerInteractPressed(PlayerController _) => PressInteract();
+        void OnPlayerInteractReleased(PlayerController _) => ReleaseInteract();
+        void OnPlayerAttack(PlayerController _) => RequestAttack();
+        void OnPlayerReload(PlayerController _) => RequestReload();
+        void OnPlayerHotbar(PlayerController _, int slot) => RequestHotbar(slot);
+        void OnPlayerMoveInput(PlayerController _) => NotifyMoveInput();
 
         void OnPlayerFieldCraft(PlayerController _)
         {
@@ -324,8 +522,7 @@ namespace SynapticSea.Runtime.Session
         /// <summary>
         /// After travel (<c>_attach_derelict_active</c> / <c>travel_home</c>) or a reload, the session has already
         /// re-parented roots and re-pegged the player and docked ships through the ports. The scene then follows the
-        /// new active root: environment (biome atmosphere or Godot's default), ceiling fade over every attached root's
-        /// ceilings, sensor overlaps, and the audio listener.
+        /// new active root: environment (biome atmosphere or Godot's default), sensor overlaps, and the audio listener.
         /// </summary>
         void ApplyActiveShipIfChanged(bool force)
         {
@@ -334,9 +531,25 @@ namespace SynapticSea.Runtime.Session
             _environmentDirty = false;
             _appliedActiveRoot = active;
             ApplyEnvironment(active as ShipLoaderNode, Session.AwayFromStart);
+            ApplyThreatNavMesh(active);
             Physics.SyncTransforms();
             SceneState.Sensor?.Refresh();
             ActiveShipChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Builds the NavMesh of the ship the threats are now on (decision 59). A ship is generated at load, so its
+        /// surface is built here rather than baked into an asset; a build failure leaves
+        /// <see cref="Core.Session.IThreatNavigation.HasNavMesh"/> false and the threats keep to the nav graph.
+        /// </summary>
+        void ApplyThreatNavMesh(IShipSceneRoot active)
+        {
+            if (ThreatNavigation == null) return;
+            GameObject root = active is SceneShipRoot scene && scene.IsValid ? scene.GameObject : null;
+            ShipNavMesh nav = root != null ? ShipNavMesh.Build(root) : null;
+            if (root != null && nav == null)
+                Debug.LogWarning($"[RunSessionHost] no NavMesh built for {root.name}; threats fall back to the nav graph");
+            ThreatNavigation.SetShip(nav);
         }
 
         static void ApplyEnvironment(ShipLoaderNode loader, bool away)
@@ -356,12 +569,11 @@ namespace SynapticSea.Runtime.Session
 
         void OnDestroy()
         {
-            if (_boundPlayer != null)
-            {
-                _boundPlayer.InteractRequested -= OnPlayerInteract;
-                _boundPlayer.FieldCraftRequested -= OnPlayerFieldCraft;
-            }
+            UnbindPlayer();
             Threats?.Unbind();
+            Affordances?.Clear();
+            ComponentMarkers?.Clear();
+            WorldLabels?.Clear();
             Hallucinations?.Unbind();
             HallucinationFx.SetGlobalIntensity(0.0);
             Session?.Dispose();
