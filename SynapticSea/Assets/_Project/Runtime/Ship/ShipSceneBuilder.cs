@@ -44,7 +44,7 @@ namespace SynapticSea.Runtime
 
         public ShipView View { get; }
 
-        /// <summary>Kit prefab catalog override; by default <c>Resources/Catalogs/KitCatalog_&lt;kit_id&gt;</c>.</summary>
+        /// <summary>Kit prefab catalog override; by default <see cref="KitCatalogResolver.ForKitDocument"/> (the loaded kit's wrapper folder, else v0).</summary>
         public KitPrefabCatalog KitCatalog { get; set; }
 
         /// <summary>Prop prefab catalog override; by default <c>Resources/Catalogs/PropCatalog</c>.</summary>
@@ -243,8 +243,7 @@ namespace SynapticSea.Runtime
         KitPrefabCatalog ResolveKitCatalog(GdDict kit)
         {
             if (KitCatalog != null) return KitCatalog;
-            string kitId = V.Str(kit.Get("kit_id", ""));
-            return kitId.Length == 0 ? null : Resources.Load<KitPrefabCatalog>("Catalogs/KitCatalog_" + kitId);
+            return KitCatalogResolver.ForKitDocument(kit);
         }
 
         /// <summary>

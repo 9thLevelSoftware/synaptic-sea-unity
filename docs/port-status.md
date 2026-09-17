@@ -73,6 +73,42 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
     - Composition: `Game/` (`SynapticSea.Game`, references App and UI) holds `PlayableBootstrap` (uses `AppServices.Ensure()`, consumes `RunLaunchRequest`) and `SessionUiBridge`. No request (scene opened directly, tests) boots golden `coherent_ship_001`; a title New Run boots Godot's default start (`smoke/seed_000017`). The UI audio seam is `SessionUiAudio` over the session's `SessionAudio` models, so bus volumes have one source of truth.
     - Core change: `RunSession.Create(deps, beforeReady)`, so the scene can subscribe before `_ready` raises the boot events.
 
+24. **The kit prefab catalog follows the kit document that was loaded, not the layout's `kit_id`.** `KitCatalogResolver` (Runtime/Ship) keys the catalog by the folder of the modules' `godot_wrapper_scene` (`ship_structural_biomatter` reuses the `ship_structural_v0` wrappers, so it gets `KitCatalog_ship_structural_v0`). Kits without a complete wrapper map (`ship_structural_hazard`, `_industrial`) fall back to v0, like Godot's `kit_path_for_layout`. The life boat, which has only a layout, goes through `KitPathForLayout` first.
+
+25. **Audio: Godot's 21 unreferenced `assets/audio` clips are mapped, and music plays as stems.**
+    - The clips live in `Content/Audio/Clips` under `res://assets/audio/<file>`. Import presets: SFX are decompress-on-load mono PCM, ambient beds (`ambient_*`, `reactor_hum`) stream as mono Vorbis, and music stems decompress on load so `PlayScheduled` is sample-exact.
+    - `meta.hull.groan` now uses `hull_groan.wav` instead of the `breach_alarm.wav` stand-in.
+    - Music: every stem is scheduled on one shared DSP time. Each stem follows its own layer gain from the session's `DynamicMusicState` at `-24 + gain × 24` dB, and is silent at zero gain. Godot collapsed the layers into one player at the loudest layer's level. `layer.combat_percussion` has no stream, so its stem stays silent.
+    - The `IAudioSink` contract only carries the collapsed level. `AudioManager` therefore binds its host's models itself (`RunSessionHost.Audio == this`), or through `BindSessionModels`.
+    - The session's `AmbientZoneState` role now drives two crossfading ambient beds, at crossfade gain × role intensity × threat multiplier. Godot never played them.
+
+    | Event id(s) | Clip |
+    |---|---|
+    | `sfx.work.weld`, `sfx.arc.zap` | `weld.wav` |
+    | `sfx.work.cut` | `cut.wav` |
+    | `sfx.work.patch`, `sfx.wound.bandage`, `sfx.wound.treat` | `patch.wav` |
+    | `sfx.work.unbolt`, `sfx.work.pry`, `sfx.work.mount`, `ui.ship_mod.install`, `ui.ship_mod.uninstall` | `unbolt_pry.wav` |
+    | `sfx.work.splice`, `sfx.tool.use` | `tool_use.wav` |
+    | `sfx.work.harvest` | `pickup.wav` |
+    | `sfx.work.plant`, `sfx.drop.item` | `drop.wav` |
+    | `sfx.suit.breath` | `suit_breath.wav` |
+    | `sfx.craft.complete` | `dock_land.wav` (assets variant, 1 s thunk) |
+    | `sfx.repair.complete` | `door_close.wav` (assets variant, 0.5 s clunk) |
+    | `meta.hull.groan` / `meta.reactor.hum` / `meta.biomatter.pulse` | `hull_groan.wav` / `reactor_hum.wav` / `biomatter_pulse.wav` |
+    | `amb.docking` / `amb.engine` / `amb.cargo` / `amb.med_bay` / `amb.crew_quarters` | `ambient_docking` / `ambient_reactor` / `ambient_engineering` / `ambient_medical` / `ambient_corridor` |
+    | `ui.inventory.open`, `ui.wounds.open`, `ui.ship_mod.open` / `ui.inventory.close` | existing `ui/panel_open.wav` / `ui/panel_close.wav` |
+
+    - Three copied clips stay unmapped because their events already use Godot's `data/audio` versions: `footstep_metal`, `door_open` and `fire_crackle`.
+    - Still silent (12; `AudioContentTests.ReportsEventsStillWithoutClips` lists them): `meta.beacon.distress`, `sfx.hallucination.whisper`, `sfx.sanity.ambient`, `sfx.sanity.hud_glitch`, `sfx.sanity.phantom`, `ui.chart.route`, `ui.load`, `ui.save`, `ui.objective.advance`, `ui.work.progress`, `voice.log.play` (voice-log files exist in neither engine) and `layer.combat_percussion`.
+
+26. **Icons: `IconCatalog` (Runtime/Content, `Resources/Catalogs/IconCatalog.asset`, built by `IconCatalogBuilder`).**
+    - `IconCatalog.Resolve(resPath, categoryHint)` returns the imported texture for `res://assets/ui/{status,achievements}/*.png`.
+    - Item icon paths have no files in either engine, so they resolve to a generated placeholder. The choice goes: the hint's category, then the path folder (`materials` → raw, `loot` → unique), then the generic item placeholder.
+    - Placeholders cover 16 categories (`Content/UI/Icons/items/placeholder_<category>.png`). Each unresolved path is logged once, at info level.
+    - UI wiring is not done yet.
+
+27. **Template leftovers removed** (`Editor/Bootstrap/TemplateCleanup`, idempotent). The project-wide input actions are now `Content/Input/SynapticSea.inputactions`. Both URP assets use `SS_GlobalVolume` as their default volume profile. `Assets/InputSystem_Actions.inputactions` and `Settings/SampleSceneProfile.asset` are deleted.
+
 ## Light calibration (2026-09-11)
 
 Method: `ScreenshotRunner.Sweep` renders one layout under several `(tonemap, dir, omni, ambient)` configs. `tools/image-luma.ps1` then compares the mean sRGB luma of matching 1920×1080 crops against `fixtures/godot/screens/`. Ceilings are hidden (`-ceilings hide`), as in the Godot captures.

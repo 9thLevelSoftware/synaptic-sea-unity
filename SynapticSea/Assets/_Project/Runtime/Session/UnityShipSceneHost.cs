@@ -102,8 +102,7 @@ namespace SynapticSea.Runtime.Session
                 rooms.Add(room.Position);
             }
             GdDict layout = lifeboat.Layout ?? new GdDict();
-            KitPrefabCatalog kit = Resources.Load<KitPrefabCatalog>("Catalogs/KitCatalog_" + V.Str(layout.Get("kit_id", LifeBoatBuilder.DEFAULT_KIT_ID)))
-                                   ?? Resources.Load<KitPrefabCatalog>("Catalogs/KitCatalog_" + LifeBoatBuilder.DEFAULT_KIT_ID);
+            KitPrefabCatalog kit = KitCatalogResolver.ForLayout(layout);
             if (kit != null)
             {
                 var built = new StructuralLayoutBuilder().Build(layout, kit, structure);
