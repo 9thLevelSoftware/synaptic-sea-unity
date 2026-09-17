@@ -25,6 +25,12 @@ namespace SynapticSea.Core.Systems
         IStorage _storage;
         IClock _clock;
 
+        /// <summary>
+        /// Unity port: raised with the id when <see cref="Unlock"/> newly unlocks an achievement (not on
+        /// <see cref="ApplySummary"/> restores). Platform layers (Steam) mirror unlocks from it.
+        /// </summary>
+        public event Action<string> Unlocked;
+
         public AchievementState(IStorage storage = null, IClock clock = null)
         {
             _storage = storage;
@@ -90,6 +96,7 @@ namespace SynapticSea.Core.Systems
                 { "unlocked", true },
                 { "unlocked_at", Clock.DateTimeString(true) },
             };
+            Unlocked?.Invoke(id);
             return true;
         }
 
