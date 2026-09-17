@@ -4,13 +4,25 @@ Death or extract must open `RunResultsPanel` with an outcome. A silent Title dum
 
 Automated coverage:
 
-- EditMode: `SessionUiBridgeRunResultsTests` (death, extract, slice-complete, Return to Title seam, quit does not open or replace results)
+- EditModeUnity assembly `SynapticSea.Tests.EditModeUnity` (not `SynapticSea.Tests.EditMode`): `SessionUiBridgeRunResultsTests` (death, extract, slice-complete, Return to Title seam, quit does not open or replace results)
 - PlayMode: `RunLifecyclePlayModeTests.DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun` and `ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun`
 
+Exact EditModeUnity verify (Unity Test Runner or CLI):
+
+| Field | Value |
+| --- | --- |
+| Assembly | `SynapticSea.Tests.EditModeUnity` (`autoReferenced: false`) |
+| Filter | `SessionUiBridgeRunResults` |
+
 ```
+# Must compile SynapticSea.Tests.EditModeUnity — do not select SynapticSea.Tests.EditMode
 pwsh tools/test.ps1 -Mode EditMode -Filter SessionUiBridgeRunResults
+# unity test SynapticSea --mode EditMode --filter SessionUiBridgeRunResults
+
 pwsh tools/test.ps1 -Mode PlayMode -Filter RunLifecyclePlayModeTests
 ```
+
+A filter of `SessionUiBridgeRunResults` against `SynapticSea.Tests.EditMode` (or the default engine-free EditMode assembly) matches 0 tests. Select **SynapticSea.Tests.EditModeUnity**.
 
 ## Acceptance
 
