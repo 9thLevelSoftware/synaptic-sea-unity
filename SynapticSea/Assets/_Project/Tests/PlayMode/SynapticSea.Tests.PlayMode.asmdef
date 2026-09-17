@@ -6,7 +6,11 @@
         "SynapticSea.Runtime",
         "Unity.InputSystem",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "SynapticSea.Game",
+        "SynapticSea.UI",
+        "SynapticSea.UI.Presenters",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

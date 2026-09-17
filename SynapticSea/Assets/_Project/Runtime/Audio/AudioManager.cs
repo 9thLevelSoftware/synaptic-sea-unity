@@ -296,6 +296,65 @@ namespace SynapticSea.Runtime
 
         public Transform GetListenerAnchor() => _listenerAnchor;
 
+        // ------------------------------------------------------------------ session sink (RunSession owns the models)
+
+        /// <summary>Godot <c>_apply_bus_volumes</c> with the session's bus model (the session's SessionAudio is the source of truth).</summary>
+        public void ApplyBusConfig(AudioBusConfig busConfig)
+        {
+            if (busConfig != null) BusConfig = busConfig;
+            ApplyBusVolumes();
+        }
+
+        /// <summary>Godot <c>_play_via_bus</c>; <paramref name="streamPath"/> wins over the stream catalog lookup.</summary>
+        public void PlayOnBus(string busId, double volumeDb, string eventId, string streamPath) => PlayViaBus(busId, volumeDb, eventId ?? "", streamPath ?? "");
+
+        /// <summary>Godot <c>_play_spatial</c> at a Unity world position.</summary>
+        public void PlaySpatialAt(string eventId, Vector3 unityPosition, string busId, double volumeDb) => PlaySpatial(eventId, unityPosition, busId, volumeDb);
+
+        /// <summary>Godot <c>_apply_music_layer_gains</c> with a session-resolved level (lazy base-layer start).</summary>
+        public void SetMusicVolumeDb(double volumeDb)
+        {
+            if (!_busPlayers.TryGetValue(AudioEventSeam.BUS_MUSIC, out AudioSource player)) return;
+            if (player.clip == null && StreamCatalog.TryGetValue(AudioEventSeam.MUSIC_LAYER_BASE, out string basePath))
+            {
+                AudioClip clip = LoadClip(basePath);
+                if (clip != null)
+                {
+                    player.clip = clip;
+                    player.loop = true;
+                    if (!_headless) player.Play();
+                }
+            }
+            SetSourceDb(player, AudioEventSeam.BUS_MUSIC, volumeDb);
+        }
+
+        /// <summary><c>apply_spatial_attenuation</c> resolved with the session's resolver.</summary>
+        public int ApplySpatialAttenuation(SpatialAudioResolver resolver)
+        {
+            if (_listenerAnchor == null || resolver == null) return 0;
+            Vec3 listener = Frame.ToGodot(_listenerAnchor.position);
+            int touched = 0;
+            foreach (var kv in _spatialPool)
+            {
+                foreach (var src in kv.Value)
+                {
+                    if (src == null) continue;
+                    Vec3 emitter = Frame.ToGodot(src.transform.position);
+                    double baseDb = SfxEventRouter.GetVolumeForEvent(kv.Key);
+                    SetSourceDb(src, _sourceLevels[src].bus, resolver.ResolveVolumeDb(emitter, listener, IsOccluded(emitter, listener), baseDb));
+                    touched++;
+                }
+            }
+            return touched;
+        }
+
+        /// <summary>Godot's audio-log Stop button (<c>current_voice_log_id = ""</c>) and the bus player stop.</summary>
+        public void StopVoiceLog()
+        {
+            CurrentVoiceLogId = "";
+            if (_busPlayers.TryGetValue(AudioEventSeam.BUS_VOICE, out AudioSource player) && player != null) player.Stop();
+        }
+
         public AudioSource GetBusPlayer(string busId) => _busPlayers.TryGetValue(busId ?? "", out var p) ? p : null;
 
         public int GetSpatialPlayerCount()

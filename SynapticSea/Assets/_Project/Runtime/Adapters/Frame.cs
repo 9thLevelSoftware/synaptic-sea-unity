@@ -1,3 +1,4 @@
+using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 using UnityEngine;
 
@@ -58,6 +59,28 @@ namespace SynapticSea.Runtime
         {
             _ = godotX;
             return Quaternion.LookRotation(ToUnity(godotZ), ToUnity(godotY));
+        }
+
+        /// <summary>
+        /// A Godot <c>Transform3D</c> (orthonormal basis given by rows) applied as a Unity LOCAL pose on
+        /// <paramref name="target"/> (non-light node).
+        /// </summary>
+        public static void ApplyLocal(Transform target, Xform3 godot)
+        {
+            Basis3 b = godot.Basis;
+            var x = new Vec3(b.Row0.X, b.Row1.X, b.Row2.X);
+            var y = new Vec3(b.Row0.Y, b.Row1.Y, b.Row2.Y);
+            var z = new Vec3(b.Row0.Z, b.Row1.Z, b.Row2.Z);
+            target.localPosition = ToUnity(godot.Origin);
+            target.localRotation = BasisRotation(x, y, z);
+        }
+
+        /// <summary>Inverse of <see cref="ApplyLocal"/>: a Unity local pose as a Godot <c>Transform3D</c>.</summary>
+        public static Xform3 ToGodotLocal(Transform source)
+        {
+            ToGodotBasis(source.localRotation, out Vec3 x, out Vec3 y, out Vec3 z);
+            var basis = new Basis3(new Vec3(x.X, y.X, z.X), new Vec3(x.Y, y.Y, z.Y), new Vec3(x.Z, y.Z, z.Z));
+            return new Xform3(basis, ToGodot(source.localPosition));
         }
 
         /// <summary>Inverse of <see cref="BasisRotation"/>: the Godot basis columns of a Unity local rotation.</summary>
