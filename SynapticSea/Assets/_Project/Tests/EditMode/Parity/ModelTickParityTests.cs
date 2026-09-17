@@ -14,7 +14,12 @@ namespace SynapticSea.Tests.Parity
     /// <summary>
     /// Replays every Godot model tick trace (fixtures/godot/models/*_tick_fixture.fullprec.json) against the ported
     /// C# model and compares the return value and full summary after configure, after each setup op, and after every
-    /// step: type-aware and bit-exact. Models not yet ported are ignored with a reason, so this suite grows with the port.
+    /// step: type-aware and bit-exact. Every captured model must resolve to a ported type (a missing one fails).
+    /// After the last step the fixture's <c>round_trip</c> is replayed: <c>get_summary()</c> → a fresh instance prepared as
+    /// the recorded description says (same config, bare, or the pristine ShipSystemsManager) → <c>apply_summary()</c> →
+    /// <c>get_summary()</c>, comparing the source summary, the apply return and the restored summary bit-exactly. The
+    /// section is read from the <c>.fullprec.json</c> companion (every model fixture carries it there), so no float
+    /// tolerance is needed.
     /// Calls are mapped by reflection from the recorded GDScript call (<c>tick(delta, context)</c> → <c>Tick(double, …)</c>),
     /// with small hooks for the few recorded operations that are expressions rather than calls.
     /// </summary>
@@ -27,7 +32,7 @@ namespace SynapticSea.Tests.Parity
         public static IEnumerable<string> FixtureNames()
         {
             string dir = Path.Combine(Fixtures.FixturesDir, "godot", "models");
-            if (!Directory.Exists(dir)) yield break;
+            if (!Directory.Exists(Fixtures.FixturesDir)) yield break; // stripped checkout: nothing to replay
             foreach (string f in Directory.GetFiles(dir, "*_tick_fixture.fullprec.json").OrderBy(x => x, StringComparer.Ordinal))
                 yield return Path.GetFileName(f).Replace("_tick_fixture.fullprec.json", "");
         }
@@ -47,7 +52,7 @@ namespace SynapticSea.Tests.Parity
         {
             var fixture = Fixtures.ReadDict($"{ModelsDir}/{model}_tick_fixture.fullprec.json");
             Type type = FindModelType(model);
-            if (type == null) Assert.Ignore($"{PascalCase(model)} not ported yet");
+            Assert.IsNotNull(type, $"no SynapticSea.Core type named {PascalCase(model)} for fixture {model}");
 
             object instance = Activator.CreateInstance(type);
             Configure(model, type, instance, fixture);
@@ -72,6 +77,45 @@ namespace SynapticSea.Tests.Parity
                 if (step.Has("return")) AssertTree(step.Get("return"), ret, $"{where} return");
                 AssertSummary(instance, step.Get("summary"), where);
             }
+
+            ReplayRoundTrip(model, type, instance, fixture);
+        }
+
+        static void ReplayRoundTrip(string model, Type type, object source, GdDict fixture)
+        {
+            GdDict rt = fixture.GetDict("round_trip");
+            Assert.IsNotNull(rt, $"{model}: fixture has no round_trip section");
+            string description = rt.GetString("description");
+
+            object sourceSummary = Invoke(source, "GetSummary", Array.Empty<object>());
+            AssertTree(rt.Get("source_summary"), sourceSummary, "round_trip source_summary");
+
+            object fresh = Activator.CreateInstance(type);
+            if (description.Contains("no configure") || description.Contains("no setup"))
+            {
+                // The smoke restores into a bare instance.
+            }
+            else if (model == "ship_systems_manager")
+            {
+                StringAssert.Contains("configure(load_definitions(), 0, 4242)", description);
+                ConfigureShipSystems(type, fresh, 0L);
+            }
+            else
+            {
+                StringAssert.Contains("configure with the same config", description, $"{model}: unrecognised round_trip recipe");
+                Configure(model, type, fresh, fixture);
+            }
+
+            Assert.IsInstanceOf<GdDict>(sourceSummary, "get_summary() must return a dictionary");
+            object applied = Invoke(fresh, "ApplySummary", new object[] { ((GdDict)sourceSummary).DeepCopy() });
+            AssertTree(rt.Get("apply_summary_return"), applied, "round_trip apply_summary return");
+
+            object restored = Invoke(fresh, "GetSummary", Array.Empty<object>());
+            AssertTree(rt.Get("restored_summary"), restored, "round_trip restored_summary");
+
+            // Godot's own verdict (spoilage_state records a lossy restore) must agree with the port's.
+            bool equal = TreeDiff.Compare(sourceSummary, restored).Count == 0;
+            Assert.AreEqual(rt.GetBool("equal"), equal, "round_trip source == restored verdict");
         }
 
         // ------------------------------------------------------------------ construction and configure
@@ -89,14 +133,19 @@ namespace SynapticSea.Tests.Parity
             if (model == "ship_systems_manager")
             {
                 // configure(load_definitions(), 1, 4242)
-                var load = type.GetMethod("LoadDefinitions", BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
-                Assert.IsNotNull(load, "ShipSystemsManager.LoadDefinitions not found");
-                object defs = load.Invoke(load.IsStatic ? null : instance, Array.Empty<object>());
-                Invoke(instance, "Configure", new object[] { defs, 1L, 4242L });
+                ConfigureShipSystems(type, instance, 1L);
                 return;
             }
             var config = call.Contains("configure({})") ? new GdDict() : fixture.GetDictOrEmpty("config").DeepCopy();
             Invoke(instance, "Configure", new object[] { config });
+        }
+
+        static void ConfigureShipSystems(Type type, object instance, long condition)
+        {
+            var load = type.GetMethod("LoadDefinitions", BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
+            Assert.IsNotNull(load, "ShipSystemsManager.LoadDefinitions not found");
+            object defs = load.Invoke(load.IsStatic ? null : instance, Array.Empty<object>());
+            Invoke(instance, "Configure", new object[] { defs, condition, 4242L });
         }
 
         // ------------------------------------------------------------------ ops and calls

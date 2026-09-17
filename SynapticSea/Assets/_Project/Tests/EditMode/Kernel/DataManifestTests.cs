@@ -19,7 +19,9 @@ namespace SynapticSea.Tests.Kernel
 
         static IEnumerable<string> JsonFiles()
         {
-            if (!Directory.Exists(DataRoot)) Assert.Ignore("StreamingAssets/data not synced; run tools/sync-godot-data.ps1");
+            // StreamingAssets/data is checked in; only a checkout without StreamingAssets at all is skipped.
+            if (!Directory.Exists(Fixtures.StreamingDataRoot)) Assert.Ignore("SynapticSea/Assets/StreamingAssets is absent (stripped checkout)");
+            Assert.IsTrue(Directory.Exists(DataRoot), "StreamingAssets/data is missing; run tools/sync-godot-data.ps1");
             return Directory.GetFiles(DataRoot, "*.json", SearchOption.AllDirectories).OrderBy(p => p, System.StringComparer.Ordinal);
         }
 

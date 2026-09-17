@@ -91,6 +91,38 @@ namespace SynapticSea.Tests.Kernel
             }
         }
 
+        /// <summary>
+        /// <c>rng_fixture.fullprec.json</c> holds the same draws as <c>rng_fixture.json</c>; its only difference is the
+        /// float literals (17 significant digits instead of 15). The RNG itself is already pinned bit-exactly by the
+        /// <c>_bits</c> arrays above, so the companion's extra coverage is the exact-number JSON reader every
+        /// <c>.fullprec</c> parity suite relies on: each decimal must parse to precisely the captured IEEE-754 bits.
+        /// </summary>
+        [Test]
+        public void Rng_FullPrecisionCompanionParsesToCapturedBits()
+        {
+            const string rel = "godot/kernel/rng_fixture.fullprec.json";
+            Fixtures.Require(rel);
+            int checkedValues = 0;
+            foreach (object o in Fixtures.ReadDict(rel).GetArray("seeds"))
+            {
+                var s = (GdDict)o;
+                long seed = V.I64(s["seed"]);
+                foreach (string key in new[] { "randf", "randf_range_m2_5_7_5", "randfn_0_1" })
+                {
+                    var values = s.GetArray(key);
+                    var bits = s.GetArray(key + "_bits");
+                    Assert.AreEqual(bits.Count, values.Count, $"seed {seed} {key}");
+                    for (int i = 0; i < values.Count; i++, checkedValues++)
+                        Assert.AreEqual(V.Str(bits[i]), Bits(V.F64(values[i])), $"seed {seed} {key}[{i}] = {values[i]}");
+                }
+                var rows = s.GetArray("interleaved");
+                var fbits = s.GetArray("interleaved_randf_bits");
+                for (int i = 0; i < rows.Count; i++, checkedValues++)
+                    Assert.AreEqual(V.Str(fbits[i]), Bits(V.F64(((GdArray)rows[i])[1])), $"seed {seed} interleaved[{i}]");
+            }
+            Assert.That(checkedValues, Is.GreaterThan(1000));
+        }
+
         [Test]
         public void Rng_Seed42RandiModulo()
         {
