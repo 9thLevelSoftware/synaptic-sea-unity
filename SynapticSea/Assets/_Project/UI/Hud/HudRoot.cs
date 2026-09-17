@@ -29,6 +29,15 @@ namespace SynapticSea.UI
         public VisualElement Transients { get; private set; }
         public Label ContextPrompt { get; private set; }
 
+        /// <summary>Screen-projected world labels (affordances, hazard warnings); behind the HUD, never picks.</summary>
+        public VisualElement WorldLabelLayer { get; private set; }
+
+        /// <summary>Short feedback toast (denials such as "No web chart"); a transient above the cluster.</summary>
+        public Label Toast { get; private set; }
+
+        /// <summary>Screen-edge damage flash (skipped under reduced motion).</summary>
+        public VisualElement DamageFlash { get; private set; }
+
         [SerializeField] TextScale textScale = TextScale.X100;
 
         void OnEnable() => Build(GetComponent<UIDocument>().rootVisualElement);
@@ -37,6 +46,10 @@ namespace SynapticSea.UI
         public VisualElement Build(VisualElement documentRoot)
         {
             documentRoot.Clear();
+            WorldLabelLayer = new VisualElement { name = "hud-world-labels" };
+            WorldLabelLayer.pickingMode = PickingMode.Ignore;
+            FillParent(WorldLabelLayer);
+            documentRoot.Add(WorldLabelLayer);
             Root = new VisualElement { name = "hud-root" };
             Root.AddToClassList(UiClasses.Root);
             Root.AddToClassList("hud-root");
@@ -63,6 +76,21 @@ namespace SynapticSea.UI
             Root.Add(LeftColumn);
             AddTransient(ContextPrompt, PriorityPrompt);
             AddTransient(Work, PriorityWork);
+            Toast = UiFactory.Text("", "hud-context-prompt", "hud-toast");
+            Toast.name = "hud-toast";
+            UiFactory.SetShown(Toast, false);
+            AddTransient(Toast, PriorityToast);
+            DamageFlash = new VisualElement { name = "hud-damage-flash" };
+            DamageFlash.pickingMode = PickingMode.Ignore;
+            FillParent(DamageFlash);
+            DamageFlash.style.borderTopWidth = DamageFlash.style.borderBottomWidth = DamageFlash.style.borderLeftWidth = DamageFlash.style.borderRightWidth = 14f;
+            var flashColor = new Color(0.95f, 0.12f, 0.08f, 1f);
+            DamageFlash.style.borderTopColor = DamageFlash.style.borderBottomColor = DamageFlash.style.borderLeftColor = DamageFlash.style.borderRightColor = flashColor;
+            DamageFlash.style.opacity = 0f;
+            UiFactory.SetShown(DamageFlash, false);
+            documentRoot.Add(DamageFlash);
+            _toastRemaining = 0f;
+            _flashRemaining = 0f;
 
             Objective.PromptChanged += SetContextPrompt;
             SetContextPrompt(Objective.InteractionPrompt);
@@ -74,6 +102,7 @@ namespace SynapticSea.UI
         // Feedback priority (spec "Feedback, tutorials, and horror"): active work > contextual instruction > detail
         // tooltip > tutorial. Critical danger lives in the cluster itself and is never suppressed.
         public const int PriorityWork = 0;
+        public const int PriorityToast = 1;
         public const int PriorityPrompt = 1;
         public const int PriorityTooltip = 2;
         public const int PriorityTutorial = 3;
@@ -155,10 +184,98 @@ namespace SynapticSea.UI
             RefreshTransients();
         }
 
+        // ------------------------------------------------------------------ feedback (toasts, damage)
+
+        public const float ToastSeconds = 2.5f;
+        public const float DamageFlashSeconds = 0.35f;
+        public const float DamageIndicatorSeconds = 1.5f;
+
+        float _toastRemaining;
+        float _flashRemaining;
+        float _damageRemaining;
+        bool _motionReduce;
+
+        /// <summary>The last text shown by <see cref="ShowToast"/> (empty once it expired).</summary>
+        public string ToastText => Toast != null && UiFactory.IsShown(Toast) ? Toast.text : "";
+
+        /// <summary>True while the screen-edge flash is showing.</summary>
+        public bool DamageFlashActive => _flashRemaining > 0f;
+
+        /// <summary>Shows a short feedback line above the cluster (symbol + wording) for <see cref="ToastSeconds"/>.</summary>
+        public void ShowToast(string text, Severity severity = Severity.Caution)
+        {
+            if (Toast == null || string.IsNullOrEmpty(text)) return;
+            string symbol = SeverityText.Symbol(severity);
+            Toast.text = symbol.Length != 0 ? symbol + " " + text : text;
+            UiFactory.SetShown(Toast, true);
+            _toastRemaining = ToastSeconds;
+            RefreshTransients();
+        }
+
+        /// <summary>
+        /// Player hit feedback: the cluster's damage indicator ("▲ Hit −12 · stalker") and, unless motion is reduced, a
+        /// short screen-edge flash.
+        /// </summary>
+        public void ShowDamage(double damage, string source)
+        {
+            if (Root == null) return;
+            string amount = damage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+            Vitals?.SetDamageIndicator(SeverityText.Symbol(Severity.Danger) + " Hit −" + amount + (string.IsNullOrEmpty(source) ? "" : " · " + source));
+            _damageRemaining = DamageIndicatorSeconds;
+            if (_motionReduce || DamageFlash == null) return;
+            _flashRemaining = DamageFlashSeconds;
+            UiFactory.SetShown(DamageFlash, true);
+            DamageFlash.style.opacity = 0.85f;
+        }
+
+        void Update() => TickFeedback(Time.unscaledDeltaTime);
+
+        /// <summary>Advances the toast / flash / indicator timers (public for tests).</summary>
+        public void TickFeedback(float deltaSeconds)
+        {
+            if (_toastRemaining > 0f)
+            {
+                _toastRemaining -= deltaSeconds;
+                if (_toastRemaining <= 0f && Toast != null)
+                {
+                    UiFactory.SetShown(Toast, false);
+                    RefreshTransients();
+                }
+            }
+            if (_damageRemaining > 0f)
+            {
+                _damageRemaining -= deltaSeconds;
+                if (_damageRemaining <= 0f) Vitals?.SetDamageIndicator("");
+            }
+            if (_flashRemaining > 0f && DamageFlash != null)
+            {
+                _flashRemaining -= deltaSeconds;
+                if (_flashRemaining <= 0f)
+                {
+                    DamageFlash.style.opacity = 0f;
+                    UiFactory.SetShown(DamageFlash, false);
+                }
+                else
+                {
+                    DamageFlash.style.opacity = 0.85f * (_flashRemaining / DamageFlashSeconds);
+                }
+            }
+        }
+
+        static void FillParent(VisualElement e)
+        {
+            e.style.position = Position.Absolute;
+            e.style.left = 0;
+            e.style.top = 0;
+            e.style.right = 0;
+            e.style.bottom = 0;
+        }
+
         /// <summary>Applies the reflow step, reduced motion and colour-blind classes from the settings sink.</summary>
         public void ApplyAccessibility(AccessibilitySettings settings)
         {
             if (Root == null || settings == null) return;
+            _motionReduce = settings.IsMotionReduce();
             MenuCoordinator.ApplyAccessibilityClasses(Root, settings);
             int step = settings.ReflowStep();
             textScale = step == 200 ? TextScale.X200 : step == 150 ? TextScale.X150 : TextScale.X100;

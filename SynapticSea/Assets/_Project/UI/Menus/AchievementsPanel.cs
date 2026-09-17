@@ -91,6 +91,7 @@ namespace SynapticSea.UI
                     Detail = description,
                     Severity = isUnlocked ? Severity.Success : Severity.None,
                     Muted = !isUnlocked,
+                    Icon = UiIcons.Resolve(V.Str(dict.Get("icon_placeholder", ""))),
                 });
             }
             RenderedText = bb.ToString();

@@ -14,9 +14,14 @@ namespace SynapticSea.UI
     /// </summary>
     public sealed class AudioLogPanel : SurfacePanel
     {
+        /// <summary>Shown under the transcript when the entry's voice clip is not in the build (Godot shipped no .ogg).</summary>
+        public const string TextOnlyNote = "Text only: no voice recording for this log.";
+
         IUiAudio _audio;
         readonly SelectableList _list;
         readonly Label _playing;
+        readonly Label _transcript;
+        readonly Label _textOnly;
         readonly List<string> _ids = new List<string>();
         int _selected;
 
@@ -32,6 +37,14 @@ namespace SynapticSea.UI
             Body.Add(tools);
             _playing = UiFactory.Text("(no entry playing)", UiClasses.LabelSecondary);
             Body.Add(_playing);
+            _transcript = UiFactory.Text("", "ss-audio-log__transcript");
+            _transcript.name = "audio-log-transcript";
+            _transcript.style.whiteSpace = WhiteSpace.Normal;
+            Body.Add(_transcript);
+            _textOnly = UiFactory.Text(TextOnlyNote, UiClasses.LabelSecondary);
+            _textOnly.name = "audio-log-text-only";
+            UiFactory.SetShown(_textOnly, false);
+            Body.Add(_textOnly);
             _list.SelectionRequested += i =>
             {
                 _selected = i;
@@ -58,6 +71,8 @@ namespace SynapticSea.UI
         public int GetEntryCount() => _ids.Count;
 
         public string StatusLabelText => _playing.text;
+        public string TranscriptText => _transcript.text;
+        public bool TextOnlyShown => UiFactory.IsShown(_textOnly);
         public SelectableList List => _list;
 
         void PopulateEntries()
@@ -78,9 +93,34 @@ namespace SynapticSea.UI
             {
                 GdDict entry = _audio.AudioLog.GetEntry(id);
                 bool playing = _audio.CurrentVoiceLogId == id;
-                items.Add(new SelectableList.Item { Id = id, Text = V.Str(entry.Get("label", id)), Chip = playing ? "▶" : "" });
+                items.Add(new SelectableList.Item
+                {
+                    Id = id,
+                    Text = V.Str(entry.Get("label", id)),
+                    Chip = playing ? "▶" : "",
+                    Detail = HasVoiceClip(entry) ? "" : "text only",
+                });
             }
             _list.SetItems(items, _selected);
+            RenderTranscript();
+        }
+
+        /// <summary>The selected (or playing) entry's transcript, with the text-only note when its clip is missing.</summary>
+        void RenderTranscript()
+        {
+            string id = _audio != null && !string.IsNullOrEmpty(_audio.CurrentVoiceLogId) ? _audio.CurrentVoiceLogId
+                : _selected >= 0 && _selected < _ids.Count ? _ids[_selected] : "";
+            GdDict entry = id.Length != 0 && _audio?.AudioLog != null ? _audio.AudioLog.GetEntry(id) : new GdDict();
+            _transcript.text = V.Str(entry.Get("transcript", ""));
+            UiFactory.SetShown(_transcript, _transcript.text.Length != 0);
+            UiFactory.SetShown(_textOnly, id.Length != 0 && !HasVoiceClip(entry));
+        }
+
+        bool HasVoiceClip(GdDict entry)
+        {
+            string clip = V.Str(entry.Get("clip_path", ""));
+            if (clip.Length == 0) return false;
+            return _audio is IVoiceClipAvailability availability && availability.HasVoiceClip(clip);
         }
 
         void RefreshStatus()
@@ -140,6 +180,12 @@ namespace SynapticSea.UI
         protected override void RequestClose() => BackRequested?.Invoke();
 
         protected override VisualElement InitialFocusElement() => _list.Count > 0 ? _list.RowAt(Math.Max(0, _list.SelectedIndex)) : CloseButton;
+    }
+
+    /// <summary>Optional <see cref="IUiAudio"/> capability: whether a voice-log clip path resolves to a clip in this build.</summary>
+    public interface IVoiceClipAvailability
+    {
+        bool HasVoiceClip(string clipPath);
     }
 
     /// <summary>
@@ -239,9 +285,18 @@ namespace SynapticSea.UI
             if (_settings != null) _captions.SetValueWithoutNotify(_settings.IsCaptionsEnabled());
         }
 
-        public void OnVolumeChanged(string busId, double value) => _audio?.SetBusVolume(busId, value);
+        /// <summary>Applies the volume live and records it in the settings preferences (B2), then re-emits settings.</summary>
+        public void OnVolumeChanged(string busId, double value)
+        {
+            _audio?.SetBusVolume(busId, value);
+            if (_settings != null && _settings.SetAudioBusVolumeDb(busId, value)) _settingsPush?.Invoke();
+        }
 
-        public void OnMuteChanged(string busId, bool pressed) => _audio?.SetBusMuted(busId, pressed);
+        public void OnMuteChanged(string busId, bool pressed)
+        {
+            _audio?.SetBusMuted(busId, pressed);
+            if (_settings != null && _settings.SetAudioBusMuted(busId, pressed)) _settingsPush?.Invoke();
+        }
 
         public void OnCaptionToggled(bool pressed)
         {

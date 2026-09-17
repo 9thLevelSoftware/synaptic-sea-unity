@@ -23,6 +23,10 @@ namespace SynapticSea.UI
         readonly Meter _stamina = new Meter("Stamina");
         readonly VisualElement _statusRow = new VisualElement();
         readonly Label _workLine = new Label();
+        readonly Label _damageIndicator = new Label();
+        readonly Label _weaponLine = new Label();
+        readonly VisualElement _effectIcons = new VisualElement();
+        readonly List<string> _effectIconIds = new List<string>();
 
         public IReadOnlyList<string> StatusChipTexts => _chipTexts;
         readonly List<string> _chipTexts = new List<string>();
@@ -31,6 +35,15 @@ namespace SynapticSea.UI
         public Meter Oxygen => _oxygen;
         public Meter Stamina => _stamina;
         public string WorkLine => _workLine.text;
+
+        /// <summary>The combat line (Godot hotbar_panel text: weapon | ammo | threat awareness | combat/stealth).</summary>
+        public string WeaponLine => _weaponLine.text;
+
+        /// <summary>The transient "hit" indicator text ("" when hidden).</summary>
+        public string DamageIndicatorText => _damageIndicator.style.display == DisplayStyle.None ? "" : _damageIndicator.text;
+
+        /// <summary>Status effect ids that currently show an icon chip.</summary>
+        public IReadOnlyList<string> EffectIconIds => _effectIconIds;
 
         /// <summary>Quick-use / weapon slot row inside the cluster (spec: not a separate full-width bar).</summary>
         public VisualElement QuickUseSlot { get; } = new VisualElement();
@@ -44,14 +57,31 @@ namespace SynapticSea.UI
             AddToClassList("ss-panel");
             AddToClassList("hud-cluster");
             name = "hud-vitals-cluster";
+            _damageIndicator.name = "hud-damage-indicator";
+            _damageIndicator.AddToClassList("hud-status-chip");
+            _damageIndicator.AddToClassList("hud-status-chip--danger");
+            _damageIndicator.style.display = DisplayStyle.None;
+            Add(_damageIndicator);
             Add(_health);
             Add(_oxygen);
             Add(_stamina);
             _statusRow.AddToClassList("hud-status-row");
             Add(_statusRow);
+            _effectIcons.name = "hud-effect-icons";
+            _effectIcons.style.flexDirection = FlexDirection.Row;
+            _effectIcons.style.flexWrap = Wrap.Wrap;
+            _effectIcons.style.display = DisplayStyle.None;
+            _effectIcons.pickingMode = PickingMode.Ignore;
+            Add(_effectIcons);
             _workLine.AddToClassList("ss-label");
             _workLine.AddToClassList("ss-label--secondary");
             Add(_workLine);
+            _weaponLine.name = "hud-weapon-line";
+            _weaponLine.AddToClassList("ss-label");
+            _weaponLine.AddToClassList("ss-label--secondary");
+            _weaponLine.AddToClassList("ss-label--mono");
+            _weaponLine.style.display = DisplayStyle.None;
+            Add(_weaponLine);
             QuickUseSlot.AddToClassList("hud-quick-use");
             QuickUseSlot.pickingMode = PickingMode.Ignore;
             Add(QuickUseSlot);
@@ -144,6 +174,55 @@ namespace SynapticSea.UI
                 string word = collapsedRank == 2 ? " danger" : collapsedRank == 1 ? " caution" : " more";
                 _statusRow.Add(Chip("+" + collapsed.ToString(CultureInfo.InvariantCulture) + word, collapsedRank));
             }
+        }
+
+        /// <summary>The session's <c>HotbarText</c> (Godot's weapon/ammo/threat line); hidden when empty.</summary>
+        public void SetWeaponLine(string text)
+        {
+            _weaponLine.text = text ?? "";
+            _weaponLine.style.display = string.IsNullOrEmpty(text) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        /// <summary>The transient damage chip at the top of the cluster; "" hides it.</summary>
+        public void SetDamageIndicator(string text)
+        {
+            _damageIndicator.text = text ?? "";
+            _damageIndicator.style.display = string.IsNullOrEmpty(text) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        /// <summary>
+        /// Active status effects as small icon chips (<paramref name="iconFor"/> resolves an effect id to a texture, null
+        /// when the effect has no icon). Rebuilt only when the id list changes.
+        /// </summary>
+        public void SetStatusEffects(IReadOnlyList<string> effectIds, System.Func<string, UnityEngine.Texture2D> iconFor)
+        {
+            var ids = new List<string>();
+            var textures = new List<UnityEngine.Texture2D>();
+            if (effectIds != null && iconFor != null)
+            {
+                foreach (string id in effectIds)
+                {
+                    UnityEngine.Texture2D tex = iconFor(id);
+                    if (tex == null) continue;
+                    ids.Add(id);
+                    textures.Add(tex);
+                }
+            }
+            if (ids.SequenceEqual(_effectIconIds)) return;
+            _effectIconIds.Clear();
+            _effectIconIds.AddRange(ids);
+            _effectIcons.Clear();
+            for (int i = 0; i < ids.Count; i++)
+            {
+                var icon = new Image { image = textures[i], scaleMode = UnityEngine.ScaleMode.ScaleToFit, tooltip = ids[i] };
+                icon.name = "effect:" + ids[i];
+                icon.style.width = 20;
+                icon.style.height = 20;
+                icon.style.marginRight = 4;
+                icon.pickingMode = PickingMode.Ignore;
+                _effectIcons.Add(icon);
+            }
+            _effectIcons.style.display = ids.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
         /// <summary>Hides the cluster's repair line while the richer work strip above the cluster shows the same work.</summary>

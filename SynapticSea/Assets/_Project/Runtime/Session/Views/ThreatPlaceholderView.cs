@@ -75,14 +75,51 @@ namespace SynapticSea.Runtime.Session
         }
     }
 
-    /// <summary>Applies <see cref="ThreatRuntime"/>'s placeholder events (spawn, move, remove, clear).</summary>
+    /// <summary>
+    /// Applies <see cref="ThreatRuntime"/>'s placeholder events (spawn, move, remove, clear) and the combat feedback
+    /// (D3): <see cref="ThreatRuntime.ThreatAttacked"/> lunges the attacker at its target (player / structure) or punches a
+    /// threat the player's weapon hit, and raises <see cref="PlayerHit"/> for the HUD flash and damage indicator;
+    /// <see cref="ThreatRuntime.ThreatKilled"/> detaches the node and plays a short death (shrink plus a
+    /// <see cref="VfxCatalog"/> burst) before it is destroyed.
+    /// </summary>
     public sealed class ThreatPlaceholderView
     {
+        /// <summary>VFX id spawned as the short death burst (the biomatter pulse reads as the organism collapsing).</summary>
+        public const string DeathVfxId = VfxCatalog.BiomatterBlockage;
+
         readonly Transform _root;
         readonly Dictionary<string, GameObject> _nodes = new Dictionary<string, GameObject>();
         ThreatRuntime _bound;
+        ThreatFeedbackAnimator _animator;
+
+        /// <summary>(damage, threat instance id, archetype id, Godot-frame threat position) when a threat hits the player.</summary>
+        public event System.Action<double, string, string, Vec3> PlayerHit;
+
+        /// <summary>(threat instance id, target kind) for every attack event the view handled.</summary>
+        public event System.Action<string, string> AttackHandled;
+
+        /// <summary>(threat instance id) after a kill's death effect started.</summary>
+        public event System.Action<string> DeathPlayed;
+
+        /// <summary>Unity world position of the player (lunge target); null = lunge forward.</summary>
+        public System.Func<Vector3?> PlayerPosition;
 
         public ThreatPlaceholderView(Transform root) => _root = root;
+
+        static void DestroyNode(GameObject node) => ViewObjects.Destroy(node);
+
+        public ThreatFeedbackAnimator Animator
+        {
+            get
+            {
+                if (_animator == null && _root != null)
+                {
+                    _animator = _root.GetComponent<ThreatFeedbackAnimator>();
+                    if (_animator == null) _animator = _root.gameObject.AddComponent<ThreatFeedbackAnimator>();
+                }
+                return _animator;
+            }
+        }
 
         public int Count => _nodes.Count;
         public IReadOnlyDictionary<string, GameObject> Nodes => _nodes;
@@ -97,6 +134,8 @@ namespace SynapticSea.Runtime.Session
             runtime.PlaceholderMoved += OnMoved;
             runtime.PlaceholderRemoved += OnRemoved;
             runtime.PlaceholdersCleared += Clear;
+            runtime.ThreatAttacked += OnThreatAttacked;
+            runtime.ThreatKilled += OnThreatKilled;
             // Threats configured before the view bound (the session boot) get their nodes now.
             foreach (ThreatAIState threat in runtime.Threats)
                 if (threat != null && !_nodes.ContainsKey(threat.InstanceId)) OnSpawned(threat, 0);
@@ -109,6 +148,8 @@ namespace SynapticSea.Runtime.Session
             _bound.PlaceholderMoved -= OnMoved;
             _bound.PlaceholderRemoved -= OnRemoved;
             _bound.PlaceholdersCleared -= Clear;
+            _bound.ThreatAttacked -= OnThreatAttacked;
+            _bound.ThreatKilled -= OnThreatKilled;
             _bound = null;
             Clear();
         }
@@ -135,6 +176,61 @@ namespace SynapticSea.Runtime.Session
             _nodes[threat.InstanceId] = node;
         }
 
+        void OnThreatAttacked(string instanceId, string targetKind, double damage, GdDict result)
+        {
+            _nodes.TryGetValue(instanceId ?? "", out GameObject node);
+            if (node != null)
+            {
+                if (targetKind == ThreatRuntime.ATTACK_TARGET_THREAT)
+                {
+                    Animator?.Punch(node);
+                }
+                else
+                {
+                    Vector3 target = node.transform.position + node.transform.forward;
+                    if (targetKind == ThreatRuntime.ATTACK_TARGET_PLAYER && PlayerPosition != null && PlayerPosition() is Vector3 p) target = p;
+                    Animator?.Lunge(node, target);
+                }
+            }
+            if (targetKind == ThreatRuntime.ATTACK_TARGET_PLAYER)
+            {
+                string archetype = "";
+                if (_bound != null)
+                    foreach (ThreatAIState t in _bound.Threats)
+                        if (t != null && t.InstanceId == instanceId) { archetype = t.ArchetypeId; break; }
+                Vec3 at = result != null && result.Get("position", null) is Vec3 v ? v : Vec3.Zero;
+                PlayerHit?.Invoke(damage, instanceId ?? "", archetype, at);
+            }
+            AttackHandled?.Invoke(instanceId ?? "", targetKind ?? "");
+        }
+
+        void OnThreatKilled(GdDict record)
+        {
+            string id = record != null ? V.Str(record.Get("instance_id", "")) : "";
+            if (!_nodes.TryGetValue(id, out GameObject node)) return;
+            _nodes.Remove(id); // the following PlaceholderRemoved finds nothing: the death effect owns the node now
+            if (node == null) return;
+            node.name = GodotNodeName.Validate("ThreatDying_" + id);
+            Vec3 at = record.Get("position", null) is Vec3 p ? p : Frame.ToGodot(node.transform.position);
+            ThreatFeedbackAnimator animator = Animator;
+            if (animator != null)
+            {
+                animator.Die(node);
+                GameObject burst = VfxCatalog.Spawn(DeathVfxId, _root, at);
+                if (burst != null)
+                {
+                    burst.name = "ThreatDeathBurst_" + id;
+                    burst.transform.localScale = Vector3.one * 0.5f;
+                    animator.DestroyAfter(burst, ThreatFeedbackAnimator.BurstSeconds);
+                }
+            }
+            else
+            {
+                DestroyNode(node);
+            }
+            DeathPlayed?.Invoke(id);
+        }
+
         void OnMoved(string instanceId, Vec3 world)
         {
             if (_nodes.TryGetValue(instanceId, out GameObject node) && node != null) node.transform.position = Frame.ToUnity(world);
@@ -144,14 +240,24 @@ namespace SynapticSea.Runtime.Session
         {
             if (instanceId == null || !_nodes.TryGetValue(instanceId, out GameObject node)) return;
             _nodes.Remove(instanceId);
-            if (node != null) Object.Destroy(node);
+            if (node != null) DestroyNode(node);
         }
 
         public void Clear()
         {
             foreach (GameObject node in _nodes.Values)
-                if (node != null) Object.Destroy(node);
+                if (node != null) DestroyNode(node);
             _nodes.Clear();
+        }
+    }
+
+    static class ViewObjects
+    {
+        public static void Destroy(GameObject node)
+        {
+            if (node == null) return;
+            if (Application.isPlaying) Object.Destroy(node);
+            else Object.DestroyImmediate(node);
         }
     }
 
@@ -167,6 +273,8 @@ namespace SynapticSea.Runtime.Session
         HallucinationRuntime _bound;
 
         public HallucinationView(Transform root) => _root = root;
+
+        static void DestroyNode(GameObject node) => ViewObjects.Destroy(node);
 
         public int PhantomCount => _phantoms.Count;
 
@@ -192,7 +300,7 @@ namespace SynapticSea.Runtime.Session
                 _bound = null;
             }
             foreach (GameObject node in _phantoms.Values)
-                if (node != null) Object.Destroy(node);
+                if (node != null) DestroyNode(node);
             _phantoms.Clear();
             _phantomLocals.Clear();
             HallucinationFx.SetGlobalIntensity(0.0);
@@ -228,7 +336,7 @@ namespace SynapticSea.Runtime.Session
             if (!_phantoms.TryGetValue(id, out GameObject node)) return;
             _phantoms.Remove(id);
             _phantomLocals.Remove(id);
-            if (node != null) Object.Destroy(node);
+            if (node != null) DestroyNode(node);
         }
 
         static void OnFx(double intensity) => HallucinationFx.SetGlobalIntensity(intensity);
