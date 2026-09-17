@@ -112,7 +112,17 @@ namespace SynapticSea.Core.Systems
                 }
                 else if (d == "..")
                 {
-                    if (i != 0)
+                    // Godot 4.7.1 (probed with the parity binary): ".." folds its predecessor unless that is also
+                    // ".."; a leading ".." is dropped under any drive except none and "res://".
+                    if (i == 0)
+                    {
+                        if (drive.Length > 0 && drive != "res://")
+                        {
+                            dirs.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                    else if (dirs[i - 1] != "..")
                     {
                         dirs.RemoveAt(i);
                         dirs.RemoveAt(i - 1);

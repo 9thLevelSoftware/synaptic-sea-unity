@@ -7,19 +7,6 @@ using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Core.Procgen
 {
-    /// <summary>
-    /// Optional directory listing for <c>res://</c> resources. The kernel <see cref="IResourceReader"/> has no
-    /// <c>DirAccess</c> equivalent; a Runtime reader that cannot enumerate the filesystem (Android StreamingAssets)
-    /// should implement this from a build-time index.
-    /// </summary>
-    public interface IResourceDirectoryLister
-    {
-        bool DirExists(string resDir);
-
-        /// <summary>File names (not paths, no directories) directly inside <paramref name="resDir"/>, in any order.</summary>
-        IReadOnlyList<string> ListFiles(string resDir);
-    }
-
     internal static class ProcgenCompat
     {
         /// <summary>
@@ -54,7 +41,6 @@ namespace SynapticSea.Core.Procgen
         public static bool ResDirExists(string resDir)
         {
             var reader = CoreServices.Resources;
-            if (reader is IResourceDirectoryLister lister) return lister.DirExists(resDir);
             if (reader is FileSystemResourceReader fs) return Directory.Exists(FullPath(fs, resDir));
             return false;
         }
@@ -69,11 +55,7 @@ namespace SynapticSea.Core.Procgen
         {
             var names = new List<string>();
             var reader = CoreServices.Resources;
-            if (reader is IResourceDirectoryLister lister)
-            {
-                names.AddRange(lister.ListFiles(resDir));
-            }
-            else if (reader is FileSystemResourceReader fs)
+            if (reader is FileSystemResourceReader fs)
             {
                 string full = FullPath(fs, resDir);
                 if (!Directory.Exists(full)) return names;

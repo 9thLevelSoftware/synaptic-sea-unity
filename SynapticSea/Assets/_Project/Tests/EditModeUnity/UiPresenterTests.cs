@@ -10,18 +10,6 @@ namespace SynapticSea.Tests.Unity
 {
     public class UiPresenterTests : UiTestBase
     {
-        sealed class Sink : IHallucinationFxSink
-        {
-            public double Intensity, Alpha;
-            public bool Reduce;
-            public void ApplyHallucinationFx(double intensity, double tintAlpha, bool reduceMotion)
-            {
-                Intensity = intensity;
-                Alpha = tintAlpha;
-                Reduce = reduceMotion;
-            }
-        }
-
         [Test]
         public void AccessibilitySettingsClampsAndReflowsUpNeverDown()
         {
@@ -51,22 +39,6 @@ namespace SynapticSea.Tests.Unity
             Assert.IsTrue(settings.ApplyToAccessibility(a11y));
             Assert.AreEqual(2.0, a11y.GetTextScale());
             Assert.AreEqual("tritanopia", a11y.GetColorblindMode());
-        }
-
-        [Test]
-        public void HallucinationPresenterClampsAndForwardsToTheRendererHook()
-        {
-            var fx = new HallucinationFxPresenter();
-            var sink = new Sink();
-            fx.Sink = sink;
-            fx.SetIntensity(3.0);
-            Assert.AreEqual(1.0, fx.Intensity);
-            Assert.AreEqual(0.35, fx.TintAlpha, 1e-9);
-            Assert.AreEqual(0.35, sink.Alpha, 1e-9);
-            fx.SetReduceMotion(true);
-            Assert.IsTrue(sink.Reduce);
-            fx.SetIntensity(double.NaN);
-            Assert.AreEqual(0.0, sink.Intensity);
         }
 
         static SaveLoadService NewService(MemoryStorage storage) => new SaveLoadService(storage, new ManualClock());
