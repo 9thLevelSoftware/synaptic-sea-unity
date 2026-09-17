@@ -355,9 +355,7 @@ namespace SynapticSea.Game
             ResultsSummary = summary;
             Results = new RunResultsPanel();
             Results.SetRunSummary(summary);
-            var context = UiFactory.Text(ContextLine(summary), "ss-results__context", UiClasses.LabelMono, UiClasses.LabelSecondary);
-            context.name = "run-results-context";
-            Results.Q(className: UiClasses.SurfaceBody)?.Add(context);
+            Results.SetContextLine(ContextLine(summary));
             Results.ReturnToTitleRequested += ConfirmResults;
             Results.NewRunRequested += StartNextRun;
             Coordinator.MenuState.CloseAll();

@@ -49,6 +49,38 @@ namespace SynapticSea.Tests.Unity
             }
         }
 
+        [UnityTest]
+        public IEnumerator RunResultsRowsAre44pxWithSeverityBannerAndEpitaph()
+        {
+            using (var harness = new UiHarness())
+            {
+                yield return null;
+                var panel = new RunResultsPanel();
+                harness.Mount(panel);
+                panel.SetRunSummary(new GdDict { { "reason", "death" }, { "cause", "suffocation" }, { "play_time_seconds", 754.0 }, { "threats_killed", 3L } });
+                panel.SetContextLine("seed 17 · breach_field · standard");
+                harness.Layout();
+                Assert.AreEqual(4, panel.StatRows.Count, "outcome, cause, time survived, threats killed");
+                foreach (var row in panel.StatRows)
+                    Assert.GreaterOrEqual(row.layout.height, 44f, "results rows are 44 px");
+                Assert.GreaterOrEqual(panel.ReturnButton.layout.height, 44f);
+                Assert.IsTrue(panel.Banner.ClassListContains(UiClasses.SevDanger), "death banner is danger");
+                StringAssert.Contains("Danger", panel.Banner.text, "severity carries wording, not hue alone");
+                Assert.IsTrue(UiFactory.IsShown(panel.EpitaphLabel), "death shows the epitaph");
+                Assert.IsFalse(UiFactory.IsShown(panel.EmptyLabel));
+                Assert.IsTrue(UiFactory.IsShown(panel.ContextLabel));
+                Assert.AreEqual("seed 17 · breach_field · standard", panel.ContextLabel.text);
+
+                panel.SetRunSummary(new GdDict { { "reason", "extraction" } });
+                harness.Layout();
+                Assert.IsTrue(panel.Banner.ClassListContains(UiClasses.SevSuccess), "extraction banner is success");
+                Assert.IsFalse(panel.Banner.ClassListContains(UiClasses.SevDanger));
+                Assert.IsFalse(UiFactory.IsShown(panel.EpitaphLabel), "no epitaph without a death");
+                Assert.IsTrue(UiFactory.IsShown(panel.EmptyLabel), "no tracked stats says so");
+                Assert.AreEqual(1, panel.StatRows.Count);
+            }
+        }
+
         [Test]
         public void AchievementsRenderUnlockedWithWordingAndSymbol()
         {
