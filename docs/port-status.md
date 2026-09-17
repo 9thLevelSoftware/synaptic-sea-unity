@@ -106,6 +106,7 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
 
 ## Open items
 
+- **Readability (design decision, inherited from Godot).** Ceilings within 12 m of the player are opaque, so the iso camera sees the hull roof over the player's own room. A Godot 4.7.1 capture of `playable_generated_ship.tscn` (`artifacts/screenshots/godot_playable_reference.png`) shows the same dark, covered view, because Godot's fade never ran. A Zomboid-style rule (hide or fade the ceilings over the player's room, keep distant ones) is the likely intent.
 - Loading a Godot run save and building it again differs on 22 known paths (Godot's JSON load turns nested ints into floats; power grid, propulsion and sustenance summaries are recomputed; crafting stations re-register; the caption queue is not restored). `SessionSaveParityTests` pins that list. Not yet confirmed against a Godot load-then-save.
 - Damaged power subcomponents wear from 0.2 to about 0.04 over simulated seconds in the headless session; unverified against Godot.
 - Playable: non-default launch seeds, biomes and difficulties are not generated yet (the bootstrap warns and uses Godot's default start). World labels (`Label3D` affordances, arc/breach warnings) and the readability affordance props are not built by the scene yet.
