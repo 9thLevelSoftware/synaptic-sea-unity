@@ -7,16 +7,6 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Core.Procgen
 {
     /// <summary>
-    /// Anything with a <c>pick(role, room_index, seed, biome)</c> method (GDScript duck typing via
-    /// <c>has_method("pick")</c> in <see cref="RoomAssigner"/>). <see cref="RoomVariantSelector"/> is accepted
-    /// directly without implementing it.
-    /// </summary>
-    public interface IRoomVariantPicker
-    {
-        string Pick(string role, long roomIndex, long seedValue, string biome);
-    }
-
-    /// <summary>
     /// Fills template zones with concrete rooms. Each zone produces 1..N rooms based on its count field. Roles are
     /// picked from the zone's role_pool using archetype weights when available. Each room gets a footprint based on
     /// <see cref="ROOM_FOOTPRINT_OPTIONS"/> and the blueprint size.
@@ -75,8 +65,7 @@ namespace SynapticSea.Core.Procgen
         public GodotRandom Rng = new GodotRandom();
 
         /// <summary>
-        /// Set by <see cref="AssignWithSelector"/>: a <see cref="RoomVariantSelector"/>, an
-        /// <see cref="IRoomVariantPicker"/>, any other object (no <c>pick</c> method: "standard"), or null.
+        /// Set by <see cref="AssignWithSelector"/>: a <see cref="RoomVariantSelector"/>, any other object (no <c>pick</c> method: "standard"), or null.
         /// </summary>
         public object VariantSelector;
 
@@ -285,8 +274,6 @@ namespace SynapticSea.Core.Procgen
             if (VariantSelector == null) return "standard";
             if (VariantSelector is RoomVariantSelector selector)
                 return selector.Pick(role, roomIndex, blueprint.SeedValue, biome);
-            if (VariantSelector is IRoomVariantPicker picker)
-                return V.Str(picker.Pick(role, roomIndex, blueprint.SeedValue, biome));
             // GDScript: not variant_selector.has_method("pick") -> "standard".
             return "standard";
         }

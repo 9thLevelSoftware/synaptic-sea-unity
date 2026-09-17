@@ -10,7 +10,7 @@ The 30 files in `scripts/ui/` (Godot `96ecb2b0`) are ported as code-built UI Too
 | `save_load_menu.gd` | `UI/Presenters/SaveLoadMenu.cs` (pure) |
 | `menu_coordinator.gd` | `UI/Menus/MenuCoordinator.cs`, `UI/Common/ModalStack.cs`, and `UI/Presenters/SaveSlotScreenModel.cs` (the save/load slot state machine) |
 | `menu_panel.gd` | `UI/Menus/MenuPanel.cs` |
-| `hallucination_fx_overlay.gd` | `UI/Presenters/HallucinationFxPresenter.cs` (value plus the `IHallucinationFxSink` hook; there is no shader) |
+| `hallucination_fx_overlay.gd` | No UI presenter. `Runtime/Rendering/HallucinationFx` holds the intensity and `HallucinationRendererFeature` draws it (fed from `SessionEvents.HallucinationFxIntensity`) |
 | `objective_tracker.gd` | `UI/Hud/ObjectiveChip.cs` |
 | `player_vitals_panel.gd` | `UI/Hud/HudVitalsCluster.cs` + `Meter.cs` |
 | `work_action_hud_panel.gd` | `UI/Hud/WorkActionStrip.cs` |
@@ -45,7 +45,7 @@ Shared building blocks are in `UI/Common/`: `SurfacePanel`, `SelectableList`, `S
    - `WorldLoadRequested`: run the world load
    - `LanguageChanged(id)`
 6. **Pause the simulation.** Use `coordinator.Stack.SimulationPaused` to suspend the simulation. It is true while the pause stack or run results are open. It is false for LIVE inspection, where gameplay is still blocked.
-7. **Hallucination FX.** The URP renderer feature implements `IHallucinationFxSink`, or it polls `HallucinationFxPresenter.Intensity`.
+7. **Hallucination FX.** `HallucinationRendererFeature` reads `Runtime/Rendering/HallucinationFx.Intensity` and `MotionReduce`. `ThreatPlaceholderView` forwards `SessionEvents.HallucinationFxIntensity` to it; there is no UI-side presenter.
 
 ## Spec rules and where they are enforced
 
