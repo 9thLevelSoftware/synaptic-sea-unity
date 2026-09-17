@@ -2,3 +2,4 @@
 @import url("tokens.uss");
 @import url("base.uss");
 @import url("hud.uss");
+@import url("panels.uss");

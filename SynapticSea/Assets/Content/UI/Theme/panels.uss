@@ -1,0 +1,448 @@
+/*
+ * Surfaces: inspection (LIVE), pause stack (PAUSED) and terminal results.
+ * ui_presentation_program.md "Menus, inspection, and time" / "Screen-by-screen target".
+ * - Inspection surfaces sit right of the HUD column so the lower-left survival cluster stays readable while live.
+ * - Pause-stack surfaces are centred. Headers, status, and the Close/Back action bar stay reachable while lists scroll.
+ * - 44 px rows (--ss-row-height grows with the reflow step), 18 px body text, 16 px secondary metadata.
+ * - Focus is a visible 2 px outline, never hue alone; selection adds a background and bold text.
+ * - Severity is always wording + symbol (set in code) + colour class.
+ */
+
+.menu-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.ss-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding-top: var(--ss-safe-inset);
+    padding-bottom: var(--ss-safe-inset);
+    padding-left: var(--ss-safe-inset);
+    padding-right: var(--ss-safe-inset);
+}
+
+.ss-layer--inspection {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.ss-layer--menu {
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- surface frame --- */
+
+.ss-surface {
+    flex-direction: column;
+    background-color: var(--ss-color-backing);
+    border-color: var(--ss-color-seam);
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: var(--ss-motion-base);
+}
+
+.ss-surface--live {
+    width: 68%;
+    max-width: 100%;
+    min-width: 400px;
+    height: 100%;
+}
+
+.ss-surface--paused,
+.ss-surface--terminal {
+    width: 58%;
+    min-width: 400px;
+    max-width: 96%;
+    max-height: 100%;
+}
+
+.ss-surface--covered {
+    opacity: 0.55;
+}
+
+.ss-surface__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding-bottom: var(--ss-space-2);
+    border-bottom-width: var(--ss-border-width);
+    border-color: var(--ss-color-seam);
+    margin-bottom: var(--ss-space-2);
+    flex-shrink: 0;
+}
+
+.ss-surface__title {
+    flex-shrink: 1;
+    white-space: normal;
+}
+
+.ss-surface__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.ss-surface__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    padding-top: var(--ss-space-2);
+    border-top-width: var(--ss-border-width);
+    border-color: var(--ss-color-seam);
+}
+
+.ss-surface__actions > Button,
+.ss-toolbar > Button {
+    margin-left: var(--ss-space-1);
+    margin-top: var(--ss-space-1);
+    padding-left: var(--ss-space-3);
+    padding-right: var(--ss-space-3);
+}
+
+.ss-badge {
+    font-size: var(--ss-font-meta);
+    -unity-font-style: bold;
+    padding-left: var(--ss-space-2);
+    padding-right: var(--ss-space-2);
+    border-width: var(--ss-border-width);
+    border-radius: var(--ss-radius);
+}
+
+.ss-badge--live {
+    color: var(--ss-color-info);
+    border-color: var(--ss-color-info);
+}
+
+.ss-badge--paused {
+    color: var(--ss-color-caution);
+    border-color: var(--ss-color-caution);
+}
+
+/* --- lists and rows --- */
+
+.ss-list {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: var(--ss-row-height);
+}
+
+.ss-list__scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ss-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: var(--ss-row-height);
+    padding-left: var(--ss-space-2);
+    padding-right: var(--ss-space-2);
+    padding-top: var(--ss-space-1);
+    padding-bottom: var(--ss-space-1);
+    margin-bottom: 2px;
+    background-color: var(--ss-color-panel);
+    border-width: var(--ss-focus-width);
+    border-left-width: 4px;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: var(--ss-radius);
+    transition-property: background-color, border-color;
+    transition-duration: var(--ss-motion-fast);
+}
+
+.ss-row:hover {
+    background-color: #1E2E39;
+}
+
+.ss-row--selected {
+    background-color: #1F3845;
+}
+
+.ss-row--selected .ss-row__text,
+.ss-row--selected .ss-menu-row__label {
+    -unity-font-style: bold;
+}
+
+.ss-row:focus {
+    border-color: var(--ss-color-focus);
+}
+
+.ss-row--muted .ss-row__text,
+.ss-row--muted .ss-menu-row__label {
+    color: var(--ss-color-text-secondary);
+}
+
+.ss-row__col {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ss-row__text {
+    white-space: normal;
+}
+
+.ss-row__detail {
+    white-space: normal;
+}
+
+.ss-row__chip {
+    min-width: 48px;
+    margin-right: var(--ss-space-2);
+    padding-left: var(--ss-space-1);
+    padding-right: var(--ss-space-1);
+    border-radius: var(--ss-radius);
+    -unity-text-align: middle-center;
+    color: var(--ss-color-text-secondary);
+}
+
+.ss-row--marked .ss-row__chip {
+    background-color: var(--ss-color-info);
+    color: var(--ss-color-backing);
+}
+
+.ss-row.ss-sev--caution .ss-row__chip,
+.ss-row.ss-sev--caution .ss-row__detail {
+    color: var(--ss-color-caution);
+}
+
+.ss-row.ss-sev--danger .ss-row__chip,
+.ss-row.ss-sev--danger .ss-row__detail {
+    color: var(--ss-color-danger);
+}
+
+.ss-row.ss-sev--success .ss-row__chip {
+    color: var(--ss-color-success);
+}
+
+.ss-empty {
+    padding-top: var(--ss-space-3);
+    padding-bottom: var(--ss-space-3);
+    -unity-font-style: italic;
+}
+
+/* --- panes, detail, sections --- */
+
+.ss-columns {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ss-pane {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 240px;
+    min-width: 200px;
+    margin-right: var(--ss-space-2);
+    margin-bottom: var(--ss-space-2);
+    padding-left: var(--ss-space-1);
+    border-left-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.ss-pane--active {
+    border-color: var(--ss-color-info);
+}
+
+.ss-detail {
+    background-color: var(--ss-color-panel);
+    padding-top: var(--ss-space-2);
+    padding-bottom: var(--ss-space-2);
+    padding-left: var(--ss-space-2);
+    padding-right: var(--ss-space-2);
+    border-radius: var(--ss-radius);
+}
+
+.ss-section {
+    margin-top: var(--ss-space-2);
+}
+
+.ss-section__title {
+    color: var(--ss-color-text-secondary);
+    -unity-font-style: bold;
+    margin-bottom: var(--ss-space-1);
+}
+
+.ss-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: var(--ss-space-1);
+    flex-shrink: 0;
+}
+
+.ss-status {
+    margin-top: var(--ss-space-1);
+    flex-shrink: 0;
+}
+
+.ss-glyph {
+    font-size: var(--ss-font-meta);
+    padding-left: var(--ss-space-1);
+    padding-right: var(--ss-space-1);
+    margin-right: var(--ss-space-1);
+    border-width: var(--ss-border-width);
+    border-color: var(--ss-color-text-secondary);
+    border-radius: var(--ss-radius);
+}
+
+.ss-drop-target--hot {
+    background-color: #20404C;
+    border-color: var(--ss-color-info);
+}
+
+.ss-drag-ghost {
+    position: absolute;
+    background-color: var(--ss-color-panel);
+    border-color: var(--ss-color-info);
+    border-width: var(--ss-border-width);
+    padding-left: var(--ss-space-2);
+    padding-right: var(--ss-space-2);
+}
+
+/* --- severity colour classes (wording + symbol are set in code) --- */
+
+.ss-sev--info { color: var(--ss-color-info); }
+.ss-sev--success { color: var(--ss-color-success); }
+.ss-sev--caution { color: var(--ss-color-caution); }
+.ss-sev--danger { color: var(--ss-color-danger); }
+
+.ss-row.ss-sev--info,
+.ss-row.ss-sev--success,
+.ss-row.ss-sev--caution,
+.ss-row.ss-sev--danger {
+    color: var(--ss-color-text);
+}
+
+/* --- menu rows (settings selectors) --- */
+
+.ss-menu__rows {
+    flex-direction: column;
+}
+
+.ss-menu-row__label {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ss-menu-row__value {
+    color: var(--ss-color-info);
+    margin-left: var(--ss-space-2);
+    margin-right: var(--ss-space-2);
+}
+
+.ss-menu-row__cycle {
+    color: var(--ss-color-text-secondary);
+    padding-left: var(--ss-space-2);
+    padding-right: var(--ss-space-2);
+}
+
+.ss-menu-row__cycle:hover {
+    color: var(--ss-color-info);
+}
+
+.ss-menu-row__note {
+    margin-left: var(--ss-space-2);
+}
+
+/* --- settings controls --- */
+
+.ss-settings-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: var(--ss-row-height);
+}
+
+.ss-settings-row__label {
+    min-width: 120px;
+}
+
+.ss-slider {
+    flex-grow: 1;
+    min-width: 160px;
+    min-height: var(--ss-row-height);
+}
+
+.ss-toggle {
+    min-height: var(--ss-row-height);
+    font-size: var(--ss-font-body);
+    color: var(--ss-color-text);
+}
+
+.ss-slider:focus,
+.ss-toggle:focus {
+    border-color: var(--ss-color-focus);
+    border-width: var(--ss-focus-width);
+}
+
+/* --- records --- */
+
+.ss-credits {
+    flex-grow: 1;
+}
+
+.ss-credit {
+    margin-bottom: var(--ss-space-3);
+}
+
+.ss-credit__title {
+    -unity-font-style: bold;
+}
+
+.ss-release-badge {
+    font-size: var(--ss-font-h1);
+    border-left-width: 6px;
+    padding-left: var(--ss-space-3);
+    margin-bottom: var(--ss-space-3);
+}
+
+.ss-button--armed {
+    border-color: var(--ss-color-info);
+    border-width: var(--ss-focus-width);
+}
+
+.ss-button--danger {
+    color: var(--ss-color-danger);
+}
+
+.ss-inventory__weight {
+    margin-bottom: var(--ss-space-2);
+}
+
+/* --- reduced motion: no transitions --- */
+
+.reduce-motion .ss-surface,
+.reduce-motion .ss-row,
+.reduce-motion Button.ss-button,
+.reduce-motion .ss-meter__fill {
+    transition-duration: 0s;
+}
+
+/*
+ * Colour-blind presets (provisional; measure on real consumers). Severity never relies on hue — every severity also
+ * carries wording and a symbol — so these only increase caution/danger separation for each mode.
+ */
+.cb-protanopia,
+.cb-deuteranopia {
+    --ss-color-danger: #FF9E5E;
+    --ss-color-caution: #F7E36A;
+    --ss-color-success: #7FB8F0;
+}
+
+.cb-tritanopia {
+    --ss-color-danger: #FF6F91;
+    --ss-color-caution: #F2A2C4;
+    --ss-color-info: #7FE0D6;
+}

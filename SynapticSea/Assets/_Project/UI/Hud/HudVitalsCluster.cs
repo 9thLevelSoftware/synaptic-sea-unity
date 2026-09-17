@@ -1,5 +1,7 @@
+// Ported from scripts/ui/player_vitals_panel.gd @ 96ecb2b0 (presents its PlayerVitalsModel directly instead of pushed text lines)
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 using UnityEngine.UIElements;
@@ -30,6 +32,13 @@ namespace SynapticSea.UI
         public Meter Stamina => _stamina;
         public string WorkLine => _workLine.text;
 
+        /// <summary>Quick-use / weapon slot row inside the cluster (spec: not a separate full-width bar).</summary>
+        public VisualElement QuickUseSlot { get; } = new VisualElement();
+
+        /// <summary>The model's status lines (Godot's pushed panel text), kept for the survivor detail view.</summary>
+        public string GetHudText() => string.Join("\n", _statusLines);
+        readonly List<string> _statusLines = new List<string>();
+
         public HudVitalsCluster()
         {
             AddToClassList("ss-panel");
@@ -43,10 +52,19 @@ namespace SynapticSea.UI
             _workLine.AddToClassList("ss-label");
             _workLine.AddToClassList("ss-label--secondary");
             Add(_workLine);
+            QuickUseSlot.AddToClassList("hud-quick-use");
+            QuickUseSlot.pickingMode = PickingMode.Ignore;
+            Add(QuickUseSlot);
+            pickingMode = PickingMode.Ignore;
         }
 
         /// <summary>Refresh from the vitals model (call when the model changes, not every frame).</summary>
-        public void Refresh(PlayerVitalsModel model) => Refresh(model.GetVitalsSummary());
+        public void Refresh(PlayerVitalsModel model)
+        {
+            _statusLines.Clear();
+            _statusLines.AddRange(model.GetStatusLines());
+            Refresh(model.GetVitalsSummary());
+        }
 
         public void Refresh(GdDict s)
         {
@@ -70,23 +88,81 @@ namespace SynapticSea.UI
             long effects = s.GetInt("status_effects_count");
             if (effects > 0) chips.Add(("EFFECTS " + effects.ToString(CultureInfo.InvariantCulture), 0));
             if (breach == "sealed") chips.Add(("SEALED", 0));
-            chips.Sort((a, b) => b.rank.CompareTo(a.rank));
-
-            _statusRow.Clear();
+            // Stable rank order (List.Sort is unstable and would reorder equal-rank chips between refreshes).
+            _chips = chips.Select((c, i) => (c.text, c.rank, i)).OrderByDescending(c => c.rank).ThenBy(c => c.i)
+                .Select(c => (c.text, c.rank)).ToList();
             _chipTexts.Clear();
-            foreach (var (text, rank) in chips)
-            {
-                var chip = new Label(text);
-                chip.AddToClassList("hud-status-chip");
-                if (rank == 2) chip.AddToClassList("hud-status-chip--danger");
-                else if (rank == 1) chip.AddToClassList("hud-status-chip--caution");
-                _statusRow.Add(chip);
-                _chipTexts.Add(text);
-            }
+            foreach (var (text, _) in _chips) _chipTexts.Add(text);
+            RenderChips();
 
             string repair = s.GetString("repair_line");
             _workLine.text = repair;
-            _workLine.style.display = string.IsNullOrEmpty(repair) ? DisplayStyle.None : DisplayStyle.Flex;
+            _workLine.style.display = string.IsNullOrEmpty(repair) || _workLineSuppressed ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        List<(string text, int rank)> _chips = new List<(string, int)>();
+        bool _compact;
+
+        /// <summary>Chips as displayed (symbol + wording); in compact mode lower-severity states collapse into "+N".</summary>
+        public IReadOnlyList<string> VisibleChipTexts => _statusRow.Query<Label>().ToList().Select(l => l.text).ToList();
+
+        /// <summary>
+        /// Disclosure at 1.5x/2x text: every danger state stays as its own chip (imminent danger is shown immediately);
+        /// caution/info states collapse into one "+N" chip whose wording carries the highest collapsed severity. Full
+        /// detail remains available through <see cref="StatusChipTexts"/> / the survivor view.
+        /// </summary>
+        /// <param name="maxChips">Chips shown individually in compact mode (2 at 1.5x, 1 at 2x); the rest collapse into "+N".</param>
+        public void SetCompact(bool compact, int maxChips = 2)
+        {
+            if (_compact == compact && CompactChipCount == maxChips) return;
+            _compact = compact;
+            CompactChipCount = System.Math.Max(1, maxChips);
+            RenderChips();
+        }
+
+        /// <summary>Chips shown individually in compact mode (the most severe first); the rest collapse into "+N".</summary>
+        public int CompactChipCount { get; private set; } = 2;
+
+        void RenderChips()
+        {
+            _statusRow.Clear();
+            int collapsed = 0;
+            int collapsedRank = 0;
+            for (int i = 0; i < _chips.Count; i++)
+            {
+                var (text, rank) = _chips[i];
+                if (_compact && i >= CompactChipCount)
+                {
+                    collapsed++;
+                    collapsedRank = System.Math.Max(collapsedRank, rank);
+                    continue;
+                }
+                _statusRow.Add(Chip(text, rank));
+            }
+            if (collapsed > 0)
+            {
+                string word = collapsedRank == 2 ? " danger" : collapsedRank == 1 ? " caution" : " more";
+                _statusRow.Add(Chip("+" + collapsed.ToString(CultureInfo.InvariantCulture) + word, collapsedRank));
+            }
+        }
+
+        /// <summary>Hides the cluster's repair line while the richer work strip above the cluster shows the same work.</summary>
+        public void SetWorkLineSuppressed(bool suppressed)
+        {
+            _workLineSuppressed = suppressed;
+            _workLine.style.display = string.IsNullOrEmpty(_workLine.text) || suppressed ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        bool _workLineSuppressed;
+
+        static Label Chip(string text, int rank)
+        {
+            string symbol = rank == 2 ? SeverityText.Symbol(Severity.Danger) : rank == 1 ? SeverityText.Symbol(Severity.Caution) : SeverityText.Symbol(Severity.Info);
+            var chip = new Label(symbol + " " + text);
+            chip.AddToClassList("hud-status-chip");
+            if (rank == 2) chip.AddToClassList("hud-status-chip--danger");
+            else if (rank == 1) chip.AddToClassList("hud-status-chip--caution");
+            return chip;
         }
     }
 }

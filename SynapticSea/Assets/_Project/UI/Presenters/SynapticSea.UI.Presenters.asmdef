@@ -1,11 +1,8 @@
 {
-    "name": "SynapticSea.UI",
-    "rootNamespace": "SynapticSea.UI",
+    "name": "SynapticSea.UI.Presenters",
+    "rootNamespace": "SynapticSea.UI.Presenters",
     "references": [
-        "SynapticSea.Core",
-        "SynapticSea.UI.Presenters",
-        "SynapticSea.Runtime",
-        "Unity.InputSystem"
+        "SynapticSea.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -15,5 +12,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }
