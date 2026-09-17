@@ -40,7 +40,6 @@ namespace SynapticSea.Game
     [DisallowMultipleComponent]
     public sealed class PlayableBootstrap : MonoBehaviour
     {
-        public const string GoldenDir = MilestoneALaunch.HubDir;
         /// <summary>Where generated run documents live (Continue / janitor). Milestone A New Run does not write here.</summary>
         public const string RunsDir = RunDirectoryJanitor.RunsDir + "/";
 
@@ -240,6 +239,8 @@ namespace SynapticSea.Game
             home = home ?? new GdDict();
             string layout = home.GetString("layout_path", "");
             string slice = home.GetString("gameplay_slice_path", "");
+            if (slice.Length == 0 && layout.Length != 0)
+                slice = ResPath.GetBaseDir(layout) + "/gameplay_slice.json";
             if (layout.Length == 0 || !CatalogRegistry.Exists(layout))
             {
                 failure = "the " + label + " ship layout is missing (" + (layout.Length == 0 ? "no path" : layout) + ")";

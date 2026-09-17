@@ -38,14 +38,12 @@ namespace SynapticSea.Core.Procgen
             return false;
         }
 
-        /// <summary>Writes the golden hub document paths onto <paramref name="deps"/>.</summary>
+        /// <summary>Writes the golden hub layout and gameplay-slice paths onto <paramref name="deps"/>.</summary>
         public static void ApplyHubPaths(RunSessionDeps deps)
         {
             if (deps == null) return;
             deps.LayoutPath = HubLayoutPath;
             deps.GameplaySlicePath = HubGameplaySlicePath;
-            deps.BlueprintPath = HubBlueprintPath;
-            deps.KitPath = RunSession.DEFAULT_KIT_PATH;
         }
     }
 }

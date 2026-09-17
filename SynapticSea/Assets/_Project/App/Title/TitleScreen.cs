@@ -1,6 +1,7 @@
 // Ported from scripts/title_main.gd @ 96ecb2b0
 using System;
 using System.Collections.Generic;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
@@ -252,14 +253,17 @@ namespace SynapticSea.App
 
         void OnTitleStart() => OpenNewRunSetup();
 
-        /// <summary>C1: New Run opens the setup submenu (biome, difficulty, seed) above the title menu.</summary>
+        /// <summary>
+        /// C1: New Run opens the setup submenu (biome, difficulty, seed) above the title menu. Milestone A always
+        /// opens on the slice defaults so a persisted hardened/deep_dive preference cannot fail-close the launch.
+        /// </summary>
         public NewRunSetupPanel OpenNewRunSetup()
         {
             if (NewRunSetup != null || _launching) return NewRunSetup;
             List<string> biomes = NewRunSetupPanel.LoadBiomeIds();
-            string biome = biomes.Contains(RunLaunchRequest.DefaultBiomeId) ? RunLaunchRequest.DefaultBiomeId : (biomes.Count > 0 ? biomes[0] : "");
-            var panel = new NewRunSetupPanel(biomes, NewRunSetupPanel.LoadDifficultyIds(), biome, Coordinator.SettingsState.GetDifficulty(),
-                RunLaunchRequest.DefaultSeed);
+            string biome = biomes.Contains(MilestoneALaunch.SliceBiomeId) ? MilestoneALaunch.SliceBiomeId : (biomes.Count > 0 ? biomes[0] : "");
+            var panel = new NewRunSetupPanel(biomes, NewRunSetupPanel.LoadDifficultyIds(), biome, MilestoneALaunch.SliceDifficultyId,
+                MilestoneALaunch.TitleStartSeed);
             panel.SetGlyphResolver(Coordinator.GlyphFor);
             panel.StartRequested += request => Launch(request);
             panel.BackRequested += CloseNewRunSetup;
@@ -315,10 +319,14 @@ namespace SynapticSea.App
         public bool Launch(RunLaunchRequest request)
         {
             if (_launching || request == null) return false;
-            if (request.Mode == RunLaunchMode.NewRun && !string.IsNullOrEmpty(request.DifficultyId))
-                RememberNewRunDifficulty(request.DifficultyId);
-            // A New Run carries the setup's difficulty; loads restore the saved run's own context.
-            if (request.Mode != RunLaunchMode.NewRun || string.IsNullOrEmpty(request.DifficultyId))
+            if (request.Mode == RunLaunchMode.NewRun)
+            {
+                if (string.IsNullOrEmpty(request.DifficultyId))
+                    request.DifficultyId = MilestoneALaunch.SliceDifficultyId;
+                else
+                    RememberNewRunDifficulty(request.DifficultyId);
+            }
+            else if (string.IsNullOrEmpty(request.DifficultyId))
                 request.DifficultyId = Coordinator.SettingsState.GetDifficulty();
             request.ClassId = ResolveClassId();
             request.SettingsSummary = SettingsDirty ? Coordinator.GetSettingsSummary() : null;
