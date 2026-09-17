@@ -161,21 +161,30 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsNotNull(_boot.Coordinator, "menu coordinator mounted");
             Assert.IsNotNull(_boot.Ui.Hud.Root, "HUD built");
 
-            // The spawn pose is exact when the boot finishes. The first physics steps may then move the player: on golden 001
-            // the life boat docks with its airlock edge on the home airlock's centre (DockPorts.ForDerelict/ForLifeboat), so
-            // one of its walls runs through the start marker and the CharacterController depenetrates by radius + half a
-            // wall + skin (~0.47 m). Assert the spawn at spawn time, then that the player settles on the floor near it.
+            // The session spawns at the start pose. On golden 001 the life boat docks with its airlock edge on the home
+            // airlock's centre (DockPorts.ForDerelict/ForLifeboat), so one of its walls runs through the start marker; the
+            // host then moves the player to the nearest clear spot on the home floor (decision 55) instead of letting the
+            // CharacterController depenetrate on the first physics step.
             Vec3 start = _s.Loader.GetStartTransform().Origin;
             Assert.IsTrue(_spawnedAt.HasValue, "the boot spawned the player");
-            Vec3 spawned = Frame.ToGodot(_spawnedAt.Value);
-            Assert.AreEqual(start.X, spawned.X, 1e-3, "player spawned at the start pose (x)");
-            Assert.AreEqual(start.Z, spawned.Z, 1e-3, "player spawned at the start pose (z)");
+            Assert.IsTrue(_boot.Host.SpawnResolvedFrom.HasValue, "golden 001's start marker overlaps the docked life boat wall, so the host moved the spawn");
+            Vector3 sessionSpawn = _boot.Host.SpawnResolvedFrom.Value;
+            Vec3 spawned = Frame.ToGodot(sessionSpawn);
+            Assert.AreEqual(start.X, spawned.X, 1e-3, "the session spawned the player at the start pose (x)");
+            Assert.AreEqual(start.Z, spawned.Z, 1e-3, "the session spawned the player at the start pose (z)");
             Assert.AreEqual(start.Y + RunSession.PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR, spawned.Y, 1e-3, "spawned at the nav floor + spawn height");
+            Vector3 booted = _spawnedAt.Value;
+            Assert.IsTrue(SpawnClearance.IsClear(booted), "the player starts clear of wall geometry: " + booted);
+            Collider floor = SpawnClearance.FloorUnder(booted);
+            Assert.IsNotNull(floor, "the resolved spawn stands over a floor");
+            Assert.IsTrue(floor.transform.IsChildOf(_boot.Host.ShipHost.HomeLoader.GameObject.transform), "the resolved spawn is on the home ship's floor, not the life boat's");
+            float moved = new Vector2(booted.x - sessionSpawn.x, booted.z - sessionSpawn.z).magnitude;
+            Assert.LessOrEqual(moved, SpawnClearance.MaxSearchRadius, "the spawn moved at most one search radius");
             yield return FixedSteps(40);
-            Vec3 settled = Frame.ToGodot(Player.transform.position);
             Assert.IsTrue(Player.Controller.isGrounded, "the player settles on the floor");
-            float drift = new Vector2(settled.X - start.X, settled.Z - start.Z).magnitude;
-            Assert.LessOrEqual(drift, PlayerController.DefaultCollisionRadius + 0.15f, "at most a depenetration away from the start pose: " + settled);
+            Vector3 settled = Player.transform.position;
+            float drift = new Vector2(settled.x - booted.x, settled.z - booted.z).magnitude;
+            Assert.LessOrEqual(drift, 0.05f, "no depenetration push after the resolved spawn: " + settled);
         }
 
         [UnityTest]

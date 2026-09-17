@@ -145,9 +145,37 @@ namespace SynapticSea.Runtime.Session
                 audio.BindSessionModels(Session.AudioManager.MusicState, Session.AudioManager.AmbientZoneState);
             Reconcile();
             ApplyActiveShipIfChanged(force: true);
+            ResolveSpawnClearance();
             SessionBooted?.Invoke(Session);
             return Session;
         }
+
+        /// <summary>
+        /// Where the boot spawned the player inside wall geometry (golden 001: a docked life boat wall runs through the
+        /// start marker), move them to the nearest clear spot standing on the home ship's floor (decision 55).
+        /// </summary>
+        void ResolveSpawnClearance()
+        {
+            PlayerController player = SceneState.Player;
+            if (player == null)
+                return;
+            Vector3 feet = player.transform.position;
+            Transform home = ShipHost.HomeLoader != null ? ShipHost.HomeLoader.GameObject.transform : null;
+            bool found = SpawnClearance.TryFindClear(feet, floor => home == null || floor.transform.IsChildOf(home), out Vector3 clear);
+            if (!found)
+            {
+                Debug.LogWarning($"[RunSessionHost] no clear spawn within {SpawnClearance.MaxSearchRadius} m of {feet}; the player keeps the start pose");
+                return;
+            }
+            if ((clear - feet).sqrMagnitude < 1e-6f)
+                return;
+            SpawnResolvedFrom = feet;
+            SceneState.TeleportPlayer(Frame.ToGodot(clear));
+            Debug.Log($"[RunSessionHost] spawn moved {Vector3.Distance(clear, feet):0.00} m clear of wall geometry");
+        }
+
+        /// <summary>The start pose the boot moved away from, when the spawn overlapped geometry (null otherwise).</summary>
+        public Vector3? SpawnResolvedFrom { get; private set; }
 
         Transform MakeChild(string name)
         {
