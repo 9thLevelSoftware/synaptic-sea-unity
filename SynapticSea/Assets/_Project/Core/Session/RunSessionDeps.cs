@@ -81,6 +81,16 @@ namespace SynapticSea.Core.Session
         /// <summary>The run seed recorded in saves; null = the home blueprint's seed.</summary>
         public long? RunSeed;
 
+        /// <summary>
+        /// Unity port tuning: the powered ratio the home ship's emergency cells guarantee its life support while the power
+        /// grid cannot allocate to it (a starved grid or a non-operational power dependency). The floor only bridges the
+        /// power dependency: a life support system whose own subsystems are broken still starves. At 0.75 the scrubbers
+        /// recover 1.5 %/s, which holds exactly one unsealed breach (1.5 %/s leak); every further breach loses ground.
+        /// 0.0 is Godot's behaviour, where an idle player on golden <c>coherent_ship_001</c> suffocates at 29.25 s because
+        /// the wearing grid allocates nothing to life support.
+        /// </summary>
+        public double HomeLifeSupportPowerFloor = 0.75;
+
         /// <summary>An externally injected AchievementState (the build script path); null = the session builds its own.</summary>
         public AchievementState AchievementState;
 

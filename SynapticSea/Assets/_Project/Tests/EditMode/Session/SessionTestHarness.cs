@@ -248,6 +248,8 @@ namespace SynapticSea.Tests.Session
                 KitPath = "res://data/kits/ship_structural_v0.json",
                 GameplaySlicePath = GoldenDir + "gameplay_slice.json",
                 BlueprintPath = GoldenDir + "blueprint.json",
+                // Godot parity: no emergency life-support floor (the captured traces and saves were recorded without it).
+                HomeLifeSupportPowerFloor = 0.0,
             };
         }
 
