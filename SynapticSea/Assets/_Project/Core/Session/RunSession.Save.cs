@@ -604,6 +604,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         void ResetRuntimeForReload()
         {
+            _woundRollCounter = 0;
             if (AwayFromStart)
             {
                 foreach (ShipInstance inst in AllKnownShips())

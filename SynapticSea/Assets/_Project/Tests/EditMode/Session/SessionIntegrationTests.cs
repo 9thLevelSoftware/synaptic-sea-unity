@@ -425,6 +425,30 @@ namespace SynapticSea.Tests.Session
             Assert.Greater(fight.Session.WoundState.ActiveCount(), 0, "threat hits opened a wound");
         }
 
+        [Test]
+        public void E1_CombatWounds_PickBodyPartsDeterministically()
+        {
+            List<string> Parts()
+            {
+                RunSession s = Boot().Session;
+                s.ThreatManager.Threats.Clear();
+                var parts = new List<string>();
+                for (int i = 0; i < 20; i++)
+                    parts.Add(s.RollWoundBodyPart());
+                s.ApplyWoundFromCombatDamage(10.0, new GdDict { { "damage_type", "blunt" }, { "source_id", "test" } });
+                Assert.AreEqual(1, s.WoundState.ActiveCount(), "combat damage opened a wound");
+                GdDict wound = (GdDict)s.WoundState.Wounds[0];
+                parts.Add(wound.GetString("body_part"));
+                return parts;
+            }
+
+            List<string> first = Parts();
+            List<string> second = Parts();
+            CollectionAssert.AreEqual(first, second, "the same run seed hits the same body parts");
+            Assert.IsTrue(first.Any(p => p != WoundState.BODY_TORSO), "wounds are not all torso: " + string.Join(",", first));
+            CollectionAssert.IsSubsetOf(first.Distinct().ToList(), RunSession.WOUND_BODY_PARTS);
+        }
+
         // ================================================================== E2 persistence
 
         [Test]
