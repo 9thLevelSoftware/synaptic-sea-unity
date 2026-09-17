@@ -255,6 +255,8 @@ namespace SynapticSea.Tests.Session
                 BlueprintPath = GoldenDir + "blueprint.json",
                 // Godot parity: no emergency life-support floor (the captured traces and saves were recorded without it).
                 HomeLifeSupportPowerFloor = 0.0,
+                // Godot parity: the suit does not filter fouled ship air.
+                HomeSuitAirReserveSeconds = 0.0,
             };
         }
 

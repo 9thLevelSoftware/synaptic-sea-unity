@@ -270,6 +270,9 @@ namespace SynapticSea.Core.Session
             {
                 atmoDrain = LifeSupportExpandedState.GetHealthDrainPerSecond();
                 tempMult *= LifeSupportExpandedState.GetThirstMultiplier();
+                // Unity port (decision 56): the suit supplies the player's air while its reserve lasts.
+                if (SuitFilteringShipAir)
+                    atmoDrain = 0.0;
             }
             double oxygenHealthDrain = 0.0;
             if (OxygenState != null && IsFieldSuitPressureActive())

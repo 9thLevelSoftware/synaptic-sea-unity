@@ -1,5 +1,6 @@
 // Ported from scripts/procgen/playable_generated_ship.gd @ 96ecb2b0: the breach/oxygen integration (8863-9230), the arc
 // zone integration (9318-9606), route gates (8332-8365), and _refresh_player_vitals (9106-9141).
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -171,12 +172,14 @@ namespace SynapticSea.Core.Session
             }
             else
             {
+                double suitBefore = OxygenState.Oxygen;
                 OxygenState.Tick(deltaSeconds, new GdDict
                 {
                     { "player_in_breach_zone", !AwayFromStart && IsPlayerInBreachZone() },
                     { "field_atmosphere", false },
                     { "fire_oxygen_drain", fireO2 },
                 });
+                ApplySuitAirReserve(deltaSeconds, suitBefore);
             }
             ApplyBreachZoneSceneState();
             RefreshTrackerSystemStatusLines();
@@ -184,6 +187,37 @@ namespace SynapticSea.Core.Session
             GdDict oxygenSummary = OxygenState.GetSummary();
             if (V.F64(oxygenSummary.Get("oxygen", 100.0)) <= V.F64(oxygenSummary.Get("safe_threshold", 35.0)))
                 TriggerTutorial("vitals_warning", "oxygen_low");
+        }
+
+        /// <summary>
+        /// Unity port (decision 56): how fouled the home ship's air is, 0 (breathable) to 1 (the maximum atmosphere health
+        /// drain). 0 when away or when the suit reserve is disabled.
+        /// </summary>
+        internal double HomeAtmosphereSeverity()
+        {
+            if (AwayFromStart || Deps.HomeSuitAirReserveSeconds <= 0.0 || LifeSupportExpandedState == null)
+                return 0.0;
+            double max = LifeSupportExpandedState.MaxAtmosphereHealthDrain;
+            if (max <= 0.0)
+                return 0.0;
+            return GdMath.Clampf(LifeSupportExpandedState.GetHealthDrainPerSecond() / max, 0.0, 1.0);
+        }
+
+        /// <summary>True while the suit is supplying the player's air on the home ship (fouled air, suit O2 left).</summary>
+        public bool SuitFilteringShipAir => OxygenState != null && HomeAtmosphereSeverity() > 0.0 && OxygenState.Oxygen > 0.001;
+
+        /// <summary>
+        /// Unity port (decision 56): while the home air is fouled the suit supplies the player's air. The tick's regen is
+        /// withheld (breach-zone and fire drains still apply) and the reserve drains by severity, scaled by the hazard dial.
+        /// </summary>
+        void ApplySuitAirReserve(double deltaSeconds, double suitBefore)
+        {
+            double severity = HomeAtmosphereSeverity();
+            if (severity <= 0.0 || deltaSeconds <= 0.0 || OxygenState == null)
+                return;
+            double perSecond = severity * OxygenState.MaxOxygen / Deps.HomeSuitAirReserveSeconds * Math.Max(0.1, HomeHazardModifier());
+            double level = Math.Min(OxygenState.Oxygen, suitBefore);
+            OxygenState.Oxygen = Math.Max(0.0, level - perSecond * deltaSeconds);
         }
 
         /// <summary>True when suit O2 drains as hostile field atmosphere: aboard a derelict hull, not inside lifeboat/home.</summary>

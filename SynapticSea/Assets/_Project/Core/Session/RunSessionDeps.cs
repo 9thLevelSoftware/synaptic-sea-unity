@@ -91,6 +91,16 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public double HomeLifeSupportPowerFloor = 0.75;
 
+        /// <summary>
+        /// Unity port tuning (decision 56): seconds the player's suit can supply breathable air on the home ship while its
+        /// atmosphere is fully fouled. While the ship air hurts (<see cref="LifeSupportState.GetHealthDrainPerSecond"/> &gt; 0)
+        /// the suit O2 meter drains at <c>severity × 100 / reserve × hazard dial</c> and no atmosphere health drain applies;
+        /// once the suit is empty the ship air hurts again. The suit refills at its normal rate when the air is breathable.
+        /// Generated New Run home ships start with 4–9 breaches, so without the reserve an idle player dies in 24–30 s
+        /// with a full Suit O2 meter on screen. 0.0 is Godot's behaviour.
+        /// </summary>
+        public double HomeSuitAirReserveSeconds = 150.0;
+
         /// <summary>An externally injected AchievementState (the build script path); null = the session builds its own.</summary>
         public AchievementState AchievementState;
 
