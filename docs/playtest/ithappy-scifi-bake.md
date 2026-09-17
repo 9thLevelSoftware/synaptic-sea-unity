@@ -52,6 +52,32 @@ pwsh tools/test.ps1 -Mode EditMode -Filter KitCatalogResolution
 
 `FrameConventionTests` / `StructuralPrefabCollisionTests` still target the v0 catalog unless pointed at ithappy after bake.
 
+## Art Director iso stills (needs GPU)
+
+After the bake, capture a locked-iso contact sheet of all 16 prefabs. **Do not pass `-nographics`** — `Camera.Render` needs a GPU.
+
+```
+New-Item -ItemType Directory -Force builds\logs | Out-Null
+F:\Unity\6000.6.0f1\Editor\Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.IthappyKitContactSheet.Run -quit -logFile builds/logs/ithappy-contact.log
+```
+
+Editor menu: **Synaptic Sea → Content → Capture Ithappy Kit Contact Sheet**.
+
+Writes (gitignored) `artifacts/screenshots/ithappy_scifi_v0/`:
+
+- `contact_sheet.png` — 4×4 grid, 1920×1080
+- `{module_id}.png` — one 1024×1024 still per baked prefab (includes `floor_1x1`, `wall_straight_1x1`, `wall_t_junction`, `wall_x_junction`)
+
+Art Director style-gate lock (not play `IsoCameraRig` 16/18/16):
+
+| Lock | Value |
+|---|---|
+| Orthographic size | 22 (sheet) / 18 (per-module), band 18–22 |
+| Pitch | 35.264° down (`atan(1/√2)`) |
+| Yaw bias | 45° (Unity offset −X/+Z after Frame; north up-left) |
+
+Pass log line: `CONTACT SHEET PASS kit=ithappy_scifi_v0 modules=16`. Track A New Run / run-results wiring is unchanged.
+
 ## Authority (do not invent SOCK names)
 
 | Consumer | Reads | Does not read |
