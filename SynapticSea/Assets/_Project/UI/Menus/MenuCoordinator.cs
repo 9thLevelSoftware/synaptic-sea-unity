@@ -409,6 +409,8 @@ namespace SynapticSea.UI
                 return true;
             if (command == UiCommand.Pause)
             {
+                if (Stack.Top != null && Stack.Top.Time == SurfaceTime.Terminal)
+                    return true;
                 if (MenuState.IsInPlay())
                 {
                     MenuState.OpenMenu("pause_menu");

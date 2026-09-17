@@ -28,7 +28,9 @@ namespace SynapticSea.Game
     /// <item>routes input through <see cref="UiInputRouter"/> and gates gameplay input (attack, reload, hotbar, interact)
     /// on the modal stack through <see cref="RunSessionHost.GameplayInputBlocked"/>;</item>
     /// <item>opens the LIVE inspection panels (Wounds through the session's treatment API), forwards save/load/quit/settings
-    /// and language, raises denial toasts, and pushes the session's HUD events (weapon line, damage feedback).</item>
+    /// and language, raises denial toasts, and pushes the session's HUD events (weapon line, damage feedback);</item>
+    /// <item>opens <see cref="RunResultsPanel"/> on death or extract (<see cref="RunSession.PlayableSliceCompleted"/>),
+    /// matching Godot title_main.gd <c>_show_run_results</c>. Quit-to-title does not replace that panel.</item>
     /// </list>
     /// </summary>
     public sealed class SessionUiBridge : IRunUiState
@@ -72,6 +74,18 @@ namespace SynapticSea.Game
         /// <summary>The language the player picked (persisted through the settings file).</summary>
         public string ActiveLanguage => Coordinator != null ? Coordinator.GetActiveLanguage() : SettingsState.DefaultLanguage;
 
+        /// <summary>The end-of-run results surface once death or extract ended the run (null before).</summary>
+        public RunResultsPanel Results { get; private set; }
+
+        /// <summary>The completion summary shown on <see cref="Results"/>, with the run context added.</summary>
+        public GdDict ResultsSummary { get; private set; }
+
+        /// <summary>Results confirm (Return to Title). The host records <see cref="RunReturnInfo"/> and loads Title.</summary>
+        public event Action ResultsReturnToTitleRequested;
+
+        /// <summary>Results "New Run". The host starts the next launch; it does not skip the results panel.</summary>
+        public event Action ResultsNewRunRequested;
+
         RunSession _session;
         RunSessionHost _host;
         string _focusPrompt = "";
@@ -85,6 +99,7 @@ namespace SynapticSea.Game
         GdArray _pendingInventoryItems;
         (GdArray labels, long selected)? _pendingHotbar;
         GdDict _pendingTooltip;
+        GdDict _pendingCompletion;
 
         public SessionUiBridge(HudRoot hud, UIDocument menuDocument, SynapticSeaInput input, AccessibilitySettings accessibility)
         {
@@ -158,6 +173,8 @@ namespace SynapticSea.Game
                 if (Wounds.IsOpen()) Wounds.Refresh();
             };
             e.PanelRequested += OnPanelRequested;
+            session.PlayableSliceCompleted -= OnSliceCompleted;
+            session.PlayableSliceCompleted += OnSliceCompleted;
         }
 
         /// <summary>Builds the coordinator from the booted session (Godot bind_meta_screens order) and mounts the UI.</summary>
@@ -198,7 +215,7 @@ namespace SynapticSea.Game
             MenuDocument.rootVisualElement.Add(Coordinator.Root);
             Hud.Mount(Coordinator);
             ApplyAccessibilityToScene();
-            if (host.WorldLabels != null) host.WorldLabels.Container = Hud.WorldLabelLayer;
+            if (host != null && host.WorldLabels != null) host.WorldLabels.Container = Hud.WorldLabelLayer;
 
             if (_pendingLoadAvailable.HasValue) Coordinator.SetLoadAvailable(_pendingLoadAvailable.Value);
             else Coordinator.SetLoadAvailable(session.IsLoadAvailable());
@@ -240,15 +257,19 @@ namespace SynapticSea.Game
 #endif
             Router.Enable();
 
-            host.FocusPromptChanged += prompt =>
+            if (host != null)
             {
-                _focusPrompt = prompt ?? "";
-                RefreshPrompt();
-            };
-            host.SimulationPaused = () => Coordinator.Stack.SimulationPaused;
-            host.GameplayInputBlocked = () => Coordinator.Stack.BlocksGameplay;
-            host.MotionReduce = Accessibility.IsMotionReduce;
-            host.PlayerDamaged += OnPlayerDamaged;
+                host.FocusPromptChanged += prompt =>
+                {
+                    _focusPrompt = prompt ?? "";
+                    RefreshPrompt();
+                };
+                host.SimulationPaused = () => Coordinator.Stack.SimulationPaused;
+                host.GameplayInputBlocked = () => Coordinator.Stack.BlocksGameplay;
+                host.MotionReduce = Accessibility.IsMotionReduce;
+                host.PlayerDamaged += OnPlayerDamaged;
+            }
+            if (_pendingCompletion != null) ShowRunResults(_pendingCompletion);
         }
 
         /// <summary>Per-frame UI work (before the session tick): input routing, the vitals cluster and status icons.</summary>
@@ -336,6 +357,53 @@ namespace SynapticSea.Game
         void AfterLoad(bool loaded)
         {
             if (loaded) ApplyPersistedPreferences();
+        }
+
+        // ------------------------------------------------------------------ run end (Godot title_main._show_run_results)
+
+        void OnSliceCompleted(GdDict summary)
+        {
+            GdDict completion = (summary ?? new GdDict()).DeepCopy();
+            if (Coordinator == null)
+            {
+                _pendingCompletion = completion;
+                return;
+            }
+            ShowRunResults(completion);
+        }
+
+        /// <summary>
+        /// Pauses the run (TERMINAL surface on the modal stack) and shows the results with the run context.
+        /// Idempotent. Quit-to-title must not call this — that path is abandon, not death/extract.
+        /// </summary>
+        public void ShowRunResults(GdDict completion)
+        {
+            _pendingCompletion = null;
+            if (Results != null || Coordinator == null) return;
+            RunSession s = _session;
+            GdDict summary = (completion ?? new GdDict()).DeepCopy();
+            if (s != null)
+            {
+                summary["seed"] = s.RunSeed;
+                summary["biome_id"] = s.BiomeId;
+                summary["difficulty_id"] = s.DifficultyId;
+            }
+            ResultsSummary = summary;
+            Results = new RunResultsPanel();
+            Results.SetRunSummary(summary);
+            Results.SetContextLine(ContextLine(summary));
+            Results.ReturnToTitleRequested += () => ResultsReturnToTitleRequested?.Invoke();
+            Results.NewRunRequested += () => ResultsNewRunRequested?.Invoke();
+            Coordinator.MenuState.CloseAll();
+            Coordinator.OpenInspection(Results);
+        }
+
+        /// <summary>The results / title context line, e.g. "seed 17 · breach_field · standard".</summary>
+        public static string ContextLine(GdDict summary)
+        {
+            summary = summary ?? new GdDict();
+            string biome = summary.GetString("biome_id", "");
+            return "seed " + V.I64(summary.Get("seed", 0L)) + " · " + (biome.Length != 0 ? biome : "no biome") + " · " + summary.GetString("difficulty_id", "standard");
         }
 
         // ------------------------------------------------------------------ HUD feedback
@@ -535,6 +603,7 @@ namespace SynapticSea.Game
         {
             Devices?.Dispose();
             Devices = null;
+            if (_session != null) _session.PlayableSliceCompleted -= OnSliceCompleted;
             if (_host != null) _host.PlayerDamaged -= OnPlayerDamaged;
             if (Router == null) return;
             Router.PanelToggleRequested -= OnPanelToggle;
