@@ -76,7 +76,7 @@ namespace SynapticSea.EditorTools.Scenes
 
     /// <summary>
     /// Batch capture of the running Playable scene with the HUD (needs a GPU: run WITHOUT -nographics):
-    ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Scenes.PlayableScreenshotRunner.Run [-frames 90] [-out path] [-ceilings hide]
+    ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Scenes.PlayableScreenshotRunner.Run [-frames 90] [-out path]
     /// Opens the scene, enters play mode, waits for the boot and the given number of frames, writes
     /// <c>artifacts/screenshots/playable_hud.png</c> (1920×1080) and exits.
     /// </summary>
@@ -86,7 +86,6 @@ namespace SynapticSea.EditorTools.Scenes
         const string StateKey = "SynapticSea.PlayableScreenshotRunner.Active";
         const string OutKey = "SynapticSea.PlayableScreenshotRunner.Out";
         const string FramesKey = "SynapticSea.PlayableScreenshotRunner.Frames";
-        const string HideCeilingsKey = "SynapticSea.PlayableScreenshotRunner.HideCeilings";
 
         static PlayableScreenshotRunner()
         {
@@ -103,7 +102,6 @@ namespace SynapticSea.EditorTools.Scenes
             string outPath = Arg("-out") ?? Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "artifacts", "screenshots", "playable_hud.png"));
             SessionState.SetString(OutKey, outPath);
             SessionState.SetInt(FramesKey, int.TryParse(Arg("-frames"), out int f) ? f : 90);
-            SessionState.SetBool(HideCeilingsKey, Arg("-ceilings") == "hide");
             SessionState.SetBool(StateKey, true);
             if (!File.Exists(PlayableSceneBuilder.ScenePath)) PlayableSceneBuilder.BuildScene();
             EditorSceneManager.OpenScene(PlayableSceneBuilder.ScenePath, OpenSceneMode.Single);
@@ -123,7 +121,6 @@ namespace SynapticSea.EditorTools.Scenes
             var driver = new GameObject("PlayableScreenshotDriver").AddComponent<CaptureDriver>();
             driver.OutPath = SessionState.GetString(OutKey, "playable_hud.png");
             driver.Frames = SessionState.GetInt(FramesKey, 90);
-            driver.HideCeilings = SessionState.GetBool(HideCeilingsKey, false);
         }
 
         internal static void Finish(bool ok, string path)
@@ -138,7 +135,6 @@ namespace SynapticSea.EditorTools.Scenes
         {
             public string OutPath;
             public int Frames;
-            public bool HideCeilings;
 
             IEnumerator Start()
             {
@@ -153,13 +149,6 @@ namespace SynapticSea.EditorTools.Scenes
                 }
                 // A fresh run is killed by the fallback stalker within seconds; the review capture wants the live HUD.
                 boot.Session.ThreatManager.Threats.Clear();
-                if (HideCeilings)
-                {
-                    // Review aid, like the Godot reference captures: without ceilings the player and interiors show.
-                    if (boot.Host.CeilingFade != null) boot.Host.CeilingFade.enabled = false;
-                    foreach (var m in FindObjectsByType<SynapticSea.Runtime.StructuralModule>())
-                        if (m.layer == "ceiling") m.gameObject.SetActive(false);
-                }
                 for (int i = 0; i < Frames; i++) yield return null;
                 bool ok = false;
                 yield return PlayableCapture.Capture(boot, OutPath, 1920, 1080, r => ok = r);

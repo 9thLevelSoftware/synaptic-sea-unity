@@ -10,10 +10,9 @@ using UnityEngine.Rendering.Universal;
 
 namespace SynapticSea.Tests.Unity
 {
-    /// <summary>Phase 9 rendering pieces: the ceiling dither shader and the hallucination full-screen pass.</summary>
+    /// <summary>Phase 9 rendering pieces: the hallucination full-screen pass.</summary>
     public class RenderingFeatureTests
     {
-        const string DitherShaderPath = "Assets/Content/Shaders/SS_LitDitherFade.shader";
         const string HallucinationShaderPath = "Assets/Content/Shaders/SS_Hallucination.shader";
 
         /// <summary>
@@ -52,19 +51,6 @@ namespace SynapticSea.Tests.Unity
             var errors = ShaderUtil.GetShaderMessages(shader).Where(m => m.severity == ShaderCompilerMessageSeverity.Error).ToList();
             Assert.IsEmpty(errors, string.Join("\n", errors.Select(e => $"{e.file}:{e.line} {e.message}")));
             Assert.IsTrue(shader.isSupported);
-        }
-
-        [Test]
-        public void DitherFadeShaderCompilesWithEveryPassItNeeds()
-        {
-            var shader = AssetDatabase.LoadAssetAtPath<Shader>(DitherShaderPath);
-            AssertCompiles(shader);
-            Assert.AreEqual(CeilingFadeController.ShaderName, shader.name);
-            var modes = LightModes(shader);
-            foreach (var required in new[] { "universalforward", "shadowcaster", "depthonly", "depthnormals" })
-                Assert.Contains(required, modes, $"missing {required} pass");
-            foreach (var property in new[] { "_Fade", "_BaseColor", "_BaseMap", "_Metallic", "_Smoothness", "_EmissionColor", "_Cull" })
-                Assert.GreaterOrEqual(shader.FindPropertyIndex(property), 0, property);
         }
 
         [Test]

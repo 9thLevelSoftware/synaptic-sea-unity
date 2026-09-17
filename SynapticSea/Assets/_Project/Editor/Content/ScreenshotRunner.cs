@@ -18,17 +18,17 @@ namespace SynapticSea.EditorTools.Content
     /// Renders a Godot layout in Unity for visual review: loads it through <see cref="ShipSceneBuilder"/> (structural
     /// wrappers, markers, portal panels, zones, props, room dressing, objective volumes), applies the environment the
     /// Godot loader would have (the layout's biome atmosphere, or Godot's default environment when it names none), the
-    /// global volume, and the ceiling fade around the focus point, and captures the locked-iso view plus a whole-ship
+    /// global volume (ceilings hidden, as in interior play), and captures the locked-iso view plus a whole-ship
     /// overview to artifacts/screenshots/.
     /// Needs a GPU, so run it in batch mode WITHOUT -nographics:
     ///   Unity.exe -batchmode -projectPath SynapticSea -executeMethod SynapticSea.EditorTools.Content.ScreenshotRunner.Run
     ///     [-layout procgen/golden/coherent_ship_001/layout.json] [-slice path] [-stem name] [-away]
-    ///     [-ceilings fade|hide]   fade (default): CeilingFadeController around the focus; hide: like the Godot reference captures
+    ///     [-ceilings hide|show]   hide (default): interior play and the Godot reference captures; show: exterior review
     ///     [-env auto|breach_field] auto (default): biome atmosphere or Godot's default environment
     ///     [-vfx]                   spawn the four VFX prefabs at the focus (review aid)
     ///     [-hallucination 0..1]    hallucination FX intensity for the gameplay capture
     /// Calibration sweep (one load, several renders; see docs/port-status.md):
-    ///   ... -executeMethod SynapticSea.EditorTools.Content.ScreenshotRunner.Sweep -layout ... -ceilings hide
+    ///   ... -executeMethod SynapticSea.EditorTools.Content.ScreenshotRunner.Sweep -layout ...
     ///     -configs "name:tonemap:dirScale:omniScale:ambientScale[:postExposure[:contrast[:saturation]]];..."   tonemap = aces|neutral|none
     /// </summary>
     public static class ScreenshotRunner
@@ -44,7 +44,7 @@ namespace SynapticSea.EditorTools.Content
             public string Slice;
             public string Stem;
             public bool Away;
-            public bool HideCeilings;
+            public bool ShowCeilings;
             public string Env = "auto";
             public string Configs;
             public bool Vfx;
@@ -60,7 +60,6 @@ namespace SynapticSea.EditorTools.Content
             public Camera Camera;
             public Bounds Bounds;
             public Volume Volume;
-            public CeilingFadeController Fade;
             public string OutDir;
             public string Stem;
         }
@@ -75,7 +74,7 @@ namespace SynapticSea.EditorTools.Content
                 Slice = Arg("-slice"),
                 Stem = Arg("-stem"),
                 Away = args.Contains("-away"),
-                HideCeilings = Arg("-ceilings") == "hide",
+                ShowCeilings = Arg("-ceilings") == "show",
                 Env = Arg("-env") ?? "auto",
                 Configs = Arg("-configs"),
                 Vfx = args.Contains("-vfx"),
@@ -121,7 +120,7 @@ namespace SynapticSea.EditorTools.Content
                 var view = ctx.View;
                 Debug.Log($"[ScreenshotRunner] SCREENSHOT PASS layout={o.Layout} modules={view.Modules.Count} portals={view.GetAuthoredPortalNodes().Count} " +
                           $"landmarks={view.GetLandmarkNodes().Count} objectives={view.GetObjectiveVolumes().Count} dressing={view.GetDressingNodes().Count} " +
-                          $"ceilings={(o.HideCeilings ? "hidden" : $"faded({ctx.Fade?.CeilingCount ?? 0})")} " +
+                          $"ceilings={(o.ShowCeilings ? "shown" : "hidden")} " +
                           $"summary={GdJson.Stringify(ctx.ShipSummary)} atmosphere={GdJson.Stringify(ctx.AtmosphereSummary)} out={Path.GetFullPath(ctx.OutDir)}");
             }
             catch (Exception e)
@@ -214,19 +213,9 @@ namespace SynapticSea.EditorTools.Content
             var focus = new GameObject("Focus").transform;
             focus.position = new Vector3(bounds.center.x, 0f, bounds.center.z);
 
-            // Ceilings: the Godot reference captures hide Ceiling_*; the game fades them around the player.
-            if (o.HideCeilings)
-            {
-                foreach (var m in ctx.View.Modules.Where(m => m.layer == "ceiling")) m.gameObject.SetActive(false);
-            }
-            else
-            {
-                ctx.Fade = new GameObject("CeilingFadeController").AddComponent<CeilingFadeController>();
-                ctx.Fade.Configure(ctx.View, focus);
-            }
-
             var rig = new GameObject("IsoCameraRig").AddComponent<IsoCameraRig>();
             ctx.Camera = rig.EnsureCamera();
+            rig.SetShowCeilings(o.ShowCeilings);
             var camData = ctx.Camera.GetUniversalAdditionalCameraData();
             camData.renderPostProcessing = true;
             camData.antialiasing = AntialiasingMode.None;

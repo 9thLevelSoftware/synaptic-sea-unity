@@ -54,7 +54,6 @@ namespace SynapticSea.Runtime.Session
         public IReadOnlyDictionary<SessionZone, ZoneView> ZoneViews => _zones;
         public ThreatPlaceholderView Threats { get; private set; }
         public HallucinationView Hallucinations { get; private set; }
-        public CeilingFadeController CeilingFade { get; private set; }
 
         Transform _interactionRoot;
         Transform _zoneRoot;
@@ -335,7 +334,6 @@ namespace SynapticSea.Runtime.Session
             _environmentDirty = false;
             _appliedActiveRoot = active;
             ApplyEnvironment(active as ShipLoaderNode, Session.AwayFromStart);
-            ConfigureCeilingFade();
             Physics.SyncTransforms();
             SceneState.Sensor?.Refresh();
             ActiveShipChanged?.Invoke();
@@ -352,26 +350,6 @@ namespace SynapticSea.Runtime.Session
             }
             GdDict atmosphere = (CatalogRegistry.LoadDict(biomePath) ?? new GdDict()).GetDictOrEmpty("atmosphere");
             loader.View.AtmosphereSummary = AtmosphereApplier.Apply(loader.View.transform, atmosphere, away);
-        }
-
-        void ConfigureCeilingFade()
-        {
-            PlayerController p = SceneState.Player;
-            if (p == null) return;
-            if (CeilingFade == null)
-            {
-                var go = new GameObject("CeilingFadeController");
-                go.transform.SetParent(transform, false);
-                CeilingFade = go.AddComponent<CeilingFadeController>();
-            }
-            var ceilings = new List<StructuralModule>();
-            foreach (SceneShipRoot root in ShipHost.Roots)
-            {
-                if (!root.IsInsideTree) continue;
-                foreach (StructuralModule m in root.GameObject.GetComponentsInChildren<StructuralModule>(true))
-                    if (m.layer == "ceiling") ceilings.Add(m);
-            }
-            CeilingFade.Configure(ceilings, p.transform);
         }
 
         // ------------------------------------------------------------------ teardown

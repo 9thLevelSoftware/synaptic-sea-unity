@@ -122,6 +122,10 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(5, _s.Interactables.Count);
             Assert.IsNotNull(Player, "player spawned");
             Assert.IsNotNull(_boot.Host.SceneState.CameraRig, "camera rig spawned");
+            Camera cam = _boot.Host.SceneState.CameraRig.Camera;
+            Assert.AreEqual(0, cam.cullingMask & (1 << PhysicsLayers.Ceiling), "no ceilings are drawn inside the ship");
+            Assert.Greater(_boot.Host.ShipHost.HomeLoader.GameObject.GetComponentsInChildren<StructuralModule>(true).Count(m => m.layer == "ceiling"), 0,
+                "ceiling modules stay in the scene for layout, save and integrity parity");
             Assert.IsTrue(_boot.Host.ShipHost.HomeLoader.IsInsideTree);
             Assert.AreEqual(_s.Interactables.Count, _boot.Host.InteractableViews.Keys.OfType<ObjectiveInteractable>().Count(), "one view per objective node");
             Assert.GreaterOrEqual(_boot.Host.ZoneViews.Count, 1, "route gate views");

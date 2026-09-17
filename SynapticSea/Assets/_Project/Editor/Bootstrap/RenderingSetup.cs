@@ -20,7 +20,6 @@ namespace SynapticSea.EditorTools.Bootstrap
         public const string PipelineAssetPath = "Assets/Settings/PC_RPAsset.asset";
         public const string RendererPath = "Assets/Settings/PC_Renderer.asset";
         public const string GlobalProfilePath = "Assets/Settings/Volumes/SS_GlobalVolume.asset";
-        public const string DitherFadeShaderPath = "Assets/Content/Shaders/SS_LitDitherFade.shader";
         public const string HallucinationShaderPath = "Assets/Content/Shaders/SS_Hallucination.shader";
 
         [MenuItem("Synaptic Sea/Bootstrap/Apply Rendering Settings")]
@@ -78,7 +77,6 @@ namespace SynapticSea.EditorTools.Bootstrap
             EditorUtility.SetDirty(renderer);
 
             // Shaders only looked up by name at runtime must be in builds.
-            EnsureAlwaysIncluded(AssetDatabase.LoadAssetAtPath<Shader>(DitherFadeShaderPath));
             EnsureAlwaysIncluded(AssetDatabase.LoadAssetAtPath<Shader>(HallucinationShaderPath));
 
             var profile = EnsureGlobalProfile();
