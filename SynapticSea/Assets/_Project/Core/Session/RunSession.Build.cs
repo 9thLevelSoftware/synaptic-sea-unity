@@ -590,7 +590,7 @@ namespace SynapticSea.Core.Session
         void BuildSliceAffordanceLabels()
         {
             BlockedAffordancesCleared = false;
-            Events.RaiseAffordancesRebuilt();
+            Events.RaiseAffordancesRebuilt(Loader);
         }
 
         /// <summary><c>_build_route_control_gates()</c>: one powered gate per blocked-route node.</summary>

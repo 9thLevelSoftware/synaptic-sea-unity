@@ -119,6 +119,9 @@ namespace SynapticSea.Core.Session
             RestoreArcSummaryForCurrentShip();
             RestoreModuleIntegrityForCurrentShip();
             RestoreOrPopulateComponentPlacementForCurrentShip();
+            // Unity port: the derelict gets the home ship's readability props and labels (Godot built them for home only).
+            if (newRoot != null)
+                Events.RaiseAffordancesRebuilt(newRoot);
         }
 
         /// <summary>Validates + executes a jump to a marker (gated by the PILOTED ship's propulsion).</summary>
@@ -184,6 +187,8 @@ namespace SynapticSea.Core.Session
             SyncCurrentShipBreachEnvironment();
             SyncCurrentShipPillarSummaries();
             ShipInstance leaving = CurrentShip;
+            if (leaving.MarkerId != "" && leaving.SceneRoot is IShipLoaderView leavingLoader)
+                Events.RaiseAffordancesCleared(leavingLoader);
             if (leaving.MarkerId == "")
             {
                 if (HasPlayer)
@@ -237,6 +242,8 @@ namespace SynapticSea.Core.Session
             ShipInstance leaving = CurrentShip;
             if (leaving != null && leaving.MarkerId != "")
             {
+                if (leaving.SceneRoot is IShipLoaderView leavingLoader)
+                    Events.RaiseAffordancesCleared(leavingLoader);
                 if (leaving != PilotedShip && RootValid(leaving.SceneRoot))
                 {
                     ShipHost?.FreeShipRoot(leaving.SceneRoot);

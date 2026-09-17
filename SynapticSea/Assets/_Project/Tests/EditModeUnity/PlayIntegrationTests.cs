@@ -294,9 +294,36 @@ namespace SynapticSea.Tests.Unity
             Assert.AreEqual("ComponentMarker_ci_1", marker.name);
             Assert.AreEqual(Frame.ToUnity(new Vec3(2f, 0f, 3f)), marker.transform.localPosition);
             Assert.AreEqual("console_unit", view.RecordFor(marker).GetString("component_id"));
+            Assert.IsFalse(ComponentMarkerView.IsImported(marker), "an unbound component keeps the primitive fallback");
+            Assert.AreEqual(ComponentMarkerView.VisualSourceFallback, view.RecordFor(marker).GetString("visual_source"));
+            Assert.IsNotNull(marker.transform.Find(ComponentMarkerView.FallbackName));
             view.Rebuild(new List<GdDict>());
             Assert.AreEqual(0, view.Markers.Count);
             Assert.AreEqual(0, root.transform.childCount);
+        }
+
+        [Test]
+        public void ComponentMarkersMountTheBoundPropVisual()
+        {
+            var bindings = new PropVisualBindingCatalog();
+            Assert.IsTrue(bindings.LoadFromPath(), string.Join("; ", bindings.GetErrors()));
+            Assert.IsNotNull(RuntimePropVisualBinder.DefaultCatalog, "Resources/Catalogs/PropCatalog");
+            var root = new GameObject("markers");
+            _objects.Add(root);
+            var view = new ComponentMarkerView(root.transform, bindings);
+            view.Rebuild(new List<GdDict>
+            {
+                new GdDict { { "component_instance_id", "ci_1" }, { "component_id", "console_generic" }, { "world_position", new Vec3(2f, 0f, 3f) } },
+                new GdDict { { "component_instance_id", "ci_2" }, { "component_id", "pump" }, { "world_position", new Vec3(6f, 0f, 3f) } },
+            });
+            Assert.AreEqual(2, view.Markers.Count);
+            GameObject bound = view.Markers[0];
+            Assert.IsTrue(ComponentMarkerView.IsImported(bound), "console_generic mounts its prop prefab");
+            Assert.AreEqual(ComponentMarkerView.VisualSourceImported, view.RecordFor(bound).GetString("visual_source"));
+            Assert.IsNull(bound.transform.Find(ComponentMarkerView.FallbackName), "no placeholder box under an imported visual");
+            Assert.Greater(bound.GetComponentsInChildren<Renderer>().Length, 0);
+            Assert.IsEmpty(bound.GetComponentsInChildren<Collider>(true), "imported visuals stay collider-free");
+            Assert.IsFalse(ComponentMarkerView.IsImported(view.Markers[1]), "an unbound component id falls back");
         }
 
         // ------------------------------------------------------------------ D3 threat feedback

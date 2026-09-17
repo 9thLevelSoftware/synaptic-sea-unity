@@ -65,8 +65,14 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_clear_blocked_affordances()</c> (restore_systems cleared the blocked-biomatter props).</summary>
         public event Action BlockedAffordancesCleared;
 
-        /// <summary><c>_build_slice_affordance_labels()</c> + <c>_build_route_control_gates()</c> ran for the home loader.</summary>
-        public event Action AffordancesRebuilt;
+        /// <summary>
+        /// <c>_build_slice_affordance_labels()</c> + <c>_build_route_control_gates()</c> ran for the home loader, or (Unity port)
+        /// a derelict root was boarded: rebuild the readability props and labels of that loader.
+        /// </summary>
+        public event Action<IShipLoaderView> AffordancesRebuilt;
+
+        /// <summary>Unity port: the player left a boarded derelict; drop that loader's readability props and labels.</summary>
+        public event Action<IShipLoaderView> AffordancesCleared;
 
         // ---- component markers
         /// <summary><c>_rebuild_component_markers()</c>: the mounted-component marker list (world positions + ids).</summary>
@@ -129,7 +135,8 @@ namespace SynapticSea.Core.Session
         internal void RaiseZoneStateChanged(SessionZone z) => ZoneStateChanged?.Invoke(z);
         internal void RaiseBreachUnsafeMarkerVisible(bool v) => BreachUnsafeMarkerVisible?.Invoke(v);
         internal void RaiseBlockedAffordancesCleared() => BlockedAffordancesCleared?.Invoke();
-        internal void RaiseAffordancesRebuilt() => AffordancesRebuilt?.Invoke();
+        internal void RaiseAffordancesRebuilt(IShipLoaderView root) => AffordancesRebuilt?.Invoke(root);
+        internal void RaiseAffordancesCleared(IShipLoaderView root) => AffordancesCleared?.Invoke(root);
         internal void RaiseComponentMarkersRebuilt(IReadOnlyList<GdDict> m) => ComponentMarkersRebuilt?.Invoke(m);
         internal void RaiseTrackerObjectivesSet(GdArray specs) => TrackerObjectivesSet?.Invoke(specs);
         internal void RaiseTrackerCompleted(long seq) => TrackerCompleted?.Invoke(seq);
