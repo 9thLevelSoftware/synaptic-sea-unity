@@ -326,6 +326,20 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(4242L, loaded.RunSeed);
         }
 
+        [Test]
+        public void C4_HazardDial_ScalesArcDurations()
+        {
+            RunSession standard = Boot().Session;
+            Assert.AreEqual(ElectricalArcState.DEFAULT_ARCING_DURATION, standard.ElectricalArcState.ArcingDuration, "standard keeps Godot's arc timing");
+            Assert.AreEqual(ElectricalArcState.DEFAULT_DISCHARGED_DURATION, standard.ElectricalArcState.DischargedDuration);
+
+            RunSession deep = Boot(d => d.DifficultyId = "deep_dive").Session;
+            double hazard = deep.HomeDial(DifficultyProfile.DIAL_HAZARD);
+            Assert.Greater(hazard, 1.0);
+            Assert.AreEqual(ElectricalArcState.DEFAULT_ARCING_DURATION * hazard, deep.ElectricalArcState.ArcingDuration, 1e-12, "arcs last longer");
+            Assert.AreEqual(ElectricalArcState.DEFAULT_DISCHARGED_DURATION / hazard, deep.ElectricalArcState.DischargedDuration, 1e-12, "the safe window shrinks");
+        }
+
         // ================================================================== D3 threat attack event
 
         [Test]
@@ -411,6 +425,30 @@ namespace SynapticSea.Tests.Session
             Assert.Greater(fight.Session.WoundState.ActiveCount(), 0, "threat hits opened a wound");
         }
 
+        [Test]
+        public void E1_CombatWounds_PickBodyPartsDeterministically()
+        {
+            List<string> Parts()
+            {
+                RunSession s = Boot().Session;
+                s.ThreatManager.Threats.Clear();
+                var parts = new List<string>();
+                for (int i = 0; i < 20; i++)
+                    parts.Add(s.RollWoundBodyPart());
+                s.ApplyWoundFromCombatDamage(10.0, new GdDict { { "damage_type", "blunt" }, { "source_id", "test" } });
+                Assert.AreEqual(1, s.WoundState.ActiveCount(), "combat damage opened a wound");
+                GdDict wound = (GdDict)s.WoundState.Wounds[0];
+                parts.Add(wound.GetString("body_part"));
+                return parts;
+            }
+
+            List<string> first = Parts();
+            List<string> second = Parts();
+            CollectionAssert.AreEqual(first, second, "the same run seed hits the same body parts");
+            Assert.IsTrue(first.Any(p => p != WoundState.BODY_TORSO), "wounds are not all torso: " + string.Join(",", first));
+            CollectionAssert.IsSubsetOf(first.Distinct().ToList(), RunSession.WOUND_BODY_PARTS);
+        }
+
         // ================================================================== E2 persistence
 
         [Test]
@@ -460,6 +498,21 @@ namespace SynapticSea.Tests.Session
             Assert.IsFalse(run4.Has("tutorial_summary"), "input not mutated");
         }
 
+        [Test]
+        public void E2_MigrationGivesRunFiveSavesTheEmptyDefaults()
+        {
+            var run5 = new GdDict { { "slice_version", "gate2-current-run-5" }, { "godot_version", "x" }, { "run_context", new GdDict { { "seed", 5L } } } };
+            GdDict result = new SaveMigrationService().MigrateRun(run5);
+            Assert.IsTrue(result.GetBool("migrated"));
+            var d = (GdDict)result["dict"];
+            Assert.AreEqual("gate2-current-run-6", d.GetString("slice_version"));
+            foreach (object key in SaveMigrationService.V6Defaults.Keys)
+                Assert.IsTrue(V.VariantEquals(SaveMigrationService.V6Defaults[key], d[key]), V.Str(key));
+            Assert.AreEqual(5L, d.GetDictOrEmpty("run_context").GetInt("seed"), "present keys are never overwritten");
+            Assert.IsFalse(d.Has("wound_summary"), "a run-5 save only gains the run-6 keys");
+            Assert.IsFalse(run5.Has("visited_ships"), "input not mutated");
+        }
+
         // ================================================================== E3 manual slots
 
         [Test]
@@ -471,11 +524,25 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(s.EquipmentState.Equip("crowbar").GetBool("ok"));
             s.HomeShip.LootedContainerIds.Add("start_supply_a");
             s.HomeShip.GetInventory().AddItem("scrap_metal", 3);
+            CartState savedCart = CartState.Create("slot_test_cart", 50.0);
+            savedCart.GetHold().AddItem("scrap_metal", 2);
+            s.HomeShip.GetCarts().Add(savedCart);
+            s.HomeShip.BreachEnvironmentSummary = new GdDict { { "hazard_kind", "oxygen" }, { "breach_open", false } };
+            Assert.IsTrue(s.MetaProgressionState.UnlockCodexEntry("slot_test_entry"));
+            Assert.IsTrue(s.UniqueItemState.Claim("slot_test_unique", "slot_seed"));
+            ShipInstance visited = ShipInstance.Create("slot_test_ship", "9:9:9", new ShipBlueprint(), new ShipSystemsManager(), null);
+            s.VisitedShips["9:9:9"] = visited;
             RunSnapshot slot = RunSnapshotAssembler.Build(s);
             Assert.IsNotNull(slot);
+            Assert.IsFalse(slot.HomeShipCarts.IsEmpty);
+            Assert.IsFalse(slot.HomeBreachEnvironment.IsEmpty);
+            Assert.IsTrue(slot.VisitedShips.Has("9:9:9"));
 
             s.EquipmentState.Unequip("primary_hand");
             Assert.IsTrue(s.EquipmentState.Equip("welding_lance").GetBool("ok"));
+            s.HomeShip.GetCarts().Clear();
+            s.MetaProgressionState.UnlockedCodexEntryIds.Clear();
+            s.UniqueItemState.Reset();
             TickSeconds(rig, 1.0);
 
             Assert.IsTrue(s.ApplyManualSlot(slot));
@@ -485,6 +552,18 @@ namespace SynapticSea.Tests.Session
             LootContainer searched = s.LootContainers.FirstOrDefault(c => c.ContainerId == "start_supply_a");
             if (searched != null)
                 Assert.IsTrue(searched.Searched, "the rebuilt container reads as searched");
+
+            // gate2-current-run-6: carts, breach environment, meta progression, unique items and visited ships.
+            CartState restoredCart = s.HomeShip.GetCarts().FirstOrDefault(c => c.CartId == "slot_test_cart");
+            Assert.IsNotNull(restoredCart, "home carts restored");
+            Assert.AreEqual(2, restoredCart.GetHold().GetQuantity("scrap_metal"), "cart hold restored");
+            foreach (CartState cart in s.HomeShip.GetCarts())
+                Assert.AreEqual(1, s.CartControls.Count(c => c.CartId == cart.CartId), "one control per cart: " + cart.CartId);
+            Assert.IsFalse(s.HomeShip.BreachEnvironmentSummary.IsEmpty, "home breach environment restored");
+            Assert.IsTrue(s.MetaProgressionState.IsCodexEntryUnlocked("slot_test_entry"), "meta progression restored");
+            Assert.IsTrue(s.UniqueItemState.IsClaimed("slot_test_unique"), "unique items restored");
+            Assert.IsTrue(s.VisitedShips.ContainsKey("9:9:9"), "visited ships restored");
+            Assert.AreEqual("slot_test_ship", s.VisitedShips["9:9:9"].ShipId);
         }
     }
 }

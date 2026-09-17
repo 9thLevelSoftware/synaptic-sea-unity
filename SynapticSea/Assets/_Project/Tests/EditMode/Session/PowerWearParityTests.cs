@@ -103,5 +103,27 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(29.25, godot.GetFloat("slice_complete_flipped_at"));
             Assert.IsTrue(s.SliceComplete);
         }
+
+        [Test]
+        public void GoldenShip_IdleWithEmergencyFloor_OutlivesTheLifeSupportStarvation()
+        {
+            RunSessionDeps deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
+            deps.HomeLifeSupportPowerFloor = new RunSessionDeps().HomeLifeSupportPowerFloor;
+            Assert.Greater(deps.HomeLifeSupportPowerFloor, 0.0, "the game default carries the floor");
+            RunSession s = RunSession.Create(deps);
+            Assert.IsTrue(s.PlayableStarted, s.LastFailureReason);
+            s.ThreatManager.Threats.Clear();
+            // Godot (floor 0.0, the parity test above) is dead at 29.25 s. With the floor the atmosphere is still clean
+            // at 34 s, while the grid allocates nothing to life support.
+            for (int i = 0; i < 34.0 / Step; i++)
+            {
+                rig.Clock.Advance(Step);
+                s.Tick(TickContext.Frame(Step, rig.Scene.PlayerPosition));
+            }
+            Assert.IsFalse(s.SliceComplete, "the idle player outlives Godot's 29.25 s life-support death");
+            Assert.AreEqual(0.0, s.PowerGridState.GetAllocationRatio("life_support"), "the grid itself still starves life support");
+            Assert.AreEqual(0.0, s.LifeSupportExpandedState.GetHealthDrainPerSecond(), 1e-9, "emergency cells keep the atmosphere breathable");
+            Assert.Greater(s.LifeSupportExpandedState.OxygenPercent, 95.0);
+        }
     }
 }

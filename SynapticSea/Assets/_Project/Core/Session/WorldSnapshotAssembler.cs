@@ -50,9 +50,6 @@ namespace SynapticSea.Core.Session
             }
             if (s.EquipmentState != null)
                 ws.PlayerEquipment = s.EquipmentState.GetSummary();
-            ws.VisitedShips = new GdDict();
-            foreach (KeyValuePair<string, ShipInstance> kv in s.VisitedShips)
-                ws.VisitedShips[kv.Key] = kv.Value.GetSummary();
             ws.CurrentLocation = s.CurrentShip != null ? s.CurrentShip.MarkerId : "";
             ws.WorldTime = s.WorldTime;
             if (s.Scene != null && s.Scene.HasPlayer)
@@ -64,37 +61,7 @@ namespace SynapticSea.Core.Session
             ws.PilotedShipId = s.PilotedShip != null ? s.PilotedShip.ShipId : "";
             ws.AboardShipId = s.CurrentOccupancy != null ? s.CurrentOccupancy.ShipId : "";
             ws.OpenedPorts = OpenedPortMarkerIds(s);
-            if (s.DemoCrossRunBlocked)
-            {
-                var keepMarkers = new HashSet<string>();
-                var keepShipIds = new HashSet<string>();
-                if (s.AwayFromStart && s.CurrentShip != null)
-                    keepMarkers.Add(s.CurrentShip.MarkerId);
-                if (ws.PilotedShipId != "")
-                    keepShipIds.Add(ws.PilotedShipId);
-                if (ws.AboardShipId != "")
-                    keepShipIds.Add(ws.AboardShipId);
-                foreach (object edgeV in ws.DockEdges)
-                {
-                    if (!(edgeV is GdDict edge))
-                        continue;
-                    string edgeHost = V.Str(edge.Get("host", ""));
-                    string edgeMobile = V.Str(edge.Get("mobile", ""));
-                    if (edgeHost.Length > 0)
-                        keepMarkers.Add(edgeHost);
-                    if (edgeMobile.Length > 0)
-                        keepShipIds.Add(edgeMobile);
-                }
-                var demoKept = new GdDict();
-                foreach (object keptMid in ws.VisitedShips.Keys)
-                {
-                    object summV = ws.VisitedShips[keptMid];
-                    string summShipId = summV is GdDict sd ? V.Str(sd.Get("ship_id", "")) : "";
-                    if (keepMarkers.Contains(V.Str(keptMid)) || (summShipId.Length > 0 && keepShipIds.Contains(summShipId)))
-                        demoKept[V.Str(keptMid)] = summV;
-                }
-                ws.VisitedShips = demoKept;
-            }
+            ws.VisitedShips = VisitedShipsForSave(s, ws.DockEdges, ws.PilotedShipId, ws.AboardShipId);
             ws.RunId = s.RunIdInternal;
             ws.SliceVersion = WorldSnapshot.WorldSliceVersion;
             ws.GodotVersion = s.Deps.Engine.VersionString;
@@ -169,22 +136,10 @@ namespace SynapticSea.Core.Session
             if (s.HomeShip != null)
             {
                 s.HomeShip.LootedContainerIds = ws.HomeLootedContainers.ShallowCopy();
-                s.HomeShip.BreachEnvironmentSummary = ws.HomeBreachEnvironment.DeepCopy();
-                if (!ws.HomeBreachEnvironment.IsEmpty && !s.AwayFromStart)
-                    s.RebuildBreachZoneForWorldLoad();
+                ApplyHomeBreachEnvironment(s, ws.HomeBreachEnvironment);
                 if (!ws.HomeShipInventory.IsEmpty)
                     s.HomeShip.GetInventory().ApplySummary(ws.HomeShipInventory);
-                s.HomeShip.GetCarts().Clear();
-                foreach (object cd in ws.HomeShipCarts)
-                {
-                    if (cd is GdDict cdDict)
-                    {
-                        CartState cart = CartState.Create();
-                        cart.ApplySummary(cdDict);
-                        s.HomeShip.GetCarts().Add(cart);
-                    }
-                }
-                s.SpawnCartControlsForShipInternal(s.HomeShip);
+                ApplyHomeCarts(s, ws.HomeShipCarts);
                 if (!s.AwayFromStart)
                     s.RebuildHomeLootAndHatchesForWorldLoad();
             }
@@ -214,13 +169,7 @@ namespace SynapticSea.Core.Session
             s.UniqueItemState?.ApplySummary(ws.UniqueItemSummary);
             if (s.SynapticSeaWorld != null && !ws.WorldSummary.IsEmpty)
                 s.SynapticSeaWorld.ApplySummary(ws.WorldSummary);
-            s.VisitedShips.Clear();
-            foreach (object mid in ws.VisitedShips.Keys)
-            {
-                ShipInstance inst = ShipInstance.Create("", "", new ShipBlueprint(), null, null);
-                if (inst.ApplySummary(ws.VisitedShips[mid]))
-                    s.VisitedShips[V.Str(mid)] = inst;
-            }
+            ApplyVisitedShips(s, ws.VisitedShips);
             s.WorldTime = ws.WorldTime;
             if (ws.CurrentLocation != "")
             {
@@ -250,6 +199,94 @@ namespace SynapticSea.Core.Session
             }
             ApplyDockingSnapshot(s, ws);
             return true;
+        }
+
+        /// <summary>
+        /// Every retained ship's summary keyed by marker id; under the demo's <c>world_persistence.cross_run</c> block only
+        /// the active derelict, the piloted / boarded ships and dock-edge endpoints are kept (Godot _build_world_snapshot).
+        /// </summary>
+        internal static GdDict VisitedShipsForSave(RunSession s, GdArray dockEdges, string pilotedShipId, string aboardShipId)
+        {
+            var visited = new GdDict();
+            foreach (KeyValuePair<string, ShipInstance> kv in s.VisitedShips)
+                visited[kv.Key] = kv.Value.GetSummary();
+            if (!s.DemoCrossRunBlocked)
+                return visited;
+            var keepMarkers = new HashSet<string>();
+            var keepShipIds = new HashSet<string>();
+            if (s.AwayFromStart && s.CurrentShip != null)
+                keepMarkers.Add(s.CurrentShip.MarkerId);
+            if (pilotedShipId != "")
+                keepShipIds.Add(pilotedShipId);
+            if (aboardShipId != "")
+                keepShipIds.Add(aboardShipId);
+            foreach (object edgeV in dockEdges)
+            {
+                if (!(edgeV is GdDict edge))
+                    continue;
+                string edgeHost = V.Str(edge.Get("host", ""));
+                string edgeMobile = V.Str(edge.Get("mobile", ""));
+                if (edgeHost.Length > 0)
+                    keepMarkers.Add(edgeHost);
+                if (edgeMobile.Length > 0)
+                    keepShipIds.Add(edgeMobile);
+            }
+            var demoKept = new GdDict();
+            foreach (object keptMid in visited.Keys)
+            {
+                object summV = visited[keptMid];
+                string summShipId = summV is GdDict sd ? V.Str(sd.Get("ship_id", "")) : "";
+                if (keepMarkers.Contains(V.Str(keptMid)) || (summShipId.Length > 0 && keepShipIds.Contains(summShipId)))
+                    demoKept[V.Str(keptMid)] = summV;
+            }
+            return demoKept;
+        }
+
+        /// <summary>The retained-ship registry as saved from the live session (run snapshots carry it since gate2-current-run-6).</summary>
+        internal static GdDict VisitedShipsForSave(RunSession s) => VisitedShipsForSave(
+            s,
+            CurrentDockEdges(s),
+            s.PilotedShip != null ? s.PilotedShip.ShipId : "",
+            s.CurrentOccupancy != null ? s.CurrentOccupancy.ShipId : "");
+
+        /// <summary>Home breach environment restore; the breach zone is rebuilt when a saved environment exists and the player is home.</summary>
+        internal static void ApplyHomeBreachEnvironment(RunSession s, GdDict environment)
+        {
+            if (s.HomeShip == null)
+                return;
+            s.HomeShip.BreachEnvironmentSummary = environment.DeepCopy();
+            if (!environment.IsEmpty && !s.AwayFromStart)
+                s.RebuildBreachZoneForWorldLoad();
+        }
+
+        /// <summary>Replaces the home ship's carts with the saved ones and respawns their controls (idempotent per cart id).</summary>
+        internal static void ApplyHomeCarts(RunSession s, GdArray carts)
+        {
+            if (s.HomeShip == null)
+                return;
+            s.HomeShip.GetCarts().Clear();
+            foreach (object cd in carts)
+            {
+                if (cd is GdDict cdDict)
+                {
+                    CartState cart = CartState.Create();
+                    cart.ApplySummary(cdDict);
+                    s.HomeShip.GetCarts().Add(cart);
+                }
+            }
+            s.SpawnCartControlsForShipInternal(s.HomeShip);
+        }
+
+        /// <summary>Rebuilds the retained-ship registry from saved summaries (entries that fail to apply are dropped).</summary>
+        internal static void ApplyVisitedShips(RunSession s, GdDict visited)
+        {
+            s.VisitedShips.Clear();
+            foreach (object mid in visited.Keys)
+            {
+                ShipInstance inst = ShipInstance.Create("", "", new ShipBlueprint(), null, null);
+                if (inst.ApplySummary(visited[mid]))
+                    s.VisitedShips[V.Str(mid)] = inst;
+            }
         }
 
         /// <summary>Restores the piloted pointer, dock-edge set, and occupancy (every saved docking field is read here).</summary>

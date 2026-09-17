@@ -6,7 +6,7 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Tests.Parity
 {
     /// <summary>
-    /// The Unity port's run schema (<c>gate2-current-run-5</c>) is Godot's <c>gate2-current-run-4</c> plus
+    /// The Unity port's run schema (<c>gate2-current-run-6</c>) is Godot's <c>gate2-current-run-4</c> plus
     /// <see cref="RunSnapshot.PortExtensionFields"/>. Parity tests compare Godot's keys exactly through
     /// <see cref="GodotView"/> and assert the extension keys separately.
     /// </summary>
@@ -17,7 +17,7 @@ namespace SynapticSea.Tests.Parity
 
         /// <summary>
         /// A deep copy with every run-snapshot dict (a <c>slice_version</c> of <c>gate2-current-run-*</c>) stripped of the port
-        /// extension keys, and every <c>gate2-current-run-5</c> string value rewritten to <c>gate2-current-run-4</c>
+        /// extension keys, and every <c>gate2-current-run-6</c> string value rewritten to <c>gate2-current-run-4</c>
         /// (slice_version, index/manifest schema_version, migration to_version).
         /// </summary>
         public static object GodotView(object value)
@@ -58,7 +58,7 @@ namespace SynapticSea.Tests.Parity
             foreach (object key in RunSnapshot.PortExtensionFields)
             {
                 Assert.IsTrue(runDict.Has(key), $"{where}: missing port key {key}");
-                Assert.IsTrue(V.VariantEquals(SaveMigrationService.V5Defaults[key], runDict[key]), $"{where}: {key} is not the migration default");
+                Assert.IsTrue(V.VariantEquals(SaveMigrationService.PortDefaults[key], runDict[key]), $"{where}: {key} is not the migration default");
             }
         }
 

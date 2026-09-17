@@ -62,6 +62,23 @@ namespace SynapticSea.Core.Session
             RuntimeFor(inst).CatchUp(WorldTime);
         }
 
+        /// <summary>
+        /// The powered ratio home life support ticks with: the grid's allocation, raised to
+        /// <see cref="RunSessionDeps.HomeLifeSupportPowerFloor"/> while the life support system itself is functional
+        /// (emergency cells). The grid allocation and its saved summary are unchanged.
+        /// </summary>
+        double HomeLifeSupportPoweredRatio()
+        {
+            double allocated = PowerGridState.GetAllocationRatio("life_support");
+            double floor = Deps.HomeLifeSupportPowerFloor;
+            if (floor <= 0.0 || ShipSystemsManager == null)
+                return allocated;
+            ShipSystem lifeSupport = ShipSystemsManager.GetSystem("life_support");
+            if (lifeSupport == null || !lifeSupport.IsSelfFunctional())
+                return allocated;
+            return Math.Max(allocated, floor);
+        }
+
         /// <summary><c>_recompute_expanded_ship_systems(delta)</c>: power grid, propulsion, life support, stations, sustenance.</summary>
         void RecomputeExpandedShipSystems(double delta)
         {
@@ -87,7 +104,7 @@ namespace SynapticSea.Core.Session
                     recycledWater = WaterRecyclerState.OutputReady;
                 LifeSupportExpandedState.Tick(delta, new GdDict
                 {
-                    { "powered_ratio", PowerGridState.GetAllocationRatio("life_support") },
+                    { "powered_ratio", HomeLifeSupportPoweredRatio() },
                     { "breach_count", DerivedBreachCount() },
                     { "recycled_water", recycledWater },
                 });

@@ -310,16 +310,17 @@ namespace SynapticSea.Core.Session
         {
             if (CurrentShip == null || OxygenState == null)
                 return;
-            GdDict summary = OxygenState.GetSummary();
-            CurrentShip.BreachEnvironmentSummary = new GdDict
-            {
-                { "hazard_kind", "oxygen" },
-                { "breach_open", summary.GetBool("breach_open") },
-                { "breach_sealed", summary.GetBool("breach_sealed") },
-                { "passability_blocked", summary.GetBool("passability_blocked") },
-                { "breach_zone_ids", summary.GetArrayOrEmpty("breach_zone_ids").ShallowCopy() },
-            };
+            CurrentShip.BreachEnvironmentSummary = BreachEnvironmentFrom(OxygenState.GetSummary());
         }
+
+        static GdDict BreachEnvironmentFrom(GdDict oxygenSummary) => new GdDict
+        {
+            { "hazard_kind", "oxygen" },
+            { "breach_open", oxygenSummary.GetBool("breach_open") },
+            { "breach_sealed", oxygenSummary.GetBool("breach_sealed") },
+            { "passability_blocked", oxygenSummary.GetBool("passability_blocked") },
+            { "breach_zone_ids", oxygenSummary.GetArrayOrEmpty("breach_zone_ids").ShallowCopy() },
+        };
 
         /// <summary>PKG-D6.1: flush live module integrity + component placement onto the current ship.</summary>
         void SyncCurrentShipPillarSummaries()

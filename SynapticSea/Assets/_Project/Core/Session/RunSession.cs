@@ -434,9 +434,17 @@ namespace SynapticSea.Core.Session
         /// <summary><c>scene_root.to_local(world)</c> / <c>global_transform.affine_inverse() * world</c>.</summary>
         static Vec3 ToLocal(IShipSceneRoot root, Vec3 world) => RootInTree(root) ? SessionMath.AffineInverse(root.GlobalTransform) * world : world;
 
+        /// <summary>Every interaction node spawned and not yet freed (pruned lazily); station placement avoids them.</summary>
+        readonly List<SessionInteractable> _liveNodes = new List<SessionInteractable>();
+
+        /// <summary>The live interaction nodes (tests).</summary>
+        internal IReadOnlyList<SessionInteractable> LiveNodes => _liveNodes;
+
         /// <summary>Registers a spawned interaction node (Godot <c>add_child</c>).</summary>
         T Spawn<T>(T node) where T : SessionInteractable
         {
+            _liveNodes.RemoveAll(n => !n.IsValid);
+            _liveNodes.Add(node);
             Events.RaiseInteractableSpawned(node);
             return node;
         }

@@ -2,6 +2,7 @@
 // _try_treat_selected_wound / _first_inventory_item, 3876-3920), plus Unity-port additions for inherited Godot gaps:
 // wounds from combat damage, the per-frame wounds stage (E1) and the Wounds panel queries (A6).
 using System.Collections.Generic;
+using SynapticSea.Core.Rng;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 
@@ -14,6 +15,14 @@ namespace SynapticSea.Core.Session
 
         /// <summary>Severity healed per second by a bandaged, untreated wound.</summary>
         public const double WOUND_BANDAGED_HEAL_PER_SECOND = 0.001;
+
+        /// <summary>Body parts a combat wound can land on, and their pick weights (tuning values, not parity).</summary>
+        public static readonly string[] WOUND_BODY_PARTS = { WoundState.BODY_TORSO, WoundState.BODY_ARM, WoundState.BODY_LEG, WoundState.BODY_HEAD };
+
+        public static readonly float[] WOUND_BODY_PART_WEIGHTS = { 50f, 20f, 20f, 10f };
+
+        /// <summary>Combat wounds rolled this session; with the run seed it makes the body-part sequence deterministic.</summary>
+        long _woundRollCounter;
 
         public const string WOUND_ACTION_BANDAGE = "bandage";
         public const string WOUND_ACTION_TREAT = "treat";
@@ -34,16 +43,30 @@ namespace SynapticSea.Core.Session
         }
 
         /// <summary>Combat damage opens (or worsens) a wound via <see cref="WoundState.SuggestFromDamage"/> (below 2 damage: none).</summary>
-        void ApplyWoundFromCombatDamage(double damage, GdDict ev)
+        internal void ApplyWoundFromCombatDamage(double damage, GdDict ev)
         {
             if (WoundState == null || damage <= 0.0)
                 return;
-            GdDict suggestion = WoundState.SuggestFromDamage(damage, V.Str((ev ?? new GdDict()).Get("damage_type", "")));
+            GdDict suggestion = WoundState.SuggestFromDamage(damage, V.Str((ev ?? new GdDict()).Get("damage_type", "")), RollWoundBodyPart());
             if (suggestion.IsEmpty)
                 return;
             suggestion["source_id"] = V.Str((ev ?? new GdDict()).Get("source_id", ""));
             if (WoundState.ApplyOrWorsenWound(suggestion).Length > 0)
                 Events.RaiseWoundsChanged(WoundState);
+        }
+
+        /// <summary>
+        /// Unity port: the hit location of a combat wound. Godot's damage events carry no body part and
+        /// <c>suggest_from_damage</c> always defaulted to the torso. The pick is weighted by
+        /// <see cref="WOUND_BODY_PART_WEIGHTS"/> and seeded from the run seed plus a per-session counter, so a replay of
+        /// the same run hits the same parts. The counter restarts on reload (a loaded run gets a fresh, still
+        /// deterministic sequence).
+        /// </summary>
+        internal string RollWoundBodyPart()
+        {
+            GodotRandom rng = GodotRandom.FromSeed(unchecked(RunSeed * 31 + _woundRollCounter++));
+            long index = rng.RandWeighted(WOUND_BODY_PART_WEIGHTS);
+            return index < 0 ? WoundState.BODY_TORSO : WOUND_BODY_PARTS[index];
         }
 
         // ------------------------------------------------------------------ A6: treatment

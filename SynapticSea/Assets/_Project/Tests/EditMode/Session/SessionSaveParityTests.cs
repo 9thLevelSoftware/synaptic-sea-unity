@@ -127,7 +127,7 @@ namespace SynapticSea.Tests.Session
 
         // ------------------------------------------------------------------ port keys
 
-        /// <summary>The gate2-current-run-5 keys of a run dict the session just built equal its live models.</summary>
+        /// <summary>The gate2-current-run-5/6 keys of a run dict the session just built equal its live models.</summary>
         static void AssertPortKeysMatchSession(GdDict runDict, RunSession s, string where, GdDict tutorialAtSave = null)
         {
             SameAsModel(runDict, "wound_summary", s.WoundState.GetSummary(), where);
@@ -137,6 +137,16 @@ namespace SynapticSea.Tests.Session
             SameAsModel(runDict, "home_looted_containers", s.HomeShip.LootedContainerIds, where);
             SameAsModel(runDict, "home_ship_inventory", s.HomeShip.GetInventory().GetSummary(), where);
             SameAsModel(runDict, "run_context", s.GetRunContextSummary(), where);
+            var carts = new GdArray();
+            foreach (CartState c in s.HomeShip.GetCarts())
+                carts.Add(c.GetSummary());
+            SameAsModel(runDict, "home_ship_carts", carts, where);
+            SameAsModel(runDict, "home_breach_environment", s.HomeBreachEnvironmentForSave(), where);
+            GdDict meta = s.MetaProgressionState.ToDict();
+            meta["saved_at"] = runDict.GetDictOrEmpty("meta_progression_summary").Get("saved_at", "");
+            SameAsModel(runDict, "meta_progression_summary", meta, where);
+            SameAsModel(runDict, "unique_item_summary", s.UniqueItemState.GetSummary(), where);
+            SameAsModel(runDict, "visited_ships", WorldSnapshotAssembler.VisitedShipsForSave(s), where);
             GdDict ctx = runDict.GetDictOrEmpty("run_context");
             Assert.AreEqual("standard", ctx.GetString("difficulty_id"), where);
             Assert.AreEqual("", ctx.GetString("biome_id"), where);

@@ -189,13 +189,13 @@ namespace SynapticSea.Core.Session
                 for (int i = 0; i < CRAFTING_STATION_KINDS.Count; i++)
                     positions.Add(new Vec3(i * 2.0f, y, 0.0f));
             }
-            int idx = 0;
-            foreach (string kind in CRAFTING_STATION_KINDS)
+            List<StationPlacer.Placement> placements = PlaceHomeStations(CRAFTING_STATION_KINDS, positions);
+            foreach (StationPlacer.Placement placement in placements)
             {
-                Vec3 pos = positions[idx % positions.Count];
-                idx += 1;
+                string kind = placement.Kind;
+                Vec3 pos = placement.LocalPosition;
                 var st = new CraftingStation();
-                st.Configure(kind, CraftingState, MaterialState, InventoryState, DeconstructionResolver, PlayerProgression, pos, 1.8);
+                st.Configure(kind, CraftingState, MaterialState, InventoryState, DeconstructionResolver, PlayerProgression, pos, STATION_INTERACTION_RADIUS);
                 st.SurgeryProvider = this;
                 st.CraftStarted += OnCraftStarted;
                 st.SalvageCompleted += OnSalvageCompleted;
@@ -205,6 +205,38 @@ namespace SynapticSea.Core.Session
                 CraftingStations.Add(Spawn(st));
             }
         }
+
+        /// <summary>
+        /// Unity port: home stations go into rooms by role (<see cref="StationPlacer"/>) instead of Godot's first structural
+        /// nodes, clear of the player start and of every live interaction area, so they never claim interact in front of
+        /// objectives, pickups or loot. <paramref name="legacyPositions"/> stay the last fallback.
+        /// </summary>
+        List<StationPlacer.Placement> PlaceHomeStations(IReadOnlyList<string> kinds, List<Vec3> legacyPositions)
+        {
+            var occupied = new List<StationPlacer.Occupied>();
+            IShipSceneRoot home = HomeShip.SceneRoot;
+            if (Loader != null && Loader.IsValid)
+            {
+                Vec3 start = Loader.GetStartTransform().Origin + new Vec3(0.0f, (float)PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR, 0.0f);
+                occupied.Add(new StationPlacer.Occupied(start, STATION_INTERACTION_RADIUS));
+            }
+            foreach (SessionInteractable node in _liveNodes)
+            {
+                if (!node.IsValid)
+                    continue;
+                // Compare in home-local space; nodes on other roots (the docked life boat) go through their root transform.
+                Vec3 local = node.Parent == home ? node.LocalPosition : ToLocal(home, ToGlobal(node.Parent, node.LocalPosition));
+                occupied.Add(new StationPlacer.Occupied(local, node.InteractionRadius));
+            }
+            List<StationPlacer.Placement> placements = StationPlacer.Place(HomeShip.BuiltLayout, kinds, occupied, legacyPositions,
+                STATION_INTERACTION_RADIUS, PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR);
+            foreach (StationPlacer.Placement p in placements)
+                Log.Info("STATION PLACED kind=" + p.Kind + " room=" + (p.RoomId.Length > 0 ? p.RoomId : "legacy"));
+            return placements;
+        }
+
+        /// <summary>The interact radius of home crafting and production stations.</summary>
+        public const double STATION_INTERACTION_RADIUS = 1.8;
 
         void ClearCraftingStations()
         {
@@ -234,13 +266,22 @@ namespace SynapticSea.Core.Session
                 return ratio >= 0.5 ? 999.0 : 0.0;
             }
             long SkillCb() => PlayerProgression != null ? PlayerProgression.GetSkillLevel("fabrication") : 0;
+            if (positions.Count == 0)
+            {
+                for (int i = 0; i < specs.Length; i++)
+                    positions.Add(new Vec3(i * 2.0f, y, 0.0f));
+            }
+            var kinds = new List<string>();
+            foreach (var spec in specs)
+                kinds.Add(spec.kind);
+            List<StationPlacer.Placement> placements = PlaceHomeStations(kinds, positions);
             int idx = 0;
             foreach ((string kind, object model, GdDict config) in specs)
             {
-                Vec3 pos = positions.Count > 0 ? positions[idx % positions.Count] : new Vec3(idx * 2.0f, y, 0.0f);
+                Vec3 pos = placements[idx].LocalPosition;
                 idx += 1;
                 var st = new ProductionStation();
-                st.Configure(kind, model, InventoryState, PowerCb, SkillCb, config, pos, 1.8);
+                st.Configure(kind, model, InventoryState, PowerCb, SkillCb, config, pos, STATION_INTERACTION_RADIUS);
                 st.ProductionStarted += OnProductionStarted;
                 st.ProductionHarvested += OnProductionHarvested;
                 st.ProductionBlocked += OnProductionBlocked;
