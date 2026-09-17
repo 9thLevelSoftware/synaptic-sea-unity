@@ -11,7 +11,7 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 3 Wave 1 models (107 files, no dependencies) | Done | Merged; tick traces for oxygen, radiation, sanity, web infestation, and hydroponics match Godot bit-exactly; LootRoller matches all 50 Godot rolls |
 | 3–5 Wave 2–3 models | Done | Merged; all 11 Godot model tick traces match bit-exactly, 42 Godot save files reproduce byte-for-byte |
 | 4 Procgen chain | Done | All 14 end-to-end Godot layout recipes regenerate exactly (layout and gameplay slice, raw text hashes included); validator verdicts on 18 layouts plus 8 broken plans, determinism hashes, life boat, start scene, component placement and work-action traces all match |
-| 6 RunSession | In progress | Coordinator split into Core/Session with both tick orders |
+| 6 RunSession | Done | `playable_generated_ship.gd` split into engine-free `Core/Session` (RunSession partials, tick stages with Godot's home and away orders, InteractionRegistry, snapshot assemblers, scene ports, 17 interactables). A headless golden-001 session boots, completes objectives 1–4, saves and reloads; a replayed Godot capture writes all 4 save files exactly (`docs/TickOrder.md`, `docs/InteractionOrder.md`) |
 | 7 Content pipeline | Done (first pass) | 15 structural prefabs, 26 prop prefabs, catalogs, frame convention verified on 41 authored sockets |
 | 8 Runtime scene layer | Loader done | `ShipSceneBuilder` builds wrappers, markers, portals, zones, props, dressing and objective volumes, matching Godot loader fixtures; interaction sensors and session host wait on RunSession |
 | 9 Rendering | Done (first pass) | URP Forward+, SSAO, decals, global volume; `SS_LitDitherFade` ceiling fade; hallucination full-screen pass; 4 VFX prefabs; light levels calibrated against the Godot captures (below) |
@@ -91,6 +91,9 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
 
 ## Open items
 
+- Loading a Godot run save and building it again differs on 22 known paths (Godot's JSON load turns nested ints into floats; power grid, propulsion and sustenance summaries are recomputed; crafting stations re-register; the caption queue is not restored). `SessionSaveParityTests` pins that list. Not yet confirmed against a Godot load-then-save.
+- Damaged power subcomponents wear from 0.2 to about 0.04 over simulated seconds in the headless session; unverified against Godot.
+- Runtime `ShipView` must implement the session's `IShipLoaderView` port; the session host, interaction sensors and threat views are next.
 - `StartSceneBuilder.Build` returns null for every seed tried, in Godot too: the legacy template pool generates derelicts without a dock room. Ported as is; needs a design decision.
 - Ramp collision needs a sloped collider (Godot used a placeholder cube).
 - Biome-less layouts in the game need `AtmosphereApplier.ApplyGodotDefaultEnvironment()` from the composition root (or `ShipSceneBuilder` when the layout names no biome). So far only `ScreenshotRunner` calls it.

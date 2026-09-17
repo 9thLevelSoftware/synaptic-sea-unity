@@ -298,6 +298,9 @@ namespace SynapticSea.Core.Session
         double _footstepAcc;
         bool _prevEncumbranceOverloaded;
         bool _isReloading;
+
+        /// <summary>Godot <c>_is_reloading</c>: true while a save is being applied (Godot only writes it).</summary>
+        public bool IsReloading => _isReloading;
         double _autosaveRunSeconds;
         GdDict _lastAutosaveResult = new GdDict();
         long _lastDerelictHazardBudget = -1;
