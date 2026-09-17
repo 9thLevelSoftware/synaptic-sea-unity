@@ -1,25 +1,23 @@
 {
-    "name": "SynapticSea.Editor",
-    "rootNamespace": "SynapticSea.EditorTools",
+    "name": "SynapticSea.Game",
+    "rootNamespace": "SynapticSea.Game",
     "references": [
         "SynapticSea.Core",
-        "SynapticSea.Runtime",
         "SynapticSea.App",
+        "SynapticSea.Runtime",
         "SynapticSea.UI",
         "SynapticSea.UI.Presenters",
+        "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
-        "Unity.RenderPipelines.GPUDriven.Runtime",
-        "SynapticSea.Game"
+        "UnityEngine.UI"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

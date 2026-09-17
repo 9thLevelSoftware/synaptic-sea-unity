@@ -331,9 +331,17 @@ namespace SynapticSea.Core.Session
         /// <c>ship_loaded</c> runs <c>_on_ship_loaded</c> on the same call stack. Returns the session whether or not the ship
         /// loaded (check <see cref="PlayableStarted"/> / <see cref="LastFailureReason"/>).
         /// </summary>
-        public static RunSession Create(RunSessionDeps deps)
+        public static RunSession Create(RunSessionDeps deps) => Create(deps, null);
+
+        /// <summary>
+        /// <see cref="Create(RunSessionDeps)"/> with a hook that runs after construction and before <c>_ready</c>, so a
+        /// scene host can subscribe to <see cref="Events"/> and the signals before the boot raises them (Godot connected
+        /// its children before they entered the tree).
+        /// </summary>
+        public static RunSession Create(RunSessionDeps deps, Action<RunSession> beforeReady)
         {
             var session = new RunSession(deps);
+            beforeReady?.Invoke(session);
             session.BuildRuntimeNodes();
             session.LoadFromPaths(session.LayoutPath, session.KitPath, session.GameplaySlicePath);
             return session;

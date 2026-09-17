@@ -11,7 +11,8 @@
         "Unity.InputSystem.TestFramework",
         "UnityEngine.UI",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "SynapticSea.Game"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

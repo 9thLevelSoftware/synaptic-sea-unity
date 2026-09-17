@@ -131,10 +131,14 @@ namespace SynapticSea.Runtime
 
         public bool IsVisualVisible => _visual != null && _visual.activeSelf;
 
-        public GdDict TryInteract(GdDict activeFlags = null, Transform playerBody = null)
+        public GdDict TryInteract(GdDict activeFlags = null, Transform playerBody = null) =>
+            TryInteractAt(activeFlags, playerBody != null ? playerBody.position : (Vector3?)null);
+
+        /// <summary><see cref="TryInteract(GdDict, Transform)"/> with the player's Unity world position (the session port).</summary>
+        public GdDict TryInteractAt(GdDict activeFlags, Vector3? playerWorldPosition)
         {
             activeFlags = activeFlags ?? new GdDict();
-            if (!IsPlayerInRange(playerBody))
+            if (!IsPlayerInRange(playerWorldPosition))
                 return new GdDict { { "ok", false }, { "reason", "out_of_range" }, { "portal_id", portalId } };
             if (portalKind == BREACH)
             {
@@ -196,10 +200,10 @@ namespace SynapticSea.Runtime
             return new GdDict { { "ok", true }, { "open", isOpen }, { "portal_id", portalId } };
         }
 
-        bool IsPlayerInRange(Transform playerBody)
+        bool IsPlayerInRange(Vector3? playerWorldPosition)
         {
             if (_playerInRange) return true;
-            return playerBody != null && Vector3.Distance(transform.position, playerBody.position) <= DetectionRadius;
+            return playerWorldPosition.HasValue && Vector3.Distance(transform.position, playerWorldPosition.Value) <= DetectionRadius;
         }
 
         void EnsureDetection()
