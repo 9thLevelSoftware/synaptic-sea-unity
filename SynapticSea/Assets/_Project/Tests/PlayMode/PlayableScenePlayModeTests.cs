@@ -86,7 +86,7 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         /// <summary>Boots the Playable scene; these scene-layer tests run on the golden ship unless a request says otherwise
-        /// (a request-less scene generates a New Run, see RunLifecyclePlayModeTests).</summary>
+        /// (this fixture defaults to <see cref="RunLaunchRequest.GoldenShip"/>; Title New Run / direct-open use the Milestone A hub).</summary>
         IEnumerator BootPlayable(RunLaunchRequest request = null)
         {
             RunLaunchRequest.Pending = request ?? RunLaunchRequest.GoldenShip();
@@ -141,6 +141,18 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         PlayerController Player => _boot.Host.SceneState.Player;
+
+        [UnityTest]
+        public IEnumerator TitleNewRunRequestBootsTheMilestoneAHub()
+        {
+            yield return BootPlayable(RunLaunchRequest.NewRun());
+            Assert.IsTrue(_s.PlayableStarted, _boot.BootFailure);
+            Assert.AreEqual(RunLaunchMode.NewRun, _boot.Launch.Mode);
+            StringAssert.Contains("coherent_ship_001", _s.LayoutPath, "Title New Run = golden hub, not smoke/seed_000017");
+            Assert.AreNotEqual(RunSession.DEFAULT_LAYOUT_PATH, _s.LayoutPath);
+            Assert.IsFalse(_s.AwayFromStart);
+            Assert.IsNotNull(Player);
+        }
 
         [UnityTest]
         public IEnumerator BootBuildsTheGoldenShipPlayerCameraAndHud()
@@ -545,7 +557,8 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsNotNull(_boot.Launch, "the title's request was consumed");
             Assert.AreEqual(RunLaunchMode.NewRun, _boot.Launch.Mode);
             Assert.IsNull(RunLaunchRequest.Pending);
-            StringAssert.StartsWith(PlayableBootstrap.RunsDir, _s.LayoutPath, "New Run generates the home ship under user://runs/");
+            StringAssert.Contains("coherent_ship_001", _s.LayoutPath, "Milestone A New Run hub is golden coherent_ship_001");
+            Assert.AreNotEqual(RunSession.DEFAULT_LAYOUT_PATH, _s.LayoutPath);
             Assert.IsNotNull(Player, "the player spawned");
 
             _s.QuitToTitle();

@@ -1,6 +1,6 @@
 // Composition root for scenes/procgen/playable_generated_ship.tscn @ 96ecb2b0 (PlayableGeneratedShip._ready plus the
 // title handoff title_main.gd made: request_load() / apply_ui_settings_summary()), with the Unity-port run lifecycle:
-// generated New Run homes (C2/C3/C5), the end-of-run results (A2) and failures back to the title (A3).
+// Milestone A New Run hub (golden coherent_ship_001), the end-of-run results (A2) and failures back to the title (A3).
 using System;
 using SynapticSea.App;
 using SynapticSea.Core.Procgen;
@@ -26,10 +26,8 @@ namespace SynapticSea.Game
     /// HUD and menu UIDocuments, the <see cref="RunSessionHost"/> (home ship, player, camera, views) and the
     /// <see cref="SessionUiBridge"/>, and honours <see cref="RunLaunchRequest.Consume"/>:
     /// <list type="bullet">
-    /// <item>NewRun, and no request at all (scene opened directly): the home ship is generated from the request's seed,
-    /// biome and difficulty (<see cref="StartSceneBuilder.BuildHomeStart"/>, which reseeds seed+1.. when a start is not
-    /// viable) and written to <c>user://runs/&lt;run_id&gt;/</c> (layout.json, gameplay_slice.json, blueprint.json), so saves
-    /// and Continue reload it by path;</item>
+    /// <item>no request (scene opened directly) and Title New Run: Milestone A hub golden <c>coherent_ship_001</c>.
+    /// Non-slice seed/biome/difficulty fail closed and return to Title;</item>
     /// <item>NewRun with <see cref="RunLaunchRequest.LayoutOverridePath"/> (tests): that pre-authored layout;</item>
     /// <item>Continue / LoadSlot: boots the saved home layout, then <c>request_load()</c> / the manual slot;</item>
     /// <item>SettingsSummary (when the title settings changed) is applied after any load.</item>
@@ -42,7 +40,8 @@ namespace SynapticSea.Game
     [DisallowMultipleComponent]
     public sealed class PlayableBootstrap : MonoBehaviour
     {
-        /// <summary>Where generated run documents live.</summary>
+        public const string GoldenDir = MilestoneALaunch.HubDir;
+        /// <summary>Where generated run documents live (Continue / janitor). Milestone A New Run does not write here.</summary>
         public const string RunsDir = RunDirectoryJanitor.RunsDir + "/";
 
         /// <summary>The running bootstrap (null outside the Playable scene).</summary>
@@ -84,7 +83,7 @@ namespace SynapticSea.Game
         public string BootFailure { get; private set; } = "";
         /// <summary>The Continue/LoadSlot result (true for a new run).</summary>
         public bool LaunchApplied { get; private set; }
-        /// <summary>The generated home start of a new run (null for loads and layout overrides).</summary>
+        /// <summary>The generated home start of a new run (null for Milestone A hub, loads and layout overrides).</summary>
         public StartSceneBuilder.HomeStart GeneratedStart { get; private set; }
         /// <summary>The <c>user://runs/&lt;run_id&gt;/</c> directory of a generated run ("" otherwise).</summary>
         public string RunDirectory { get; private set; } = "";
@@ -112,6 +111,13 @@ namespace SynapticSea.Game
             RunLaunchRequest pending = RunLaunchRequest.Consume();
             DirectOpen = pending == null;
             Launch = pending ?? RunLaunchRequest.NewRun();
+            if (Launch.Mode == RunLaunchMode.NewRun
+                && string.IsNullOrEmpty(Launch.LayoutOverridePath)
+                && !MilestoneALaunch.TryAccept(Launch.Seed, Launch.BiomeId, Launch.DifficultyId, out string closedReason))
+            {
+                FailToTitle(closedReason);
+                return;
+            }
             Services = AppServices.Ensure();
             EnsureGlobalVolume();
             AtmosphereApplier.ApplyGodotDefaultEnvironment();
@@ -164,7 +170,8 @@ namespace SynapticSea.Game
 
         /// <summary>
         /// The session dependencies for <paramref name="launch"/> (paths, run context, starting class); null with
-        /// <paramref name="failure"/> when the run cannot start. A new run generates and writes its home documents.
+        /// <paramref name="failure"/> when the run cannot start. Title New Run and a direct-open scene use the Milestone A
+        /// golden hub. Tests may override the layout path. Continue / LoadSlot boot the saved home.
         /// </summary>
         public RunSessionDeps PrepareDeps(RunLaunchRequest launch, out string failure)
         {
@@ -200,6 +207,10 @@ namespace SynapticSea.Game
                     }
                     return ApplySavedHome(deps, slot.ToDict(), "slot " + launch.SlotId, out failure) ? deps : null;
                 }
+                case RunLaunchMode.NewRun:
+                    break;
+                default:
+                    throw new InvalidOperationException("unhandled launch mode: " + launch.Mode);
             }
 
             if (!string.IsNullOrEmpty(launch.LayoutOverridePath))
@@ -217,34 +228,8 @@ namespace SynapticSea.Game
                 return deps;
             }
 
-            StartSceneBuilder.HomeStart start = StartSceneBuilder.BuildHomeStart(launch.Seed, deps.BiomeId, deps.DifficultyId);
-            if (start == null)
-            {
-                failure = "no viable ship could be generated from seed " + launch.Seed + " (" + StartSceneBuilder.MAX_START_ATTEMPTS + " attempts)";
-                return null;
-            }
-            GeneratedStart = start;
-            string runDir = RunsDir + NewRunDirectoryId(start.Seed) + "/";
-            try
-            {
-                IStorage storage = CoreServices.UserStorage;
-                storage.WriteText(runDir + "layout.json", start.Documents.LayoutJson ?? GdJson.Stringify(start.Documents.Layout, "  "));
-                storage.WriteText(runDir + "gameplay_slice.json", start.Documents.GameplaySliceJson ?? GdJson.Stringify(start.Documents.GameplaySlice, "  "));
-                storage.WriteText(runDir + "blueprint.json", GdJson.Stringify(start.Blueprint.ToDict(), "  "));
-            }
-            catch (Exception e)
-            {
-                failure = "could not write the generated run to " + runDir + ": " + e.Message;
-                return null;
-            }
-            RunDirectory = runDir;
-            deps.LayoutPath = runDir + "layout.json";
-            deps.GameplaySlicePath = runDir + "gameplay_slice.json";
-            deps.BlueprintPath = runDir + "blueprint.json";
-            deps.KitPath = string.IsNullOrEmpty(start.Documents.KitPath) ? RunSession.DEFAULT_KIT_PATH : start.Documents.KitPath;
-            deps.RunSeed = start.Seed;
-            if (start.Attempts > 1)
-                Debug.LogWarning($"PlayableBootstrap: seed {start.RequestedSeed} gave no viable start; reseeded to {start.Seed} ({string.Join("; ", start.Rejections)})");
+            MilestoneALaunch.ApplyHubPaths(deps);
+            deps.RunSeed = launch.Seed;
             return deps;
         }
 
@@ -280,9 +265,6 @@ namespace SynapticSea.Game
             return true;
         }
 
-        static string NewRunDirectoryId(long seed) =>
-            DateTime.UtcNow.ToString("yyyyMMdd'T'HHmmss", System.Globalization.CultureInfo.InvariantCulture) + "-s" + seed + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
-
         /// <summary>title_main.gd's handoff: load (Continue / LoadSlot), then the dirty title settings.</summary>
         static bool ApplyLaunch(RunSession session, RunLaunchRequest launch, out string failure)
         {
@@ -299,6 +281,10 @@ namespace SynapticSea.Game
                     applied = snapshot != null && session.ApplyManualSlot(snapshot);
                     if (!applied) failure = "save slot '" + launch.SlotId + "' could not be applied";
                     break;
+                case RunLaunchMode.NewRun:
+                    break;
+                default:
+                    throw new InvalidOperationException("unhandled launch mode: " + launch.Mode);
             }
             if (applied && launch.SettingsSummary != null) session.ApplyUiSettingsSummary(launch.SettingsSummary);
             return applied;
@@ -386,12 +372,11 @@ namespace SynapticSea.Game
             LeaveToTitle();
         }
 
-        /// <summary>Results "New Run": a fresh generated run with the same biome, difficulty and class.</summary>
+        /// <summary>Results "New Run": another Milestone A hub boot (slice seed / biome / difficulty) with the same class.</summary>
         void StartNextRun()
         {
             if (_leaving) return;
-            RunLaunchRequest next = RunLaunchRequest.NewRun(RandomSeed(), Session != null ? Session.BiomeId : Launch.BiomeId,
-                Session != null ? Session.DifficultyId : Launch.DifficultyId);
+            RunLaunchRequest next = RunLaunchRequest.NewRun();
             next.ClassId = Launch.ClassId;
             if (ResultsSummary != null) RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());
             _leaving = true;

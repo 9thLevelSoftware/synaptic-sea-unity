@@ -259,7 +259,7 @@ namespace SynapticSea.App
             List<string> biomes = NewRunSetupPanel.LoadBiomeIds();
             string biome = biomes.Contains(RunLaunchRequest.DefaultBiomeId) ? RunLaunchRequest.DefaultBiomeId : (biomes.Count > 0 ? biomes[0] : "");
             var panel = new NewRunSetupPanel(biomes, NewRunSetupPanel.LoadDifficultyIds(), biome, Coordinator.SettingsState.GetDifficulty(),
-                NewRunSetupPanel.RandomSeed());
+                RunLaunchRequest.DefaultSeed);
             panel.SetGlyphResolver(Coordinator.GlyphFor);
             panel.StartRequested += request => Launch(request);
             panel.BackRequested += CloseNewRunSetup;
