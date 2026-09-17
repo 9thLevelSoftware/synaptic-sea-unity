@@ -42,11 +42,10 @@ namespace SynapticSea.Tests.Systems
             var cat = new ComponentCatalog();
             Assert.IsTrue(cat.LoadDefault());
             var roles = CatalogRegistry.LoadDict(ComponentCatalog.DEFAULT_PATH).GetDict("role_sets");
-            if (roles == null || !(roles.Get("default") is GdDict def) || def.IsEmpty)
-            {
-                Assert.Ignore("catalog has no default role set");
-                return;
-            }
+            Assert.IsNotNull(roles, "component catalog has no role_sets");
+            var def = roles.Get("default") as GdDict;
+            Assert.IsNotNull(def, "component catalog has no default role set");
+            Assert.IsFalse(def.IsEmpty, "default role set is empty");
             string slotKind = (string)def.Keys[0];
             Assert.IsTrue(V.VariantEquals(def[slotKind], cat.RoleSet("no_such_role", slotKind)));
         }
