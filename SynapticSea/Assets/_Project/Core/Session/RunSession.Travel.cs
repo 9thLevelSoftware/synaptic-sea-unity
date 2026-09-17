@@ -583,6 +583,27 @@ namespace SynapticSea.Core.Session
             return output;
         }
 
+        /// <summary>
+        /// Unity-port validation helper (tests): the structural kit id an in-range marker's derelict generates with, through
+        /// the same run context and generator the travel path uses ("" for an unknown marker). The first-run contract, which
+        /// replaces the seed of the run's first travel, is not applied.
+        /// </summary>
+        public string MarkerKitId(string markerId)
+        {
+            if (SynapticSeaWorld == null || ScannerState == null || ShipGenerator == null)
+                return "";
+            foreach (ShipMarker marker in SynapticSeaWorld.MarkersInRange(ScannerState.RangeRadius))
+            {
+                if (marker.MarkerId != markerId)
+                    continue;
+                GdDict ctx = ResolveDerelictRunContext(marker);
+                ShipGenerator.ConfigureRunContext(V.Str(ctx.Get("biome", "")), V.Str(ctx.Get("difficulty", "")));
+                ShipDocuments built = ShipGenerator.GenerateFromSeed(marker.SeedValue, marker.SizeClass, marker.Condition);
+                return built != null && built.Layout != null ? V.Str(built.Layout.Get("kit_id", "")) : "";
+            }
+            return "";
+        }
+
         static bool LayoutHasBridge(GdDict layout)
         {
             if (!(layout?.Get("rooms", null) is GdArray rooms))

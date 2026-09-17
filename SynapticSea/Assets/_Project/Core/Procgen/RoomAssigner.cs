@@ -1,4 +1,5 @@
 // Ported from scripts/procgen/room_assigner.gd @ 96ecb2b0
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -14,6 +15,14 @@ namespace SynapticSea.Core.Procgen
     public sealed class RoomAssigner
     {
         static GdArray Fps(params Vec2i[] fps) => new GdArray(fps);
+
+        /// <summary>
+        /// Unity-port addition: guaranteed roles whose absence the caller tolerates, so a skipped guarantee for them is
+        /// logged at info level instead of Godot's warning. Empty by default (Godot parity). The home-start path
+        /// (<see cref="StartSceneBuilder.BuildHomeStart"/>) tolerates <c>dock</c>: its start gate anchors the life boat at
+        /// the boarding/airlock cell when there is no dock room.
+        /// </summary>
+        public readonly HashSet<string> ToleratedMissingRoles = new HashSet<string>(StringComparer.Ordinal);
 
         /// <summary>
         /// Footprint options per role (<c>Vector2i</c> choices). SMALL / LIFE_BOAT blueprints pick from the first
@@ -242,8 +251,9 @@ namespace SynapticSea.Core.Procgen
                 }
                 if (bestIndex < 0)
                 {
-                    CoreServices.Log.Warning("RoomAssigner: guaranteed role '" + wanted +
-                                             "' has no eligible zone in this template; guarantee skipped");
+                    string skipped = "RoomAssigner: guaranteed role '" + wanted + "' has no eligible zone in this template; guarantee skipped";
+                    if (ToleratedMissingRoles.Contains(wanted)) CoreServices.Log.Info(skipped);
+                    else CoreServices.Log.Warning(skipped);
                     continue;
                 }
 

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using SynapticSea.App;
@@ -33,6 +34,16 @@ namespace SynapticSea.Tests.PlayMode
         MemoryStorage _storage;
         PlayableBootstrap _boot;
         RunSession _s;
+        readonly List<string> _warningsAndErrors = new List<string>();
+
+        void OnLog(string message, string stackTrace, LogType type)
+        {
+            if (type != LogType.Log) _warningsAndErrors.Add(type + ": " + message);
+        }
+
+        /// <summary>A generated boot is clean: no warning, error, assert or exception was logged since the test started.</summary>
+        void AssertNoWarningsOrErrorsLogged(string what) =>
+            Assert.IsEmpty(_warningsAndErrors, what + " logged: " + string.Join(" | ", _warningsAndErrors));
 
         [SetUp]
         public void SetUp()
@@ -44,11 +55,14 @@ namespace SynapticSea.Tests.PlayMode
             AppServices.StorageOverride = _storage;
             RunLaunchRequest.Pending = null;
             RunReturnInfo.Clear();
+            _warningsAndErrors.Clear();
+            Application.logMessageReceived += OnLog;
         }
 
         [TearDown]
         public void TearDown()
         {
+            Application.logMessageReceived -= OnLog;
             foreach (RunSessionHost host in Object.FindObjectsByType<RunSessionHost>()) Object.DestroyImmediate(host.gameObject);
             foreach (PlayableBootstrap boot in Object.FindObjectsByType<PlayableBootstrap>()) Object.DestroyImmediate(boot.gameObject);
             foreach (TitleScreen title in Object.FindObjectsByType<TitleScreen>()) Object.DestroyImmediate(title.gameObject);
@@ -117,6 +131,7 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(_boot.GeneratedStart.Documents.KitPath, _s.KitPath);
             GdDict ctx = _s.GetRunContextSummary();
             Assert.AreEqual(_boot.GeneratedStart.Seed, V.I64(ctx["seed"]));
+            AssertNoWarningsOrErrorsLogged("the generated New Run boot (seed 1234, breach_field, hardened)");
 
             Assert.IsTrue(_s.PlayableStarted);
             Assert.Greater(_s.Interactables.Count, 0, "objectives from the generated gameplay slice");
@@ -157,13 +172,13 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(RunLaunchRequest.DefaultSeed, _boot.GeneratedStart.RequestedSeed);
             Assert.AreEqual(RunLaunchRequest.DefaultBiomeId, _s.BiomeId);
             Assert.AreEqual(RunLaunchRequest.DefaultDifficultyId, _s.DifficultyId);
+            AssertNoWarningsOrErrorsLogged("the default generated boot");
         }
 
         [UnityTest]
         public IEnumerator ContinueReloadsAGeneratedRunFromUserRuns()
         {
             yield return BootPlayable(RunLaunchRequest.NewRun(777, "breach_field", "deep_dive"));
-            _s.ThreatManager.Threats.Clear();
             string layoutPath = _s.LayoutPath;
             string layout = LayoutText(_s);
             long seed = _s.RunSeed;

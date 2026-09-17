@@ -250,6 +250,8 @@ namespace SynapticSea.Core.Procgen
                 result.Attempts = attempt + 1;
                 var generator = new ShipGenerator();
                 generator.ConfigureRunContext(biomeId ?? "", difficultyId ?? "");
+                // The start gate below anchors the life boat at the boarding/airlock cell when the template has no dock.
+                generator.LayoutGenerator.RoomAssignerStage.ToleratedMissingRoles.Add("dock");
                 ShipDocuments docs = generator.GenerateFromSeed(seed, size, condition);
                 Vec3 anchor = Vec3.Inf;
                 string source = "";

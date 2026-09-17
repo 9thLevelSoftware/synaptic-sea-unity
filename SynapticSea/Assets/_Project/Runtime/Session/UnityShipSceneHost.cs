@@ -15,7 +15,7 @@ namespace SynapticSea.Runtime.Session
     /// <see cref="IShipSceneHost"/> over <see cref="ShipSceneBuilder"/>. Ship roots live under <see cref="SessionRoot"/>
     /// (at the world origin, like the Godot coordinator node). Detached roots are inactive until attached, so a freshly
     /// generated derelict never shows at the origin. Raises <see cref="RootAttached"/> / <see cref="RootFreed"/> for the
-    /// scene views (ceiling fade, atmosphere, sensors).
+    /// scene views (atmosphere, sensors).
     /// </summary>
     public sealed class UnityShipSceneHost : IShipSceneHost
     {

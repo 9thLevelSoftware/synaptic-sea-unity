@@ -1,5 +1,5 @@
 // Scene half of the player + camera state in scripts/procgen/playable_generated_ship.gd @ 96ecb2b0
-// (_spawn_player, _spawn_camera, _attach_ceiling_fade_controller, teleport_to, _freeze_player_for_panel).
+// (_spawn_player, _spawn_camera, teleport_to, _freeze_player_for_panel).
 using System;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Variant;
@@ -24,7 +24,7 @@ namespace SynapticSea.Runtime.Session
         public IsoCameraRig CameraRig { get; private set; }
         public ProximitySensor Sensor { get; private set; }
 
-        /// <summary>Raised after the player and rig exist (views bind the listener, ceiling fade, HUD focus).</summary>
+        /// <summary>Raised after the player and rig exist (views bind the listener and HUD focus).</summary>
         public event Action<PlayerController> PlayerSpawned;
         public event Action PlayerDespawned;
         /// <summary>Raised after any teleport or direct position write (Godot-frame world position).</summary>

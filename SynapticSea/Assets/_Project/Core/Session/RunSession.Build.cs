@@ -380,7 +380,7 @@ namespace SynapticSea.Core.Session
             PlayableStarted = true;
             BuildHudLayer();
             SpawnPlayer();
-            // RUNTIME: _spawn_camera() + _attach_ceiling_fade_controller() — the Runtime binds the rig to the spawned player.
+            // RUNTIME: _spawn_camera() — the Runtime binds the rig to the spawned player (no ceiling fade: ceilings are culled in play).
             RefreshUiShellRuntime();
             if (CurrentShip == null)
             {
