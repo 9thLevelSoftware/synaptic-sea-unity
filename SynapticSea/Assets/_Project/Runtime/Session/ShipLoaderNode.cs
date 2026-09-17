@@ -145,7 +145,10 @@ namespace SynapticSea.Runtime.Session
 
         public void TintMeshes(string childName, double r, double g, double b, double a)
         {
-            // Not ported (docs/port-status.md decision 19: the legacy per-state albedo tint).
+            // The legacy per-state albedo tint (single-visual wrappers only; SetIntegrity applies the same colour).
+            // Callers pass VISUAL_LEGACY (the resolver) or null (ModuleIntegrityConsequences.ApplyToNode); variant wrappers ignore it.
+            if (Module == null) return;
+            Module.ApplyLegacyTint(new Color((float)r, (float)g, (float)b, (float)a));
         }
 
         public void SetCollisionEnabled(bool enabled)
