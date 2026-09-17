@@ -110,7 +110,6 @@ namespace SynapticSea.Runtime
         readonly Dictionary<string, AudioSource> _musicStems = new Dictionary<string, AudioSource>(StringComparer.Ordinal);
         AudioSource _ambientCurrent;
         AudioSource _ambientPrevious;
-        int _sessionBindAttempts;
         AudioListener _listener;
         Transform _listenerAnchor;
         bool _headless;
@@ -404,7 +403,6 @@ namespace SynapticSea.Runtime
         public void SetMusicVolumeDb(double volumeDb)
         {
             SessionMusicLevelDb = volumeDb;
-            TryBindHostSession();
             ApplyMusicStemGains();
             ApplyAmbientBeds();
         }
@@ -414,22 +412,6 @@ namespace SynapticSea.Runtime
         {
             MusicGainSource = music;
             AmbientSource = ambient;
-        }
-
-        /// <summary>
-        /// The <see cref="IAudioSink"/> contract carries only the collapsed level, so a session-driven manager binds its
-        /// host's models itself (<see cref="Session.RunSessionHost.Audio"/> == this). No-op once bound.
-        /// </summary>
-        void TryBindHostSession()
-        {
-            if (MusicGainSource != null || _sessionBindAttempts > 600) return;
-            _sessionBindAttempts++;
-            foreach (var host in FindObjectsByType<Session.RunSessionHost>(FindObjectsSortMode.None))
-            {
-                if (host == null || host.Audio != this || host.Session?.AudioManager == null) continue;
-                BindSessionModels(host.Session.AudioManager.MusicState, host.Session.AudioManager.AmbientZoneState);
-                return;
-            }
         }
 
         /// <summary>Schedules every stem that has a clip on one shared DSP start time (idempotent).</summary>

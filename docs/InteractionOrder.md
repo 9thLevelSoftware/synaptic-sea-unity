@@ -59,4 +59,7 @@ These rules carry over from the Godot handlers:
   request does not fall through to the miss cue.
 - **Channels claim.** A repair point, breach seal point, fire suppression point, or broken dock barrier that is already
   channeling returns true, so lower-priority handlers do not fire.
+- **Bridge terminals (port change).** A terminal of the ship the player already pilots does not claim. Godot's
+  `try_login` claimed every in-range press, and the life boat's repair and fire suppression points share its command
+  room's centre, so they were unreachable (`docs/port-status.md` decision 33).
 - **Exterior portals.** An authored exterior portal returns the result of `travel_home()`.

@@ -13,13 +13,14 @@ Living companion to `docs/unity-port-plan.md`. The plan is the intent; this file
 | 4 Procgen chain | Done | All 14 end-to-end Godot layout recipes regenerate exactly (layout and gameplay slice, raw text hashes included); validator verdicts on 18 layouts plus 8 broken plans, determinism hashes, life boat, start scene, component placement and work-action traces all match |
 | 6 RunSession | Done | `playable_generated_ship.gd` split into engine-free `Core/Session` (RunSession partials, tick stages with Godot's home and away orders, InteractionRegistry, snapshot assemblers, scene ports, 17 interactables). A headless golden-001 session boots, completes objectives 1–4, saves and reloads; a replayed Godot capture writes all 4 save files exactly (`docs/TickOrder.md`, `docs/InteractionOrder.md`) |
 | 7 Content pipeline | Done (first pass) | 15 structural prefabs, 26 prop prefabs, catalogs, frame convention verified on 41 authored sockets |
-| 8 Runtime scene layer | Done (first pass) | `ShipSceneBuilder` builds wrappers, markers, portals, zones, props, dressing and objective volumes, matching Godot loader fixtures. `Assets/Scenes/Playable.unity` (`PlayableSceneBuilder`) boots a `RunSession` through `RunSessionHost` with real scene ports (`Runtime/Session`), interaction/zone/threat/hallucination views, travel and F5/F9; the HUD and menus are wired by `Game/SessionUiBridge`. `PlayableScenePlayModeTests` covers boot, walk, registry interact, route-gate colliders, F5/F9, derelict travel and back, the gamepad inventory→pause→resume journey, and Title → New Run → quit. Capture: `PlayableScreenshotRunner` |
+| 8 Runtime scene layer | Done (first pass) | `ShipSceneBuilder` builds wrappers, markers, portals, zones, props, dressing and objective volumes, matching Godot loader fixtures. `Assets/Scenes/Playable.unity` (`PlayableSceneBuilder`) boots a `RunSession` through `RunSessionHost` with real scene ports (`Runtime/Session`), interaction/zone/threat/hallucination views, travel and F5/F9; the HUD and menus are wired by `Game/SessionUiBridge`. `PlayableScenePlayModeTests` runs the real loop with the golden ship's threats alive. It covers:<br>• boot, walk, registry interact, route-gate colliders and F5/F9 (including wounds and the web chart);<br>• a real stalker detecting and hitting the player, shown on the HUD, and attack keys killing a threat, reload and hotbar;<br>• making the life boat flyable through repair, fire suppression and breach seal points, then travelling to breach_field (hazard kit), dead_fleet (industrial) and hive (biomatter) derelicts and back;<br>• the gamepad inventory→pause→resume journey, settings persisting from Title through play and pause back to Title, and Title → New Run → quit.<br>`RunLifecyclePlayModeTests` covers generated New Runs (no warnings or errors logged), Continue, death → results → Title, and failures → Title. Capture: `PlayableScreenshotRunner` |
 | 9 Rendering | Done (first pass) | URP Forward+, SSAO, decals, global volume; ceilings hidden in interior play; hallucination full-screen pass; 4 VFX prefabs; light levels calibrated against the Godot captures (below) |
-| 10 UI | Done (first pass) | All 30 `scripts/ui` files ported as UI Toolkit presenters built to the UI presentation spec, with MenuCoordinator and ModalStack; `HudLayoutTests` enforces HUD coverage, protected zones and text sizes at three resolutions and three text scales. Wired to the session in the Playable scene; gamepad journey in `PlayableScenePlayModeTests` (`docs/ui-port-notes.md`) |
-| 11 Audio and input | Done (first pass) | AudioManager port with per-bus volumes; input actions mirror the Godot InputMap; typed wrapper generated |
+| 10 UI | Done (first pass) | All 30 `scripts/ui` files ported as UI Toolkit presenters built to the UI presentation spec, with MenuCoordinator and ModalStack; `HudLayoutTests` enforces HUD coverage, protected zones and text sizes at three resolutions and three text scales. Wired to the session in the Playable scene (settings, tutorials, wounds, combat feedback, world labels, run results); gamepad journeys in `FrontEndPlayModeTests` and `PlayableScenePlayModeTests` (`docs/ui-port-notes.md`) |
+| 11 Audio and input | Done | AudioManager port with per-bus volumes persisted in `user://settings.json`; Godot's 21 unused clips mapped, three music stems, ambient beds (decision 25); input actions mirror the Godot InputMap, and combat, reload, hotbar and hold-to-work are routed through `RunSessionHost` |
 | 12 Builds and tooling | Started | Windows dev (Mono) and release (IL2CPP) and macOS dev (Mono, unsigned) builds pass; `tools/verify-headless.ps1` smoke-launches the Windows player clean; `tools/test.ps1 -Mode All` runs dotnet, EditMode and PlayMode; fixture exporter on the local `unity/parity-fixtures` Godot branch. Build Settings list Boot → Title → Playable (`BuildSettingsSetup`; the Builder skips a missing scene with a warning); Boot composes `AppServices` and loads Title (`FrontEndSceneBuilder`, `FrontEndPlayModeTests`). |
+| Integration gap closure | Done | Plan `tender-swinging-badger` (2026-09-17). Wave 1: kit catalog resolution, mapped audio, icons, session gaps (wounds, hold-to-work, run context, saves run-5), fixture guards and round-trip replay. Wave 2: in-play integration, generated New Run, results and failure flow. Wave 3: real-loop PlayMode suite and these docs. `pwsh tools/test.ps1 -Mode All`: dotnet 626, EditMode 767, PlayMode 37, none skipped |
 
-Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMode).
+Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Unity EditMode and PlayMode).
 
 ## Decisions that differ from the plan
 
@@ -62,7 +63,12 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
     - `AppServices` (DontDestroyOnLoad) sets the `CoreServices` seams (StreamingAssets, `persistentDataPath`, clock, `UnityLog`), reads `build_stamp.json` (its kind and version override `build_metadata.json`), configures the demo gate, the shared `SynapticSeaInput`, an EventSystem with `InputSystemUIInputModule` on the input asset's UI map, and `AudioManager` (skipped in batch mode). Scenes call `AppServices.Ensure()`, so Title opens directly in the editor.
     - Preferences live in `user://settings.json` (a `SettingsState` summary), per the spec's "one user preference source"; Godot had no standalone settings file. The env var seeds the text scale on first run.
     - `TitleScreen` runs the real `MenuCoordinator` in `TitleMode` instead of Godot's title-local text menu and settings mirror. The title adds a Records row (Save / Load, achievements, skill tree, hub upgrades, class roster, audio, language, build info, credits), which Godot's title did not offer.
-    - The run handoff is `Runtime/Session/RunLaunchRequest.Pending` (mode NewRun / Continue / LoadSlot, slot id, seed 17, `breach_field`, difficulty from settings, meta-selected class, and the settings summary only when changed at the title), then `SceneManager.LoadScene("Playable")`. `RunReturnInfo` carries a failure reason or run outcome back to the title.
+    - The run handoff is `Runtime/Session/RunLaunchRequest.Pending`, then `SceneManager.LoadScene("Playable")`. The request carries:
+      - the mode (NewRun / Continue / LoadSlot) and slot id;
+      - the seed, biome and difficulty from the New Run setup (`App/Title/NewRunSetupPanel`; defaults seed 17, `breach_field`, `standard`);
+      - the meta-selected class;
+      - the settings summary, only when it changed at the title.
+    - `RunReturnInfo` carries a failure reason or the run outcome and context back to the title.
 
 23. **Playable scene: the scene half of `playable_generated_ship.gd`.**
     - `Runtime/Session` implements the session ports: `ShipLoaderNode` (`IShipLoaderView` over `ShipView`; room-node positions are the structural placements' `world_position`s, as in the headless harness), `UnityShipSceneHost` (detached roots stay inactive until attached; roots sit under the session root at the origin, so global = local), `UnityRunSceneState`, `AudioManagerSink`, `PhysicsLineOfSightProbe` (Structure | ZoneBlocker | Portal). Ship-root transforms keep the Godot `Xform3` exactly and mirror it through `Frame.ApplyLocal` (added to `Frame.cs`).
@@ -70,7 +76,7 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
     - Interaction: one `ProximitySensor` (kinematic trigger on the player) sets `CandidatePlayerInRange` on `InteractableView` triggers (Sensor layer), refreshed with `OverlapSphere` after spawn, teleport and re-peg. Which handler claims an interact is still `InteractionRegistry`; the focus highlight picks the in-range view with the earliest registry handler.
     - Zones: route gate / breach / arc are ZoneBlocker box colliders whose `enabled` follows `SessionZone.CollisionEnabled`; fire zones spawn `timed_fire`, closed route gates `biomatter_blockage` (the VfxCatalog hooks).
     - Structural integrity writes go through `StructuralModule.SetIntegrity` (the resolver's per-child visibility calls fold into it).
-    - Composition: `Game/` (`SynapticSea.Game`, references App and UI) holds `PlayableBootstrap` (uses `AppServices.Ensure()`, consumes `RunLaunchRequest`) and `SessionUiBridge`. No request (scene opened directly, tests) boots golden `coherent_ship_001`; a title New Run boots Godot's default start (`smoke/seed_000017`). The UI audio seam is `SessionUiAudio` over the session's `SessionAudio` models, so bus volumes have one source of truth.
+    - Composition: `Game/` (`SynapticSea.Game`, references App and UI) holds `PlayableBootstrap` (uses `AppServices.Ensure()`, consumes `RunLaunchRequest`) and `SessionUiBridge`. A New Run, and a scene opened with no request, generate the home ship (decision 30). Golden `coherent_ship_001` boots only through an explicit `RunLaunchRequest.GoldenShip()` (tests). The UI audio seam is `SessionUiAudio` over the session's `SessionAudio` models, so bus volumes have one source of truth.
     - Core change: `RunSession.Create(deps, beforeReady)`, so the scene can subscribe before `_ready` raises the boot events.
 
 24. **The kit prefab catalog follows the kit document that was loaded, not the layout's `kit_id`.** `KitCatalogResolver` (Runtime/Ship) keys the catalog by the folder of the modules' `godot_wrapper_scene` (`ship_structural_biomatter` reuses the `ship_structural_v0` wrappers, so it gets `KitCatalog_ship_structural_v0`). Kits without a complete wrapper map (`ship_structural_hazard`, `_industrial`) fall back to v0, like Godot's `kit_path_for_layout`. Callers pass the Core kit path (`ShipSceneBuilder.LoadFromPaths`' kit argument, `ShipSceneBuilder.KitPath` = `ShipDocuments.KitPath` for derelicts, `LifeBoatBuilder.BuildResult.KitPath` for the life boat) and `KitCatalogResolver.ForKitPath` reads that document; the loaded kit document is the fallback.
@@ -79,8 +85,8 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
     - The clips live in `Content/Audio/Clips` under `res://assets/audio/<file>`. Import presets: SFX are decompress-on-load mono PCM, ambient beds (`ambient_*`, `reactor_hum`) stream as mono Vorbis, and music stems decompress on load so `PlayScheduled` is sample-exact.
     - `meta.hull.groan` now uses `hull_groan.wav` instead of the `breach_alarm.wav` stand-in.
     - Music: every stem is scheduled on one shared DSP time. Each stem follows its own layer gain from the session's `DynamicMusicState` at `-24 + gain × 24` dB, and is silent at zero gain. Godot collapsed the layers into one player at the loudest layer's level. `layer.combat_percussion` has no stream, so its stem stays silent.
-    - The `IAudioSink` contract only carries the collapsed level. `AudioManager` therefore binds its host's models itself (`RunSessionHost.Audio == this`), or through `BindSessionModels`.
-    - The session's `AmbientZoneState` role now drives two crossfading ambient beds, at crossfade gain × role intensity × threat multiplier. Godot never played them.
+    - The `IAudioSink` contract only carries the collapsed level, so `RunSessionHost.Boot` binds the session's `DynamicMusicState` and `AmbientZoneState` explicitly (`AudioManager.BindSessionModels`).
+    - **Ambient beds are new.** The session's `AmbientZoneState` role now drives two crossfading ambient beds, at crossfade gain × role intensity × threat multiplier. Godot computed the role and gains but never played a bed.
 
     | Event id(s) | Clip |
     |---|---|
@@ -105,9 +111,31 @@ Run everything with `pwsh tools/test.ps1` (dotnet Core suite, then Unity EditMod
     - `IconCatalog.Resolve(resPath, categoryHint)` returns the imported texture for `res://assets/ui/{status,achievements}/*.png`.
     - Item icon paths have no files in either engine, so they resolve to a generated placeholder. The choice goes: the hint's category, then the path folder (`materials` → raw, `loot` → unique), then the generic item placeholder.
     - Placeholders cover 16 categories (`Content/UI/Icons/items/placeholder_<category>.png`). Each unresolved path is logged once, at info level.
-    - UI wiring is not done yet.
+    - `UiIcons` wires it into the HUD status-effect chips, `AchievementsPanel` and the inventory rows.
 
 27. **Template leftovers removed** (`Editor/Bootstrap/TemplateCleanup`, idempotent). The project-wide input actions are now `Content/Input/SynapticSea.inputactions`. Both URP assets use `SS_GlobalVolume` as their default volume profile. `Assets/InputSystem_Actions.inputactions` and `Settings/SampleSceneProfile.asset` are deleted.
+
+28. **Wound healing rates were chosen without Godot data.** Godot never ticked `WoundState` (TickOrder "Port-added stages"). The port heals treated wounds at 0.004 severity/s and bandaged-only wounds at 0.001/s (`RunSession.WOUND_TREATED_HEAL_PER_SECOND` / `WOUND_BANDAGED_HEAL_PER_SECOND`); untreated wounds never heal.
+    - They are tuning values, not parity values.
+    - Wounds from combat damage always use the torso (`WoundState.SuggestFromDamage` default body part); see the open items.
+29. **Hold-to-work.** `SettingsState.hold_to_tap` is read live (`RunSession.HoldToWorkEnabled`).
+    - **Hold mode (default).** A work action progresses only while interact is held. Releasing pauses it without losing progress (`EndWorkHold`), and the next press on the same action resumes it (`BeginWorkHold` consumes the press).
+    - **Tap mode.** A press starts the action and it runs on its own. The next press cancels it and progress is lost (`CancelWorkAction`).
+    - Switching to tap mode mid-action releases the hold requirement.
+    - Repair, seal and extinguish channels are separate interactables: they run once started, and cancel when the player leaves range (Godot).
+30. **Generated New Run.** Title → New Run opens a setup for biome, difficulty and seed. `StartSceneBuilder.BuildHomeStart` then generates the home ship and writes `layout.json`, `gameplay_slice.json` and `blueprint.json` to `user://runs/<run_id>/`, so saves and Continue reload it by path.
+    - **Start gate.** The gate is the stamped structural plan valid, objectives and a start room present, every objective and goal room walkable from the start room, and a life boat anchor.
+    - **Anchor fallback.** The anchor is the dock room; with none (the legacy templates have none, which is why Godot's `StartSceneBuilder.Build` returns null), it falls back to the boarding/airlock cell.
+    - **Reseed.** A rejected seed reseeds `seed+1` for up to 8 tries, with a warning.
+    - **Tolerated warning.** `RoomAssigner`'s "guaranteed role 'dock' has no eligible zone" warning is logged at info level on this path only (`RoomAssigner.ToleratedMissingRoles`). Godot parity tests and derelict generation keep the warning. `RunLifecyclePlayModeTests` asserts that a generated boot logs no warnings or errors.
+31. **Language is persisted only.** The language selector's choice is saved in `user://settings.json` and restored. Godot's `LocalizationCatalog` only has `en` and no UI string reads it, so nothing is translated.
+32. **Affordance labels are on by default.** Godot built the slice's affordance world labels only when `debug_affordance_labels_enabled` was set. The port shows them (`AffordanceView.ShowAffordanceLabels = true`), projected into the HUD label layer, scaled by text scale and distance-culled; hazard labels are never culled.
+33. **A bridge terminal of the ship the player already pilots does not claim interact** (`RunSession.TryBridgeTerminals`). Godot's `try_login` claimed every in-range press. The terminal sits on the command room's centre, which is also where `LifeboatLocalRepairPositions` puts the life boat's repair and fire suppression points, so those points could never be used. Logging in again changed nothing, so the press now falls through.
+34. **PlayMode tests run the real loop.** No global threat clearing: a test that needs a quiet ship calls `QuietShip(reason)`.
+    - Propulsion is made flyable through the repair, fire suppression and breach seal points, with parts and repair skill given as setup. The test does not use `ForceRepairAll`.
+    - Hull integrity caps thrust (`PropulsionState`: target = 100 × (powered ratio − hull penalty)), so golden 001 also needs its breaches sealed before the drive reaches the 50 % travel threshold.
+    - Long simulated waits run at `Time.timeScale = 20`.
+    - Golden 001 boots with life support starved, and an idle player dies at about 29 s (open items), so no test waits idle for long.
 
 ## Light calibration (2026-09-11)
 
@@ -139,17 +167,26 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
 
 ## Open items
 
-- Loading a Godot run save and building it again differs on 22 known paths (Godot's JSON load turns nested ints into floats; power grid, propulsion and sustenance summaries are recomputed; crafting stations re-register; the caption queue is not restored). `SessionSaveParityTests` pins that list. Not yet confirmed against a Godot load-then-save.
-- Damaged power subcomponents wear from 0.2 to about 0.04 over simulated seconds in the headless session; unverified against Godot.
-- Playable: non-default launch seeds, biomes and difficulties are not generated yet (the bootstrap warns and uses Godot's default start). World labels (`Label3D` affordances, arc/breach warnings) and the readability affordance props are not built by the scene yet.
+- **Idle life-support death on golden 001 (design decision pending).** Verified in Godot: even with the threats cleared, an idle player on `coherent_ship_001` dies at about 29 s, because wearing power starves the home life support. Not changed; tests avoid long idle waits on the golden ship.
+- **Manual slot restore is partial.** A manual slot load restores equipment, home loot and cargo, but not home carts, the breach environment, meta progress, unique items or visited ships.
+- **Difficulty.** The hazard dial does not affect electrical arcs. The New Run setup's difficulty is not saved to the settings file.
+- **Wounds** from combat damage are always on the torso.
+- **Finished runs are never deleted from `user://runs/`.**
+- **Results panel.** `RunResultsPanel` is unstyled (generic surface classes).
+- **Silent audio events.** 12 events are still silent (decision 25; `AudioContentTests.ReportsEventsStillWithoutClips`).
+- **Home ship only.** The affordance props and world labels are built only for the home ship, not for derelicts. The component markers are placeholders and do not use the prop visuals.
+- **Crafting stations claim interact near the first floor cells.** `RequestInteract` resolves to `crafting_station` at several golden floor positions.
+  - It is not a registry range bug: `TryInteract` uses the strict 1.8 m range.
+  - The cause is placement. Godot put the six stations on the first six nodes of the home `ShipStructure` (the structural placements' positions, `HomeLocalStationPositions`), which are the airlock and corridor floor-cell centres.
+  - Within 1.8 m of those centres the recipe picker claims before the objectives and pickups. This is parity; moving the stations to authored spots needs a design decision.
+- **The docked life boat overlaps the home airlock.** The home dock port is the airlock room's centre (`DockPorts.ForDerelict` falls back to the airlock), and the life boat's airlock edge is aligned onto it (`ForLifeboat`), so a life boat wall runs through the home start marker. Parity with Godot.
+  - The player spawns inside that wall, and the CharacterController pushes it out by about 0.47 m on the first physics step. This was the intermittent "player at the start pose" failure: the old assertion read the position before or after that step.
+  - `BootBuildsTheGoldenShipPlayerCameraAndHud` now reads the pose when the boot finishes and bounds the settle.
 - Playable: the loader's `BlockedRoute_*` markers stay collidable after the powered gates open (both as in Godot; confirm against a Godot run).
 - `PlayableScenePlayModeTests` taps keys with queued `KeyboardState` events: `InputTestFixture.Press` has no keyboard state pointer in the batch-mode editor.
-- `StartSceneBuilder.Build` returns null for every seed tried, in Godot too: the legacy template pool generates derelicts without a dock room. Ported as is; needs a design decision.
 - Ramp collision needs a sloped collider (Godot used a placeholder cube).
-- VFX: fire zones and closed route gates are wired; the beacon and reactor landmark glows are not.
 - GPU Resident Drawer first frame. The GRD applies renderer and material changes only in its player-loop hook (`GPUResidentDrawer.PostPostLateUpdate` → `m_WorldProcessor.Update()`, injected before `PostLateUpdate.FinishFrameRendering`).
   - An editor script that builds a scene and calls `Camera.Render()` synchronously bypasses that hook, so the first capture can use stale instance data. `ScreenshotRunner` keeps its double render.
   - Games are unaffected: the hook runs every frame after `LateUpdate`, so runtime material changes land in the same frame.
 - The legacy per-state albedo tint on damaged single-visual wrappers is not ported (decision 19).
 - The Godot-side exporter and screenshot scripts live on the local, unpushed `unity/parity-fixtures` branch of the Godot repo.
-- After merging Playable, re-run `BuildSettingsSetup` (or any build) so its scene GUID is recorded in Build Settings.

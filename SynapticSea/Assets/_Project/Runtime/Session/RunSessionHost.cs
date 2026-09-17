@@ -1,5 +1,5 @@
 // Scene half of scripts/procgen/playable_generated_ship.gd @ 96ecb2b0: the node that owned the run (_ready, _process,
-// the interaction/zone/threat/hallucination children, _attach_ceiling_fade_controller and the travel scene surgery).
+// the interaction/zone/threat/hallucination children and the travel scene surgery; no ceiling fade, see port-status decision 17).
 using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Services;
@@ -19,7 +19,7 @@ namespace SynapticSea.Runtime.Session
     /// itself moves in <c>FixedUpdate</c> like Godot's <c>_physics_process</c>),</item>
     /// <item>calls <see cref="RunSession.Tick"/> unless <see cref="SimulationPaused"/> (the modal stack) says otherwise,</item>
     /// <item>applies the views: interaction nodes, zones, threat and phantom placeholders, hallucination FX, interact
-    /// focus, and — when the active ship root changes (travel, reload) — the environment, ceiling fade and sensors.</item>
+    /// focus, and — when the active ship root changes (travel, reload) — the environment and sensors.</item>
     /// </list>
     /// Interact presses go through <see cref="RunSession.BeginWorkHold"/> (an in-progress work action resumes or, in tap
     /// mode, cancels) and otherwise to <see cref="RunSession.RequestInteract"/>, which resolves the claim through
@@ -470,8 +470,7 @@ namespace SynapticSea.Runtime.Session
         /// <summary>
         /// After travel (<c>_attach_derelict_active</c> / <c>travel_home</c>) or a reload, the session has already
         /// re-parented roots and re-pegged the player and docked ships through the ports. The scene then follows the
-        /// new active root: environment (biome atmosphere or Godot's default), ceiling fade over every attached root's
-        /// ceilings, sensor overlaps, and the audio listener.
+        /// new active root: environment (biome atmosphere or Godot's default), sensor overlaps, and the audio listener.
         /// </summary>
         void ApplyActiveShipIfChanged(bool force)
         {
