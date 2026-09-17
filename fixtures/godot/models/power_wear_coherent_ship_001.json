@@ -1,0 +1,5248 @@
+{
+	"engine": "4.7.1-stable (official)",
+	"hub_slow_acc_start": 0.0,
+	"layout": "res://data/procgen/golden/coherent_ship_001/layout.json",
+	"notes": [
+		"All 120 _process(0.25) calls run synchronously inside one engine frame (after one boot frame); playable.set_process(false) was applied right after add_child, before any engine frame, so no engine-driven coordinator tick happened at boot or in between.",
+		"Player: set_physics_process(false), set_process(false), velocity = Vector3.ZERO.",
+		"Threats: threat_manager.threats.clear() (5 removed) and placeholder nodes freed; no other state touched.",
+		"Hub SLOW band: _hub_slow_acc=0.0 and world_time=0.0 before tick 1 (nothing reset). _recompute_expanded_ship_systems fires when the accumulator reaches ShipRuntime.SLOW_INTERVAL_SECONDS=0.35, i.e. on every 2nd 0.25 s tick with slow_dt=0.5.",
+		"'power_percent' is read from playable.get_ship_systems_summary() (ShipSystemsManager.get_summary() has no power_percent key; recorded as manager_summary_power_percent=null)."
+	],
+	"player_moved": false,
+	"player_position_end": [
+		2.34277129173279,
+		0.461953431367874,
+		1.74659979343414
+	],
+	"player_position_start": [
+		2.34277129173279,
+		0.461953431367874,
+		1.74659979343414
+	],
+	"samples": [
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 20,
+			"run_play_time_seconds": 0.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.2,
+					"sensor_array": 1.0,
+					"star_charts": 0.2
+				},
+				"power": {
+					"battery_cells": 0.2,
+					"power_distribution": 0.2,
+					"reactor_core": 0.2
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 0.0,
+			"vitals_health": 100.0,
+			"world_time": 0.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.4375,
+			"power_percent": 19,
+			"run_play_time_seconds": 0.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.190625,
+					"sensor_array": 0.990625,
+					"star_charts": 0.190625
+				},
+				"power": {
+					"battery_cells": 0.190625,
+					"power_distribution": 0.190625,
+					"reactor_core": 0.190625
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 0.25,
+			"vitals_health": 99.625,
+			"world_time": 0.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.625,
+			"power_percent": 18,
+			"run_play_time_seconds": 0.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.184375,
+					"sensor_array": 0.984375,
+					"star_charts": 0.184375
+				},
+				"power": {
+					"battery_cells": 0.184375,
+					"power_distribution": 0.184375,
+					"reactor_core": 0.184375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 0.5,
+			"vitals_health": 99.375,
+			"world_time": 0.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.8125,
+			"power_percent": 18,
+			"run_play_time_seconds": 0.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 0.75,
+			"vitals_health": 99.25,
+			"world_time": 0.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 1.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 1.0,
+			"vitals_health": 99.25,
+			"world_time": 1.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 1.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 1.25,
+			"vitals_health": 99.25,
+			"world_time": 1.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 1.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 1.5,
+			"vitals_health": 99.25,
+			"world_time": 1.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 1.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 1.75,
+			"vitals_health": 99.25,
+			"world_time": 1.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 2.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 2.0,
+			"vitals_health": 99.25,
+			"world_time": 2.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 2.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 2.25,
+			"vitals_health": 99.25,
+			"world_time": 2.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 2.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 2.5,
+			"vitals_health": 99.25,
+			"world_time": 2.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 2.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 2.75,
+			"vitals_health": 99.25,
+			"world_time": 2.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 3.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 3.0,
+			"vitals_health": 99.2327205882353,
+			"world_time": 3.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 18,
+			"run_play_time_seconds": 3.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.18125,
+					"power_distribution": 0.18125,
+					"reactor_core": 0.18125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 3.25,
+			"vitals_health": 99.2154411764706,
+			"world_time": 3.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.625,
+			"power_percent": 17,
+			"run_play_time_seconds": 3.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.16875,
+					"power_distribution": 0.16875,
+					"reactor_core": 0.16875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 3.5,
+			"vitals_health": 98.6634191176471,
+			"world_time": 3.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.71875,
+			"power_percent": 16,
+			"run_play_time_seconds": 3.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.159375,
+					"power_distribution": 0.159375,
+					"reactor_core": 0.159375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 3.75,
+			"vitals_health": 98.2363970588235,
+			"world_time": 3.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.8125,
+			"power_percent": 15,
+			"run_play_time_seconds": 4.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.153125,
+					"power_distribution": 0.153125,
+					"reactor_core": 0.153125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 4.0,
+			"vitals_health": 97.8996323529412,
+			"world_time": 4.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.90625,
+			"power_percent": 15,
+			"run_play_time_seconds": 4.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 4.25,
+			"vitals_health": 97.6878676470588,
+			"world_time": 4.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 4.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 4.5,
+			"vitals_health": 97.5663602941176,
+			"world_time": 4.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 4.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 4.75,
+			"vitals_health": 97.4448529411765,
+			"world_time": 4.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 5.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 5.0,
+			"vitals_health": 97.2886029411765,
+			"world_time": 5.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 5.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 5.25,
+			"vitals_health": 97.1323529411765,
+			"world_time": 5.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 5.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.18125,
+					"sensor_array": 0.98125,
+					"star_charts": 0.18125
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 5.5,
+			"vitals_health": 96.9413602941176,
+			"world_time": 5.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.625,
+			"power_percent": 15,
+			"run_play_time_seconds": 5.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.16875,
+					"sensor_array": 0.96875,
+					"star_charts": 0.16875
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 5.75,
+			"vitals_health": 96.2503676470588,
+			"world_time": 5.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.71875,
+			"power_percent": 15,
+			"run_play_time_seconds": 6.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.159375,
+					"sensor_array": 0.959375,
+					"star_charts": 0.159375
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 6.0,
+			"vitals_health": 95.6496323529412,
+			"world_time": 6.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.8125,
+			"power_percent": 15,
+			"run_play_time_seconds": 6.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.153125,
+					"sensor_array": 0.953125,
+					"star_charts": 0.153125
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 6.25,
+			"vitals_health": 95.1738970588235,
+			"world_time": 6.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.90625,
+			"power_percent": 15,
+			"run_play_time_seconds": 6.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 6.5,
+			"vitals_health": 94.7884191176471,
+			"world_time": 6.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 6.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 6.75,
+			"vitals_health": 94.5279411764706,
+			"world_time": 6.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 7.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 7.0,
+			"vitals_health": 94.2327205882353,
+			"world_time": 7.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 15,
+			"run_play_time_seconds": 7.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.15,
+					"power_distribution": 0.15,
+					"reactor_core": 0.15
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 7.25,
+			"vitals_health": 93.9375,
+			"world_time": 7.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.625,
+			"power_percent": 14,
+			"run_play_time_seconds": 7.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.1375,
+					"power_distribution": 0.1375,
+					"reactor_core": 0.1375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 7.5,
+			"vitals_health": 93.1075367647059,
+			"world_time": 7.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.71875,
+			"power_percent": 13,
+			"run_play_time_seconds": 7.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.128125,
+					"power_distribution": 0.128125,
+					"reactor_core": 0.128125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 7.75,
+			"vitals_health": 92.4025735294118,
+			"world_time": 7.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.8125,
+			"power_percent": 12,
+			"run_play_time_seconds": 8.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.121875,
+					"power_distribution": 0.121875,
+					"reactor_core": 0.121875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 8.0,
+			"vitals_health": 91.7878676470588,
+			"world_time": 8.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.90625,
+			"power_percent": 12,
+			"run_play_time_seconds": 8.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 8.25,
+			"vitals_health": 91.2981617647059,
+			"world_time": 8.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 8.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 8.5,
+			"vitals_health": 90.8987132352941,
+			"world_time": 8.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 8.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 8.75,
+			"vitals_health": 90.4992647058824,
+			"world_time": 8.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 9.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 9.0,
+			"vitals_health": 90.0650735294118,
+			"world_time": 9.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 9.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 9.25,
+			"vitals_health": 89.6308823529412,
+			"world_time": 9.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 9.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 9.5,
+			"vitals_health": 89.1619485294118,
+			"world_time": 9.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 9.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 9.75,
+			"vitals_health": 88.6930147058823,
+			"world_time": 9.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 10.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 10.0,
+			"vitals_health": 88.1893382352941,
+			"world_time": 10.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 10.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 10.25,
+			"vitals_health": 87.6856617647059,
+			"world_time": 10.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 10.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 10.5,
+			"vitals_health": 87.1472426470588,
+			"world_time": 10.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 10.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 10.75,
+			"vitals_health": 86.6088235294118,
+			"world_time": 10.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 11.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 11.0,
+			"vitals_health": 86.0356617647059,
+			"world_time": 11.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 12,
+			"run_play_time_seconds": 11.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.15,
+					"sensor_array": 0.95,
+					"star_charts": 0.15
+				},
+				"power": {
+					"battery_cells": 0.11875,
+					"power_distribution": 0.11875,
+					"reactor_core": 0.11875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 11.25,
+			"vitals_health": 85.4625,
+			"world_time": 11.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.25,
+			"power_percent": 11,
+			"run_play_time_seconds": 11.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.1375,
+					"sensor_array": 0.9375,
+					"star_charts": 0.1375
+				},
+				"power": {
+					"battery_cells": 0.10625,
+					"power_distribution": 0.10625,
+					"reactor_core": 0.10625
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 11.5,
+			"vitals_health": 84.3545955882353,
+			"world_time": 11.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.4375,
+			"power_percent": 10,
+			"run_play_time_seconds": 11.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.128125,
+					"sensor_array": 0.928125,
+					"star_charts": 0.128125
+				},
+				"power": {
+					"battery_cells": 0.096875,
+					"power_distribution": 0.096875,
+					"reactor_core": 0.096875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 11.75,
+			"vitals_health": 83.3716911764706,
+			"world_time": 11.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.625,
+			"power_percent": 9,
+			"run_play_time_seconds": 12.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.121875,
+					"sensor_array": 0.921875,
+					"star_charts": 0.121875
+				},
+				"power": {
+					"battery_cells": 0.090625,
+					"power_distribution": 0.090625,
+					"reactor_core": 0.090625
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 12.0,
+			"vitals_health": 82.4790441176471,
+			"world_time": 12.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.8125,
+			"power_percent": 9,
+			"run_play_time_seconds": 12.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 12.25,
+			"vitals_health": 81.7113970588235,
+			"world_time": 12.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 12.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 12.5,
+			"vitals_health": 81.0340073529412,
+			"world_time": 12.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 12.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 12.75,
+			"vitals_health": 80.3566176470588,
+			"world_time": 12.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 13.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 13.0,
+			"vitals_health": 79.6444852941177,
+			"world_time": 13.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 13.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 13.25,
+			"vitals_health": 78.9323529411765,
+			"world_time": 13.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 13.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 13.5,
+			"vitals_health": 78.1854779411765,
+			"world_time": 13.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 13.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 13.75,
+			"vitals_health": 77.4386029411765,
+			"world_time": 13.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 14.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 14.0,
+			"vitals_health": 76.6569852941176,
+			"world_time": 14.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 14.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 14.25,
+			"vitals_health": 75.8753676470588,
+			"world_time": 14.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 14.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 14.5,
+			"vitals_health": 75.0590073529412,
+			"world_time": 14.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 14.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 14.75,
+			"vitals_health": 74.2426470588235,
+			"world_time": 14.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 15.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 15.0,
+			"vitals_health": 73.3915441176471,
+			"world_time": 15.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 9,
+			"run_play_time_seconds": 15.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.0875,
+					"power_distribution": 0.0875,
+					"reactor_core": 0.0875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 15.25,
+			"vitals_health": 72.5404411764706,
+			"world_time": 15.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.625,
+			"power_percent": 8,
+			"run_play_time_seconds": 15.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.075,
+					"power_distribution": 0.075,
+					"reactor_core": 0.075
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 15.5,
+			"vitals_health": 71.1545955882353,
+			"world_time": 15.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.71875,
+			"power_percent": 7,
+			"run_play_time_seconds": 15.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.065625,
+					"power_distribution": 0.065625,
+					"reactor_core": 0.065625
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 15.75,
+			"vitals_health": 69.89375,
+			"world_time": 15.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.8125,
+			"power_percent": 6,
+			"run_play_time_seconds": 16.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.059375,
+					"power_distribution": 0.059375,
+					"reactor_core": 0.059375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 16.0,
+			"vitals_health": 68.7231617647059,
+			"world_time": 16.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.90625,
+			"power_percent": 6,
+			"run_play_time_seconds": 16.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.05625,
+					"power_distribution": 0.05625,
+					"reactor_core": 0.05625
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 16.25,
+			"vitals_health": 67.6775735294118,
+			"world_time": 16.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.90625,
+			"power_percent": 5,
+			"run_play_time_seconds": 16.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.053125,
+					"power_distribution": 0.053125,
+					"reactor_core": 0.053125
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 16.5,
+			"vitals_health": 66.5750735294118,
+			"world_time": 16.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.90625,
+			"power_percent": 5,
+			"run_play_time_seconds": 16.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.05,
+					"power_distribution": 0.05,
+					"reactor_core": 0.05
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 16.75,
+			"vitals_health": 65.4725735294118,
+			"world_time": 16.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.90625,
+			"power_percent": 5,
+			"run_play_time_seconds": 17.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.11875,
+					"sensor_array": 0.91875,
+					"star_charts": 0.11875
+				},
+				"power": {
+					"battery_cells": 0.046875,
+					"power_distribution": 0.046875,
+					"reactor_core": 0.046875
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 17.0,
+			"vitals_health": 64.3025735294118,
+			"world_time": 17.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.53125,
+			"power_percent": 4,
+			"run_play_time_seconds": 17.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.10625,
+					"sensor_array": 0.90625,
+					"star_charts": 0.10625
+				},
+				"power": {
+					"battery_cells": 0.04375,
+					"power_distribution": 0.04375,
+					"reactor_core": 0.04375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 17.25,
+			"vitals_health": 63.1325735294118,
+			"world_time": 17.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.53125,
+			"power_percent": 4,
+			"run_play_time_seconds": 17.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.09375,
+					"sensor_array": 0.89375,
+					"star_charts": 0.09375
+				},
+				"power": {
+					"battery_cells": 0.040625,
+					"power_distribution": 0.040625,
+					"reactor_core": 0.040625
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 17.5,
+			"vitals_health": 61.8950735294118,
+			"world_time": 17.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 99.53125,
+			"power_percent": 4,
+			"run_play_time_seconds": 17.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 17.75,
+			"vitals_health": 60.6575735294117,
+			"world_time": 17.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 18.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 18.0,
+			"vitals_health": 59.4775735294118,
+			"world_time": 18.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 18.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 18.25,
+			"vitals_health": 58.2975735294118,
+			"world_time": 18.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 18.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 18.5,
+			"vitals_health": 57.0500735294117,
+			"world_time": 18.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 18.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 18.75,
+			"vitals_health": 55.8025735294117,
+			"world_time": 18.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 19.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 19.0,
+			"vitals_health": 54.5525735294117,
+			"world_time": 19.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 19.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 19.25,
+			"vitals_health": 53.3025735294117,
+			"world_time": 19.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 19.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 19.5,
+			"vitals_health": 52.0525735294117,
+			"world_time": 19.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 19.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 19.75,
+			"vitals_health": 50.8025735294117,
+			"world_time": 19.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 20.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 20.0,
+			"vitals_health": 49.5525735294117,
+			"world_time": 20.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 20.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 20.25,
+			"vitals_health": 48.3025735294117,
+			"world_time": 20.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 20.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 20.5,
+			"vitals_health": 47.0525735294117,
+			"world_time": 20.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 20.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 20.75,
+			"vitals_health": 45.8025735294117,
+			"world_time": 20.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 21.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 21.0,
+			"vitals_health": 44.5525735294117,
+			"world_time": 21.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 21.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 21.25,
+			"vitals_health": 43.3025735294117,
+			"world_time": 21.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 21.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 21.5,
+			"vitals_health": 42.0525735294117,
+			"world_time": 21.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 21.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 21.75,
+			"vitals_health": 40.8025735294117,
+			"world_time": 21.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 22.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 22.0,
+			"vitals_health": 39.5525735294117,
+			"world_time": 22.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 22.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 22.25,
+			"vitals_health": 38.3025735294117,
+			"world_time": 22.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 22.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 22.5,
+			"vitals_health": 37.0525735294117,
+			"world_time": 22.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 22.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 22.75,
+			"vitals_health": 35.8025735294117,
+			"world_time": 22.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 23.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 23.0,
+			"vitals_health": 34.5525735294117,
+			"world_time": 23.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 23.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 23.25,
+			"vitals_health": 33.3025735294117,
+			"world_time": 23.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 23.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 23.5,
+			"vitals_health": 32.0525735294117,
+			"world_time": 23.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 23.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 23.75,
+			"vitals_health": 30.8025735294117,
+			"world_time": 23.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 24.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 24.0,
+			"vitals_health": 29.5525735294117,
+			"world_time": 24.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 24.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 24.25,
+			"vitals_health": 28.3025735294117,
+			"world_time": 24.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 24.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 24.5,
+			"vitals_health": 27.0525735294117,
+			"world_time": 24.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 24.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 24.75,
+			"vitals_health": 25.8025735294117,
+			"world_time": 24.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 25.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 25.0,
+			"vitals_health": 24.5525735294117,
+			"world_time": 25.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 25.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 25.25,
+			"vitals_health": 23.0525735294117,
+			"world_time": 25.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 25.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 25.5,
+			"vitals_health": 21.5525735294117,
+			"world_time": 25.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 25.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 25.75,
+			"vitals_health": 20.0525735294117,
+			"world_time": 25.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 26.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 26.0,
+			"vitals_health": 18.5525735294117,
+			"world_time": 26.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 26.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 26.25,
+			"vitals_health": 17.0525735294117,
+			"world_time": 26.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 26.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 26.5,
+			"vitals_health": 15.5525735294117,
+			"world_time": 26.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 26.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 26.75,
+			"vitals_health": 14.0525735294117,
+			"world_time": 26.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 27.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 27.0,
+			"vitals_health": 12.5525735294117,
+			"world_time": 27.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 27.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 27.25,
+			"vitals_health": 11.0525735294117,
+			"world_time": 27.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 27.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 27.5,
+			"vitals_health": 9.55257352941175,
+			"world_time": 27.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 27.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 27.75,
+			"vitals_health": 8.05257352941175,
+			"world_time": 27.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 28.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 28.0,
+			"vitals_health": 6.55257352941175,
+			"world_time": 28.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 28.25,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 28.25,
+			"vitals_health": 5.05257352941175,
+			"world_time": 28.25
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 28.5,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 28.5,
+			"vitals_health": 3.55257352941175,
+			"world_time": 28.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 28.75,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 28.75,
+			"vitals_health": 2.05257352941175,
+			"world_time": 28.75
+		},
+		{
+			"hub_slow_acc": 0.0,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 29.0,
+			"slice_complete": false,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 29.0,
+			"vitals_health": 0.552573529411745,
+			"world_time": 29.0
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 29.25,
+			"slice_complete": true,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 29.25,
+			"vitals_health": 0.0,
+			"world_time": 29.25
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 29.25,
+			"slice_complete": true,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 29.5,
+			"vitals_health": 0.0,
+			"world_time": 29.5
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 29.25,
+			"slice_complete": true,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 29.75,
+			"vitals_health": 0.0,
+			"world_time": 29.75
+		},
+		{
+			"hub_slow_acc": 0.25,
+			"manager_summary_power_percent": null,
+			"oxygen": 100.0,
+			"power_percent": 4,
+			"run_play_time_seconds": 29.25,
+			"slice_complete": true,
+			"systems": {
+				"gravity": {
+					"field_emitter": 0.2,
+					"gravity_plating": 1.0,
+					"inertial_dampeners": 1.0
+				},
+				"life_support": {
+					"air_recycler": 1.0,
+					"co2_scrubber": 1.0,
+					"oxygen_tanks": 1.0
+				},
+				"navigation": {
+					"nav_computer": 0.08125,
+					"sensor_array": 0.88125,
+					"star_charts": 0.08125
+				},
+				"power": {
+					"battery_cells": 0.0375,
+					"power_distribution": 0.0375,
+					"reactor_core": 0.0375
+				},
+				"propulsion": {
+					"fuel_injection": 1.0,
+					"nav_linkage": 0.2,
+					"thruster_array": 1.0
+				},
+				"scanners": {
+					"power_coupling": 0.2,
+					"scanner_dish": 0.2,
+					"signal_processor": 1.0
+				}
+			},
+			"t": 30.0,
+			"vitals_health": 0.0,
+			"world_time": 30.0
+		}
+	],
+	"schema": "parity.models.power_wear.v1",
+	"slice_complete_flipped_at": 29.25,
+	"slice_completion_summary_end": {
+		"camera_spawned": true,
+		"current_sequence": 1,
+		"objective_count": 5,
+		"objectives_completed": 0,
+		"play_time_seconds": 29.25,
+		"player_spawned": true,
+		"rooms_discovered": 0,
+		"run_complete": true,
+		"threats_killed": 0
+	},
+	"step_seconds": 0.25,
+	"threat_count_cleared": 5,
+	"threats_cleared": true,
+	"ticks": 120,
+	"user_saves_after": [
+		"index.json"
+	]
+}

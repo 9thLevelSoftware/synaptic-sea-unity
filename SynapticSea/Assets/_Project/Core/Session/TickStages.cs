@@ -84,6 +84,12 @@ namespace SynapticSea.Core.Session
         public const string WorkActionHud = "work_action_hud";
         public const string TooltipFocus = "tooltip_focus";
 
+        /// <summary>Unity-port stage (E1): Godot never ticked WoundState. Runs right before survival_attrition in both branches.</summary>
+        public const string Wounds = "wounds";
+
+        /// <summary>Stages the port added to Godot's branches (each is inserted into BOTH orders; see docs/TickOrder.md).</summary>
+        public static readonly IReadOnlyList<string> PortAddedStages = new[] { Wounds };
+
         public static readonly IReadOnlyList<ITickStage> Stages = new ITickStage[]
         {
             new TickStage(Autosave, "_tick_autosave_policy (home) / second half of _tick_field_craft_and_autosave (away)",
@@ -98,6 +104,8 @@ namespace SynapticSea.Core.Session
                 (s, loc, d) => s.StageActiveFire(d)),
             new TickStage(FieldCraft, "field_crafting_state.tick -> _on_field_craft_completed (home inline / away via _tick_field_craft_and_autosave)",
                 (s, loc, d) => s.StageFieldCraft(d)),
+            new TickStage(Wounds, "Unity port (no Godot call): WoundState.tick + heal; the bleed rides survival_attrition's vitals context",
+                (s, loc, d) => s.StageWounds(d)),
             new TickStage(SurvivalAttrition, "_tick_survival_attrition",
                 (s, loc, d) => s.StageSurvivalAttrition(d)),
             new TickStage(PlayerVitals, "_refresh_player_vitals",
@@ -127,19 +135,19 @@ namespace SynapticSea.Core.Session
                 (s, loc, d) => s.RefreshTooltipFocus()),
         };
 
-        /// <summary>The <c>if away_from_start:</c> branch (8531-8554).</summary>
+        /// <summary>The <c>if away_from_start:</c> branch (8531-8554), plus <see cref="PortAddedStages"/>.</summary>
         public static readonly IReadOnlyList<string> AwayOrder = new[]
         {
-            Oxygen, Threat, SanityHallucination, ActiveFire, SurvivalAttrition, PlayerVitals, TrackerStatus,
+            Oxygen, Threat, SanityHallucination, ActiveFire, Wounds, SurvivalAttrition, PlayerVitals, TrackerStatus,
             FieldCraft, Autosave, Audio, PresentShips, RechargePortPower, Food, AmmoConsumableDecay, ElectricalArc,
             WorkAction, WorkActionHud, TooltipFocus,
         };
 
-        /// <summary>The home branch (8555-8575).</summary>
+        /// <summary>The home branch (8555-8575), plus <see cref="PortAddedStages"/>.</summary>
         public static readonly IReadOnlyList<string> HomeOrder = new[]
         {
             Autosave, Threat, PresentShips, ActiveFire, FieldCraft, Oxygen, ElectricalArc, AmmoConsumableDecay,
-            SurvivalAttrition, SanityHallucination, Food, Audio, WorkAction, WorkActionHud, TooltipFocus,
+            Wounds, SurvivalAttrition, SanityHallucination, Food, Audio, WorkAction, WorkActionHud, TooltipFocus,
         };
 
         public static IReadOnlyList<string> OrderFor(SessionLocation location) => location == SessionLocation.Away ? AwayOrder : HomeOrder;

@@ -516,6 +516,7 @@ namespace SynapticSea.Core.Session
                 ShipModificationState.ApplySummary(snapshot.ShipModificationSummary);
                 ReapplyShipModRuntimeEffects();
             }
+            ApplyPortSnapshotExtensions(snapshot);
             EnsureConsumableHotbarAssignments();
             RefreshConsumableUi();
             ReconcileJunctionCalibratorMarkerAfterReload();
@@ -535,6 +536,46 @@ namespace SynapticSea.Core.Session
             _isReloading = false;
             Log.Info("PLAYABLE SHIP LOADED sequence=" + CurrentObjectiveSequence);
             return true;
+        }
+
+        /// <summary>
+        /// Unity port (gate2-current-run-5): restores the keys Godot's run snapshot did not carry. An empty value (a
+        /// migrated Godot save) means "not saved": wounds and tutorial state stay at the fresh state the reload built, the
+        /// chart is cleared, and equipment / home loot / home cargo / run context keep their live values.
+        /// </summary>
+        void ApplyPortSnapshotExtensions(RunSnapshot snapshot)
+        {
+            ApplyRunContextSummary(snapshot.RunContext);
+            if (WoundState != null && !snapshot.WoundSummary.IsEmpty)
+            {
+                WoundState.ApplySummary(snapshot.WoundSummary);
+                Events.RaiseWoundsChanged(WoundState);
+            }
+            WebChartState?.ApplySummary(snapshot.WebChartSummary);
+            if (TutorialState != null && !snapshot.TutorialSummary.IsEmpty)
+            {
+                TutorialState.ApplySummary(snapshot.TutorialSummary);
+                Events.RaiseTutorialStateReset(TutorialState);
+            }
+            if (EquipmentState != null && !snapshot.EquipmentSummary.IsEmpty)
+            {
+                EquipmentState.ApplySummary(snapshot.EquipmentSummary);
+                RecomputePlayerEncumbrance();
+                RefreshWeaponHotbar();
+            }
+            if (HomeShip != null)
+            {
+                bool rebuildLoot = false;
+                if (!snapshot.HomeLootedContainers.IsEmpty)
+                {
+                    HomeShip.LootedContainerIds = snapshot.HomeLootedContainers.ShallowCopy();
+                    rebuildLoot = true;
+                }
+                if (!snapshot.HomeShipInventory.IsEmpty)
+                    HomeShip.GetInventory().ApplySummary(snapshot.HomeShipInventory);
+                if (rebuildLoot && !AwayFromStart)
+                    BuildLootContainers();
+            }
         }
 
         /// <summary>
