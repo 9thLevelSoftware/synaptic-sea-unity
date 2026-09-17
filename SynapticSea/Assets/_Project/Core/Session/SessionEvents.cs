@@ -90,6 +90,8 @@ namespace SynapticSea.Core.Session
         // ---- menu coordinator
         /// <summary><c>menu_coordinator.trigger_tutorial(trigger, target)</c>.</summary>
         public event Action<string, string> TutorialTriggered;
+        /// <summary>TutorialState.triggered (id, title, body): the overlay panel shows it.</summary>
+        public event Action<string, string, string> TutorialShown;
         public event Action<bool> LoadAvailable;
         public event Action<GdArray> InventoryItems;
         public event Action<GdArray, long> HotbarSlots;
@@ -125,6 +127,7 @@ namespace SynapticSea.Core.Session
         internal void RaiseWorkActionHudState(GdDict s) => WorkActionHudState?.Invoke(s);
         internal void RaiseTooltipQuery(GdDict q) => TooltipQuery?.Invoke(q);
         internal void RaiseTutorialTriggered(string trigger, string target) => TutorialTriggered?.Invoke(trigger, target);
+        internal void RaiseTutorialShown(string id, string title, string body) => TutorialShown?.Invoke(id, title, body);
         internal void RaiseLoadAvailable(bool v) => LoadAvailable?.Invoke(v);
         internal void RaiseInventoryItems(GdArray ids) => InventoryItems?.Invoke(ids);
         internal void RaiseHotbarSlots(GdArray labels, long selected) => HotbarSlots?.Invoke(labels, selected);

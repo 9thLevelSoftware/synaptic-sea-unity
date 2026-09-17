@@ -321,6 +321,18 @@ namespace SynapticSea.Core.Session
             SeaGraph.Configure(new GdDict { { "world_seed", ws } });
             // MenuCoordinator: its SettingsState is rebuilt with the HUD.
             SettingsState = Deps.SettingsState ?? new SettingsState();
+            // MenuCoordinator's TutorialState (configured from tutorial_triggers.json; rebuilt with the HUD). Its signals
+            // drove the coordinator's cue sfx: triggered/codex -> UI_OBJECTIVE_ADVANCE, dismissed -> UI_PANEL_CLOSE.
+            TutorialState = new TutorialState();
+            if (!TutorialState.Configure(LoadJsonDict("res://data/ui/tutorial_triggers.json")))
+                Log.Warning("PlayableGeneratedShip: MenuCoordinator configure returned false");
+            TutorialState.Triggered += (id, title, body) =>
+            {
+                Events.RaiseTutorialShown(id, title, body);
+                PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
+            };
+            TutorialState.Dismissed += id => PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
+            TutorialState.CodexUnlocked += id => PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
             Events.RaiseLoadAvailable(IsLoadAvailable());
             Events.RaiseInventoryItems(InventoryHotbarIds());
             Events.RaiseHotbarSlots(GetConsumableSlotLabels(), 0);

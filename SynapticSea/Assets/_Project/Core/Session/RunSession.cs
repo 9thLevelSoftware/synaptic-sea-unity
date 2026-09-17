@@ -381,7 +381,25 @@ namespace SynapticSea.Core.Session
 
         void PlaySfx(string eventId, Vec3? position = null) => AudioManager?.PlaySfx(eventId, position);
 
-        void TriggerTutorial(string trigger, string target) => Events.RaiseTutorialTriggered(trigger, target);
+        /// <summary><c>menu_coordinator.trigger_tutorial(event, target)</c>: fires the TutorialState (first match only).
+        /// Public so the input layer can raise its own triggers (player_moved, scanner_opened, inventory_opened).</summary>
+        public void TriggerTutorial(string trigger, string target)
+        {
+            Events.RaiseTutorialTriggered(trigger, target);
+            TutorialState?.Trigger(trigger, target);
+        }
+
+        /// <summary><c>menu_coordinator.dismiss_latest_tutorial()</c>.</summary>
+        public bool DismissLatestTutorial()
+        {
+            if (TutorialState == null)
+                return false;
+            string latest = TutorialState.GetLatestTutorialId();
+            return latest.Length > 0 && TutorialState.Dismiss(latest);
+        }
+
+        /// <summary>The MenuCoordinator's tutorial model (rebuilt with the HUD, like Godot).</summary>
+        public TutorialState TutorialState;
 
         static bool RootValid(IShipSceneRoot root) => root != null && root.IsValid;
 
