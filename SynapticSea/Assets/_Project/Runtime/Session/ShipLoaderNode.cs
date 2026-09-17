@@ -59,6 +59,14 @@ namespace SynapticSea.Runtime.Session
             return output;
         }
 
+        public void SetBlockedRouteCollisionEnabled(int index, bool enabled)
+        {
+            List<RuntimeMarker> nodes = View._blockedRouteNodes;
+            if (index < 0 || index >= nodes.Count || nodes[index] == null) return;
+            foreach (Collider c in nodes[index].GetComponentsInChildren<Collider>(true))
+                c.enabled = enabled;
+        }
+
         public IReadOnlyList<Vec3> GetBreachZoneMarkers() => L.BreachZoneMarkers;
         public GdArray GetBreachZoneSpecs() => View.GetBreachZoneSpecs();
         public IReadOnlyList<Vec3> GetFireZoneMarkers() => L.FireZoneMarkers;

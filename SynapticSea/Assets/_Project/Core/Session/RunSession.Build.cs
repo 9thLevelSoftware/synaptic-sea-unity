@@ -620,6 +620,8 @@ namespace SynapticSea.Core.Session
                     VisualState = "closed",
                 };
                 gate.Meta["required_system"] = "main_power_restored";
+                // Unity port: the gate's blocked-route node (same list order), whose collider follows the gate.
+                gate.Meta["blocked_route_index"] = (long)(index - 1);
                 RouteGateNodes.Add(gate);
                 Events.RaiseZoneSpawned(gate);
                 gateIds.Add(gateId);

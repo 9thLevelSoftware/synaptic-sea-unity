@@ -101,6 +101,11 @@ namespace SynapticSea.Tests.Session
             return output;
         }
 
+        /// <summary>Every <see cref="SetBlockedRouteCollisionEnabled"/> call, in order.</summary>
+        public readonly List<(int Index, bool Enabled)> BlockedRouteCollisionCalls = new List<(int Index, bool Enabled)>();
+
+        public void SetBlockedRouteCollisionEnabled(int index, bool enabled) => BlockedRouteCollisionCalls.Add((index, enabled));
+
         public IReadOnlyList<Vec3> GetBreachZoneMarkers() => Model.BreachZoneMarkers;
         public GdArray GetBreachZoneSpecs() => Model.BreachZoneSpecs.DeepCopy();
         public IReadOnlyList<Vec3> GetFireZoneMarkers() => Model.FireZoneMarkers;

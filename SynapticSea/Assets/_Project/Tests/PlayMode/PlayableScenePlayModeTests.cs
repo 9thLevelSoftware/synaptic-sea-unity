@@ -234,6 +234,12 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(PhysicsLayers.ZoneBlocker, gate.Blocker.gameObject.layer);
             var down = new Ray(gate.Blocker.bounds.center + Vector3.up * 5f, Vector3.down);
             Assert.IsTrue(gate.Blocker.Raycast(down, out _, 10f), "the gate collider is in the physics scene");
+            Assert.AreEqual(0L, V.I64(gate.Zone.Meta["blocked_route_index"]), "gate 1 maps to the first blocked-route node");
+            BoxCollider marker = _boot.Host.ShipHost.HomeLoader.View.GetBlockedRouteNodes()[0].GetComponentInChildren<BoxCollider>(true);
+            Assert.IsNotNull(marker, "the blocked-route node carries a collider");
+            Assert.IsTrue(marker.enabled, "the blocked-route node blocks while the gate is closed");
+            var markerDown = new Ray(marker.bounds.center + Vector3.up * 5f, Vector3.down);
+            Assert.IsTrue(marker.Raycast(markerDown, out _, 10f));
 
             Assert.IsTrue(_s.CompleteObjectiveSequence(1));
             Assert.IsTrue(_s.CompleteObjectiveSequence(2), "restore_systems opens the powered gates");
@@ -243,6 +249,8 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsFalse(gate.Visual.activeSelf);
             Physics.SyncTransforms();
             Assert.IsFalse(gate.Blocker.Raycast(down, out _, 10f), "the open gate no longer blocks");
+            Assert.IsFalse(marker.enabled, "the blocked-route node's collider follows its gate");
+            Assert.IsFalse(marker.Raycast(markerDown, out _, 10f), "the route is physically open");
             foreach (ZoneView breach in _boot.Host.ZoneViews.Values.Where(z => z.Zone.Kind == "breach"))
                 Assert.AreEqual(breach.Zone.CollisionEnabled, breach.Blocker.enabled, "breach collider follows the model");
         }

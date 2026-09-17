@@ -103,6 +103,13 @@ namespace SynapticSea.Core.Session
         /// <summary><c>get_blocked_route_nodes()</c> positions.</summary>
         IReadOnlyList<Vec3> GetBlockedRoutePositions();
 
+        /// <summary>
+        /// Unity-port addition: enables or disables the collider of the blocked-route node at <paramref name="index"/> (the
+        /// order of <see cref="GetBlockedRoutePositions"/>). Godot never toggled it, so a powered route gate opened while the
+        /// loader's marker kept the route physically closed; the session now follows the gate.
+        /// </summary>
+        void SetBlockedRouteCollisionEnabled(int index, bool enabled);
+
         IReadOnlyList<Vec3> GetBreachZoneMarkers();
         GdArray GetBreachZoneSpecs();
         IReadOnlyList<Vec3> GetFireZoneMarkers();
