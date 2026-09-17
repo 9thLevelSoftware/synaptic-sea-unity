@@ -62,8 +62,22 @@ namespace SynapticSea.UI
         public bool TitleMode { get; set; }
 
         public readonly MenuState MenuState = new MenuState();
-        public readonly SettingsState SettingsState = new SettingsState();
-        public readonly TutorialState TutorialState = new TutorialState();
+
+        /// <summary>
+        /// The settings the menus edit. The title owns its own; in play it is the session's <c>RunSession.SettingsState</c>
+        /// (constructor injection), so hold-to-work, captions and saves read the same instance the pause menu edits.
+        /// </summary>
+        public SettingsState SettingsState { get; }
+
+        /// <summary>
+        /// The tutorial state the banner and Codex show. The title builds its own; in play it is the session's single
+        /// <c>RunSession.TutorialState</c> (injected, re-read on <see cref="BindTutorialState"/>). An injected state is
+        /// never reconfigured here, and its cue SFX stay with the session that owns it.
+        /// </summary>
+        public TutorialState TutorialState { get; private set; }
+
+        /// <summary>True when <see cref="TutorialState"/> was injected (the session owns its catalog and cue SFX).</summary>
+        public bool TutorialStateInjected { get; private set; }
         public readonly TooltipPresenter TooltipPresenter = new TooltipPresenter();
         public readonly ControllerGlyphState ControllerGlyphState;
         public readonly ModalStack Stack = new ModalStack();
@@ -152,8 +166,13 @@ namespace SynapticSea.UI
             Func<RunSnapshot> snapshotBuilder = null,
             DemoScopeGate demoScopeGate = null,
             Func<bool> demoSaveRefused = null,
-            Func<int> connectedJoypadCount = null)
+            Func<int> connectedJoypadCount = null,
+            TutorialState tutorialState = null,
+            SettingsState settingsState = null)
         {
+            SettingsState = settingsState ?? new SettingsState();
+            TutorialStateInjected = tutorialState != null;
+            TutorialState = tutorialState ?? new TutorialState();
             _achievementState = achievementState ?? throw new ArgumentNullException(nameof(achievementState), "p_achievement_state dependency is missing");
             _audio = audioManager ?? throw new ArgumentNullException(nameof(audioManager), "p_audio_manager dependency is missing");
             _skillTreeState = skillTreeState ?? throw new ArgumentNullException(nameof(skillTreeState), "p_skill_tree_state dependency is missing");
@@ -253,14 +272,53 @@ namespace SynapticSea.UI
 
             MenuState.MenuChanged += OnMenuChanged;
             MenuState.EnabledChanged += (item, enabled) => RefreshAll();
-            TutorialState.Triggered += OnTutorialTriggered;
-            TutorialState.Dismissed += OnTutorialDismissed;
-            TutorialState.CodexUnlocked += OnCodexUnlocked;
+            SubscribeTutorialState(TutorialState);
             TooltipPresenter.PayloadChanged += OnPayloadChanged;
 
             BindMetaScreens(a11y);
             ApplyAccessibilityToChildren();
             RefreshAll();
+        }
+
+        void SubscribeTutorialState(TutorialState state)
+        {
+            if (state == null) return;
+            state.Triggered += OnTutorialTriggered;
+            state.Dismissed += OnTutorialDismissed;
+            state.CodexUnlocked += OnCodexUnlocked;
+        }
+
+        void UnsubscribeTutorialState(TutorialState state)
+        {
+            if (state == null) return;
+            state.Triggered -= OnTutorialTriggered;
+            state.Dismissed -= OnTutorialDismissed;
+            state.CodexUnlocked -= OnCodexUnlocked;
+        }
+
+        /// <summary>
+        /// (Re)binds the banner and Codex to <paramref name="state"/> (the session raises <c>TutorialStateReset</c> after
+        /// boot, reload and save restores; the instance is normally the same, so this re-reads it). Null is ignored.
+        /// </summary>
+        public void BindTutorialState(TutorialState state)
+        {
+            if (state == null) return;
+            if (!ReferenceEquals(state, TutorialState))
+            {
+                UnsubscribeTutorialState(TutorialState);
+                TutorialState = state;
+                TutorialStateInjected = true;
+                SubscribeTutorialState(state);
+            }
+            RefreshTutorial();
+            RefreshCodex();
+        }
+
+        /// <summary>Re-resolves glyph chips (the "auto" scheme follows the last-used device).</summary>
+        public void RefreshGlyphs()
+        {
+            RefreshHotbar();
+            ApplyGlyphs();
         }
 
         /// <summary>Godot bind_meta_screens' per-panel wiring (constructor-injected dependencies).</summary>
@@ -304,7 +362,9 @@ namespace SynapticSea.UI
             _presets = (presetsCatalog ?? new GdDict()).GetArrayOrEmpty("presets").DeepCopy();
             bool ok = true;
             ok = MenuState.Configure(menuCatalog) && ok;
-            ok = TutorialState.Configure(tutorialCatalog) && ok;
+            // An injected (session-owned) TutorialState is already configured; configuring it again would reset the run's
+            // fired tutorials and Codex unlocks.
+            if (!TutorialStateInjected) ok = TutorialState.Configure(tutorialCatalog) && ok;
             ok = ControllerGlyphState.Configure(glyphTable, bindingsTable) && ok;
             ok = TooltipPresenter.Configure(tooltipCatalog) && ok;
             ApplyAccessibilityToChildren();
@@ -320,7 +380,7 @@ namespace SynapticSea.UI
                 CatalogRegistry.LoadDict(MenuCatalogPath) ?? new GdDict(),
                 CatalogRegistry.LoadDict(TutorialCatalogPath) ?? new GdDict(),
                 CatalogRegistry.LoadDict(CodexCatalogPath) ?? new GdDict(),
-                CatalogRegistry.LoadDict(GlyphChips.GlyphTablePath) ?? new GdDict(),
+                GlyphChips.WithUnitySupplement(CatalogRegistry.LoadDict(GlyphChips.GlyphTablePath)),
                 CatalogRegistry.LoadDict(TooltipCatalogPath) ?? new GdDict(),
                 CatalogRegistry.LoadDict(PresetsCatalogPath) ?? new GdDict(),
                 null,
@@ -465,9 +525,35 @@ namespace SynapticSea.UI
         public long GetFocusIndex() => MenuState.GetFocusIndex();
         public GdDict GetSettingsSummary() => SettingsState.GetSummary();
 
+        /// <summary>
+        /// Applies stored preferences WITHOUT raising <see cref="SettingsChanged"/> (the in-run coordinator adopting the
+        /// persisted file before anything can emit; nothing is re-saved).
+        /// </summary>
+        public bool LoadSettingsSummary(GdDict summary)
+        {
+            bool ok = SettingsState.ApplySummary(summary);
+            if (ok)
+            {
+                if (AccessibilitySettings != null) SettingsState.ApplyToAccessibility(AccessibilitySettings);
+                ApplyAccessibilityToChildren();
+                SyncLanguageFromSettings();
+            }
+            RefreshAll();
+            return ok;
+        }
+
+        void SyncLanguageFromSettings()
+        {
+            string language = SettingsState.GetLanguage();
+            if (language == _activeLanguage) return;
+            _activeLanguage = language;
+            LanguageSelector.SetActiveLanguage(language);
+        }
+
         public bool ApplySettingsSummary(GdDict summary)
         {
             bool ok = SettingsState.ApplySummary(summary);
+            if (ok) SyncLanguageFromSettings();
             if (ok && AccessibilitySettings != null)
             {
                 SettingsState.ApplyToAccessibility(AccessibilitySettings);
@@ -1088,6 +1174,9 @@ namespace SynapticSea.UI
         void OnLanguageChanged(string languageId)
         {
             _activeLanguage = languageId;
+            // B5: the choice is a persisted preference (Godot kept it in memory only).
+            if (SettingsState.SetLanguage(languageId))
+                SettingsChanged?.Invoke(SettingsState.GetSummary());
             LanguageChanged?.Invoke(languageId);
             RefreshAll();
         }
@@ -1127,20 +1216,20 @@ namespace SynapticSea.UI
         void OnTutorialTriggered(string tutorialId, string title, string body)
         {
             TutorialBanner.ShowTutorial(title, body);
-            _audio.PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
+            if (!TutorialStateInjected) _audio.PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
             RefreshCodex();
         }
 
         void OnTutorialDismissed(string tutorialId)
         {
-            _audio.PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
+            if (!TutorialStateInjected) _audio.PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
             RefreshTutorial();
             RefreshCodex();
         }
 
         void OnCodexUnlocked(string codexEntryId)
         {
-            _audio.PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
+            if (!TutorialStateInjected) _audio.PlaySfx(AudioEventSeam.UI_OBJECTIVE_ADVANCE);
             RefreshCodex();
         }
 

@@ -11,6 +11,7 @@ using SynapticSea.Game;
 using SynapticSea.Runtime;
 using SynapticSea.Runtime.Session;
 using SynapticSea.UI;
+using SynapticSea.UI.Presenters;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -352,6 +353,154 @@ namespace SynapticSea.Tests.PlayMode
             }
             Assert.IsNotNull(title, "quit to title returned to the Title scene");
             Assert.IsTrue(PlayableBootstrap.Current == null || !PlayableBootstrap.Current, "the playable scene unloaded");
+        }
+
+        // ================================================================== W2a in-play integration
+
+        static void KeyboardToGameView() =>
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+
+        ThreatAIState InjectThreatBesidePlayer(string archetype = "stalker")
+        {
+            Vec3 at = Frame.ToGodot(Player.transform.position) + new Vec3(2.5f, 0f, 0f);
+            _s.ThreatManager.InjectValidationEncounter(GdArray.Of(archetype), at);
+            Assert.IsNotEmpty(_s.ThreatManager.Threats, "validation encounter spawned");
+            return _s.ThreatManager.Threats[_s.ThreatManager.Threats.Count - 1];
+        }
+
+        [UnityTest]
+        public IEnumerator CombatAndHotbarKeysDriveTheSessionAndRespectTheModalStack()
+        {
+            KeyboardToGameView();
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            yield return BootPlayable();
+            yield return FixedSteps(5);
+
+            ThreatAIState threat = InjectThreatBesidePlayer();
+            double health = threat.Health;
+            _s.InventoryState.AddItem("crowbar", 1);
+            Assert.IsTrue(_s.EquipmentState.Equip("crowbar").GetBool("ok"));
+            yield return TapKey(keyboard, Key.F);
+            Assert.IsTrue(threat.Health < health || !_s.ThreatManager.Threats.Contains(threat), "attack_primary hit the threat through the session");
+            StringAssert.Contains("Crowbar", _boot.Ui.Hud.Vitals.WeaponLine, "the HUD shows the session's hotbar text");
+
+            _s.InventoryState.AddItem("flare_pistol", 1);
+            _s.InventoryState.AddItem("flare_round", 4);
+            Assert.IsTrue(_s.EquipmentState.Equip("flare_pistol").GetBool("ok"));
+            yield return TapKey(keyboard, Key.R);
+            Assert.IsTrue(_s.AmmoState.IsReloading(), "reload_weapon began a reload");
+
+            _s.InventoryState.AddItem("nutrient_paste", 3);
+            Assert.IsTrue(_s.AssignHotbarSlot(0, "nutrient_paste"));
+            long paste = _s.InventoryState.GetQuantity("nutrient_paste");
+            yield return TapKey(keyboard, Key.Digit1);
+            Assert.AreEqual(paste - 1, _s.InventoryState.GetQuantity("nutrient_paste"), "hotbar_1 used the slot");
+
+            _boot.Ui.OpenInventorySelf();
+            yield return null;
+            Assert.IsFalse(_boot.Host.GameplayInputAllowed, "a LIVE inspection consumes gameplay input");
+            yield return TapKey(keyboard, Key.Digit1);
+            Assert.AreEqual(paste - 1, _s.InventoryState.GetQuantity("nutrient_paste"), "no hotbar use under the inventory");
+            Assert.IsNull(_boot.Host.RequestHotbar(0), "the host gate refuses as well");
+            _boot.Ui.Inventory.Close();
+        }
+
+        [UnityTest]
+        public IEnumerator InteractPressAndReleaseDriveHoldToWork()
+        {
+            KeyboardToGameView();
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            yield return BootPlayable();
+            yield return FixedSteps(2);
+            Assert.IsFalse(_s.IsWorkInteractHeld);
+            InputSystem.QueueStateEvent(keyboard, new UnityEngine.InputSystem.LowLevel.KeyboardState(Key.E));
+            yield return null;
+            Assert.IsTrue(_s.IsWorkInteractHeld, "interact press -> BeginWorkHold");
+            InputSystem.QueueStateEvent(keyboard, new UnityEngine.InputSystem.LowLevel.KeyboardState());
+            yield return null;
+            Assert.IsFalse(_s.IsWorkInteractHeld, "interact release -> EndWorkHold");
+        }
+
+        [UnityTest]
+        public IEnumerator StoredSettingsApplyInPlayAndAChangeSavesTheMergedState()
+        {
+            var stored = SettingsStateSchema.DefaultPayload();
+            stored["text_scale"] = 1.5;
+            stored["captions"] = false;
+            stored[SettingsState.AudioBusVolumesKey] = new GdDict { { AudioEventSeam.BUS_MUSIC, -20.0 } };
+            _storage.WriteText(UserSettingsStore.SettingsPath, GdJson.Stringify(stored, "\t"));
+            yield return BootPlayable();
+
+            MenuCoordinator c = _boot.Coordinator;
+            Assert.AreSame(_s.SettingsState, c.SettingsState, "the pause menu edits the session's settings");
+            Assert.AreSame(_s.TutorialState, c.TutorialState, "the banner and Codex read the session's tutorials");
+            Assert.AreEqual(1.5, c.SettingsState.GetTextScale(), "stored preferences applied in play");
+            Assert.IsFalse(_s.SettingsState.IsCaptionsEnabled());
+            Assert.AreEqual(-20.0, _s.AudioManager.GetBusVolume(AudioEventSeam.BUS_MUSIC), 1e-6, "stored bus volume applied to the session audio");
+            Assert.IsTrue(_boot.Ui.Hud.Root.ClassListContains(AccessibilitySettings.ClassScale150), "HUD accessibility applied at mount");
+
+            c.AudioSettingsPanel.OnCaptionToggled(true);
+            GdDict saved = GdJson.ParseString(_storage.ReadText(UserSettingsStore.SettingsPath)) as GdDict;
+            Assert.IsNotNull(saved);
+            Assert.AreEqual(1.5, saved.GetFloat("text_scale"), "a pause-menu change does not clobber the stored scale");
+            Assert.IsTrue(saved.GetBool("captions"));
+            Assert.AreEqual(-20.0, saved.GetDict(SettingsState.AudioBusVolumesKey).GetFloat(AudioEventSeam.BUS_MUSIC));
+
+            Assert.IsTrue(_s.RequestSave());
+            _boot.Ui.OnDevShortcut("load_run");
+            Assert.AreEqual(1.5, c.SettingsState.GetTextScale(), "a load keeps the player's preferences");
+            Assert.AreEqual(-20.0, _s.AudioManager.GetBusVolume(AudioEventSeam.BUS_MUSIC), 1e-6);
+        }
+
+        [UnityTest]
+        public IEnumerator HomeShipAffordancesWorldLabelsAndComponentMarkersAreBuilt()
+        {
+            yield return BootPlayable();
+            yield return null;
+            AffordanceView affordances = _boot.Host.Affordances;
+            Assert.IsTrue(affordances.Props.Keys.Any(k => k.StartsWith(ReadabilityPropFactory.OBJECTIVE_PREFIX)), "objective props");
+            Assert.IsTrue(affordances.Props.ContainsKey(ReadabilityPropFactory.ENTRY_NAME), "entry beacon");
+            Assert.IsTrue(affordances.Props.ContainsKey(ReadabilityPropFactory.DESTINATION_NAME), "destination core");
+            Assert.IsTrue(affordances.Vfx.Any(v => v != null && v.name.Contains("beacon_blue")), "beacon_blue glow hook");
+            Assert.IsTrue(affordances.Vfx.Any(v => v != null && v.name.Contains("reactor_green")), "reactor_green glow hook");
+            Assert.IsTrue(_boot.Host.WorldLabels.Has(AffordanceView.AffordanceLabelPrefix + "objective_01"), "objective world label");
+            Assert.Greater(_boot.Ui.Hud.WorldLabelLayer.childCount, 0, "labels are drawn into the HUD label layer");
+            Assert.AreEqual(_s.ComponentMarkers.Count, _boot.Host.ComponentMarkers.Markers.Count, "one placeholder per mounted component");
+
+            int blocked = affordances.BlockedVisibleCount;
+            Assert.IsTrue(_s.CompleteObjectiveSequence(1));
+            Assert.IsTrue(_s.CompleteObjectiveSequence(2), "restore_systems clears the blocked affordances");
+            yield return null;
+            Assert.AreEqual(0, affordances.BlockedVisibleCount, "blocked props hidden (was " + blocked + ")");
+        }
+
+        [UnityTest]
+        public IEnumerator ThreatAttackFeedbackReachesTheViewsAndDenialsToast()
+        {
+            yield return BootPlayable();
+            _boot.Ui.OnPanelToggle("ui_open_map");
+            StringAssert.Contains(SessionUiBridge.NoWebChartText, _boot.Ui.Hud.ToastText, "chart denial toast");
+
+            ThreatAIState threat = InjectThreatBesidePlayer();
+            yield return null;
+            Assert.IsTrue(_boot.Host.Threats.Nodes.ContainsKey(threat.InstanceId), "the injected threat has a placeholder");
+            var handled = new List<string>();
+            var deaths = new List<string>();
+            _boot.Host.Threats.AttackHandled += (id, kind) => handled.Add(kind);
+            _boot.Host.Threats.DeathPlayed += id => deaths.Add(id);
+            _s.InventoryState.AddItem("crowbar", 1);
+            Assert.IsTrue(_s.EquipmentState.Equip("crowbar").GetBool("ok"));
+            for (int i = 0; i < 30 && deaths.Count == 0; i++)
+            {
+                _boot.Host.RequestAttack();
+                yield return null;
+            }
+            Assert.Contains(ThreatRuntime.ATTACK_TARGET_THREAT, handled, "weapon hits reach the threat view");
+            Assert.Contains(threat.InstanceId, deaths, "the kill played the death effect");
+            Assert.IsFalse(_boot.Host.Threats.Nodes.ContainsKey(threat.InstanceId), "the dead threat left the view");
+
+            _boot.Ui.Hud.ShowDamage(7, threat.ArchetypeId);
+            StringAssert.Contains("Hit", _boot.Ui.Hud.Vitals.DamageIndicatorText, "HUD damage indicator");
         }
     }
 }

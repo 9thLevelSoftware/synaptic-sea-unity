@@ -11,7 +11,7 @@ namespace SynapticSea.Game
     /// <see cref="IUiAudio"/> over the session's <see cref="SessionAudio"/> models (the single source of truth for bus
     /// volumes and the voice-log registry), played through the Runtime <see cref="AudioManager"/> sink.
     /// </summary>
-    public sealed class SessionUiAudio : IUiAudio
+    public sealed class SessionUiAudio : IUiAudio, IVoiceClipAvailability
     {
         readonly RunSession _session;
         readonly AudioManager _manager;
@@ -33,11 +33,33 @@ namespace SynapticSea.Game
         public string CurrentVoiceLogId => A != null ? A.CurrentVoiceLogId : "";
         public bool PlayVoiceLog(string entryId) => A != null && A.PlayVoiceLog(entryId);
 
+        /// <summary>True when the build's audio catalog has a clip for <paramref name="clipPath"/> (Godot shipped no voice .ogg).</summary>
+        public bool HasVoiceClip(string clipPath)
+        {
+            if (string.IsNullOrEmpty(clipPath)) return false;
+            AudioCatalog catalog = _manager != null ? _manager.Catalog : null;
+            if (catalog == null) catalog = Resources.Load<AudioCatalog>("Catalogs/AudioCatalog");
+            return catalog != null && catalog.TryGetClip(clipPath, out AudioClip clip) && clip != null;
+        }
+
         public void StopVoiceLog()
         {
             if (A != null) A.CurrentVoiceLogId = "";
             if (_manager != null) _manager.StopVoiceLog();
         }
+    }
+
+    /// <summary><see cref="IWoundTreatmentHost"/> over the session (items consumed, SFX and training events, refusal reasons).</summary>
+    public sealed class SessionWoundHost : IWoundTreatmentHost
+    {
+        readonly RunSession _session;
+
+        public SessionWoundHost(RunSession session) => _session = session;
+
+        public WoundState WoundState => _session?.WoundState;
+        public GdArray GetTreatableWounds() => _session != null ? _session.GetTreatableWounds() : new GdArray();
+        public GdDict BandageWound(string woundId) => _session != null ? _session.BandageWound(woundId) : new GdDict { { "ok", false }, { "reason", "wounds_unavailable" } };
+        public GdDict TreatWound(string woundId) => _session != null ? _session.TreatWound(woundId) : new GdDict { { "ok", false }, { "reason", "wounds_unavailable" } };
     }
 
     /// <summary><see cref="IScannerHost"/> over the session (scan + travel run the session's scene surgery).</summary>

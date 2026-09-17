@@ -716,6 +716,7 @@ namespace SynapticSea.UI
                     Chip = "×" + PaneQuantity(pane, id),
                     Detail = detail,
                     Marked = model.IsSelected(i),
+                    Icon = UiIcons.ForItem(V.Str(ItemDefs.GetDefinition(_defs, id).Get("icon", "")), category),
                 });
             }
             int cursor = _cursor[pane];

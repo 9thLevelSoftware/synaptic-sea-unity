@@ -23,7 +23,11 @@ namespace SynapticSea.UI
             public Severity Severity;
             public bool Muted;
             public bool Marked;
+            /// <summary>Optional row icon (achievement art, item category placeholder); null hides the icon.</summary>
+            public UnityEngine.Texture2D Icon;
         }
+
+        public const string RowIconClass = "ss-row__icon";
 
         readonly ScrollView _scroll;
         readonly Label _empty;
@@ -132,6 +136,15 @@ namespace SynapticSea.UI
             var chip = UiFactory.Text("", UiClasses.RowChip, UiClasses.LabelMono);
             var text = UiFactory.Text("", UiClasses.RowText);
             var detail = UiFactory.Text("", UiClasses.RowDetail, UiClasses.LabelSecondary);
+            var icon = new Image { scaleMode = UnityEngine.ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
+            icon.AddToClassList(RowIconClass);
+            icon.style.width = 28;
+            icon.style.height = 28;
+            icon.style.marginRight = 8;
+            icon.style.flexShrink = 0;
+            icon.style.alignSelf = Align.Center;
+            UiFactory.SetShown(icon, false);
+            row.Add(icon);
             var col = UiFactory.Box("ss-row__col");
             col.Add(text);
             col.Add(detail);
@@ -200,6 +213,12 @@ namespace SynapticSea.UI
             var chip = row.Q<Label>(className: UiClasses.RowChip);
             var text = row.Q<Label>(className: UiClasses.RowText);
             var detail = row.Q<Label>(className: UiClasses.RowDetail);
+            var icon = row.Q<Image>(className: RowIconClass);
+            if (icon != null)
+            {
+                icon.image = item.Icon;
+                UiFactory.SetShown(icon, item.Icon != null);
+            }
             chip.text = item.Chip ?? "";
             UiFactory.SetShown(chip, !string.IsNullOrEmpty(item.Chip));
             text.text = item.Text ?? "";
