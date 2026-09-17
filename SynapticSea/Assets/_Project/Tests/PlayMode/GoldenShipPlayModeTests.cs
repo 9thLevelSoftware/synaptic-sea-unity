@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Variant;
 using SynapticSea.Runtime;
@@ -67,7 +68,9 @@ namespace SynapticSea.Tests.PlayMode
             int placements = layout.GetDict("structural_plan")?.GetArray("placements")?.Count ?? 0;
             Assert.Greater(placements, 0);
             int wrappers = _view.Modules.Count(m => m.layer != "floor" && m.layer != "ceiling");
-            Assert.AreEqual(placements, wrappers, "one structural wrapper per edge placement");
+            // Edges a relocated vertex wrapper's wing walls build nothing of their own (VertexWrapperPlacement).
+            int covered = VertexWrapperPlacement.Resolve(layout.GetDict("structural_plan")).Covered.Count;
+            Assert.AreEqual(placements - covered, wrappers, "one structural wrapper per edge placement");
             Assert.Greater(_view.CountCollisionShapes(), placements, "wrappers carry collision");
             Assert.IsTrue(Physics.Raycast(_player.transform.position + Vector3.up, Vector3.down, 5f, 1 << PhysicsLayers.Structure),
                 "a floor collider lies under the start marker");
