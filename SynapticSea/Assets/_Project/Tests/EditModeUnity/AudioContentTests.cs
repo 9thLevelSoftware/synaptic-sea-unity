@@ -71,7 +71,7 @@ namespace SynapticSea.Tests.Unity
             string report = $"[AudioContent] {silent.Count} emittable audio ids still have no clip: {string.Join(", ", silent)}";
             Debug.Log(report);
             TestContext.WriteLine(report);
-            // SC-5 / decision 25: lock the exact 12 silent ids. Shrink the expected set when a clip is authored; fail if it grows or a mapped id (e.g. weld) goes silent.
+            // Shrink this expected set when a clip is authored.
             CollectionAssert.AreEquivalent(new[]
             {
                 AudioEventSeam.META_BEACON_DISTRESS,
