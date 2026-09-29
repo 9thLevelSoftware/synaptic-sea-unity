@@ -29,8 +29,8 @@ namespace SynapticSea.Tests.PlayMode
     /// and the run travels to a breach_field, a dead_fleet and a hive derelict and back; real threats fight the player
     /// through the input path and the HUD; the gamepad inventory → pause → resume journey keeps focus; Title → New Run
     /// boots Playable, settings survive Title → play → pause → Title, and quit returns to Title.
-    /// The golden ship's threats are left alive (its fallback encounter spawns beside the start room); a test that needs
-    /// a quiet ship opts in with <see cref="QuietShip"/> and a reason.
+    /// The live game no longer invents the unengaged fallback pack on the golden hub (decision 65 / HomeSpawnSafety);
+    /// a test that needs a quiet ship still opts in with <see cref="QuietShip"/> and a reason.
     /// </summary>
     public class PlayableScenePlayModeTests : InputTestFixture
     {
@@ -107,8 +107,9 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         /// <summary>
-        /// Opt-in quiet ship for a test that needs one: removes the threats (golden 001 has no encounter markers, so the
-        /// fallback encounter spawns beside the start room and kills an idle player in ~10 s).
+        /// Opt-in quiet ship for a test that needs one. Unengaged hub hunt is a defect the session now gates on game
+        /// deps (decision 65); QuietShip remains opt-in for other tests. Harness GoldenDeps still invents the fallback
+        /// pack (see HeadlessSessionTests.IdlePlayerAtSpawn_IsKilledByTheFallbackStalker).
         /// </summary>
         void QuietShip(string reason)
         {
@@ -425,7 +426,7 @@ namespace SynapticSea.Tests.PlayMode
             var keyboard = InputSystem.AddDevice<Keyboard>();
             yield return BootPlayable();
             // The scanner needs navigation (and its power) online before a scan can chart anything.
-            QuietShip("charting needs the power and navigation repairs first (~40 s of simulated channels beside the start room, where golden 001's fallback encounter kills an idle player in ~10 s)");
+            QuietShip("charting needs the power and navigation repairs first (~40 s of simulated channels beside the start room)");
             yield return MakeTheLifeboatFlyable();
 
             string wound = _s.WoundState.ApplyWound(new GdDict { { "kind", WoundState.KIND_LACERATION }, { "body_part", WoundState.BODY_ARM }, { "severity", 0.6 } });
@@ -464,7 +465,7 @@ namespace SynapticSea.Tests.PlayMode
         public IEnumerator RepairPropulsionThenTravelToBreachFieldDeadFleetAndHiveDerelictsAndBack()
         {
             yield return BootPlayable();
-            QuietShip("the propulsion repairs run ~45 s of simulated channel time beside the start room, where golden 001's fallback encounter kills an idle player in ~10 s");
+            QuietShip("the propulsion repairs run ~45 s of simulated channel time beside the start room");
             yield return MakeTheLifeboatFlyable();
 
             // The run's first travel follows the first-run contract (breach_field), whichever marker was picked.

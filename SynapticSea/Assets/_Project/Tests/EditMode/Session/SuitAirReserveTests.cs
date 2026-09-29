@@ -41,9 +41,7 @@ namespace SynapticSea.Tests.Session
             RunSessionDeps deps = SessionHarness.GoldenDeps(out rig);
             CoreServices.UserStorage = rig.Storage;
             CoreServices.Resources = new FileSystemResourceReader(Fixtures.StreamingDataRoot, rig.Storage);
-            var defaults = new RunSessionDeps();
-            deps.HomeLifeSupportPowerFloor = defaults.HomeLifeSupportPowerFloor;
-            deps.HomeSuitAirReserveSeconds = defaults.HomeSuitAirReserveSeconds;
+            SessionHarness.OverlayGamePlayability(deps);
             StartSceneBuilder.HomeStart start = StartSceneBuilder.BuildHomeStart(seed, biome, difficulty);
             Assert.IsNotNull(start, "a viable generated home");
             const string dir = "user://runs/suit-air-test/";
@@ -115,8 +113,13 @@ namespace SynapticSea.Tests.Session
         public void GodotHarness_KeepsTheSuitOutOfShipAtmosphere()
         {
             RunSessionDeps deps = SessionHarness.GoldenDeps(out SessionHarness.Rig _);
+            Assert.AreEqual(0.0, deps.HomeLifeSupportPowerFloor, "parity sessions run Godot's behaviour");
             Assert.AreEqual(0.0, deps.HomeSuitAirReserveSeconds, "parity sessions run Godot's behaviour");
-            Assert.Greater(new RunSessionDeps().HomeSuitAirReserveSeconds, 0.0, "the game default carries the reserve");
+            Assert.AreEqual(0.0, deps.HomeSpawnSafety, "parity sessions run Godot's behaviour");
+            var game = new RunSessionDeps();
+            Assert.Greater(game.HomeLifeSupportPowerFloor, 0.0, "the game default carries the floor");
+            Assert.Greater(game.HomeSuitAirReserveSeconds, 0.0, "the game default carries the reserve");
+            Assert.Greater(game.HomeSpawnSafety, 0.0, "the game default carries hub spawn safety");
         }
     }
 }

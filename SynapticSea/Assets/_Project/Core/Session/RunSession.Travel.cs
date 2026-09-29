@@ -450,7 +450,7 @@ namespace SynapticSea.Core.Session
             else
             {
                 ApplyThreatRunModifiers();
-                ThreatManager.ConfigureForLayout(CombatLayoutForCurrentShip(), CombatMarkersForCurrentShip(), anchor);
+                ThreatManager.ConfigureForLayout(CombatLayoutForCurrentShip(), CombatMarkersForCurrentShip(), anchor, inventFallback: !HomeSpawnSafetyActive);
             }
             ApplyIntegrityNavGaps();
             RefreshWeaponHotbar();

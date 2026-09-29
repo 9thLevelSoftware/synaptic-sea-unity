@@ -257,7 +257,18 @@ namespace SynapticSea.Tests.Session
                 HomeLifeSupportPowerFloor = 0.0,
                 // Godot parity: the suit does not filter fouled ship air.
                 HomeSuitAirReserveSeconds = 0.0,
+                // Godot parity: home-hub spawn safety off (idle death at 29.25 s).
+                HomeSpawnSafety = 0.0,
             };
+        }
+
+        /// <summary>Copies the live-game playability knobs onto a harness deps object (FP-11 seam).</summary>
+        public static void OverlayGamePlayability(RunSessionDeps deps)
+        {
+            var game = new RunSessionDeps();
+            deps.HomeLifeSupportPowerFloor = game.HomeLifeSupportPowerFloor;
+            deps.HomeSuitAirReserveSeconds = game.HomeSuitAirReserveSeconds;
+            deps.HomeSpawnSafety = game.HomeSpawnSafety;
         }
 
         public static Rig CreateGolden()

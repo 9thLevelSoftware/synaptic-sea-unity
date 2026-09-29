@@ -29,7 +29,7 @@ A filter of `SessionUiBridgeRunResults` against `SynapticSea.Tests.EditMode` (or
 ### 1. Die once → RunResultsPanel
 
 1. Title → New Run (slice defaults). Confirm the hub is live.
-2. Die once (stand until incapacitated, or set health to 0 in a debug boot).
+2. Die once (debug health 0, an **away** wreck, or an entered hazard — not by standing idle on the hub).
 3. Expect **RUN ENDED — DEATH** (`RunResultsPanel`) over the paused run: outcome death, time survived, seed · biome · difficulty context. Simulation must not keep ticking.
 4. Do **not** land on Title without this panel.
 

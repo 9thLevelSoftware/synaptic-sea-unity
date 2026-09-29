@@ -61,7 +61,12 @@ namespace SynapticSea.Core.Session
         {
             bool inSafe = false;
             if (location == SessionLocation.Home)
-                inSafe = !AwayFromStart && (OxygenState == null || !OxygenState.GetSummary().GetBool("breach_open"));
+            {
+                if (HomeSpawnSafetyActive)
+                    inSafe = !IsPlayerInBreachZone();
+                else
+                    inSafe = !AwayFromStart && (OxygenState == null || !OxygenState.GetSummary().GetBool("breach_open"));
+            }
             TickSanityAndHallucinations(delta, inSafe);
         }
 
@@ -221,7 +226,8 @@ namespace SynapticSea.Core.Session
             if (VitalsState == null)
                 return;
             bool breachOpen = OxygenState != null && OxygenState.GetSummary().GetBool("breach_open");
-            bool inHazardEnv = AwayFromStart || breachOpen;
+            // Unity port (decision 65): fallback breach_open is not a ship-wide radiation/sanity field at home.
+            bool inHazardEnv = AwayFromStart || (HomeSpawnSafetyActive ? IsPlayerInBreachZone() : breachOpen);
             bool? inAuthoredRadiation = null;
             bool hasAuthoredRadiationSource = false;
             bool hasAuthoredTemperatureSource = false;
@@ -285,6 +291,13 @@ namespace SynapticSea.Core.Session
                 else if (o2Level <= o2Recovery + 0.001)
                     oxygenHealthDrain = 2.0;
             }
+            // Unity port (decision 65): freeze ambient hunger/thirst while the hub is passively safe.
+            double hungerMult = 1.0;
+            if (HomeSpawnSafetyActive)
+            {
+                hungerMult = 0.0;
+                tempMult = 0.0;
+            }
             GdDict hteeth = HallucinationDirector != null
                 ? HallucinationDirector.GetDirectTeeth()
                 : new GdDict { { "health_drain_per_second", 0.0 }, { "stamina_recovery_mult", 1.0 } };
@@ -294,6 +307,7 @@ namespace SynapticSea.Core.Session
             VitalsState.Tick(delta, new GdDict
             {
                 { "temperature_thirst_mult", tempMult },
+                { SimKeys.TemperatureHungerMult, hungerMult },
                 { "radiation_health_drain", radDrain },
                 { "atmosphere_health_drain", atmoDrain + oxygenHealthDrain },
                 { "fire_health_drain", FIRE_HEALTH_DRAIN_PER_SECOND * PlayerFireIntensity() },

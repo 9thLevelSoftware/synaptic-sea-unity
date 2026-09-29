@@ -48,6 +48,7 @@ namespace SynapticSea.Core.Session
                 opts.WebOverride = HullWebState;
                 opts.ContactBoostProvider = ActiveDerelictWebAttached;
                 opts.ModuleIntegrity = ModuleIntegrityMap;
+                opts.SkipWebTick = HomeSpawnSafetyActive;
             }
             var rt = new ShipRuntime();
             rt.Configure(ship, opts);

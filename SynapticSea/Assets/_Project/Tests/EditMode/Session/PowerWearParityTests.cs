@@ -108,7 +108,7 @@ namespace SynapticSea.Tests.Session
         public void GoldenShip_IdleWithEmergencyFloor_OutlivesTheLifeSupportStarvation()
         {
             RunSessionDeps deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
-            deps.HomeLifeSupportPowerFloor = new RunSessionDeps().HomeLifeSupportPowerFloor;
+            SessionHarness.OverlayGamePlayability(deps);
             Assert.Greater(deps.HomeLifeSupportPowerFloor, 0.0, "the game default carries the floor");
             RunSession s = RunSession.Create(deps);
             Assert.IsTrue(s.PlayableStarted, s.LastFailureReason);
