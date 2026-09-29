@@ -189,7 +189,7 @@ Run everything with `pwsh tools/test.ps1 -Mode All` (dotnet Core suite, then Uni
     - Facepunch.Steamworks goes into a gitignored `Plugins/` folder by hand. It is never a package dependency, so native Steam libraries never enter normal builds.
     - Catalog achievement ids are the Steam names 1:1 (`PlatformAchievementIds`). `AchievementState.Unlocked` fires for new unlocks only.
     - The Steam assembly itself has not been compiled, because the plugin is absent.
-50. **CI workflows are manual only** (`.github/workflows/unity-tests.yml`, `unity-build.yml`: game-ci v4, LFS checkout, Library cache, a license-free dotnet job). They are `workflow_dispatch` until the Unity license secrets exist.
+50. **The license-free `dotnet` job is the merge gate** (`.github/workflows/unity-tests.yml`: game-ci v4, LFS checkout, Library cache). It runs on `push` and `pull_request` to `main` and needs no Unity secrets. Unity EditMode/PlayMode in that file, and `unity-build.yml`, stay `workflow_dispatch` even after `UNITY_LICENSE` / `UNITY_EMAIL` / `UNITY_PASSWORD` exist. Do not enable the Unity jobs with an ungated `push` trigger.
 51. **Tooling continuity.** The Godot repo's engine-agnostic Python tools live in `tools/python/`.
     - `synaptic_layout.py` maps Godot project paths onto StreamingAssets, Content, `fixtures/godot_wrappers` and `artifacts/_staging`; `res://` strings in data stay Godot's.
     - The Meshy governance chain runs only on POSIX (macOS, Linux or WSL), because it needs `fcntl` and file modes.
@@ -285,7 +285,7 @@ The remaining full-frame gap is floors. Godot draws the GLBs' untextured `Collis
 - **Silent audio events.** 12 events are still silent (decision 25; `AudioContentTests.ReportsEventsStillWithoutClips`).
 - **Publishing and platform setup that needs the owner** (step-by-step in `docs/release-setup.md`):
   - The itch project slug is unknown, and butler needs `butler login` or `BUTLER_API_KEY` before any `-Push`.
-  - The CI workflows need the `UNITY_LICENSE`, `UNITY_EMAIL` and `UNITY_PASSWORD` secrets.
+  - License-free `dotnet` already runs on push and pull_request to `main` (`unity-tests.yml`). Unity EditMode/PlayMode and `unity-build.yml` stay `workflow_dispatch`. The Unity jobs still need owner-only `UNITY_LICENSE`, `UNITY_EMAIL` and `UNITY_PASSWORD` secrets; creating them is out of this cycle.
   - Linux IL2CPP is not installed.
   - macOS builds are unsigned and not notarised; that needs a Mac.
   - Steam needs the Facepunch plugin, `SS_STEAM`, `steam_appid.txt` and the 8 achievements created on Steamworks. Steam uploads are not scripted.

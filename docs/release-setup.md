@@ -6,7 +6,7 @@ Everything in the repo is ready. These four steps need an account or a secret, s
 |---|---|---|---|
 | 1. itch.io | Free | Sharing builds with testers | Now |
 | 2. macOS signing | Apple Developer Program, $99/year, and a Mac | macOS players without a security warning | Before a public macOS release |
-| 3. CI (GitHub Actions) | Free for this repo size | Tests and builds on every push | Optional; local `tools/test.ps1` covers it |
+| 3. CI (GitHub Actions) | Free for this repo size | License-free `dotnet` on push/PR to `main`. Unity tests and `unity-build.yml` stay `workflow_dispatch` | Merge gate is on; Unity secrets remain owner-only |
 | 4. Steam | $100 per game (Steam Direct) | A Steam store page | When you commit to a Steam launch |
 
 ## 1. itch.io (start here)
@@ -45,11 +45,11 @@ Apple blocks unsigned apps downloaded from the internet unless the player overri
 
 No Mac is available here, so this stays manual. A rented cloud Mac also works.
 
-## 3. CI on GitHub Actions (optional)
+## 3. CI on GitHub Actions
 
-The workflows in `.github/workflows` only run when started by hand (Actions tab, "Run workflow"). The dotnet job needs no license.
+The license-free `dotnet` job in `.github/workflows/unity-tests.yml` is the merge gate. It runs on `push` and `pull_request` to `main` and needs no Unity license. Unity EditMode/PlayMode in that file and `unity-build.yml` stay `workflow_dispatch`. Do not add `push:` to `unity-build.yml`, and do not enable the Unity matrix with an ungated workflow-level `push` trigger.
 
-1. **Push the code.** `main` is ahead of `origin/main` on `github.com/9thLevelSoftware/synaptic-sea-unity`, and CI runs only what is on GitHub.
+1. **Push the code.** `main` is ahead of `origin/main` on `github.com/9thLevelSoftware/synaptic-sea-unity`, and CI runs only what is on GitHub. A push to `main` or a PR targeting `main` runs `Core suite (dotnet, no Unity license)` automatically.
 2. **Create a Unity license file.** In Unity Hub open Preferences, then Licenses, click Add, and choose "Get a free personal license". Hub then writes `C:\ProgramData\Unity\Unity_lic.ulf`. A license that already shows in Hub may not have written that file; clicking Add is what creates it. On this machine the file does not exist yet.
 3. **Add three repository secrets** (GitHub repo, Settings, Secrets and variables, Actions). With the GitHub CLI, each command prompts for the value, so nothing lands in your shell history:
    ```
@@ -57,7 +57,7 @@ The workflows in `.github/workflows` only run when started by hand (Actions tab,
    gh secret set UNITY_PASSWORD
    gh secret set UNITY_LICENSE < C:\ProgramData\Unity\Unity_lic.ulf
    ```
-4. Start "Unity tests" from the Actions tab. When it passes, add `push:` triggers to the workflows if you want them automatic.
+4. Start "Unity tests" or "Unity build" from the Actions tab when you want EditMode/PlayMode or a player build. Those jobs stay `workflow_dispatch` even after the secrets exist.
 
 ## 4. Steam
 
