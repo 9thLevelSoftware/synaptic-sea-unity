@@ -71,6 +71,32 @@ namespace SynapticSea.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// Spawns one validation stalker ~1.2 m from the player on a side the session's own line-of-sight probe sees.
+        /// <see cref="ThreatRuntime.InjectValidationEncounter"/> places index 0 on a +4 m x ring around the anchor,
+        /// so the anchor is offset to land the threat on that spot. Live game deps no longer invent the golden hub's
+        /// fallback pack (decision 65).
+        /// </summary>
+        ThreatAIState InjectThreatBesidePlayer(string archetype = "stalker")
+        {
+            Vec3 player = Frame.ToGodot(Host.SceneState.Player.transform.position);
+            Vec3 eye = player + new Vec3(0f, 1.2f, 0f);
+            var probe = new PhysicsLineOfSightProbe();
+            Vec3? spot = null;
+            foreach (Vec3 offset in new[] { new Vec3(1.2f, 0f, 0f), new Vec3(-1.2f, 0f, 0f), new Vec3(0f, 0f, 1.2f), new Vec3(0f, 0f, -1.2f) })
+            {
+                Vec3 candidate = player + offset;
+                if (!probe.IntersectRay(eye, candidate + new Vec3(0f, 1f, 0f), out _)) { spot = candidate; break; }
+            }
+            Assert.IsTrue(spot.HasValue, "a clear spot beside the player at " + player);
+            _session.ThreatManager.InjectValidationEncounter(GdArray.Of(archetype), spot.Value - new Vec3(4f, 0f, 0f));
+            Assert.AreEqual(1, _session.ThreatManager.Threats.Count, "validation encounter spawned");
+            ThreatAIState threat = _session.ThreatManager.Threats[0];
+            Vec3 at = ThreatPosition(threat);
+            Assert.Less(at.DistanceTo(spot.Value), 1e-3, "the threat stands on the chosen spot");
+            return threat;
+        }
+
         RunSessionHost Host => _boot.Host;
 
         static NavMeshQueryFilter ThreatFilter => new NavMeshQueryFilter
@@ -143,10 +169,7 @@ namespace SynapticSea.Tests.PlayMode
         {
             yield return BootGoldenShip();
 
-            // The golden ship's fallback encounter spawns beside the start room and comes for an idle player, so the
-            // threats' own AI drives this: nothing is teleported or forced.
-            ThreatAIState threat = _session.ThreatManager.Threats.FirstOrDefault();
-            Assert.IsNotNull(threat, "the golden ship spawns threats");
+            ThreatAIState threat = InjectThreatBesidePlayer();
             Transform player = Host.SceneState.Player.transform;
             float startDistance = Vector3.Distance(Frame.ToUnity(ThreatPosition(threat)), player.position);
 
@@ -194,8 +217,7 @@ namespace SynapticSea.Tests.PlayMode
         {
             yield return BootGoldenShip();
 
-            ThreatAIState threat = _session.ThreatManager.Threats.FirstOrDefault();
-            Assert.IsNotNull(threat);
+            ThreatAIState threat = InjectThreatBesidePlayer();
             Vec3 cell = ThreatPosition(threat);
             Vector3 cellUnity = Frame.ToUnity(cell);
             Assert.IsTrue(NavMesh.SamplePosition(cellUnity, out NavMeshHit before, 2f, ThreatFilter));

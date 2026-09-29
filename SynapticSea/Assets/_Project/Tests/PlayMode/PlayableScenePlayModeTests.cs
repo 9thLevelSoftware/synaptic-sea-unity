@@ -327,8 +327,8 @@ namespace SynapticSea.Tests.PlayMode
             _s.InventoryState.AddItem("welder", 1);
             _s.InventoryState.AddItem("fire_extinguisher", 1);
             _s.InventoryState.AddItem("hull_sealant", 6);
-            // High repair skill shortens the channels (1 + 0.1 per level above the minimum): golden 001's home life support
-            // is starved while power is down and an idle player dies at ~29 s, so power must come back well before that.
+            // High repair skill shortens the channels (1 + 0.1 per level above the minimum). The repair and seal
+            // channels themselves are long; this is a channel-time shortcut, not a death timer.
             _s.PlayerProgression.Skills["repair"] = 20L;
             var needed = new HashSet<string> { "power", "navigation", "propulsion" };
             var log = new List<string>();
