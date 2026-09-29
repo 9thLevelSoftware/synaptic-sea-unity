@@ -34,6 +34,9 @@ namespace SynapticSea.Core.Systems
 
         public ModuleIntegrityMap ModuleIntegrity;
         public IComponentManifestModel ComponentPlacement;
+
+        /// <summary>Unity port (decision 65): skip web.Tick and hull web damage; systems still Advance.</summary>
+        public bool SkipWebTick;
     }
 
     /// <summary>
@@ -69,6 +72,9 @@ namespace SynapticSea.Core.Systems
         /// <summary>PKG-D6.1: optional ComponentPlacementState owned by this runtime.</summary>
         public IComponentManifestModel ComponentPlacement;
 
+        /// <summary>Unity port (decision 65): skip web.Tick and hull web damage; systems still Advance.</summary>
+        public bool SkipWebTick;
+
         double _slowAcc = 0.0;
         double _lazyAcc = 0.0;
 
@@ -87,6 +93,7 @@ namespace SynapticSea.Core.Systems
             ContactBoostProvider = opts.ContactBoostProvider;
             ModuleIntegrity = opts.ModuleIntegrity;
             ComponentPlacement = opts.ComponentPlacement;
+            SkipWebTick = opts.SkipWebTick;
             _slowAcc = 0.0;
             _lazyAcc = 0.0;
             FrameBandFires = 0;
@@ -139,6 +146,8 @@ namespace SynapticSea.Core.Systems
             WebInfestationState web = ResolveWeb();
             HullIntegrityState hull = ResolveHull();
             if (web == null || hull == null)
+                return;
+            if (SkipWebTick)
                 return;
             bool contact = ContactBoost();
             double dmg = web.Tick(delta, contact);

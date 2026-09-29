@@ -71,6 +71,32 @@ namespace SynapticSea.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// Spawns one validation stalker on a line-of-sight-clear horizontal offset from the player.
+        /// <see cref="ThreatRuntime.InjectValidationEncounter"/> places index 0 on a +4 m x ring around the anchor,
+        /// so the anchor is <c>spot - (4, 0, 0)</c>. Distance is the placement radius, not a hunt guarantee: 1.2 m
+        /// is a fire-cell spawn; a hunt must pass a larger radius so the agent has a gap to close.
+        /// </summary>
+        ThreatAIState InjectThreatBesidePlayer(float distance = 1.2f, string archetype = "stalker")
+        {
+            Vec3 player = Frame.ToGodot(Host.SceneState.Player.transform.position);
+            Vec3 eye = player + new Vec3(0f, 1.2f, 0f);
+            var probe = new PhysicsLineOfSightProbe();
+            Vec3? spot = null;
+            foreach (Vec3 offset in new[] { new Vec3(distance, 0f, 0f), new Vec3(-distance, 0f, 0f), new Vec3(0f, 0f, distance), new Vec3(0f, 0f, -distance) })
+            {
+                Vec3 candidate = player + offset;
+                if (!probe.IntersectRay(eye, candidate + new Vec3(0f, 1f, 0f), out _)) { spot = candidate; break; }
+            }
+            Assert.IsTrue(spot.HasValue, "a clear spot " + distance + " m from the player at " + player);
+            _session.ThreatManager.InjectValidationEncounter(GdArray.Of(archetype), spot.Value - new Vec3(4f, 0f, 0f));
+            Assert.AreEqual(1, _session.ThreatManager.Threats.Count, "validation encounter spawned");
+            ThreatAIState threat = _session.ThreatManager.Threats[0];
+            Vec3 at = ThreatPosition(threat);
+            Assert.Less(at.DistanceTo(spot.Value), 1e-3, "the threat stands on the chosen spot");
+            return threat;
+        }
+
         RunSessionHost Host => _boot.Host;
 
         static NavMeshQueryFilter ThreatFilter => new NavMeshQueryFilter
@@ -143,12 +169,11 @@ namespace SynapticSea.Tests.PlayMode
         {
             yield return BootGoldenShip();
 
-            // The golden ship's fallback encounter spawns beside the start room and comes for an idle player, so the
-            // threats' own AI drives this: nothing is teleported or forced.
-            ThreatAIState threat = _session.ThreatManager.Threats.FirstOrDefault();
-            Assert.IsNotNull(threat, "the golden ship spawns threats");
+            ThreatAIState threat = InjectThreatBesidePlayer(4f);
             Transform player = Host.SceneState.Player.transform;
             float startDistance = Vector3.Distance(Frame.ToUnity(ThreatPosition(threat)), player.position);
+            float inRange = Mathf.Max((float)threat.AttackRange, 1.5f);
+            Assert.Greater(startDistance, inRange, "the hunt starts outside attack range so the agent must path");
 
             NavMeshAgent agent = null;
             float closest = startDistance;
@@ -160,13 +185,14 @@ namespace SynapticSea.Tests.PlayMode
                     node.TryGetComponent(out agent);
                 if (agent == null) continue;
                 closest = Mathf.Min(closest, Vector3.Distance(agent.transform.position, player.position));
-                if (closest <= Mathf.Max((float)threat.AttackRange, 1.5f)) break;
+                if (closest <= inRange) break;
             }
 
             Assert.IsNotNull(agent, "the threat's placeholder got a NavMeshAgent");
             Assert.AreEqual(ShipNavMesh.AgentTypeId, agent.agentTypeID);
             Assert.IsTrue(agent.isOnNavMesh, "the agent stands on the ship's NavMesh");
-            Assert.LessOrEqual(closest, Mathf.Max((float)threat.AttackRange, 1.5f),
+            Assert.Less(closest, startDistance, "the agent closed the gap from the spawn");
+            Assert.LessOrEqual(closest, inRange,
                 $"the agent walked its threat into range of the player (from {startDistance:0.0} m, state {threat.State})");
             Assert.AreEqual(agent.transform.position.x, Frame.ToUnity(ThreatPosition(threat)).x, 0.5f,
                 "Core stores the position its agent reached");
@@ -194,8 +220,7 @@ namespace SynapticSea.Tests.PlayMode
         {
             yield return BootGoldenShip();
 
-            ThreatAIState threat = _session.ThreatManager.Threats.FirstOrDefault();
-            Assert.IsNotNull(threat);
+            ThreatAIState threat = InjectThreatBesidePlayer(1.2f);
             Vec3 cell = ThreatPosition(threat);
             Vector3 cellUnity = Frame.ToUnity(cell);
             Assert.IsTrue(NavMesh.SamplePosition(cellUnity, out NavMeshHit before, 2f, ThreatFilter));

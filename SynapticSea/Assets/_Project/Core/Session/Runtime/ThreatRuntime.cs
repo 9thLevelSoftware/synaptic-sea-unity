@@ -127,11 +127,11 @@ namespace SynapticSea.Core.Session
         public bool PlayerCrouching => PlayerCrouchingValue;
         public string PlayerRoomId => PlayerRoomIdValue;
 
-        public void ConfigureForLayout(GdDict layout, GdArray markers, Vec3 anchor)
+        public void ConfigureForLayout(GdDict layout, GdArray markers, Vec3 anchor, bool inventFallback = true)
         {
             FallbackAnchor = anchor;
             EncounterMarkers = (markers ?? new GdArray()).DeepCopy();
-            if (EncounterMarkers.IsEmpty)
+            if (EncounterMarkers.IsEmpty && inventFallback)
                 EncounterMarkers = FallbackMarkersFromLayout(layout);
             ConfigureNavGraph(layout);
             ConfigureSpatialPerception(layout);

@@ -189,6 +189,10 @@ namespace SynapticSea.Core.Session
                 TriggerTutorial("vitals_warning", "oxygen_low");
         }
 
+        /// <summary>True while FP-13 home-hub passive safety applies. False when away or when the knob is 0 (Godot).</summary>
+        internal bool HomeSpawnSafetyActive =>
+            !AwayFromStart && Deps.HomeSpawnSafety > 0.0;
+
         /// <summary>
         /// Unity port (decision 56): how fouled the home ship's air is, 0 (breathable) to 1 (the maximum atmosphere health
         /// drain). 0 when away or when the suit reserve is disabled.

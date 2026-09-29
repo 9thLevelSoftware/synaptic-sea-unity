@@ -355,6 +355,12 @@ namespace SynapticSea.Core.Session
                     continue;
                 closed.Add(GdString.Less(a, b) ? a + "|" + b : b + "|" + a);
             }
+            if (HomeSpawnSafetyActive)
+            {
+                // Same clock as SeedFiresFromDamage: do not ignite/re-ignite from unrepaired damage or arcs.
+                damaged.Clear();
+                arcArcing = false;
+            }
             return new GdDict
             {
                 { "powered_ratio", powered },
@@ -369,7 +375,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Seeds home fires in damaged, unbreached compartments on a genuine fresh build (never on restore).</summary>
         void SeedFiresFromDamage()
         {
-            if (AwayFromStart)
+            if (AwayFromStart || HomeSpawnSafetyActive)
                 return;
             if (FireSuppressionState == null)
                 return;
@@ -389,7 +395,7 @@ namespace SynapticSea.Core.Session
         }
 
         /// <summary>M7-B Task 8: intensity of the fire the player stands in (within 2.0 of a fire-zone node), else 0.</summary>
-        double PlayerFireIntensity()
+        internal double PlayerFireIntensity()
         {
             if (!HasPlayer || ActiveFireState() == null)
                 return 0.0;

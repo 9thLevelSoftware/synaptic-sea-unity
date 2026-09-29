@@ -52,6 +52,10 @@ Save/load may only show the already-pinned ≤22 allowed save-rebuild divergence
 - Title New Run with a non-slice seed, biome, or difficulty (example: seed 99, `dead_fleet`, `hardened`) must **not** silently load `seed_000017` or the wrong hub. Expect a readable `non_slice_launch` reason and a return to Title.
 - `BlockedRoute_*` markers keep Godot `96ecb2b0` parity for this slice (stay collidable after powered gates open if that is what Godot does).
 
+### 8. Idle hub is passively safe
+
+Stand in the start room on `coherent_ship_001` after Title New Run. You must not die from unengaged hunters, ship-wide radiation, hunger, or unattended fire while only present. Automation covers 30 simulated minutes with game session deps (`HomeSpawnSafetyTests`). Do not retune survival JSON.
+
 ## Godot `96ecb2b0` note
 
 At commit `96ecb2b0`, `FirstRunContract.pick_seed` falls back to preferred[0] and `_apply_first_run_contract_to_marker` always mutates the marker via `ShipLayoutGenerator`. Live Godot after that commit, and the locked Systems Designer decision, deny travel when no candidate passes and evaluate through production `ShipGenerator`. Unity keeps `PickSeed` fallback for 96ecb2b0 parity tests and uses the deny / ShipGenerator gate on the live `travel_to` path.

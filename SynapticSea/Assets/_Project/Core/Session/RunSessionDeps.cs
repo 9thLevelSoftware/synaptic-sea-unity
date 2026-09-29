@@ -134,6 +134,22 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public double HomeSuitAirReserveSeconds = 150.0;
 
+        /// <summary>
+        /// Unity port (FP-13 / decision 65): when &gt; 0, the home hub's default idle state does not
+        /// incapacitate a player who is only present. Unengaged fallback hunters are not invented
+        /// from empty encounter markers; a fallback oxygen zone is not a ship-wide radiation or
+        /// unsafe-sanity field; ambient hunger and thirst freeze; unattended fire is not seeded
+        /// from damage and home web does not raise hull breaches.
+        /// Player-entered fire volume (<see cref="RunSession.PlayerFireIntensity"/> &gt; 0), authored
+        /// radiation volume, and threats the player engages may still harm.
+        /// Applied only when the player is not away (suit-reserve shape). 0.0 is Godot's behaviour.
+        /// SessionHarness.GoldenDeps must set this to 0.0.
+        /// Title New Run uses <c>new RunSessionDeps()</c>, so the live spawn is the golden hub.
+        /// Generated <c>BuildHomeStart</c> homes are viability/test-only; they inherit this default
+        /// unless a test zeros it.
+        /// </summary>
+        public double HomeSpawnSafety = 1.0;
+
         /// <summary>An externally injected AchievementState (the build script path); null = the session builds its own.</summary>
         public AchievementState AchievementState;
 
