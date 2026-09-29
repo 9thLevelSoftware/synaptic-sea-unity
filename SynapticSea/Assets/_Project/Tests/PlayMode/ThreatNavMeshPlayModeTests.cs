@@ -74,9 +74,8 @@ namespace SynapticSea.Tests.PlayMode
         /// <summary>
         /// Spawns one validation stalker on a line-of-sight-clear horizontal offset from the player.
         /// <see cref="ThreatRuntime.InjectValidationEncounter"/> places index 0 on a +4 m x ring around the anchor,
-        /// so the anchor is <c>spot - (4, 0, 0)</c>. Live game deps no longer invent the golden hub's fallback pack
-        /// (decision 65). Distance is the placement radius, not a hunt guarantee: 1.2 m is a fire-cell / combat
-        /// spawn; a hunt must pass a larger radius so the agent has a gap to close.
+        /// so the anchor is <c>spot - (4, 0, 0)</c>. Distance is the placement radius, not a hunt guarantee: 1.2 m
+        /// is a fire-cell spawn; a hunt must pass a larger radius so the agent has a gap to close.
         /// </summary>
         ThreatAIState InjectThreatBesidePlayer(float distance = 1.2f, string archetype = "stalker")
         {
