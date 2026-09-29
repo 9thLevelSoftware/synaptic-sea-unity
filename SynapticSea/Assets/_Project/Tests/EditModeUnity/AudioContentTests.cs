@@ -71,8 +71,22 @@ namespace SynapticSea.Tests.Unity
             string report = $"[AudioContent] {silent.Count} emittable audio ids still have no clip: {string.Join(", ", silent)}";
             Debug.Log(report);
             TestContext.WriteLine(report);
-            // Informational: the list is expected to shrink as audio is authored, never to gain mapped ids back.
-            Assert.IsFalse(silent.Contains(AudioEventSeam.SFX_WORK_WELD));
+            // SC-5 / decision 25: lock the exact 12 silent ids. Shrink the expected set when a clip is authored; fail if it grows or a mapped id (e.g. weld) goes silent.
+            CollectionAssert.AreEquivalent(new[]
+            {
+                AudioEventSeam.META_BEACON_DISTRESS,
+                AudioEventSeam.SFX_HALLUCINATION_WHISPER,
+                AudioEventSeam.SFX_SANITY_AMBIENT,
+                AudioEventSeam.SFX_SANITY_HUD,
+                AudioEventSeam.SFX_SANITY_PHANTOM,
+                AudioEventSeam.UI_CHART_ROUTE,
+                AudioEventSeam.UI_LOAD,
+                AudioEventSeam.UI_SAVE,
+                AudioEventSeam.UI_OBJECTIVE_ADVANCE,
+                AudioEventSeam.UI_WORK_PROGRESS,
+                AudioEventSeam.VOICE_LOG_PLAY,
+                AudioEventSeam.MUSIC_LAYER_COMBAT_PERCUSSION,
+            }, silent);
         }
 
         [Test]
