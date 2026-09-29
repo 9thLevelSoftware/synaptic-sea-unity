@@ -17,7 +17,7 @@ on:
     branches: [main]
 
 concurrency:
-  group: unity-tests-${{ github.ref }}
+  group: unity-tests-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
