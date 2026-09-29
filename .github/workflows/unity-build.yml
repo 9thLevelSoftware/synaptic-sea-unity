@@ -1,7 +1,7 @@
 # Player builds through Builder.PerformBuild (plan Phase 12, optional CI).
 #
-# Manual trigger only until the repository has the Unity license secrets:
-#   UNITY_LICENSE, UNITY_EMAIL, UNITY_PASSWORD   (see unity-tests.yml)
+# This file stays `workflow_dispatch` even after UNITY_LICENSE / UNITY_EMAIL /
+# UNITY_PASSWORD exist. Do not add `push` or `pull_request`.
 # Builder.PerformBuild validates StreamingAssets data, stamps the version and build kind, sets SS_BUILD_<KIND>,
 # and builds with Mono. IL2CPP release builds need the IL2CPP toolchain, which the game-ci images for these
 # targets do not carry, so the Builder falls back to Mono with a warning.
