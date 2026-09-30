@@ -59,7 +59,7 @@ View the actual local interactive review, with bones/mannequin/assembled modes
 and all clips, by serving:
 
 ```powershell
-F:\Tools\Python312\python.exe -m http.server 8765 --directory D:\critter-creator\work\review\foundation-v3
+F:\Tools\Python312\python.exe -m http.server 8765 --bind 127.0.0.1 --directory F:\tmp\critter-owner-review-current
 ```
 
 Open `http://127.0.0.1:8765/?skeleton=crawler_alien_tripod_balanced_v3`.
@@ -95,3 +95,15 @@ multipliers, published creature speed and synthetic skinned-mesh assembly.
 Final suite/build counts are recorded in `playability-audit.md` after the runs.
 Broader colony resource/defense work is proposed separately in
 `colony-defense-proposal.md`; it is not implemented in this adapter slice.
+
+## Current owner-review readiness (2026-09-30)
+
+The old receipt failed the normal gate with `CC_REVIEW_STALE`. The established
+`skeleton review crawler_alien_tripod_balanced_v3 --out F:\tmp\critter-owner-review-current`
+command regenerated the review: **8 clips passed, 0 diagnostics**. The normal
+approval gate then verified the new receipt against the current content fingerprint
+`592aea7536a285aea8982d8063a41d95e39641ffaeeed2af58a11d5f2d36dad1`.
+The review contains 17 outputs, bones/mannequin/assembled modes and four camera
+views. Receipt freshness is verified; owner visual approval remains pending.
+No skeleton or part status was changed. The older Unity frame above is illustrative;
+use the refreshed interactive bundle for the current approval decision.
