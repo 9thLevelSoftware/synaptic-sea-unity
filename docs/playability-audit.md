@@ -85,3 +85,37 @@ Intermediate failures uncovered real overlapping collision, missing home-door pe
 Companion revision `01230d84c895c13fdb744df98d5b39724c35ba44` exposes `ICreatureVisualFactory`, seeded pool generation and saved-recipe reconstruction. The next adapter should use production validation (`allowReview=false`), persist each organic threat's recipe, preserve gameplay collider/navigation authority and fall back safely when no approved skeleton/pool is available. Keep `drone_swarm` mechanical. No draft asset is approved or production generation enabled by this continuation; the game still uses its existing primitive threat factory. Package installation, adapter implementation and successful approved-creature rendering remain unfinished.
 
 A subsequent small colony slice can build on the existing `biomatter_tangle` junk item (yielding `biomatter_residue` and `reactive_gel`), work channels, saved per-ship infestation state and deterministic threat spawning. Define explicit colony biomass sources, a persistent reserve and bounded defense spending/alert thresholds before adding gameplay. Preserve the Milestone A progression guards. This would be scripted resource/defense behavior; force/mass/energy-constrained adaptation and learning remain separate unimplemented systems. The ownership and depletion of colony biomass sources need to be settled in the mechanic design before that larger change.
+
+## Third slice: live Critter production adapter
+
+The live threat view now uses the companion's production validation and saved-
+recipe factory interface for `biomatter_swarm`, `puppet_corpse` and `stalker`.
+Mechanical `drone_swarm`, hallucinations and unmapped archetypes keep game visuals.
+Optional threat summaries persist exact recipe JSON and a deterministic decimal-
+string seed, with pool and library identity. Invalid, missing, unapproved or
+unavailable recipes keep playable placeholders without load-time rerolls.
+Game collision/navigation and direct `Mesh` feedback remain authoritative; visual
+root motion and imported colliders do not move or block threats. Successful
+creatures use the published per-build base speed and existing AI multipliers.
+
+The embedded companion package is pinned to `01230d84c895c13fdb744df98d5b39724c35ba44`.
+No owner asset approvals or real art imports were performed. A synthetic approved
+skinned-mesh fixture verifies successful assembly and restoration. Actual local
+draft reviews were found in `D:\critter-creator`; the minimum candidate review
+and precise runtime setup are in [critter-runtime-integration.md](critter-runtime-integration.md).
+
+Final adapter checks: Core **710 passed, 0 failed**; Unity Edit Mode **952 passed,
+0 failed, 17 skipped** out of 969; GPU Play Mode **50 passed, 0 failed**. Nine
+adapter regressions pass within the Edit Mode aggregate. The 17 skips are upstream
+tests requiring a built owner library/export fixtures at the companion test paths:
+15 LibraryTests and 2 PrototypeImportTests. They are not production rendering passes.
+Evidence: `builds/logs/critter-core.trx`, `critter-editmode.xml`, `critter-playmode.xml`.
+Windows development Mono rebuild passed: **487.6 MB, 0 errors**, build version
+0.1.0 (`builds/logs/critter-build.log`). Production-owner rendering remains gated
+by approval, independently of the successful build and synthetic fixture.
+The rebuilt standalone reached the title menu successfully in a hidden headless
+boot smoke check (`builds/logs/critter-player-smoke.log`); this is not a manual
+standalone expedition or owner-creature rendering verification.
+
+The next proposed finite-harvest/biomass-reserve/alert-defense slice is specified in
+[colony-defense-proposal.md](colony-defense-proposal.md). It has not been implemented.

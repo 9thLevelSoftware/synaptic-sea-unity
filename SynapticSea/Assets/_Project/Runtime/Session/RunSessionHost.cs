@@ -34,6 +34,7 @@ namespace SynapticSea.Runtime.Session
     public sealed class RunSessionHost : MonoBehaviour
     {
         public RunSession Session { get; private set; }
+        [SerializeField] CritterCrafter.CritterLibrary creatureLibrary;
         public UnityShipSceneHost ShipHost { get; private set; }
         public UnityRunSceneState SceneState { get; private set; }
         public AudioManager Audio { get; private set; }
@@ -105,6 +106,8 @@ namespace SynapticSea.Runtime.Session
             _zoneRoot = MakeChild("ZoneRoot");
             _threatRoot = MakeChild("ThreatRoot");
             Threats = new ThreatPlaceholderView(_threatRoot);
+            Threats.CreatureFactory = new ThreatCreatureFactory(creatureLibrary != null ? creatureLibrary :
+                Resources.Load<CritterCrafter.CritterLibrary>("CritterProductionLibrary"));
             Threats.PlayerPosition = () => SceneState?.Player != null ? SceneState.Player.transform.position : (Vector3?)null;
             Threats.PlayerHit += (damage, id, archetype, at) => PlayerDamaged?.Invoke(damage, archetype, at);
             Hallucinations = new HallucinationView(_threatRoot);

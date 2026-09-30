@@ -1,0 +1,462 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using CritterCrafter.Editor;
+using CritterCrafter.Review;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace CritterCrafter.Tests
+{
+    /// <summary>
+    /// Integration tests against a built library: CRITTER_LIBRARY_DIR, or the newest
+    /// &lt;repo&gt;/library/*/catalog.json next to the TestProject. Ignored when no library is built.
+    /// </summary>
+    public class LibraryTests
+    {
+        LibraryImporter.Report _report;
+        CritterLibrary _approvedLibrary;
+        CritterLibrary Lib => _approvedLibrary;
+        CritterLibrary RawLib => _report.Library;
+        readonly List<GameObject> _spawned = new List<GameObject>();
+
+        static string FindLibraryDir()
+        {
+            var env = System.Environment.GetEnvironmentVariable("CRITTER_LIBRARY_DIR");
+            if (!string.IsNullOrEmpty(env) && File.Exists(Path.Combine(env, "catalog.json"))) return env;
+            var root = Path.GetFullPath("../../library");
+            if (!Directory.Exists(root)) return null;
+            return Directory.GetDirectories(root).Where(d => File.Exists(Path.Combine(d, "catalog.json")))
+                .OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault();
+        }
+
+        [OneTimeSetUp]
+        public void ImportLibrary()
+        {
+            var dir = FindLibraryDir();
+            if (dir == null) Assert.Ignore("no built critter library (run `critter library build`)");
+            _report = LibraryImporter.Import(dir);
+            _approvedLibrary = RawLib.EditorCreateApprovedSkeletonClone();
+        }
+
+        [OneTimeTearDown]
+        public void CleanupLibrary() { if (_approvedLibrary != null) Object.DestroyImmediate(_approvedLibrary); }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            foreach (var go in _spawned) if (go != null) Object.DestroyImmediate(go);
+            _spawned.Clear();
+        }
+
+        /// <summary>Sliding-body skeleton whose phase-driven overlay animates the body (undulation).</summary>
+        const string BakedTravelSkeleton = "serpentine_limbless_articulated_balanced_v3";
+        const string RuntimeLegSkeleton = "hexapod_compact_insect_balanced_v3";
+
+        AssembledCreature SpawnSkeleton(string skeletonId)
+        {
+            var skeleton = Lib.Catalog.FindSkeleton(skeletonId);
+            Assert.IsNotNull(skeleton, skeletonId);
+            var c = CreatureAssembler.Assemble(Lib, LocomotionCapture.ReferenceRecipe(Lib.Catalog, skeleton), AssemblyOptions.Review);
+            _spawned.Add(c.gameObject);
+            return c;
+        }
+
+        AssembledCreature Spawn(string pool, long seed)
+        {
+            var c = CreatureAssembler.Assemble(Lib, Lib.Generate(pool, seed), AssemblyOptions.Default);
+            _spawned.Add(c.gameObject);
+            return c;
+        }
+
+        [Test]
+        public void ImportReportsNoProblems() =>
+            Assert.That(_report.Problems, Is.Empty, string.Join("\n", _report.Problems));
+
+        [Test]
+        public void AllSkeletonBindAndMotionImportsReportNoProblems()
+        {
+            var skeletonProblems = _report.Problems.Where(p => !p.StartsWith("part without asset:")).ToArray();
+            Assert.That(skeletonProblems, Is.Empty, string.Join("\n", skeletonProblems));
+        }
+
+        [Test]
+        public void DraftCandidateLibraryIsRejectedByRuntimeDefault() =>
+            Assert.Throws<GenerationException>(() => RawLib.Generate("any", 1));
+
+        [Test]
+        public void FrameProbeSnapsCoincideWithBranchRootBones()
+        {
+            foreach (var s in Lib.Catalog.skeletons)
+            {
+                float err = FrameProbe.MaxSnapError(Lib.FindSkeleton(s.skeleton_id).model, s, out var worst);
+                Assert.Less(err, FrameProbe.Tolerance, $"{s.skeleton_id}: worst branch {worst}");
+            }
+        }
+
+        [Test]
+        public void EveryPoolAssemblesHundredSeedsWithinBudget()
+        {
+            foreach (var pool in Lib.Catalog.pools)
+                for (long seed = 1; seed <= 100; seed++)
+                {
+                    var c = Spawn(pool.pool_id, seed);
+                    Assert.IsFalse(c.IsFallback, $"{pool.pool_id}/{seed}: {string.Join(";", c.Diagnostics)}");
+                    Assert.LessOrEqual(c.Triangles, Lib.Catalog.limits.max_triangles);
+                    Object.DestroyImmediate(c.gameObject);
+                }
+        }
+
+        [Test]
+        public void BindPosePlacesEveryMeshOnItsSnapFrame()
+        {
+            foreach (var pool in new[] { "biped", "quadruped", "crawler" })
+            {
+                var c = Spawn(pool, 5);
+                c.ApplyBindPose();
+                foreach (var pr in c.Renderers)
+                {
+                    var branch = c.Skeleton.FindBranch(pr.branchId);
+                    var part = Lib.Catalog.FindPart(pr.partId);
+                    var entry = Lib.FindPart(pr.partId);
+                    var src = entry.model.GetComponentInChildren<SkinnedMeshRenderer>(true);
+                    float lengthScale = pr.connector ? 1f : (float)(branch.length_m / part.length_m);
+                    var meshToPart = CreatureAssembler.MeshToPart(entry.model, src);
+                    var expected = pr.renderer.transform.worldToLocalMatrix * c.transform.localToWorldMatrix
+                                   * CritterFrame.Snap(branch.snap, lengthScale) * meshToPart;
+                    var baked = new Mesh();
+                    pr.renderer.BakeMesh(baked, true);
+                    var srcVerts = src.sharedMesh.vertices;
+                    var got = baked.vertices;
+                    float max = 0f;
+                    for (int i = 0; i < srcVerts.Length; i += 7)
+                        max = Mathf.Max(max, Vector3.Distance(got[i], expected.MultiplyPoint3x4(srcVerts[i])));
+                    Assert.Less(max, 1e-3f, $"{pool}: {pr.branchId}/{pr.partId}");
+                    Object.DestroyImmediate(baked);
+                }
+            }
+        }
+
+        [Test]
+        public void ConnectorBendsWithTheChildBranch()
+        {
+            var c = Spawn("biped", 11);
+            var maybe = c.Renderers.FirstOrDefault(r => r.connector && r.branchId.StartsWith("leg"));
+            if (maybe.renderer == null) Assert.Ignore("catalog has no legacy skinned leg connector");
+            var pr = maybe;
+            var before = new Mesh();
+            pr.renderer.BakeMesh(before, true);
+            var childRoot = pr.renderer.bones.Last();  // connector b1 -> branch root bone
+            childRoot.localRotation *= Quaternion.Euler(35f, 0f, 0f);
+            var after = new Mesh();
+            pr.renderer.BakeMesh(after, true);
+            var a = before.vertices;
+            var b = after.vertices;
+            float moved = 0f, still = float.MaxValue;
+            for (int i = 0; i < a.Length; i++)
+            {
+                float d = Vector3.Distance(a[i], b[i]);
+                moved = Mathf.Max(moved, d);
+                still = Mathf.Min(still, d);
+            }
+            Assert.Greater(moved, 0.02f, "child side of the connector must follow the branch");
+            Assert.Less(still, 1e-3f, "parent side of the connector must stay put");
+        }
+
+        [Test]
+        public void ClipsHaveNoHorizontalRootMotion()
+        {
+            foreach (var s in Lib.Catalog.skeletons)
+            {
+                var entry = Lib.FindSkeleton(s.skeleton_id);
+                var go = (GameObject)Object.Instantiate(entry.model);
+                _spawned.Add(go);
+                var root = go.GetComponentsInChildren<Transform>().First(t => t.name == "root");
+                var rootStart = root.position;
+                foreach (var clip in AnimatorBuilder.LoadClips(AssetDatabase.GetAssetPath(entry.model)).Values)
+                {
+                    for (float t = 0f; t <= 10f; t += 0.1f)
+                    {
+                        clip.SampleAnimation(go, clip.isLooping ? t % clip.length : Mathf.Min(t, clip.length));
+                        Assert.AreEqual(Vector3.zero, go.transform.position, $"{s.skeleton_id}/{clip.name} moved the model root");
+                        Assert.Less(Mathf.Abs(root.position.x - rootStart.x) + Mathf.Abs(root.position.z - rootStart.z), 1e-4f,
+                            $"{s.skeleton_id}/{clip.name} moves the root bone horizontally at t={t}");
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void AnimatorDrivesBonesFromController()
+        {
+            var c = SpawnSkeleton(BakedTravelSkeleton);
+            Assert.IsNotNull(c.Animator.runtimeAnimatorController);
+            Assert.IsFalse(c.Skeleton.locomotion != null && c.Skeleton.locomotion.HasLegs);
+            var locomotor = c.Skeleton.branches.First(b => b.gait_role == "locomotor");
+            var leg = c.Animator.GetComponentsInChildren<Transform>().First(t => t.name == locomotor.bone_names[3]);
+            var rest = leg.localRotation;
+            c.Animator.SetFloat(CreatureMotion.SpeedParam, AnimatorBuilder.WalkSpeed);
+            c.Animator.SetFloat(CreatureMotion.PlaybackRateParam, 1f);
+            for (int i = 0; i < 5; i++) c.Animator.Update(0.05f);
+            Assert.Greater(Quaternion.Angle(rest, leg.localRotation), 1f, "walk clip should swing the leg");
+        }
+
+        static readonly string[] OnePerFamily =
+        {
+            "hexapod_compact_insect_balanced_v3", "quadruped_stocky_plantigrade_balanced_v3",
+            "quadruped_lean_digitigrade_balanced_v3", "biped_plantigrade_humanoid_balanced_v3",
+            "crawler_bilateral_eight_legged_balanced_v3", "crawler_alien_tripod_balanced_v3",
+            "radial_raised_articulated_walker_balanced_v3", "serpentine_segmented_paired_legs_balanced_v3",
+            "dragger_forelimb_puller_balanced_v3", "dragger_arm_leg_crawler_balanced_v3",
+        };
+
+        [UnityTest]
+        public IEnumerator RuntimeLegsPlantFeetAtGameSpeed()
+        {
+            // Real Play Mode (Animator + Animation Rigging + skinning exactly as in the game): drive one
+            // skeleton per family like an agent at 2.5 m/s (or 90% of its published v_max if slower) over a
+            // ground collider for 3 s. Planted feet must stay put, IK must reach and support must hold. The
+            // first second (standing to full speed in one frame, first stride) is excluded from slip.
+            EditorSettings.enterPlayModeOptionsEnabled = true;
+            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
+            yield return new EnterPlayMode();
+            Time.captureFramerate = 30;
+            var results = new List<(string id, LocomotionData block, LocomotionMetrics metrics, bool gait, bool loco)>();
+            foreach (var id in OnePerFamily)
+            {
+                var holder = new GameObject("LocomotionTest");
+                var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                ground.transform.SetParent(holder.transform, false);
+                ground.transform.localScale = Vector3.one * 10f;
+                Physics.SyncTransforms();
+                var c = LocomotionCapture.Spawn(Lib, id, holder.transform, out var restore);
+                var gait = c.GetComponent<CritterCrafter.Locomotion.CreatureGait>();
+                var block = c.GaitBlock;
+                LocomotionMetrics metrics = null;
+                bool sawLocomotionState = false;
+                if (gait != null)
+                {
+                    // Grounded (dragging) bodies move at their own run speed: a hand or foot hauls the torso in
+                    // hauls that are only a few frames long once the creature runs near its v_max, which is
+                    // faster than the game moves it. The turn sweep below covers them at 2.5 m/s.
+                    float speed = block.body_on_ground
+                        ? Mathf.Min(2.5f, (float)block.v_run_mps)
+                        : Mathf.Min(2.5f, 0.9f * (float)block.v_max_mps);
+                    var recorder = holder.AddComponent<LocomotionRecorder>();
+                    recorder.Begin(gait, ReviewCourse.Straight(speed, 3f), new LocomotionMetrics { skeleton_id = id, speed_mps = speed, warmup_frames = 30 });
+                    while (!recorder.Done)
+                    {
+                        yield return null;
+                        sawLocomotionState |= c.Animator.GetCurrentAnimatorStateInfo(0).IsName("Locomotion");
+                    }
+                    metrics = recorder.Metrics;
+                }
+                results.Add((id, block, metrics, gait != null, sawLocomotionState));
+                Object.Destroy(holder);
+                restore();
+                yield return null;
+            }
+            Time.captureFramerate = 0;
+            yield return new ExitPlayMode();
+
+            foreach (var (id, block, metrics, hasGait, loco) in results)
+            {
+                Assert.IsTrue(hasGait, id + ": runtime-leg skeletons get a CreatureGait");
+                Assert.Less(metrics.max_ik_residual_m, 0.01f, id + ": IK residual");
+                // Dragging at game speed shows up as ~8 cm/frame; allow brief settling (under 2.5 cm in one
+                // frame) when short, fast legs re-step at the edge of their reach.
+                Assert.Less(metrics.max_planted_slip_m, 0.025f, id + ": planted feet slide in the world");
+                if (block.min_support > 0)
+                    Assert.GreaterOrEqual(metrics.min_planted_supports, block.min_support, id + ": support");
+                Assert.LessOrEqual(metrics.cadence_hz, block.cadence_max_hz + 1e-4, id + ": cadence");
+                Assert.IsFalse(metrics.overspeed, id + ": overspeed");
+                Assert.IsTrue(loco, id + ": moving plays the overlay");
+                if (block.body_on_ground)
+                {
+                    // Draggers: the hands haul the torso, so it rests while a hand grips and lunges through
+                    // the pull, instead of gliding at the root's speed.
+                    Assert.Less(metrics.body_speed_min_mps, 0.15f * metrics.body_speed_mean_mps, id + ": torso rests between hauls");
+                    Assert.Greater(metrics.body_speed_max_mps, 1.8f * metrics.body_speed_mean_mps, id + ": torso lunges through the pull");
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CreaturesRunAtTheirOwnRunSpeed()
+        {
+            // The gait follows the per-creature block (CreatureLocomotion), and running at that creature's own
+            // v_run (its published move_speed_mps) never overspeeds the step rate or slides planted feet.
+            EditorSettings.enterPlayModeOptionsEnabled = true;
+            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
+            yield return new EnterPlayMode();
+            Time.captureFramerate = 30;
+            var failures = new List<string>();
+            foreach (var id in OnePerFamily)
+            {
+                var holder = new GameObject("OwnSpeedTest");
+                var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                ground.transform.SetParent(holder.transform, false);
+                ground.transform.localScale = Vector3.one * 10f;
+                Physics.SyncTransforms();
+                var c = LocomotionCapture.Spawn(Lib, id, holder.transform, out var restore);
+                var gait = c.GetComponent<CritterCrafter.Locomotion.CreatureGait>();
+                var expected = CreatureLocomotion.Build(Lib.Catalog, c.Recipe);
+                if (gait == null) failures.Add(id + ": no CreatureGait");
+                else
+                {
+                    if (!ReferenceEquals(gait.Block, c.Locomotion)) failures.Add(id + ": gait does not follow the creature's block");
+                    if (System.Math.Abs(gait.Block.v_run_mps - expected.v_run_mps) > 1e-9) failures.Add(id + ": block differs from CreatureLocomotion.Build");
+                    float speed = (float)c.Locomotion.move_speed_mps;
+                    var recorder = holder.AddComponent<LocomotionRecorder>();
+                    recorder.Begin(gait, ReviewCourse.Straight(speed, 3f), new LocomotionMetrics { skeleton_id = id, speed_mps = speed, warmup_frames = 30 });
+                    while (!recorder.Done) yield return null;
+                    var m = recorder.Metrics;
+                    if (m.overspeed) failures.Add($"{id} @ {speed:F2} m/s: overspeed");
+                    if (m.max_planted_slip_m >= 0.025f) failures.Add($"{id} @ {speed:F2} m/s: planted slip {m.max_planted_slip_m:F3} m");
+                }
+                Object.Destroy(holder);
+                restore();
+                yield return null;
+            }
+            Time.captureFramerate = 0;
+            yield return new ExitPlayMode();
+            Assert.IsEmpty(failures, string.Join("\n", failures));
+        }
+
+        static readonly string[] DraggersForTurns =
+        {
+            "dragger_forelimb_puller_balanced_v3", "dragger_belly_hauler_balanced_v3",
+            "dragger_arm_leg_crawler_balanced_v3",
+        };
+
+        [UnityTest]
+        public IEnumerator DraggerHandsHoldThroughInstantTurns()
+        {
+            // An agent turns instantly, so the torso (which follows at a limited turn rate and lunges with
+            // each haul) can leave a gripping hand out of reach. The hand must re-grip by stepping, not
+            // slide. Whether it slides depends on where in the haul the turn lands, so sweep four phases of
+            // a haul, at walk, run and 2.5 m/s, for a 90 degree turn.
+            // The reach clamp is only seen after the body has moved, so a hand can be dragged for the one
+            // frame before it re-steps (a few centimetres at 2 m/s). The bug this pins slid 4-20 cm over
+            // several frames because the re-step was refused, so 3 cm separates the two.
+            const float OneFrameDrag = 0.03f;
+            EditorSettings.enterPlayModeOptionsEnabled = true;
+            EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload | EnterPlayModeOptions.DisableSceneReload;
+            yield return new EnterPlayMode();
+            Time.captureFramerate = 30;
+            var failures = new List<string>();
+            foreach (var id in DraggersForTurns)
+            {
+                var holder = new GameObject("DraggerTurnTest");
+                var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                ground.transform.SetParent(holder.transform, false);
+                ground.transform.localScale = Vector3.one * 10f;
+                Physics.SyncTransforms();
+                var c = LocomotionCapture.Spawn(Lib, id, holder.transform, out var restore);
+                var gait = c.GetComponent<CritterCrafter.Locomotion.CreatureGait>();
+                var block = c.GaitBlock;
+                Assert.IsNotNull(gait, id + ": a CreatureGait");
+                var speeds = new[] { (float)block.v_walk_mps, (float)block.v_run_mps, Mathf.Min(2.5f, 0.9f * (float)block.v_max_mps) };
+                foreach (float speed in speeds)
+                {
+                    // One haul per arm: half a gait cycle.
+                    float haul = 0.5f / (float)CritterCrafter.Locomotion.StepPlanner.Params(block, speed).cadenceHz;
+                    for (int k = 0; k < 4; k++)
+                    {
+                        float before = 1.2f + k * haul / 4f;
+                        var recorder = holder.AddComponent<LocomotionRecorder>();
+                        recorder.Begin(gait, ReviewCourse.TurnAt(speed, before, 90f),
+                            new LocomotionMetrics { skeleton_id = id, speed_mps = speed, warmup_frames = 30 });
+                        while (!recorder.Done) yield return null;
+                        var m = recorder.Metrics;
+                        Object.Destroy(recorder);
+                        yield return null;
+                        string label = $"{id} @ {speed:F2} m/s, turn at {before:F2} s";
+                        string detail = $"slip {m.max_planted_slip_m:F3} m ({m.max_slip_leg} frame {m.max_slip_frame}), " +
+                            $"rewrite {m.max_plant_rewrite_m:F3} m, clamped {m.clamped_planted_frames} frames, " +
+                            $"lift blocked {m.lift_blocked_frames} frames, IK residual {m.max_ik_residual_m:F3} m";
+                        if (m.max_planted_slip_m >= OneFrameDrag || m.max_plant_rewrite_m >= OneFrameDrag
+                            || m.max_ik_residual_m >= 0.01f || m.lift_blocked_frames > 0)
+                            failures.Add(label + ": " + detail);
+                    }
+                }
+                Object.Destroy(holder);
+                restore();
+                yield return null;
+            }
+            Time.captureFramerate = 0;
+            yield return new ExitPlayMode();
+            Assert.IsEmpty(failures, "dragger hands slid or missed their targets after an instant turn:\n" + string.Join("\n", failures));
+        }
+
+        [Test]
+        public void GaitPhaseDrivesTheLocomotionOverlayClock()
+        {
+            // Phase-driven skeletons: CreatureGait's GaitPhase (Motion Time) poses the Locomotion overlay, so
+            // the baked undulation/upper body stays locked to the runtime clock regardless of elapsed time.
+            // (AnimatorStateInfo.normalizedTime keeps reporting the state's own clock; the pose is what counts.)
+            var c = SpawnSkeleton(BakedTravelSkeleton);
+            var animator = c.Animator;
+            var bone = animator.GetComponentsInChildren<Transform>().First(t => t.name == "body_b4");
+            animator.SetFloat(CreatureMotion.SpeedParam, 2.5f);
+            animator.SetFloat("Gait", 0f);
+            animator.Play("Locomotion", 0, 0f);
+            animator.Update(0f);
+            Quaternion Pose(float phase, float dt)
+            {
+                animator.SetFloat("GaitPhase", phase);
+                animator.Update(dt);
+                Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Locomotion"));
+                return bone.localRotation;
+            }
+            var first = Pose(0.2f, 0.1f);
+            var other = Pose(0.65f, 0.37f);
+            var again = Pose(0.2f, 0.23f);
+            Assert.Less(Quaternion.Angle(first, again), 0.01f, "same phase, same pose");
+            Assert.Greater(Quaternion.Angle(first, other), 0.5f, "different phase, different pose");
+        }
+
+        [Test]
+        public void EveryPartAndConnectorKeepsOneRendererAndAtMostTwoMaterials()
+        {
+            var c = Spawn("any", 7);
+            foreach (var part in c.Renderers)
+            {
+                Assert.IsNotNull(part.renderer);
+                Assert.LessOrEqual(part.renderer.sharedMesh.subMeshCount, 2, part.partId);
+                Assert.AreEqual(part.renderer.sharedMesh.subMeshCount, part.renderer.sharedMaterials.Length, part.partId);
+            }
+            Assert.AreEqual(c.Renderers.Count, c.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                .Count(r => r.name != SkeletonRest.ProxyName));
+        }
+
+        [Test]
+        public void CollisionUsesNeutralPoseAndAnimationBoundsCoverBindAndNeutral()
+        {
+            var c = Spawn("biped", 5);
+            var capsule = c.GetComponent<CapsuleCollider>();
+            Assert.IsNotNull(capsule);
+            Assert.That(Vector3.Distance(capsule.center, c.NeutralBoundsLocal.center), Is.LessThan(1e-5f));
+            Assert.That(capsule.radius, Is.EqualTo(Mathf.Max(0.1f,
+                0.5f * Mathf.Max(c.NeutralBoundsLocal.size.x, c.NeutralBoundsLocal.size.z))).Within(1e-5f));
+            Assert.That(capsule.height, Is.EqualTo(Mathf.Max(c.NeutralBoundsLocal.size.y,
+                capsule.radius * 2f)).Within(1e-5f));
+            AssertBoundsContains(c.AnimationBoundsLocal, c.BindBoundsLocal);
+            AssertBoundsContains(c.AnimationBoundsLocal, c.NeutralBoundsLocal);
+        }
+
+        static void AssertBoundsContains(Bounds outer, Bounds inner)
+        {
+            const float tolerance = 1e-4f;
+            Assert.GreaterOrEqual(inner.min.x, outer.min.x - tolerance);
+            Assert.GreaterOrEqual(inner.min.y, outer.min.y - tolerance);
+            Assert.GreaterOrEqual(inner.min.z, outer.min.z - tolerance);
+            Assert.LessOrEqual(inner.max.x, outer.max.x + tolerance);
+            Assert.LessOrEqual(inner.max.y, outer.max.y + tolerance);
+            Assert.LessOrEqual(inner.max.z, outer.max.z + tolerance);
+        }
+    }
+}

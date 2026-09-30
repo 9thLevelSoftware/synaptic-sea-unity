@@ -1,4 +1,9 @@
 # ---- Unity (project lives in SynapticSea/) ----
+# Local creature art and registration; owner asset approval/publication are separate.
+SynapticSea/Assets/CritterLibraries/
+SynapticSea/Assets/CritterLibraries.meta
+SynapticSea/Assets/Resources/CritterProductionLibrary.asset
+SynapticSea/Assets/Resources/CritterProductionLibrary.asset.meta
 SynapticSea/[Ll]ibrary/
 SynapticSea/[Tt]emp/
 SynapticSea/[Oo]bj/

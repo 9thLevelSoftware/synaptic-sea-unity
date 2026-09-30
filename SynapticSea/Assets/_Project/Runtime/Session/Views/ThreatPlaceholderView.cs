@@ -103,6 +103,7 @@ namespace SynapticSea.Runtime.Session
 
         /// <summary>Unity world position of the player (lunge target); null = lunge forward.</summary>
         public System.Func<Vector3?> PlayerPosition;
+        public ThreatCreatureFactory CreatureFactory;
 
         public ThreatPlaceholderView(Transform root) => _root = root;
 
@@ -169,7 +170,8 @@ namespace SynapticSea.Runtime.Session
         {
             if (threat == null) return;
             OnRemoved(threat.InstanceId);
-            GameObject node = ThreatPlaceholderFactory.Build(threat.ArchetypeId, threat.Tags, _root, PhysicsLayers.Threat);
+            GameObject node = CreatureFactory != null ? CreatureFactory.Build(threat, _root, PhysicsLayers.Threat) :
+                ThreatPlaceholderFactory.Build(threat.ArchetypeId, threat.Tags, _root, PhysicsLayers.Threat);
             node.name = GodotNodeName.Validate("ThreatPlaceholder_" + threat.InstanceId);
             if (threat.WorldPosition.Count >= 3)
                 node.transform.position = Frame.ToUnity(V.F64(threat.WorldPosition[0]), V.F64(threat.WorldPosition[1]), V.F64(threat.WorldPosition[2]));
@@ -183,10 +185,12 @@ namespace SynapticSea.Runtime.Session
             {
                 if (targetKind == ThreatRuntime.ATTACK_TARGET_THREAT)
                 {
+                    node.GetComponent<ThreatCreatureMotion>()?.PlayHit();
                     Animator?.Punch(node);
                 }
                 else
                 {
+                    node.GetComponent<ThreatCreatureMotion>()?.PlayAttack();
                     Vector3 target = node.transform.position + node.transform.forward;
                     if (targetKind == ThreatRuntime.ATTACK_TARGET_PLAYER && PlayerPosition != null && PlayerPosition() is Vector3 p) target = p;
                     Animator?.Lunge(node, target);
@@ -210,6 +214,7 @@ namespace SynapticSea.Runtime.Session
             if (!_nodes.TryGetValue(id, out GameObject node)) return;
             _nodes.Remove(id); // the following PlaceholderRemoved finds nothing: the death effect owns the node now
             if (node == null) return;
+            node.GetComponent<ThreatCreatureMotion>()?.Die();
             node.name = GodotNodeName.Validate("ThreatDying_" + id);
             Vec3 at = record.Get("position", null) is Vec3 p ? p : Frame.ToGodot(node.transform.position);
             ThreatFeedbackAnimator animator = Animator;

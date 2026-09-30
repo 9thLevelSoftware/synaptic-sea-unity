@@ -3,6 +3,7 @@
     "rootNamespace": "SynapticSea.Tests",
     "references": [
         "SynapticSea.Core",
+        "CritterCrafter.Runtime",
         "SynapticSea.Runtime",
         "SynapticSea.UI",
         "SynapticSea.UI.Presenters",

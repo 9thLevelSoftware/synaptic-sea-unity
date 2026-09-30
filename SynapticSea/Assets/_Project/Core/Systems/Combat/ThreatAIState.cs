@@ -24,6 +24,8 @@ namespace SynapticSea.Core.Systems
 
         public string InstanceId = "";
         public string ArchetypeId = "";
+        /// <summary>Optional visual identity; saved recipes are authoritative, independent of AI and movement.</summary>
+        public GdDict CreatureVisual = new GdDict();
         public string DisplayName = "Threat";
         public string RoomId = "";
         public GdArray Cell = GdArray.Of(0L, 0L);
@@ -101,6 +103,7 @@ namespace SynapticSea.Core.Systems
             AwarenessScore = GdMath.Clampf(V.F64(config.Get("awareness_score", AwarenessScore)), 0.0, 3.0);
             LastKnownRoom = V.Str(config.Get("last_known_room", LastKnownRoom));
             StatusOnHit = V.Str(config.Get("status_on_hit", StatusOnHit));
+            CreatureVisual = config.Get("creature_visual", null) is GdDict visual ? visual.DeepCopy() : new GdDict();
             object armor = config.Get("armor", config.Get("armor_profile", ArmorProfile));
             ArmorProfile = armor is GdDict armorDict ? armorDict.DeepCopy() : new GdDict();
             object rawTags = config.Get("tags", Tags);
@@ -285,7 +288,7 @@ namespace SynapticSea.Core.Systems
 
         public GdDict GetSummary()
         {
-            return new GdDict
+            var summary = new GdDict
             {
                 { "instance_id", InstanceId },
                 { "archetype_id", ArchetypeId },
@@ -328,6 +331,8 @@ namespace SynapticSea.Core.Systems
                 { "telegraph_remaining", TelegraphRemaining },
                 { "player_verb", PlayerVerb },
             };
+            if (CreatureVisual.Count > 0) summary["creature_visual"] = CreatureVisual.DeepCopy();
+            return summary;
         }
 
         public double EffectiveMoveSpeed()
