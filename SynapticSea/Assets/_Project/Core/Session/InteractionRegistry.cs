@@ -37,8 +37,8 @@ namespace SynapticSea.Core.Session
     }
 
     /// <summary>
-    /// The single ordered interaction table. Filtering it by <see cref="InteractionScope"/> reproduces both Godot chains
-    /// exactly (home: stations/pickups/objectives; away: portals/hatches/derelict objectives). When nothing claims the
+    /// The single ordered interaction table, based on Godot with explicit door/deck traversal fixes documented in
+    /// docs/InteractionOrder.md. When nothing claims the
     /// request the session plays the soft-miss cue (<see cref="MissHandlerId"/>).
     /// </summary>
     public static class InteractionRegistry
@@ -48,6 +48,8 @@ namespace SynapticSea.Core.Session
         public static readonly IReadOnlyList<InteractionHandler> Handlers = new[]
         {
             new InteractionHandler("dock_barrier", InteractionScope.Both, "dock_barriers: b.try_start (unopened)", (s, p) => s.TryDockBarriers(p)),
+            new InteractionHandler("authored_portal", InteractionScope.Both, "_try_authored_portal_interact", (s, p) => s.TryAuthoredPortalInteract(p)),
+            new InteractionHandler("deck_transition", InteractionScope.Both, "authored vertical_connections", (s, p) => s.TryDeckTransition(p)),
             new InteractionHandler("bridge_terminal", InteractionScope.Both, "bridge_terminals: t.try_login", (s, p) => s.TryBridgeTerminals(p)),
             new InteractionHandler("fire_suppression_point", InteractionScope.Both, "fire_suppression_points: fp.try_start", (s, p) => s.TryFireSuppressionPoints(p)),
             new InteractionHandler("repair_point", InteractionScope.Both, "repair_points: rp.try_start", (s, p) => s.TryRepairPoints(p)),
@@ -55,7 +57,6 @@ namespace SynapticSea.Core.Session
             new InteractionHandler("crafting_station", InteractionScope.Home, "crafting_stations: st.try_interact", (s, p) => s.TryCraftingStations(p)),
             new InteractionHandler("production_station", InteractionScope.Home, "production_stations: st.try_interact", (s, p) => s.TryProductionStations(p)),
             new InteractionHandler("loot_container", InteractionScope.Both, "loot_containers: lc.try_interact", (s, p) => s.TryLootContainers(p)),
-            new InteractionHandler("authored_portal", InteractionScope.Away, "_try_authored_portal_interact", (s, p) => s.TryAuthoredPortalInteract(p)),
             new InteractionHandler("hatch_bypass", InteractionScope.Away, "_try_bypass_nearest_hatch", (s, p) => s.TryBypassNearestHatch(p)),
             new InteractionHandler("hatch_reseal", InteractionScope.Away, "_try_reseal_nearest_hatch", (s, p) => s.TryResealNearestHatch(p)),
             new InteractionHandler("derelict_objective", InteractionScope.Away, "derelict_interactables: it.try_interact", (s, p) => s.TryDerelictObjectives(p)),

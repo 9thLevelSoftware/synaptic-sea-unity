@@ -585,6 +585,9 @@ namespace SynapticSea.Core.Session
             }
             if (HomeShip != null)
             {
+                HomeShip.AuthoredOpenPortalIds = snapshot.HomePortalState.GetArrayOrEmpty("open").ShallowCopy();
+                HomeShip.AuthoredUnlockedPortalIds = snapshot.HomePortalState.GetArrayOrEmpty("unlocked").ShallowCopy();
+                if (CurrentShip == HomeShip) RestoreAuthoredPortalStates();
                 bool rebuildLoot = false;
                 if (!snapshot.HomeLootedContainers.IsEmpty)
                 {

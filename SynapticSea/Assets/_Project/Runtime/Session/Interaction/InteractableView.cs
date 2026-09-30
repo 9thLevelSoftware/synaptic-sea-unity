@@ -119,6 +119,7 @@ namespace SynapticSea.Runtime.Session
                 switch (Model)
                 {
                     case ObjectiveInteractable o: return o.PromptText;
+                    case DeckTransition d: return "Change deck: " + d.DestinationDeck;
                     case RepairPoint rp: return "Repair: " + rp.SubcomponentId;
                     case BreachSealPoint sp: return "Seal breach: " + sp.CompartmentId;
                     case FireSuppressionPoint fp: return "Extinguish: " + fp.CompartmentId;
@@ -143,6 +144,7 @@ namespace SynapticSea.Runtime.Session
             switch (model.Kind)
             {
                 case "dock_port_barrier": return "dock_barrier";
+                case "deck_transition": return "deck_transition";
                 case "bridge_terminal": return "bridge_terminal";
                 case "fire_suppression_point": return "fire_suppression_point";
                 case "repair_point": return "repair_point";
@@ -220,6 +222,9 @@ namespace SynapticSea.Runtime.Session
                     break;
                 case ToolPickup _:
                     _marker = GameplayProp("tool_case");
+                    break;
+                case DeckTransition _:
+                    _marker = Box(new Vector3(0.5f, 1f, 0.5f), new Color(0.2f, 0.7f, 0.95f, 0.7f));
                     break;
                 case SealedHatch _:
                     _marker = GameplayProp("hatch_wheel");

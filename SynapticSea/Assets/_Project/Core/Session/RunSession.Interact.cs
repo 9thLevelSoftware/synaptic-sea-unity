@@ -22,6 +22,10 @@ namespace SynapticSea.Core.Session
             if (item is LootContainer loot && loot.Searched) return false;
             if (item is RepairPoint repair && repair.Repaired) return false;
             if (item is DockPortBarrier barrier && barrier.Opened) return false;
+            if (item is ObjectiveInteractable objective && (!objective.Active || objective.Completed)) return false;
+            if (item is DeckTransition deck) return deck.InReach(PlayerPos);
+            if (HasPlayer && Deps.LosProbe != null && Deps.LosProbe.HasSpace
+                && Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, item.GlobalPosition + Vec3.Up, out _)) return false;
             return true;
         }
 
@@ -57,7 +61,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryDockBarriers(Vec3 p)
         {
-            foreach (DockPortBarrier b in new List<DockPortBarrier>(DockBarriers))
+            foreach (DockPortBarrier b in NearestInteractables(DockBarriers, p))
             {
                 if (b.IsValid && !b.Opened && b.TryStart(p))
                     return true;
@@ -146,7 +150,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryDerelictObjectives(Vec3 p)
         {
-            foreach (ObjectiveInteractable it in new List<ObjectiveInteractable>(DerelictInteractables))
+            foreach (ObjectiveInteractable it in NearestInteractables(DerelictInteractables, p))
             {
                 if (it.IsValid && it.TryInteract(p))
                     return true;
@@ -156,7 +160,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryHomeObjectives(Vec3 p)
         {
-            foreach (ObjectiveInteractable it in new List<ObjectiveInteractable>(Interactables))
+            foreach (ObjectiveInteractable it in NearestInteractables(Interactables, p))
             {
                 if (it.TryInteract(p))
                     return true;
@@ -182,7 +186,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Scoop cart-overload floor piles; a denied scoop still consumes interact with a soft cue.</summary>
         internal bool TryWorkYieldDropInteract(Vec3 p)
         {
-            foreach (WorkYieldDrop d in new List<WorkYieldDrop>(WorkYieldDrops))
+            foreach (WorkYieldDrop d in NearestInteractables(WorkYieldDrops, p))
             {
                 if (!d.IsValid)
                     continue;
@@ -379,6 +383,20 @@ namespace SynapticSea.Core.Session
         }
 
         // ------------------------------------------------------------------ authored portals
+        /// <summary>Shared portal target for dispatch and HUD. Closed doors take precedence over nearby stations;
+        /// an open door yields to reachable ordinary interactions so a second press can use the room.</summary>
+        public IAuthoredPortal FocusedAuthoredPortal(Vec3 p)
+        {
+            if (!HasPlayer || !(CurrentShip?.SceneRoot is IShipLoaderView loader) || !loader.IsValid) return null;
+            bool ordinaryTarget = _liveNodes.Any(item => CanFocusInteractable(item) && item.IsPlayerInDirectRangeStrict(p))
+                || DeckTransitions.Any(deck => CanFocusInteractable(deck) && deck.InReach(p));
+            return loader.GetAuthoredPortals()
+                .Where(portal => portal != null && portal.IsValid && portal.IsInRange(p)
+                    && (!portal.IsOpen || !ordinaryTarget))
+                .OrderBy(portal => portal.IsOpen ? 1 : 0)
+                .ThenBy(portal => portal.GlobalPosition.DistanceSquaredTo(p)).FirstOrDefault();
+        }
+
         internal bool TryAuthoredPortalInteract(Vec3 p)
         {
             if (!HasPlayer || CurrentShip == null)
@@ -386,7 +404,7 @@ namespace SynapticSea.Core.Session
             if (!(CurrentShip.SceneRoot is IShipLoaderView activeLoader) || !activeLoader.IsValid)
                 return false;
             GdDict flags = UtilityItemState != null ? UtilityItemState.ActiveFlags : new GdDict();
-            foreach (IAuthoredPortal portal in activeLoader.GetAuthoredPortals())
+            foreach (IAuthoredPortal portal in new[] { FocusedAuthoredPortal(p) })
             {
                 if (portal == null || !portal.IsValid)
                     continue;

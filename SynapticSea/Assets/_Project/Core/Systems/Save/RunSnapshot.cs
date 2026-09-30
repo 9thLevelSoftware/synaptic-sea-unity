@@ -64,6 +64,7 @@ namespace SynapticSea.Core.Systems
         public GdDict EquipmentSummary = new GdDict();
         public GdArray HomeLootedContainers = new GdArray();
         public GdDict HomeShipInventory = new GdDict();
+        public GdDict HomePortalState = new GdDict();
         public GdDict RunContext = new GdDict();
         // gate2-current-run-6: the rest of what only rode world.json (home carts, the home breach environment, meta
         // progression, unique items and the retained-ship registry), so a manual slot restores them too.
@@ -148,7 +149,7 @@ namespace SynapticSea.Core.Systems
 
         public GdDict ToDict()
         {
-            return new GdDict
+            var result = new GdDict
             {
                 { "layout_path", LayoutPath },
                 { "kit_path", KitPath },
@@ -213,6 +214,8 @@ namespace SynapticSea.Core.Systems
                 { "saved_at", SavedAt },
                 { "saved_at_epoch", SavedAtEpoch },
             };
+            if (!HomePortalState.IsEmpty) result["home_portal_state"] = HomePortalState.DeepCopy();
+            return result;
         }
 
         /// <summary>
@@ -286,6 +289,7 @@ namespace SynapticSea.Core.Systems
                     snapshot.HomeLootedContainers.Add(V.Str(cid));
             }
             snapshot.HomeShipInventory = DeepCopyDict(dict.Get("home_ship_inventory", new GdDict()));
+            snapshot.HomePortalState = DeepCopyDict(dict.Get("home_portal_state", new GdDict()));
             snapshot.RunContext = DeepCopyDict(dict.Get("run_context", new GdDict()));
             snapshot.HomeShipCarts = new GdArray();
             if (dict.Get("home_ship_carts", new GdArray()) is GdArray carts)

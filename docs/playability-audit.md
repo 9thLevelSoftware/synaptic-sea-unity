@@ -8,7 +8,7 @@ This slice starts from game main `8dcc95c10ab5e08658546319f51f49b4abd256fc` and 
 * Enemy damage requires current reach and visibility. Retreating during a telegraph cancels the attack, including anchored tendrils. Presentation fixtures now place targets in actual reach and retain their damage, death and animation assertions.
 * Player room signals come from the current world-positioned navigation graph. Sealed hatches affect sight and acoustic attenuation; bypassing them opens the link. Restored ship combat rebuilds spatial perception alongside navigation.
 * Hardsuit wear persists in equipment/save state. Hits consume the same profile's durability; depleted destructible armor stops providing positive resistance. Biological resistance with no durability budget remains valid. Threat armor consumes the resolver's returned profile.
-* Focus filters skip searched loot, repaired points, opened barriers and the currently piloted bridge. Loot, repair, bridge and other common handlers choose the nearest eligible target within their category rather than insertion order. Miscellaneous interaction categories still need a complete shared selection contract.
+* Focus filters skip searched loot, repaired points, opened barriers and the currently piloted bridge. Loot, repair, bridge and other common handlers choose the nearest eligible target within their category rather than insertion order. Authored door HUD/dispatch now share one target. Further source-anchor normalization is still needed beyond the docked repair/fire/seal subset.
 
 ## Existing custom asset pipeline
 
@@ -53,10 +53,35 @@ Then run **Synaptic Sea → Content → Enable Purchased MegaKit Floors (local)*
 
 ## Remaining high-impact work
 
-1. Extend natural lifecycle acceptance coverage through title, objective interactions, first-away combat, return, save/continue, natural death/extraction and restart. Existing lifecycle tests also use direct terminal-state setup, which cannot prove the entire natural journey.
+1. Extend the combined natural journey through resource acquisition, first-away combat and return. Title/New Run, walking, bidirectional deck transfers, loot, save/Continue, objective extraction/results/restart and normal-damage death/results/restart are now covered; first-away repair/travel/return currently has separate fixture-driven coverage.
 2. Review custom damaged/breached geometry, remaining contract/visual mismatches, connector openings and multi-deck transitions across more seeds. The reusable adapter deliberately accepts only compatible planar tiles; it is not a general mesh normalization solution.
 3. Complete authoritative interaction selection across all categories and presentation prompts. Common stale/nearest-target defects are fixed, but the dispatch architecture still has category-specific handlers.
 4. Integrate critter-crafter behind a safe placeholder fallback. The game currently instantiates primitive threat visuals and does not reference the companion package. Production generation requires approved skeletons/parts; draft assets are not autoapproved by this work.
 5. Implement a designed colony biomass/harvest/defense progression slice. Current infestation is scalar coverage/hull pressure and threats are fixed archetypes. The companion provides compatibility/budget generation and gait/IK constraints, not learning, resource harvesting or physical evolutionary adaptation. Those systems remain absent.
 
 The original checkouts and their local settings are preserved. No remote publication, merge or deployment is included.
+
+## Verified docking and lifecycle continuation
+
+The intended overlapping home-airlock/lifeboat connection in `docs/port-status.md` decision 55 remains. Duplicate lifeboat static walls and frame posts fully covered by host floor are suppressed on runtime instances, with supported-footprint sampling and deck-height checks. Only covered exterior host airlock walls yield to the mobile interior; host room/corridor boundaries, unsupported walls, other decks and locked/hatch blockers remain. Sources, prefab assets and docking transforms are unchanged. Instance colliders/renderers and adjusted interaction anchors restore on undock.
+
+The host builds one navigation surface over the connected geometry; the mobile's separate surface is suppressed while docked and restored afterward, including protection against LateUpdate re-adding duplicate data. Door carving has no stationary delay. Repair/fire/seal anchors embedded in composite docking walls move to nearby supported, capsule-clear positions within their interaction radius. Their system identity, resource/channel behavior and authored source positions remain intact.
+
+Authored home doors are usable. Closed doors precede nearby deck/station interactions; open doors yield to reachable ordinary targets, including deck transfers. The HUD and dispatcher use the same portal target and deck reach rules. Home open/unlocked door state now survives world and manual saves through an optional backward-compatible snapshot field and is restored on return.
+
+Validation on this continuation:
+
+* Core: **710 passed, zero failed**, `builds/logs/lifecycle-core.trx`.
+* Unity Edit Mode: **919 passed, zero failed**, `builds/logs/lifecycle-editmode.xml`, including unsupported/deck/lock preservation, undock restoration and safe repair-anchor assertions.
+* GPU Unity Play Mode: **50 passed, zero failed**, `builds/logs/lifecycle-playmode.xml`. The continuous walking test uses title/New Run, physical movement, real doors, lower/upper/lower/upper deck transfers, authored loot, save/Continue with opened-door assertions, objective interaction through extraction/results and fresh restart. It does not teleport between objectives or call EndRun/CompleteObjectiveSequence. The death test injects an encounter, then relies on ordinary enemy damage, results and restart; it does not force zero health or EndRun.
+* Repair/travel/return and wound/chart persistence fixtures retain their channel completion, consumed resources and travel/save assertions. These are separate fixtures, not a claim of one continuous natural first-away expedition.
+* Rebuilt Windows dev player: **passed**, Mono, 486.5 MB, zero errors, `builds/logs/build-StandaloneWindows64-dev.log`. Runtime gameplay is verified in GPU Play Mode; standalone verification is a boot-to-title smoke check, not a manual expedition.
+* Actual gameplay-camera capture from the bidirectional traversal: `artifacts/screenshots/natural-hub-upper-deck.png`. Camera captures omit the UI; dim lighting, primitive markers and visual readability remain presentation work.
+
+Intermediate failures uncovered real overlapping collision, missing home-door persistence and wall-embedded interaction anchors. The test steering was also corrected to follow intermediate corners and approach props within physical reach. Assertions were retained and expanded.
+
+## Bounded next integration and mechanic scope
+
+Companion revision `01230d84c895c13fdb744df98d5b39724c35ba44` exposes `ICreatureVisualFactory`, seeded pool generation and saved-recipe reconstruction. The next adapter should use production validation (`allowReview=false`), persist each organic threat's recipe, preserve gameplay collider/navigation authority and fall back safely when no approved skeleton/pool is available. Keep `drone_swarm` mechanical. No draft asset is approved or production generation enabled by this continuation; the game still uses its existing primitive threat factory. Package installation, adapter implementation and successful approved-creature rendering remain unfinished.
+
+A subsequent small colony slice can build on the existing `biomatter_tangle` junk item (yielding `biomatter_residue` and `reactive_gel`), work channels, saved per-ship infestation state and deterministic threat spawning. Define explicit colony biomass sources, a persistent reserve and bounded defense spending/alert thresholds before adding gameplay. Preserve the Milestone A progression guards. This would be scripted resource/defense behavior; force/mass/energy-constrained adaptation and learning remain separate unimplemented systems. The ownership and depletion of colony biomass sources need to be settled in the mechanic design before that larger change.

@@ -48,6 +48,7 @@ namespace SynapticSea.Runtime.Session
                 _obstacle.carving = true;
                 // The blockers do not move once placed, so a carve only has to be re-cut when one opens or closes.
                 _obstacle.carveOnlyStationary = true;
+                _obstacle.carvingTimeToStationary = 0f;
             }
             if (blocker is BoxCollider box)
             {

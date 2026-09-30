@@ -1,6 +1,7 @@
 // Unity port (no Godot source): Godot's NavigationRegion3D bake was debug-only and was dropped; the threats path
 // on a real NavMesh instead (port-status decision 59).
 using System.Collections.Generic;
+using System.Linq;
 using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
@@ -32,6 +33,28 @@ namespace SynapticSea.Runtime.Session
         Transform _avoidedRoot;
         List<Vector3> _avoided = new List<Vector3>();
         float _avoidedCellSize;
+        GameObject _dockedRoot;
+        bool _suppressedByDock;
+
+        public static void BuildComposite(GameObject host, GameObject mobile)
+        {
+            var nav = Build(host);
+            if (nav == null) return;
+            nav._dockedRoot = mobile;
+            if (mobile.TryGetComponent(out ShipNavMesh mobileNav))
+            {
+                mobileNav._suppressedByDock = true;
+                if (mobileNav._surface != null) mobileNav._surface.RemoveData();
+            }
+            nav.Rebuild();
+        }
+
+        public static void ResetComposite(GameObject host)
+        {
+            if (!host.TryGetComponent(out ShipNavMesh nav)) return;
+            nav._dockedRoot = null;
+            nav.Rebuild();
+        }
 
         /// <summary>The agent type id, resolved by name so it survives a re-registration.</summary>
         public static int AgentTypeId
@@ -50,7 +73,7 @@ namespace SynapticSea.Runtime.Session
         /// <summary>The costly area a burning room's floor is marked with (ProjectSettingsBootstrap).</summary>
         public const string FireAreaName = "ThreatFire";
 
-        public bool HasNavMesh => _surface != null && _surface.navMeshData != null;
+        public bool HasNavMesh => !_suppressedByDock && _surface != null && _surface.navMeshData != null;
 
         /// <summary>
         /// Marks the floor of every burning cell as <see cref="FireAreaName"/>, which costs what the nav graph
@@ -114,12 +137,14 @@ namespace SynapticSea.Runtime.Session
             if (shipRoot == null) return null;
             // TryGetComponent, not ?? : a missing component comes back as Unity's fake null, which ?? keeps.
             if (!shipRoot.TryGetComponent(out ShipNavMesh nav)) nav = shipRoot.AddComponent<ShipNavMesh>();
+            nav._suppressedByDock = false;
             nav.Rebuild();
             return nav.HasNavMesh ? nav : null;
         }
 
         public void Rebuild()
         {
+            if (_suppressedByDock) return;
             if (_surface == null)
             {
                 if (!TryGetComponent(out _surface)) _surface = gameObject.AddComponent<NavMeshSurface>();
@@ -129,6 +154,18 @@ namespace SynapticSea.Runtime.Session
                 _surface.agentTypeID = AgentTypeId;
                 // Godot's threats never left the deck they spawned on, and neither engine has a walkable deck
                 // change (port-status decision 57), so no links are generated between decks.
+            }
+            _surface.collectObjects = _dockedRoot != null ? CollectObjects.Volume : CollectObjects.Children;
+            if (_dockedRoot != null)
+            {
+                var colliders = GetComponentsInChildren<Collider>().Concat(_dockedRoot.GetComponentsInChildren<Collider>()).Where(c => c.enabled && !c.isTrigger).ToArray();
+                if (colliders.Length > 0)
+                {
+                    var bounds = colliders[0].bounds;
+                    foreach (var collider in colliders.Skip(1)) bounds.Encapsulate(collider.bounds);
+                    _surface.center = transform.InverseTransformPoint(bounds.center);
+                    _surface.size = bounds.size + Vector3.one;
+                }
             }
             _surface.RemoveData();
             _surface.BuildNavMesh();

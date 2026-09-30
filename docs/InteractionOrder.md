@@ -8,46 +8,47 @@ the first one that claims the request wins. Each handler declares a scope:
 - `Home`: runs only when `away_from_start == false`.
 - `Away`: runs only aboard a derelict.
 
-Filtering the table by scope reproduces each Godot branch exactly. When nothing claims the request, the dispatcher plays
+Authored deck transfers and closed-door priority supplement the original Godot branches. When nothing claims the request, the dispatcher plays
 the soft-miss cue (`ui.panel.close`).
 
 `Tests/EditMode/Session/InteractionOrderTests.cs` parses the table below and requires it to equal the registry for both
-locations. It also checks both against the Godot chains, which are hard-coded in the test. Edit this table and the
+locations. The test also pins both current chains, including the documented Unity traversal fixes. Edit this table and the
 registry together.
 
 <!-- interaction-order:begin -->
 | # | Handler | Scope | Godot call |
 |---|---|---|---|
 | 1 | dock_barrier | Both | `dock_barriers`: `b.try_start(player)` on unopened barriers |
-| 2 | bridge_terminal | Both | `bridge_terminals`: `t.try_login(player)` |
-| 3 | fire_suppression_point | Both | `fire_suppression_points`: `fp.try_start(player)` |
-| 4 | repair_point | Both | `repair_points`: `rp.try_start(player)` |
-| 5 | breach_seal_point | Both | `breach_seal_points`: `sp.try_start(player)` |
-| 6 | crafting_station | Home | `crafting_stations`: `st.try_interact(player)` |
-| 7 | production_station | Home | `production_stations`: `st.try_interact(player)` |
-| 8 | loot_container | Both | `loot_containers`: `lc.try_interact(player)` |
-| 9 | authored_portal | Away | `_try_authored_portal_interact(player)` |
-| 10 | hatch_bypass | Away | `_try_bypass_nearest_hatch()` |
-| 11 | hatch_reseal | Away | `_try_reseal_nearest_hatch()` |
-| 12 | derelict_objective | Away | `derelict_interactables`: `it.try_interact(player)` |
-| 13 | tool_pickup | Home | `_try_tool_pickup_interact(tool_pickup, player)` |
-| 14 | junction_calibrator_pickup | Home | `_try_tool_pickup_interact(junction_calibrator_pickup, player)` |
-| 15 | home_objective | Home | `interactables`: `interactable.try_interact(player)` |
-| 16 | hangar | Both | `_try_hangar_interact(player)` |
-| 17 | cargo_deposit | Both | `_try_cargo_deposit(player)` |
-| 18 | cart | Both | `_try_cart_interact(player)` |
-| 19 | work_yield_drop | Both | `_try_work_yield_drop_interact(player)` |
-| 20 | work_action | Both | `_try_work_action_interact(player)` |
+| 2 | authored_portal | Both | `_try_authored_portal_interact(player)` (closed doors before stations; open doors yield to ordinary targets) |
+| 3 | deck_transition | Both | Authored `vertical_connections`: safe bidirectional player landing |
+| 4 | bridge_terminal | Both | `bridge_terminals`: `t.try_login(player)` |
+| 5 | fire_suppression_point | Both | `fire_suppression_points`: `fp.try_start(player)` |
+| 6 | repair_point | Both | `repair_points`: `rp.try_start(player)` |
+| 7 | breach_seal_point | Both | `breach_seal_points`: `sp.try_start(player)` |
+| 8 | crafting_station | Home | `crafting_stations`: `st.try_interact(player)` |
+| 9 | production_station | Home | `production_stations`: `st.try_interact(player)` |
+| 10 | loot_container | Both | `loot_containers`: `lc.try_interact(player)` |
+| 11 | hatch_bypass | Away | `_try_bypass_nearest_hatch()` |
+| 12 | hatch_reseal | Away | `_try_reseal_nearest_hatch()` |
+| 13 | derelict_objective | Away | `derelict_interactables`: `it.try_interact(player)` |
+| 14 | tool_pickup | Home | `_try_tool_pickup_interact(tool_pickup, player)` |
+| 15 | junction_calibrator_pickup | Home | `_try_tool_pickup_interact(junction_calibrator_pickup, player)` |
+| 16 | home_objective | Home | `interactables`: `interactable.try_interact(player)` |
+| 17 | hangar | Both | `_try_hangar_interact(player)` |
+| 18 | cargo_deposit | Both | `_try_cargo_deposit(player)` |
+| 19 | cart | Both | `_try_cart_interact(player)` |
+| 20 | work_yield_drop | Both | `_try_work_yield_drop_interact(player)` |
+| 21 | work_action | Both | `_try_work_action_interact(player)` |
 <!-- interaction-order:end -->
 
 ## Resulting chains
 
-**Home:** dock_barrier, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, crafting_station,
+**Home:** dock_barrier, authored_portal, deck_transition, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, crafting_station,
 production_station, loot_container, tool_pickup, junction_calibrator_pickup, home_objective, hangar, cargo_deposit, cart,
 work_yield_drop, work_action. If none claims the request, the soft-miss cue plays.
 
-**Away:** dock_barrier, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, loot_container,
-authored_portal, hatch_bypass, hatch_reseal, derelict_objective, hangar, cargo_deposit, cart, work_yield_drop,
+**Away:** dock_barrier, authored_portal, deck_transition, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, loot_container,
+hatch_bypass, hatch_reseal, derelict_objective, hangar, cargo_deposit, cart, work_yield_drop,
 work_action. If none claims the request, the soft-miss cue plays.
 
 ## Claim rules
@@ -67,4 +68,4 @@ These rules carry over from the Godot handlers:
   structural nodes, the airlock and corridor floor-cell centres, so they claimed interact next to the spawn ahead of
   pickups and objectives. `Core/Session/StationPlacer.cs` places them by room role instead, only where their 1.8 m area
   overlaps no other interaction area and the player start, never on a doorway cell, and falls back to the first free
-  legacy position. The order of the table is unchanged.
+  legacy position. Closed doors now precede stations; open doors yield to reachable ordinary interactions.

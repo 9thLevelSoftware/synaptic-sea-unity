@@ -60,7 +60,8 @@ namespace SynapticSea.Runtime.Session
         {
             Physics.SyncTransforms();
             clear = feet;
-            if (IsClear(feet, radius, height))
+            Collider initialFloor = FloorUnder(feet);
+            if (IsClear(feet, radius, height) && initialFloor != null && (acceptFloor == null || acceptFloor(initialFloor)))
                 return true;
             for (float ring = SearchStep; ring <= MaxSearchRadius + 1e-4f; ring += SearchStep)
             {

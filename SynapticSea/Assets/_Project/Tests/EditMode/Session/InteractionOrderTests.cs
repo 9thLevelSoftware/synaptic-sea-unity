@@ -7,22 +7,21 @@ using SynapticSea.Core.Session;
 namespace SynapticSea.Tests.Session
 {
     /// <summary>
-    /// Locks the interaction dispatcher order against docs/InteractionOrder.md and the two Godot chains of
-    /// _on_player_interact_requested (playable_generated_ship.gd 7953-8077).
+    /// Pins the interaction dispatcher against docs/InteractionOrder.md, including the Unity door/deck traversal fixes.
     /// </summary>
     public class InteractionOrderTests
     {
         static readonly string[] GodotHomeChain =
         {
-            "dock_barrier", "bridge_terminal", "fire_suppression_point", "repair_point", "breach_seal_point",
+            "dock_barrier", "authored_portal", "deck_transition", "bridge_terminal", "fire_suppression_point", "repair_point", "breach_seal_point",
             "crafting_station", "production_station", "loot_container", "tool_pickup", "junction_calibrator_pickup",
             "home_objective", "hangar", "cargo_deposit", "cart", "work_yield_drop", "work_action",
         };
 
         static readonly string[] GodotAwayChain =
         {
-            "dock_barrier", "bridge_terminal", "fire_suppression_point", "repair_point", "breach_seal_point",
-            "loot_container", "authored_portal", "hatch_bypass", "hatch_reseal", "derelict_objective", "hangar",
+            "dock_barrier", "authored_portal", "deck_transition", "bridge_terminal", "fire_suppression_point", "repair_point", "breach_seal_point",
+            "loot_container", "hatch_bypass", "hatch_reseal", "derelict_objective", "hangar",
             "cargo_deposit", "cart", "work_yield_drop", "work_action",
         };
 

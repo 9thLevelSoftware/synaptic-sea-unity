@@ -118,7 +118,8 @@ namespace SynapticSea.Tests.Session
         public GdDict GetAuthoredAtmosphereAt(Vec3 localPosition) => Model.GetAuthoredAtmosphereAt(localPosition);
         public double GetAuthoredAtmosphereDrainMultiplierAt(Vec3 localPosition) => Model.GetAuthoredAtmosphereDrainMultiplierAt(localPosition);
         public GdArray GetEncounterMarkers() => Model.GetEncounterMarkers();
-        public IReadOnlyList<IAuthoredPortal> GetAuthoredPortals() => new List<IAuthoredPortal>();
+        public readonly List<IAuthoredPortal> Portals = new List<IAuthoredPortal>();
+        public IReadOnlyList<IAuthoredPortal> GetAuthoredPortals() => Portals;
         public long CountCollisionShapes() => 0;
         public GdArray DressingPropSlots() => new GdArray();
         public IReadOnlyList<IStructuralModuleNode> StructuralModuleNodes() => new List<IStructuralModuleNode>();

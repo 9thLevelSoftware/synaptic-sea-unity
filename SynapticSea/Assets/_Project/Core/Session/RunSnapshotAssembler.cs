@@ -146,6 +146,10 @@ namespace SynapticSea.Core.Session
             {
                 snapshot.HomeLootedContainers = s.HomeShip.LootedContainerIds.ShallowCopy();
                 snapshot.HomeShipInventory = s.HomeShip.GetInventory().GetSummary();
+                if (!s.HomeShip.AuthoredOpenPortalIds.IsEmpty || !s.HomeShip.AuthoredUnlockedPortalIds.IsEmpty)
+                    snapshot.HomePortalState = new GdDict {
+                        { "open", s.HomeShip.AuthoredOpenPortalIds.ShallowCopy() },
+                        { "unlocked", s.HomeShip.AuthoredUnlockedPortalIds.ShallowCopy() } };
                 // gate2-current-run-6: what only rode world.json, so a manual slot restores it too.
                 var carts = new GdArray();
                 foreach (CartState c in s.HomeShip.GetCarts())

@@ -258,6 +258,7 @@ namespace SynapticSea.Core.Session
                 }
             }
             CurrentShip = HomeShip;
+            RestoreAuthoredPortalStates();
             AwayFromStart = false;
             RestoreModuleIntegrityForCurrentShip();
             RestoreOrPopulateComponentPlacementForCurrentShip();

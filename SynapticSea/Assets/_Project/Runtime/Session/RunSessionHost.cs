@@ -82,6 +82,7 @@ namespace SynapticSea.Runtime.Session
         readonly HashSet<SessionZone> _liveZones = new HashSet<SessionZone>();
         IShipSceneRoot _appliedActiveRoot;
         bool _environmentDirty = true;
+        readonly DockedShipGeometry _dockedGeometry = new DockedShipGeometry();
         string _focusPrompt = "";
         PlayerController _boundPlayer;
         readonly List<IShipLoaderView> _affordanceDirtyRoots = new List<IShipLoaderView>();
@@ -127,6 +128,14 @@ namespace SynapticSea.Runtime.Session
             deps.Scene = SceneState;
             deps.ShipHost = ShipHost;
             deps.LosProbe = new PhysicsLineOfSightProbe();
+            deps.ResolveDeckLanding = (desired, root) =>
+            {
+                Vector3 feet = Frame.ToUnity(desired);
+                Transform ship = (root as ShipLoaderNode)?.GameObject.transform;
+                bool Accept(Collider floor) => ship != null && floor.transform.IsChildOf(ship)
+                    && Mathf.Abs(floor.bounds.max.y - feet.y) < 1f;
+                return SpawnClearance.TryFindClear(feet, Accept, out Vector3 clear) ? Frame.ToGodot(clear) : (Vec3?)null;
+            };
             ThreatNavigation = new NavMeshThreatNavigation(Threats);
             deps.ThreatNavigation = ThreatNavigation;
             if (audio != null) deps.AudioSink = new AudioManagerSink(audio, () => SceneState.Player != null ? SceneState.Player.transform : null);
@@ -223,8 +232,11 @@ namespace SynapticSea.Runtime.Session
         public void ApplyViews()
         {
             if (Session == null) return;
+            var mobile = Session.LifeboatShip;
+            _dockedGeometry.Reconcile(mobile?.ParentShip?.SceneRoot as SceneShipRoot, mobile?.SceneRoot as SceneShipRoot);
             Reconcile();
             ApplyActiveShipIfChanged(force: false);
+            _dockedGeometry.NormalizeInteractions(_liveInteractables);
             foreach (InteractableView v in _interactables.Values) v.Sync();
             foreach (ZoneView z in _zones.Values) z.Sync();
             Threats.Bind(Session.ThreatManager);
@@ -399,6 +411,8 @@ namespace SynapticSea.Runtime.Session
         {
             _liveInteractables.Clear();
             RunSession s = Session;
+            s.RefreshDeckTransitions();
+            AddAll(s.DeckTransitions);
             AddAll(s.Interactables);
             AddAll(s.DerelictInteractables);
             AddAll(s.LootContainers);
@@ -450,13 +464,18 @@ namespace SynapticSea.Runtime.Session
             InteractableView next = null;
             if (p != null && SceneState.Sensor != null && !Paused)
                 next = InteractableView.PickFocus(SceneState.Sensor.Overlapping, p.transform.position, Session.CanFocusInteractable);
+            IAuthoredPortal portal = p != null && !Paused ? Session.FocusedAuthoredPortal(Frame.ToGodot(p.transform.position)) : null;
+            int portalOrder = InteractionRegistry.OrderFor(Session.AwayFromStart ? SessionLocation.Away : SessionLocation.Home).IndexOf("authored_portal");
+            if (portal != null && (next == null || next.HandlerOrder > portalOrder)) next = null;
+            else portal = null;
             if (next != FocusedView)
             {
                 if (FocusedView != null) FocusedView.SetFocused(false);
                 FocusedView = next;
                 if (FocusedView != null) FocusedView.SetFocused(true);
             }
-            string prompt = FocusedView != null ? FocusedView.PromptText : "";
+            string prompt = portal != null ? (portal.IsOpen ? "Close door" : portal.PortalKind == "LOCKED" ? "Unlock door" : "Open door")
+                : FocusedView != null ? FocusedView.PromptText : "";
             if (prompt != _focusPrompt)
             {
                 _focusPrompt = prompt;

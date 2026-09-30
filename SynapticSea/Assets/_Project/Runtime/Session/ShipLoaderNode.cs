@@ -182,6 +182,8 @@ namespace SynapticSea.Runtime.Session
         public string PortalId => Portal.portalId;
         public string PortalKind => Portal.portalKind;
         public bool IsExterior => Portal.isExterior;
+        public bool IsOpen => Portal.isOpen;
+        public bool IsInRange(Vec3 playerPosition) => UnityEngine.Vector3.Distance(Portal.transform.position, Frame.ToUnity(playerPosition)) <= AuthoredPortalRuntime.DetectionRadius;
         public string RequiredFlag() => Portal.RequiredFlag();
         public Vec3 GlobalPosition => _root.GlobalTransform * Portal.GodotPosition;
         public GdDict TryInteract(GdDict flags, Vec3 playerPosition) => Portal.TryInteractAt(flags, Frame.ToUnity(playerPosition));

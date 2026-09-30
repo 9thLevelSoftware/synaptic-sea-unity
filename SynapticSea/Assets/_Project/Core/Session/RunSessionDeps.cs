@@ -83,6 +83,8 @@ namespace SynapticSea.Core.Session
         public IShipSceneHost ShipHost;
         public IAudioSink AudioSink;
         public ILineOfSightProbe LosProbe;
+        /// <summary>Scene clearance check for authored deck transfers; null uses the authored landing in headless sessions.</summary>
+        public Func<Vec3, IShipSceneRoot, Vec3?> ResolveDeckLanding;
         public IThreatNavigation ThreatNavigation;
         public IRunUiState UiState;
 

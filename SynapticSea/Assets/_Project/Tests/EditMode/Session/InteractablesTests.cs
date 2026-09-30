@@ -10,12 +10,88 @@ namespace SynapticSea.Tests.Session
     /// <summary>Behavior checks for the engine-free interaction nodes (scripts/tools/*.gd, scripts/interaction/*.gd).</summary>
     public class InteractablesTests
     {
+        IEngineInfo _previousEngine;
         static readonly Vec3 Here = Vec3.Zero;
+        sealed class TestPortal : IAuthoredPortal
+        {
+            public bool IsValid => true;
+            public string PortalId => "test-door";
+            public string PortalKind => "DOOR";
+            public bool IsExterior => false;
+            public bool IsOpen { get; private set; }
+            public Vec3 GlobalPosition { get; set; }
+            public string RequiredFlag() => "";
+            public bool IsInRange(Vec3 position) => GlobalPosition.DistanceSquaredTo(position) <= 2.2 * 2.2;
+            public GdDict TryInteract(GdDict flags, Vec3 position)
+            {
+                if (!IsInRange(position)) return new GdDict { { "ok", false } };
+                IsOpen = !IsOpen;
+                return new GdDict { { "ok", true }, { "open", IsOpen } };
+            }
+            public void RestorePersistentState(bool unlocked, bool open) => IsOpen = open;
+        }
+
+        [Test]
+        public void ClosedDoorTakesPriorityButOpenDoorYieldsToRoomSupplies()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            var supplies = session.LootContainers[0];
+            session.Scene.TeleportPlayer(supplies.GlobalPosition);
+            var portal = new TestPortal { GlobalPosition = supplies.GlobalPosition };
+            ((FakeLoaderView)session.CurrentShip.SceneRoot).Portals.Add(portal);
+            Assert.AreSame(portal, session.FocusedAuthoredPortal(session.Scene.PlayerPosition));
+            Assert.AreEqual("authored_portal", session.RequestInteract(), "closed door wins over the room's supplies");
+            Assert.IsTrue(portal.IsOpen);
+            Assert.IsNull(session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "the same target selection yields to usable supplies");
+            session.Scene.TeleportPlayer(portal.GlobalPosition + new Vec3(3, 0, 0));
+            Assert.IsNull(session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "no remote door toggles");
+        }
+
+        [Test]
+        public void HomeDoorStateSurvivesWorldAndManualSnapshotReload()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            session.HomeShip.AuthoredOpenPortalIds.Add("opened-door");
+            session.HomeShip.AuthoredUnlockedPortalIds.Add("unlocked-door");
+            var snapshot = RunSnapshotAssembler.Build(session);
+            Assert.IsTrue(snapshot.ToDict().Has("home_portal_state"));
+            Assert.IsTrue(session.RequestSave());
+            session.HomeShip.AuthoredOpenPortalIds.Clear();
+            session.HomeShip.AuthoredUnlockedPortalIds.Clear();
+            Assert.IsTrue(session.RequestLoad());
+            Assert.IsTrue(session.HomeShip.AuthoredOpenPortalIds.Contains("opened-door"));
+            Assert.IsTrue(session.HomeShip.AuthoredUnlockedPortalIds.Contains("unlocked-door"));
+            Assert.IsTrue(session.ApplyManualSlot(snapshot));
+            Assert.IsTrue(session.HomeShip.AuthoredOpenPortalIds.Contains("opened-door"));
+        }
+
+        [Test]
+        public void AuthoredDeckTransferRequiresReachAndAValidLanding()
+        {
+            var rig = SessionHarness.CreateGolden();
+            RunSession session = rig.Session;
+            session.RefreshDeckTransitions();
+            Assert.AreEqual(2, session.DeckTransitions.Count, "one bidirectional authored link");
+            var up = session.DeckTransitions[0];
+            Assert.IsFalse(up.InReach(up.GlobalPosition + new Vec3(0, 4, 0)), "adjacent decks cannot overlap into a transfer");
+            session.Scene.TeleportPlayer(up.GlobalPosition);
+            session.Deps.ResolveDeckLanding = (_, __) => null;
+            session.RequestInteract();
+            Assert.AreEqual(up.GlobalPosition, session.Scene.PlayerPosition, "a blocked landing cannot teleport the player");
+            session.Deps.ResolveDeckLanding = (target, _) => target;
+            session.RequestInteract();
+            Assert.AreEqual("deck_transition", session.LastInteractHandlerId);
+            Assert.AreEqual(up.Destination, session.Scene.PlayerPosition);
+            session.RefreshDeckTransitions();
+            Assert.AreEqual(2, session.DeckTransitions.Count, "refresh does not duplicate landing nodes");
+        }
         static readonly Vec3 Far = new Vec3(10f, 0f, 0f);
 
         [SetUp]
         public void SetUp()
         {
+            _previousEngine = CoreServices.Engine;
+            CoreServices.Engine = new FixedEngineInfo(SessionHarness.GodotVersion);
             CatalogRegistry.Clear();
             CoreServices.Resources = new FileSystemResourceReader(Fixtures.StreamingDataRoot);
             WorkActionChannel.ResetSharedCatalog();
@@ -24,6 +100,7 @@ namespace SynapticSea.Tests.Session
         [TearDown]
         public void TearDown()
         {
+            CoreServices.Engine = _previousEngine;
             WorkActionChannel.ResetSharedCatalog();
             CatalogRegistry.Clear();
         }
