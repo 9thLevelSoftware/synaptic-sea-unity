@@ -7,29 +7,38 @@
     "noise": 0.25,
     "stun_seconds": 0.25,
     "ammo_item_id": "",
-    "status_effect_id": "bleed"
+    "status_effect_id": "bleed",
+    "range": 2.5,
+    "attack_interval": 0.55,
+    "aim_dot": 0.5
   },
   "flare_pistol": {
     "display_name": "Flare Pistol",
     "equip_slot": "primary_hand",
     "damage": 16.0,
     "damage_type": "fire",
-    "noise": 1.00,
+    "noise": 1.0,
     "stun_seconds": 0.15,
     "ammo_item_id": "flare_round",
     "magazine_size": 2,
-    "status_effect_id": "burn"
+    "status_effect_id": "burn",
+    "range": 18.0,
+    "attack_interval": 1.0,
+    "aim_dot": 0.95
   },
   "shock_probe": {
     "display_name": "Shock Probe",
     "equip_slot": "secondary_hand",
     "damage": 11.0,
     "damage_type": "electric",
-    "noise": 0.40,
-    "stun_seconds": 1.00,
+    "noise": 0.4,
+    "stun_seconds": 1.0,
     "ammo_item_id": "capacitor_cell",
     "magazine_size": 5,
-    "status_effect_id": "stun"
+    "status_effect_id": "stun",
+    "range": 3.0,
+    "attack_interval": 0.4,
+    "aim_dot": 0.75
   },
   "welding_lance": {
     "display_name": "Welding Lance",
@@ -37,9 +46,12 @@
     "damage": 14.0,
     "damage_type": "fire",
     "noise": 0.55,
-    "stun_seconds": 0.20,
+    "stun_seconds": 0.2,
     "ammo_item_id": "fuel_canister",
     "magazine_size": 6,
-    "status_effect_id": "burn"
+    "status_effect_id": "burn",
+    "range": 3.5,
+    "attack_interval": 0.45,
+    "aim_dot": 0.75
   }
 }

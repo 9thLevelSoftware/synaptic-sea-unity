@@ -333,6 +333,12 @@ namespace SynapticSea.Tests.Unity
         {
             SessionHarness.Rig rig = Boot();
             RunSession s = rig.Session;
+            foreach (ThreatAIState threat in s.ThreatManager.Threats)
+            {
+                threat.RoomId = s.ResolvePlayerRoom(rig.Scene.PlayerPosition);
+                Vec3 position = rig.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                threat.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
             var root = new GameObject("threats");
             _objects.Add(root);
             var view = new ThreatPlaceholderView(root.transform);

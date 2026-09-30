@@ -286,13 +286,14 @@ namespace SynapticSea.Runtime.Session
         }
 
         /// <summary>Views grouped by registry order then distance (the focus rule).</summary>
-        public static InteractableView PickFocus(IEnumerable<InteractableView> candidates, Vector3 playerWorld)
+        public static InteractableView PickFocus(IEnumerable<InteractableView> candidates, Vector3 playerWorld, System.Func<SessionInteractable, bool> eligible = null)
         {
             InteractableView best = null;
             float bestD = float.MaxValue;
             foreach (InteractableView v in candidates)
             {
                 if (v == null || v.Model == null || !v.Model.IsValid || v.HandlerId == null || !v.PlayerOverlap) continue;
+                if (eligible != null && !eligible(v.Model)) continue;
                 float d = Vector3.Distance(v.transform.position, playerWorld);
                 if (best == null || v.HandlerOrder < best.HandlerOrder || (v.HandlerOrder == best.HandlerOrder && d < bestD))
                 {

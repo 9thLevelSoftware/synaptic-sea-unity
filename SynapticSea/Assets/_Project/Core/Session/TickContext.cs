@@ -17,7 +17,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>(player as Node3D).global_position</c>.</summary>
         public Vec3 PlayerPosition;
 
-        /// <summary>Player room id as the scene knows it (Godot passed "" to ThreatManager; reserved).</summary>
+        /// <summary>Player room id from the active ship layout.</summary>
         public string PlayerRoomId;
 
         /// <summary><c>player.is_moving()</c> (planar velocity).</summary>

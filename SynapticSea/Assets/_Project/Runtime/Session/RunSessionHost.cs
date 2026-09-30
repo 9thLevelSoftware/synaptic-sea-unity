@@ -212,7 +212,7 @@ namespace SynapticSea.Runtime.Session
                 Delta = delta,
                 HasPlayer = true,
                 PlayerPosition = Frame.ToGodot(p.transform.position),
-                PlayerRoomId = "",
+                PlayerRoomId = Session.ResolvePlayerRoom(Frame.ToGodot(p.transform.position)),
                 Moving = p.IsMoving(),
                 Crouching = p.IsCrouching(),
                 InteractHeld = interactHeld,
@@ -291,7 +291,7 @@ namespace SynapticSea.Runtime.Session
         public GdDict RequestAttack()
         {
             if (!GameplayInputAllowed) return null;
-            GdDict result = Session.AttackWithEquippedWeapon();
+            GdDict result = Session.AttackWithEquippedWeapon(SceneState.Player.AttackDirection);
             ApplyViews();
             return result;
         }
@@ -449,7 +449,7 @@ namespace SynapticSea.Runtime.Session
             PlayerController p = SceneState.Player;
             InteractableView next = null;
             if (p != null && SceneState.Sensor != null && !Paused)
-                next = InteractableView.PickFocus(SceneState.Sensor.Overlapping, p.transform.position);
+                next = InteractableView.PickFocus(SceneState.Sensor.Overlapping, p.transform.position, Session.CanFocusInteractable);
             if (next != FocusedView)
             {
                 if (FocusedView != null) FocusedView.SetFocused(false);

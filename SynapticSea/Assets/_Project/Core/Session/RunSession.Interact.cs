@@ -1,6 +1,7 @@
 // Ported from scripts/procgen/playable_generated_ship.gd @ 96ecb2b0: _on_player_interact_requested (7953-8077) and the
 // per-kind try helpers (8091-8176), sealed hatches (3065-3104, 6123-6282) and authored portals (6176-6238).
 using System.Collections.Generic;
+using System.Linq;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
@@ -12,6 +13,20 @@ namespace SynapticSea.Core.Session
     {
         /// <summary>The handler id that claimed the last interact request ("miss_sfx" when none did).</summary>
         public string LastInteractHandlerId { get; private set; } = "";
+
+        /// <summary>Eligibility shared by the HUD focus and ordinary interaction dispatch.</summary>
+        public bool CanFocusInteractable(SessionInteractable item)
+        {
+            if (item == null || !item.IsValid || !item.IsInsideTree) return false;
+            if (item is BridgeTerminal terminal && PilotedShip != null && PilotedShip.ShipId == terminal.ShipId) return false;
+            if (item is LootContainer loot && loot.Searched) return false;
+            if (item is RepairPoint repair && repair.Repaired) return false;
+            if (item is DockPortBarrier barrier && barrier.Opened) return false;
+            return true;
+        }
+
+        IEnumerable<T> NearestInteractables<T>(IEnumerable<T> items, Vec3 player) where T : SessionInteractable =>
+            items.Where(item => CanFocusInteractable(item)).OrderBy(item => item.GlobalPosition.DistanceSquaredTo(player)).ToList();
 
         /// <summary>
         /// <c>player.request_interact()</c> -> <c>_on_player_interact_requested(player)</c>: walk the ordered
@@ -59,7 +74,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         internal bool TryBridgeTerminals(Vec3 p)
         {
-            foreach (BridgeTerminal t in new List<BridgeTerminal>(BridgeTerminals))
+            foreach (BridgeTerminal t in NearestInteractables(BridgeTerminals, p))
             {
                 if (!t.IsValid || (PilotedShip != null && PilotedShip.ShipId == t.ShipId))
                     continue;
@@ -71,7 +86,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryFireSuppressionPoints(Vec3 p)
         {
-            foreach (FireSuppressionPoint fp in new List<FireSuppressionPoint>(FireSuppressionPoints))
+            foreach (FireSuppressionPoint fp in NearestInteractables(FireSuppressionPoints, p))
             {
                 if (fp.IsValid && fp.TryStart(p))
                     return true;
@@ -81,7 +96,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryRepairPoints(Vec3 p)
         {
-            foreach (RepairPoint rp in new List<RepairPoint>(RepairPoints))
+            foreach (RepairPoint rp in NearestInteractables(RepairPoints, p))
             {
                 if (rp.IsValid && rp.TryStart(p))
                     return true;
@@ -91,7 +106,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryBreachSealPoints(Vec3 p)
         {
-            foreach (BreachSealPoint sp in new List<BreachSealPoint>(BreachSealPoints))
+            foreach (BreachSealPoint sp in NearestInteractables(BreachSealPoints, p))
             {
                 if (sp.IsValid && sp.TryStart(p))
                     return true;
@@ -101,7 +116,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryCraftingStations(Vec3 p)
         {
-            foreach (CraftingStation st in new List<CraftingStation>(CraftingStations))
+            foreach (CraftingStation st in NearestInteractables(CraftingStations, p))
             {
                 if (st.IsValid && st.TryInteract(p))
                     return true;
@@ -111,7 +126,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryProductionStations(Vec3 p)
         {
-            foreach (ProductionStation st in new List<ProductionStation>(ProductionStations))
+            foreach (ProductionStation st in NearestInteractables(ProductionStations, p))
             {
                 if (st.IsValid && st.TryInteract(p))
                     return true;
@@ -121,7 +136,7 @@ namespace SynapticSea.Core.Session
 
         internal bool TryLootContainers(Vec3 p)
         {
-            foreach (LootContainer lc in new List<LootContainer>(LootContainers))
+            foreach (LootContainer lc in NearestInteractables(LootContainers, p))
             {
                 if (lc.IsValid && lc.TryInteract(p))
                     return true;

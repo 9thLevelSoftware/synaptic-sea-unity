@@ -88,7 +88,7 @@ namespace SynapticSea.Tests.Session
             s.PlayableInteractionCompleted += (iid, oid, seq, type, room) => interactions.Add(seq);
             s.PlayableSliceCompleted += summary => completion = summary;
             // The golden ship has no encounter markers, so the five fallback threats spawn around the ship origin, next to
-            // the start room; an idle player dies in ~10 s (see IdlePlayerAtSpawn_IsKilledByTheFallbackStalker). This
+            // the start room; an idle player dies in ~10 s (see IdlePlayerInReach_IsKilledByTheFallbackStalker). This
             // test is about the objective chain, so the threats are removed.
             s.ThreatManager.Threats.Clear();
 
@@ -179,10 +179,15 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
-        public void IdlePlayerAtSpawn_IsKilledByTheFallbackStalker()
+        public void IdlePlayerInReach_IsKilledByTheFallbackStalker()
         {
             var rig = SessionHarness.CreateGolden();
             RunSession s = rig.Session;
+            var stalker = s.ThreatManager.Threats.Find(t => t.InstanceId == "fallback_2_0");
+            s.ThreatManager.Threats.RemoveAll(t => t != stalker);
+            stalker.RoomId = s.ResolvePlayerRoom(rig.Scene.PlayerPosition);
+            Vec3 attackPosition = rig.Scene.PlayerPosition + new Vec3(1, 0, 0);
+            stalker.WorldPosition = GdArray.Of((double)attackPosition.X, (double)attackPosition.Y, (double)attackPosition.Z);
             GdDict completion = null;
             s.PlayableSliceCompleted += summary => completion = summary;
             TickSeconds(rig, 15.0);

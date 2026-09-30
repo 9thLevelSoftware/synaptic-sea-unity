@@ -350,7 +350,12 @@ namespace SynapticSea.Tests.Session
             var events = new List<(string id, string kind, double damage, GdDict result)>();
             s.ThreatManager.ThreatAttacked += (id, kind, damage, result) => events.Add((id, kind, damage, result));
             foreach (ThreatAIState t in s.ThreatManager.Threats)
+            {
                 t.StructureDamage = 1.5;
+                t.RoomId = s.ResolvePlayerRoom(rig.Scene.PlayerPosition);
+                Vec3 position = rig.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                t.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
 
             TickSeconds(rig, 15.0);
             var playerHits = events.Where(e => e.kind == ThreatRuntime.ATTACK_TARGET_PLAYER).ToList();
@@ -368,6 +373,12 @@ namespace SynapticSea.Tests.Session
             // Weapon hits: a fresh session, crowbar equipped.
             SessionHarness.Rig armed = Boot();
             RunSession a = armed.Session;
+            foreach (ThreatAIState t in a.ThreatManager.Threats)
+            {
+                t.RoomId = a.ResolvePlayerRoom(armed.Scene.PlayerPosition);
+                Vec3 position = armed.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                t.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
             var weaponHits = new List<string>();
             var kills = new List<GdDict>();
             a.ThreatManager.ThreatAttacked += (id, kind, damage, result) =>
@@ -421,6 +432,12 @@ namespace SynapticSea.Tests.Session
 
             // Combat damage opens wounds.
             SessionHarness.Rig fight = Boot();
+            foreach (ThreatAIState t in fight.Session.ThreatManager.Threats)
+            {
+                t.RoomId = fight.Session.ResolvePlayerRoom(fight.Scene.PlayerPosition);
+                Vec3 position = fight.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                t.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
             TickSeconds(fight, 8.0);
             Assert.Greater(fight.Session.WoundState.ActiveCount(), 0, "threat hits opened a wound");
         }

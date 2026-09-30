@@ -87,6 +87,7 @@ namespace SynapticSea.Core.Session
         readonly GdDict _placeholderNodes = new GdDict();
         readonly GdDict _rewardedKills = new GdDict();
         string _lastAttackWeaponId = "";
+        double _weaponCooldown;
 
         /// <summary>ADR-0049: pure nav graph for pathfollowing (null = legacy hold still).</summary>
         public ShipNavGraph NavGraph;
@@ -162,6 +163,9 @@ namespace SynapticSea.Core.Session
         {
             NavGraph = new ShipNavGraph();
             long n = NavGraph.BuildFromLayout(layout ?? new GdDict());
+            foreach (object node in NavGraph.Nodes.Values)
+                if (node is GdDict record && record.Get("pos", null) is Vec3 position)
+                    record["pos"] = position + FallbackAnchor;
             _pathRuntime.Clear();
             return n;
         }
@@ -240,6 +244,7 @@ namespace SynapticSea.Core.Session
 
         public void TickThreats(double delta, VitalsState vitalsState, StatusEffectsState statusEffectsState, GdDict playerArmorProfile, Vec3 playerPosition)
         {
+            _weaponCooldown = Math.Max(0.0, _weaponCooldown - Math.Max(0.0, delta));
             DetectionState.UpdateInputs(PlayerNoiseValue, PlayerLightValue, PlayerSightValue, PlayerCrouchingValue, PlayerRoomIdValue);
             DetectionState.Tick(delta);
             AwarenessIndicator = 0.0;
@@ -272,12 +277,9 @@ namespace SynapticSea.Core.Session
                         canSee = false;
                         sightMult = 0.0;
                     }
-                    else
-                    {
-                        canSee = true;
-                    }
+                    // A clear ray cannot reopen a sealed room portal.
                 }
-                bool engageSame = sameRoom && canSee;
+                bool engageSame = canSee;
                 threat.Tick(delta, new GdDict
                 {
                     { "noise_level", noiseAt },
@@ -291,7 +293,7 @@ namespace SynapticSea.Core.Session
                     { "player_distance", playerDistance },
                 });
                 AwarenessIndicator = Math.Max(AwarenessIndicator, threat.AwarenessScore);
-                if (engageSame && threat.CanAttack() && vitalsState != null)
+                if (engageSame && playerDistance <= threat.AttackRange && threat.CanAttack() && vitalsState != null)
                 {
                     LastAttackResult = DamagePipeline.ApplyToVitals(vitalsState, statusEffectsState, playerArmorProfile, new GdDict
                     {
@@ -316,7 +318,7 @@ namespace SynapticSea.Core.Session
             SweepDeadThreats();
         }
 
-        public GdDict AttackWithWeapon(string weaponId, InventoryState inventoryState, EquipmentState equipmentState, AmmoState ammoState = null, string targetId = "")
+        public GdDict AttackWithWeapon(string weaponId, InventoryState inventoryState, EquipmentState equipmentState, AmmoState ammoState = null, string targetId = "", Vec3? playerPosition = null, Vec3? attackDirection = null)
         {
             if (inventoryState == null)
                 throw new ArgumentNullException(nameof(inventoryState), "inventory_state dependency cannot be null");
@@ -329,6 +331,8 @@ namespace SynapticSea.Core.Session
             string secondary = V.Str(equipmentState.GetEquipped("secondary_hand"));
             if (primary != weaponId && secondary != weaponId)
                 return new GdDict { { "ok", false }, { "reason", "weapon_not_equipped" } };
+            if (_weaponCooldown > 0.0)
+                return new GdDict { { "ok", false }, { "reason", "cooldown" } };
             string ammoItemId = V.Str(weapon.Get("ammo_item_id", ""));
             if (ammoItemId.Length > 0)
             {
@@ -339,7 +343,11 @@ namespace SynapticSea.Core.Session
                 if (!ammoState.Spend(weaponId))
                     return new GdDict { { "ok", false }, { "reason", "empty_magazine" }, { "ammo_item_id", ammoItemId } };
             }
-            ThreatAIState target = PickTarget(targetId);
+            _weaponCooldown = Math.Max(0.1, V.F64(weapon.Get("attack_interval", 0.5)));
+            PlayerNoiseValue = Math.Max(PlayerNoiseValue, V.F64(weapon.Get("noise", 0.0)));
+            ThreatAIState target = PickTarget(targetId, playerPosition ?? Vec3.Zero, attackDirection,
+                Math.Max(0.1, V.F64(weapon.Get("range", 2.5))),
+                GdMath.Clampf(V.F64(weapon.Get("aim_dot", 0.5)), -1.0, 1.0));
             if (target == null)
                 return new GdDict { { "ok", false }, { "reason", "no_target" } };
             GdDict result = DamagePipeline.ApplyToThreat(target, new GdDict
@@ -380,7 +388,7 @@ namespace SynapticSea.Core.Session
             var threatSummaries = new GdArray();
             foreach (ThreatAIState threat in Threats)
                 threatSummaries.Add(threat.GetSummary());
-            return new GdDict
+            var summary = new GdDict
             {
                 { "encounter_markers", EncounterMarkers.DeepCopy() },
                 { "threats", threatSummaries },
@@ -390,6 +398,8 @@ namespace SynapticSea.Core.Session
                 { "last_attack_result", LastAttackResult.DeepCopy() },
                 { "damage_pipeline", DamagePipeline.GetSummary() },
             };
+            if (_weaponCooldown > 0.0) summary["weapon_cooldown"] = _weaponCooldown;
+            return summary;
         }
 
         public bool ApplySummary(GdDict summary)
@@ -406,6 +416,7 @@ namespace SynapticSea.Core.Session
             // Godot assigns the dictionary itself (no duplicate).
             LastAttackResult = summary.Get("last_attack_result", new GdDict()) as GdDict ?? new GdDict();
             ClearRuntimeNodes();
+            _weaponCooldown = Math.Max(0.0, V.F64(summary.Get("weapon_cooldown", 0.0)));
             long idx = 0;
             if (summary.Get("threats", new GdArray()) is GdArray rawThreats)
             {
@@ -560,16 +571,26 @@ namespace SynapticSea.Core.Session
             }
         }
 
-        ThreatAIState PickTarget(string targetId = "")
+        ThreatAIState PickTarget(string targetId, Vec3 playerPosition, Vec3? direction, double range, double aimDot)
         {
+            ThreatAIState nearest = null;
+            double nearestDistance = double.PositiveInfinity;
             foreach (ThreatAIState threat in Threats)
             {
-                if (threat.Health <= 0.0)
-                    continue;
-                if (string.IsNullOrEmpty(targetId) || threat.InstanceId == targetId)
-                    return threat;
+                if (threat == null || threat.Health <= 0.0 || threat.WorldPosition.Count < 3) continue;
+                if (!string.IsNullOrEmpty(targetId) && threat.InstanceId != targetId) continue;
+                Vec3 offset = ThreatPos(threat) - playerPosition;
+                double distance = offset.Length();
+                if (distance > range || distance >= nearestDistance) continue;
+                if (EngagedLos.Has(threat.InstanceId) && !V.Bool(EngagedLos[threat.InstanceId])) continue;
+                if (SpatialPerception != null && PlayerRoomIdValue.Length > 0 && threat.RoomId.Length > 0
+                    && !SpatialPerception.CanSee(PlayerRoomIdValue, threat.RoomId)) continue;
+                if (direction.HasValue && direction.Value.LengthSquared() > 0.0 && distance > 0.01
+                    && direction.Value.Normalized().Dot(offset.Normalized()) < aimDot) continue;
+                nearest = threat;
+                nearestDistance = distance;
             }
-            return null;
+            return nearest;
         }
 
         void SpawnPlaceholder(ThreatAIState threat, long index)
@@ -787,6 +808,8 @@ namespace SynapticSea.Core.Session
             PlaceholdersCleared?.Invoke();
             _placeholderNodes.Clear();
             _rewardedKills.Clear();
+            _weaponCooldown = 0.0;
+            EngagedLos.Clear();
             Threats.Clear();
             _pathRuntime.Clear();
             CombatEngaged = false;

@@ -394,6 +394,13 @@ namespace SynapticSea.Core.Session
             return mgr != null && mgr.IsOperational("power");
         }
 
+        public string ResolvePlayerRoom(Vec3 worldPosition)
+        {
+            ShipNavGraph graph = ThreatManager?.NavGraph;
+            if (graph == null || graph.NodeCount() == 0) return "";
+            return graph.GetNodeRoom(graph.NearestNode(worldPosition));
+        }
+
         void TickThreatRuntime(double delta)
         {
             if (ThreatManager == null)
@@ -401,10 +408,13 @@ namespace SynapticSea.Core.Session
             Vec3 playerPos = HasPlayer ? PlayerPos : Vec3.Zero;
             bool moving = HasPlayer && PlayerMoving;
             bool crouching = HasPlayer && PlayerCrouching;
-            ThreatManager.SetPlayerSignals(moving ? 0.3 : 0.05, PlayerRoomLit() ? 0.6 : 0.15, 0.8, crouching, "");
+            ThreatManager.SetPlayerSignals(moving ? 0.3 : 0.05, PlayerRoomLit() ? 0.6 : 0.15, 0.8, crouching, ResolvePlayerRoom(playerPos));
             UpdateThreatEngagedLos();
             RefreshThreatNavCosts();
-            ThreatManager.TickThreats(delta, VitalsState, StatusEffectsState, PlayerArmorProfile(), playerPos);
+            GdDict armor = PlayerArmorProfile();
+            ThreatManager.TickThreats(delta, VitalsState, StatusEffectsState, armor, playerPos);
+            if (EquipmentState != null && EquipmentState.GetEquipped("suit") == "hardsuit" && armor.GetFloat("durability") < 40.0)
+                EquipmentState.ArmorDurability["hardsuit"] = armor.Get("durability", 40.0);
             if (ThreatManager.GetDetectedThreatCount() > 0)
                 TriggerTutorial("threat_spotted", "any");
             SyncCurrentShipCombatSummary();
@@ -416,6 +426,7 @@ namespace SynapticSea.Core.Session
         {
             if (ThreatManager == null || !HasPlayer)
                 return;
+            ThreatManager.ClearEngagedLos();
             ILineOfSightProbe probe = Deps.LosProbe;
             if (probe == null || !probe.HasSpace)
                 return;
@@ -428,10 +439,10 @@ namespace SynapticSea.Core.Session
                 if (tid.Length == 0 || threat.WorldPosition.Count < 3)
                     continue;
                 var to = new Vec3(V.F64(threat.WorldPosition[0]), V.F64(threat.WorldPosition[1]) + 1.0, V.F64(threat.WorldPosition[2]));
-                bool hit = probe.IntersectRay(from, to, out Vec3 hp);
+                bool hit = probe.IntersectRay(from, to, out _);
                 bool hasLos = !hit;
-                if (!hasLos)
-                    hasLos = hp.DistanceTo(to) < 1.5;
+                // The probe includes structure/hatch/portal layers, never the target's body.
+                // A blocker close to the target still blocks the attack.
                 ThreatManager.SetEngagedLos(tid, hasLos);
             }
         }
@@ -453,8 +464,15 @@ namespace SynapticSea.Core.Session
             var bulkheads = new GdArray();
             foreach (SealedHatch h in SealedHatches)
             {
-                if (h.IsValid && !h.Bypassed && h.CompartmentA.Length > 0 && h.CompartmentB.Length > 0)
-                    bulkheads.Add(GdArray.Of(h.CompartmentA, h.CompartmentB));
+                if (h.IsValid && h.CompartmentA.Length > 0 && h.CompartmentB.Length > 0)
+                {
+                    if (!h.Bypassed) bulkheads.Add(GdArray.Of(h.CompartmentA, h.CompartmentB));
+                    if (ThreatManager.SpatialPerception != null)
+                    {
+                        if (h.Bypassed) ThreatManager.SpatialPerception.UnblockLink(h.CompartmentA, h.CompartmentB);
+                        else ThreatManager.SpatialPerception.SetDoorState(h.CompartmentA, h.CompartmentB, "blocked");
+                    }
+                }
             }
             ThreatManager.UpdateNavDynamicCosts(fireRooms, bulkheads);
             ApplyIntegrityNavGaps();

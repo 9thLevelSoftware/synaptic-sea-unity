@@ -275,6 +275,12 @@ namespace SynapticSea.EditorTools.Content
                         foreach (var r in renderers.Skip(1)) b.Encapsulate(r.bounds);
                         entry["render_bounds_unity_min"] = GdArray.Of((double)b.min.x, (double)b.min.y, (double)b.min.z);
                         entry["render_bounds_unity_max"] = GdArray.Of((double)b.max.x, (double)b.max.y, (double)b.max.z);
+                        if (sm.moduleFamily == "floor" || sm.moduleFamily == "corridor_floor")
+                        {
+                            Vector3 expected = sm.godotBoundsMax - sm.godotBoundsMin;
+                            if (Mathf.Abs(b.size.x - expected.x) > 0.2f || Mathf.Abs(b.size.z - expected.z) > 0.2f)
+                                report.Warnings.Add($"{moduleId}: visual footprint {b.size.x:F2}x{b.size.z:F2} m differs from contract {expected.x:F2}x{expected.z:F2} m; fix the source or use an explicit tile adapter before production");
+                        }
                     }
                 }
 
@@ -425,6 +431,23 @@ namespace SynapticSea.EditorTools.Content
             }
             string relative = resPath.Substring(prefix.Length);
             string assetPath = "Assets/Content/Structural/" + relative;
+            Vec3 visualOffset = Vec3.Zero;
+            // Explicit local source bindings bridge legacy wrappers and authored variant exports.
+            // Never infer a different mesh from filename suffixes alone.
+            string bindingPath = Path.Combine(ResolveStructuralContentRoot(kitId), moduleId, moduleId + ".visual.json");
+            if (File.Exists(bindingPath))
+            {
+                var binding = GdJson.Parse(File.ReadAllText(bindingPath)) as GdDict;
+                string boundPath = binding?.GetDictOrEmpty("variants").GetString(label) ?? "";
+                if (boundPath.Length > 0)
+                {
+                    string localRoot = "Assets/Content/Structural/";
+                    if (!boundPath.StartsWith(localRoot, StringComparison.Ordinal) || boundPath.Contains(".."))
+                        throw new InvalidOperationException("Structural visual binding must remain inside " + localRoot);
+                    assetPath = boundPath;
+                }
+                visualOffset = Vec3.FromArray(binding?.GetDictOrEmpty("variant_offsets_m").Get(label, null));
+            }
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
             // KEEP ithappy wrappers may still name the v0 GLB path; only that kit may substitute.
             if (model == null
@@ -442,6 +465,7 @@ namespace SynapticSea.EditorTools.Content
             }
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(model, parent);
             instance.name = label;
+            instance.transform.localPosition += Frame.ToUnity(visualOffset);
             int hidden = 0;
             foreach (var t in instance.GetComponentsInChildren<Transform>(true))
             {

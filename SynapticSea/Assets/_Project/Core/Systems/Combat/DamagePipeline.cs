@@ -50,6 +50,7 @@ namespace SynapticSea.Core.Systems
         public GdDict ApplyToVitals(IDamageVitalsTarget vitalsState, EffectDispatcher.IStatusEffectsTarget statusEffectsState, GdDict armorProfile, GdDict @event)
         {
             GdDict resolved = ArmorResolver.ResolveDamage(@event, armorProfile);
+            if (armorProfile != null && !armorProfile.IsEmpty) armorProfile["durability"] = resolved.Get("durability", 0.0);
             double dmg = V.F64(resolved.Get("final_damage", 0.0));
             ApplyVitalsDamage(vitalsState, dmg);
             ApplyStatus(statusEffectsState, V.Str(@event.Get("status_effect_id", "")), V.F64(@event.Get("status_duration", -1.0)));
@@ -62,7 +63,8 @@ namespace SynapticSea.Core.Systems
         {
             if (threatState == null)
                 return new GdDict();
-            GdDict resolved = ArmorResolver.ResolveDamage(@event, threatState.ArmorProfile);
+            GdDict resolved = ArmorResolver.ResolveDamage(@event, threatState.ArmorProfile.IsEmpty
+                ? new GdDict { { "durability", 0.0 } } : threatState.ArmorProfile);
             resolved["stun_seconds"] = Math.Max(0.0, V.F64(@event.Get("stun_seconds", 0.0)));
             threatState.ApplyDamage(resolved);
             return FinalizeResult(@event, resolved);

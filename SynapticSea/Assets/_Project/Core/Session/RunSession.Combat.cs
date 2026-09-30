@@ -59,7 +59,7 @@ namespace SynapticSea.Core.Session
             if (EquipmentState.GetEquipped("suit") == "hardsuit")
             {
                 profile["resistance"] = new GdDict { { "physical", 0.20 }, { "bleed", 0.15 }, { "fire", 0.25 }, { "electric", 0.20 } };
-                profile["durability"] = 40.0;
+                profile["durability"] = EquipmentState.ArmorDurability.Get("hardsuit", 40.0);
                 profile["max_durability"] = 40.0;
             }
             return profile;
@@ -89,14 +89,17 @@ namespace SynapticSea.Core.Session
         }
 
         /// <summary><c>attack_primary</c>: attack with the equipped weapon (crowbar fallback); dissipates a phantom in reach.</summary>
-        public GdDict AttackWithEquippedWeapon()
+        public GdDict AttackWithEquippedWeapon(Vec3? attackDirection = null)
         {
             if (ThreatManager == null)
                 return new GdDict { { "ok", false }, { "reason", "threat_manager_missing" } };
             string weaponId = EquippedPrimaryWeaponId();
             if (weaponId.Length == 0)
                 weaponId = "crowbar";
-            GdDict result = ThreatManager.AttackWithWeapon(weaponId, InventoryState, EquipmentState, AmmoState);
+            UpdateThreatEngagedLos();
+            ThreatManager.PlayerRoomIdValue = ResolvePlayerRoom(PlayerPos);
+            GdDict result = ThreatManager.AttackWithWeapon(weaponId, InventoryState, EquipmentState, AmmoState,
+                playerPosition: PlayerPos, attackDirection: attackDirection);
             if (result.GetBool("ok"))
             {
                 RefreshInventoryHud();

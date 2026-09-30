@@ -25,7 +25,17 @@ namespace SynapticSea.Runtime
         const string CatalogPrefix = "Catalogs/KitCatalog_";
 
         /// <summary>Resources loader; tests may swap it.</summary>
-        public static Func<string, KitPrefabCatalog> LoadCatalog = id => Resources.Load<KitPrefabCatalog>(CatalogPrefix + id);
+        public static Func<string, KitPrefabCatalog> LoadCatalog = LoadFromResources;
+
+        static KitPrefabCatalog LoadFromResources(string id)
+        {
+            if (id == DefaultKitId)
+            {
+                var local = Resources.Load<KitPrefabCatalog>(CatalogPrefix + id + "_local");
+                if (local != null && local.useAsLocalOverride) return local;
+            }
+            return Resources.Load<KitPrefabCatalog>(CatalogPrefix + id);
+        }
 
         /// <summary>
         /// The catalog for a loaded kit document. Lookup order: wrapper-scene folder, then the kit's <c>kit_id</c>

@@ -41,6 +41,25 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
+        public void InteractionChoosesNearestLootRatherThanInsertionOrder()
+        {
+            var session = new RunSession(new RunSessionDeps());
+            var inventory = new InventoryState();
+            var far = new LootContainer();
+            var near = new LootContainer();
+            far.Configure("far", "", "far", inventory, new GdDict(), new Vec3(1.5, 0, 0), lootContext: new GdDict { { "contents", new GdArray() } });
+            near.Configure("near", "", "near", inventory, new GdDict(), new Vec3(0.5, 0, 0), lootContext: new GdDict { { "contents", new GdArray() } });
+            far.SetValidationPlayerInRange();
+            near.SetValidationPlayerInRange();
+            session.LootContainers.Add(far);
+            session.LootContainers.Add(near);
+            Assert.AreEqual("loot_container", session.RequestInteract());
+            Assert.IsTrue(near.Searched);
+            Assert.IsFalse(far.Searched);
+            Assert.IsFalse(session.CanFocusInteractable(near));
+        }
+
+        [Test]
         public void RepairPoint_ChannelCompletesAndConsumesParts()
         {
             ShipSystemsManager ship = BrokenReactorShip();

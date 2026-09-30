@@ -152,6 +152,12 @@ namespace SynapticSea.Core.Systems
             // Telegraph windup resolves into attack
             if (State == STATE_TELEGRAPH)
             {
+                if (!V.Bool(context.Get(SimKeys.SameRoom, true)) || V.F64(context.Get("player_distance", 0.0)) > AttackRange)
+                {
+                    TelegraphRemaining = 0.0;
+                    ChangeState(STATE_HUNT);
+                    return true;
+                }
                 TelegraphRemaining = Math.Max(0.0, TelegraphRemaining - delta);
                 if (TelegraphRemaining <= 0.0)
                     ChangeState(STATE_ATTACK);
@@ -213,6 +219,11 @@ namespace SynapticSea.Core.Systems
 
         void ResolveEngagement(double playerDistance)
         {
+            if (playerDistance > AttackRange)
+            {
+                ChangeState(STATE_HUNT);
+                return;
+            }
             // Stalk: keep hunting until within stalk_range (or attack_range if stalk unset).
             if (StalkRange > 0.0 && playerDistance > StalkRange)
             {
@@ -246,7 +257,7 @@ namespace SynapticSea.Core.Systems
         {
             double damage = Math.Max(0.0, V.F64(payload.Get("final_damage", payload.Get("amount", 0.0))));
             Health = Math.Max(0.0, Health - damage);
-            if (payload.Has("armor_profile") && payload.Get("armor_profile") is GdDict armor)
+            if (payload.Get("profile", payload.Get("armor_profile", null)) is GdDict armor)
                 ArmorProfile = armor.DeepCopy();
             double stunSeconds = Math.Max(0.0, V.F64(payload.Get("stun_seconds", 0.0)));
             if (stunSeconds > 0.0)

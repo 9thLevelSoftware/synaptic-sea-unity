@@ -446,6 +446,7 @@ namespace SynapticSea.Core.Session
             {
                 ThreatManager.ApplySummary(CurrentShip.CombatSummary);
                 ThreatManager.ConfigureNavGraph(CombatLayoutForCurrentShip());
+                ThreatManager.ConfigureSpatialPerception(CombatLayoutForCurrentShip());
             }
             else
             {

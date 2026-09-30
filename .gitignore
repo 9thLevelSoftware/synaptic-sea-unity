@@ -55,3 +55,8 @@ SynapticSea/Assets/StreamingAssets/build_stamp.json.meta
 
 # Local Cursor MCP config (Unity AI Assistant writes a session token here)
 .cursor/
+
+# Licensed sources and generated local visual overlay
+SynapticSea/Assets/Content/Purchased/
+SynapticSea/Assets/Content/Purchased.meta
+SynapticSea/Assets/Resources/Catalogs/KitCatalog_ship_structural_v0_local.asset*
