@@ -145,7 +145,8 @@ namespace SynapticSea.EditorTools.Content
                         var instance = Object.Instantiate(tile, visual.transform);
                         instance.name = "PurchasedTile_" + x + "_" + z;
                         foreach (var collider in instance.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(collider);
-                        var renderers = instance.GetComponentsInChildren<Renderer>(true);
+                        StructuralLayoutBuilder.HideCollisionOnlyVisuals(instance);
+                        var renderers = instance.GetComponentsInChildren<Renderer>(true).Where(r => r.enabled).ToArray();
                         if (renderers.Length == 0) throw new InvalidOperationException("Floor has no renderer.");
                         foreach (var renderer in renderers)
                         {

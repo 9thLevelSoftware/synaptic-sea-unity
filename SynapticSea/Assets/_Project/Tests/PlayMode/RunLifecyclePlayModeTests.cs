@@ -601,6 +601,82 @@ namespace SynapticSea.Tests.PlayMode
             || _s.BreachSealPoints.Any(r => r.IsValid && r.Channeling)
             || _s.DockBarriers.Any(r => r.IsValid && r.Channeling);
 
+        [UnityTest]
+        public IEnumerator RampLandingPresentationAndBothDeckTransfersPreservePhysicalStanding()
+        {
+            yield return StartThroughTitle(); _s.RefreshDeckTransitions();
+            var up = _s.DeckTransitions.First(d => d.DestinationDeck == 1);
+            yield return WalkTo(up.GlobalPosition,1.2f); yield return FixedSteps(10);
+            var player = _boot.Host.SceneState.Player; var rig = _boot.Host.SceneState.CameraRig;
+            Debug.Log("[RampStanding] before up player="+player.transform.position+" controller="+player.GetComponent<CharacterController>().bounds+" landing="+up.GlobalPosition);
+            var ray = rig.Camera.ScreenPointToRay(rig.Camera.WorldToScreenPoint(player.transform.position+Vector3.up*.8f));
+            foreach(var renderer in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+                if(renderer.enabled && renderer.bounds.IntersectRay(ray,out float distance) && distance < Vector3.Distance(ray.origin,player.transform.position))
+                    Debug.Log("[RampRenderer] "+renderer.name+" parent="+renderer.transform.parent?.name+" bounds="+renderer.bounds+" structural="+renderer.GetComponentInParent<StructuralModule>()?.layer+" marker="+renderer.GetComponentInParent<RuntimeMarker>()?.kind);
+            Assert.Less(player.transform.position.y,1.5f,"player is legitimately on lower deck before transfer");
+            foreach(float size in new[]{7f,4f,11f}) { rig.SetViewSize(size); yield return FixedSteps(10); yield return CaptureHud("ramp-lower-"+size+".png"); }
+            rig.SetViewSize(7); player.RequestInteract(); yield return FixedSteps(10);
+            Assert.Greater(player.transform.position.y,3.5f); Assert.Less(player.transform.position.y,5.5f);
+            Assert.IsTrue(_s.RequestSave()); yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            player = _boot.Host.SceneState.Player; yield return FixedSteps(10); Assert.Greater(player.transform.position.y,3.5f,"save at upper landing retains physical deck");
+            yield return CaptureHud("ramp-upper-loaded.png");
+            _s.RefreshDeckTransitions(); var down = _s.DeckTransitions.First(d=>d.DestinationDeck==0);
+            yield return WalkTo(down.GlobalPosition,1.2f); player.RequestInteract(); yield return FixedSteps(10);
+            Assert.Less(player.transform.position.y,1.5f); Assert.IsTrue(_s.RequestSave());
+            yield return BootPlayable(RunLaunchRequest.ContinueWorld()); yield return FixedSteps(10);
+            Assert.Less(_boot.Host.SceneState.Player.transform.position.y,1.5f,"save at lower landing retains physical deck");
+            yield return CaptureHud("ramp-lower-loaded.png");
+        }
+
+        IEnumerator CaptureHud(string name)
+        {
+            if(Application.isEditor) yield break; // The Windows GPU player owns the visual evidence.
+            string folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../artifacts/ramp-review"));
+            System.IO.Directory.CreateDirectory(folder); string path = System.IO.Path.Combine(folder,name);
+            // Batch players have no screen framebuffer. Render the actual camera and HUD panel offscreen,
+            // then composite their pixels; no UI is redrawn or invented by the capture helper.
+            var camera = _boot.Host.SceneState.CameraRig.Camera;
+            var panel = _boot.HudDocument.panelSettings;
+            var world = new RenderTexture(2048,1224,24);
+            var hud = new RenderTexture(2048,1224,0,RenderTextureFormat.ARGB32);
+            var pixels = new Texture2D(2048,1224,TextureFormat.RGBA32,false);
+            var hudPixels = new Texture2D(2048,1224,TextureFormat.RGBA32,false);
+            var oldCamera = camera.targetTexture; var oldPanel = panel.targetTexture;
+            bool oldClear = panel.clearColor; Color oldClearValue = panel.colorClearValue;
+            var oldActive = RenderTexture.active;
+            try
+            {
+                hud.Create(); panel.targetTexture = hud; panel.clearColor = true; panel.colorClearValue = Color.clear;
+                for(int i=0;i<10;i++) yield return null;
+                camera.targetTexture = world; camera.Render(); RenderTexture.active = world;
+                pixels.ReadPixels(new Rect(0,0,2048,1224),0,0); pixels.Apply();
+                RenderTexture.active = hud; hudPixels.ReadPixels(new Rect(0,0,2048,1224),0,0); hudPixels.Apply();
+                var sceneColors = pixels.GetPixels32(); var uiColors = hudPixels.GetPixels32(); int uiCount=0, sceneCount=0;
+                for(int i=0;i<sceneColors.Length;i++)
+                {
+                    if(uiColors[i].a>0) uiCount++;
+                    if(sceneColors[i].r+sceneColors[i].g+sceneColors[i].b>30) sceneCount++;
+                    float alpha=uiColors[i].a/255f;
+                    sceneColors[i] = new Color32((byte)Mathf.Min(255,uiColors[i].r+sceneColors[i].r*(1-alpha)),
+                        (byte)Mathf.Min(255,uiColors[i].g+sceneColors[i].g*(1-alpha)),
+                        (byte)Mathf.Min(255,uiColors[i].b+sceneColors[i].b*(1-alpha)),255);
+                }
+                Assert.Greater(uiCount,1000,"capture must contain the actual rendered HUD");
+                Assert.Greater(sceneCount,10000,"capture must contain the rendered world");
+                pixels.SetPixels32(sceneColors); pixels.Apply(); System.IO.File.WriteAllBytes(path,pixels.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture=oldCamera; panel.targetTexture=oldPanel; panel.clearColor=oldClear; panel.colorClearValue=oldClearValue;
+                RenderTexture.active=oldActive; Object.Destroy(world); Object.Destroy(hud); Object.Destroy(pixels); Object.Destroy(hudPixels);
+            }
+        }
+
+        static IEnumerator FixedSteps(int count)
+        {
+            for(int i=0;i<count;i++) yield return new WaitForFixedUpdate();
+        }
+
         IEnumerator WalkAndFinishChannel(Vec3 at)
         {
             yield return WalkTo(at, 1.6f);

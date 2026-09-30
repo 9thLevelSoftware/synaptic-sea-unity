@@ -74,7 +74,7 @@ namespace SynapticSea.Runtime.Session
                 NavMeshBlocker.Attach(Blocker);
                 Visual = RuntimeVisualCatalog.AddMesh(transform, prefix + "Visual", RuntimeVisualCatalog.Cube,
                     RuntimeVisualCatalog.Material(ColorFor(zone), unshaded: true, transparent: true, doubleSided: true),
-                    new Vector3(0f, size.y * 0.5f, 0f), Quaternion.identity, size, PhysicsLayers.Prop, castShadows: false);
+                    new Vector3(0f,0.035f,0f), Quaternion.identity, new Vector3(size.x,0.025f,size.z), PhysicsLayers.Prop, castShadows: false);
                 // VfxCatalog hook: a powered route blocker reads as the biomatter blockage while it is closed.
                 if (zone.Kind == "route_gate") Vfx = VfxCatalog.Spawn(VfxCatalog.BiomatterBlockage, transform, Vec3.Zero);
             }

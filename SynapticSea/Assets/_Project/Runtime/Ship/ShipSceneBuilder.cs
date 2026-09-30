@@ -330,8 +330,9 @@ namespace SynapticSea.Runtime
             // Keep a standing passage at both ends while retaining the solid cue and authored pose.
             if (kind == RuntimeMarker.KindVerticalTransition) size.x = Mathf.Max(0.1f, size.x - 1.6f);
             Vector3 center = Frame.ToUnity(new Vec3(0f, spec.Size.Y * 0.5f, 0f));
-            RuntimeVisualCatalog.AddMesh(go.transform, "Mesh", RuntimeVisualCatalog.Cube,
+            var markerMesh = RuntimeVisualCatalog.AddMesh(go.transform, "Mesh", RuntimeVisualCatalog.Cube,
                 RuntimeVisualCatalog.Material(ToColor(spec.Color), emissionEnergy: 0.4f), center, Quaternion.identity, size, collisionLayer);
+            if(kind == RuntimeMarker.KindLandmark || kind == RuntimeMarker.KindBlockedRoute) markerMesh.GetComponent<Renderer>().enabled = false;
             var body = new GameObject("CollisionRoot") { layer = collisionLayer };
             body.transform.SetParent(go.transform, false);
             var box = body.AddComponent<BoxCollider>();
@@ -355,9 +356,10 @@ namespace SynapticSea.Runtime
             box.isTrigger = true;
             box.size = size;
             box.center = center;
-            RuntimeVisualCatalog.AddMesh(go.transform, "Mesh", RuntimeVisualCatalog.Cube,
+            var sensorMesh = RuntimeVisualCatalog.AddMesh(go.transform, "Mesh", RuntimeVisualCatalog.Cube,
                 RuntimeVisualCatalog.Material(ToColor(spec.Color), unshaded: true, transparent: true), center, Quaternion.identity, size,
                 PhysicsLayers.Sensor, castShadows: false);
+            sensorMesh.GetComponent<Renderer>().enabled = false; // Trigger volumes are not player-facing solid room furniture.
             var zone = go.AddComponent<ZoneVolume>();
             zone.kind = spec.Kind;
             zone.size = size;

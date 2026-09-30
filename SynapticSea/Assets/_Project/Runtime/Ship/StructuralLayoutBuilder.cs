@@ -106,6 +106,7 @@ namespace SynapticSea.Runtime
                 }
 
                 var module = Object.Instantiate(prefab, result.Root.transform, false);
+                HideCollisionOnlyVisuals(module.gameObject);
                 module.transform.localPosition = Frame.ToUnity(godotPos);
                 module.transform.localRotation = Frame.YawRotation(yaw);
                 module.godotPosition = new Vector3(godotPos.X, godotPos.Y, godotPos.Z);
@@ -150,6 +151,15 @@ namespace SynapticSea.Runtime
                 result.ByModuleKey[module.moduleKey] = module;
             }
             return true;
+        }
+
+        public static void HideCollisionOnlyVisuals(GameObject root)
+        {
+            foreach(var renderer in root.GetComponentsInChildren<Renderer>(true))
+                if(renderer.name.EndsWith("_convcolonly",System.StringComparison.OrdinalIgnoreCase)
+                    || renderer.name.EndsWith("_colonly",System.StringComparison.OrdinalIgnoreCase)
+                    || renderer.name.EndsWith("-convcolonly",System.StringComparison.OrdinalIgnoreCase)
+                    || renderer.name.EndsWith("-colonly",System.StringComparison.OrdinalIgnoreCase)) renderer.enabled = false;
         }
 
         public static VertexWrapperPlacement.Result ResolveForKit(GdDict plan, KitPrefabCatalog kit)

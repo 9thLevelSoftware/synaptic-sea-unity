@@ -59,6 +59,17 @@ namespace SynapticSea.Runtime
             BackgroundColor = GodotClearColor;
         }
 
+        /// <summary>Readable gameplay minimum for layouts without an authored atmosphere; keep the dark background.</summary>
+        public static void ApplyPlayableDefaultEnvironment()
+        {
+            ApplyGodotDefaultEnvironment();
+            SetFlatAmbient(new Color(.22f,.25f,.29f),1f);
+            // Metal floor panels receive little diffuse ambient. A black reflected background made
+            // the walkable floor indistinguishable from empty space even after lifting ambient.
+            if (_playableReflection == null) _playableReflection = SolidReflection("SS_PlayableInteriorReflection",new Color(.32f,.36f,.4f));
+            RenderSettings.customReflectionTexture = _playableReflection;
+        }
+
         /// <summary>
         /// Godot multiplies the linear ambient colour by its energy; <see cref="RenderSettings.ambientLight"/> is read as
         /// sRGB and linearised, so pass the sRGB encoding of the linear product (a plain <c>color * energy</c> would
@@ -84,6 +95,7 @@ namespace SynapticSea.Runtime
         }
 
         static Cubemap _reflection;
+        static Cubemap _playableReflection;
 
         /// <summary>
         /// Godot's default reflected-light source is the background, i.e. the clear colour, so metals reflect a near-black
@@ -92,17 +104,19 @@ namespace SynapticSea.Runtime
         static void ApplyBackgroundReflection()
         {
             if (_reflection == null)
-            {
-                const int size = 4;
-                _reflection = new Cubemap(size, TextureFormat.RGBAHalf, false) { name = "SS_GodotClearReflection", hideFlags = HideFlags.DontSave };
-                Color c = GodotClearColor.linear;
-                var pixels = new Color[size * size];
-                for (int i = 0; i < pixels.Length; i++) pixels[i] = c;
-                for (int f = 0; f < 6; f++) _reflection.SetPixels(pixels, (CubemapFace)f);
-                _reflection.Apply(false, false);
-            }
+                _reflection = SolidReflection("SS_GodotClearReflection",GodotClearColor);
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
             RenderSettings.customReflectionTexture = _reflection;
+        }
+
+        static Cubemap SolidReflection(string name, Color color)
+        {
+            const int size = 4;
+            var map = new Cubemap(size,TextureFormat.RGBAHalf,false) {name=name,hideFlags=HideFlags.DontSave};
+            var pixels = new Color[size*size];
+            for(int i=0;i<pixels.Length;i++) pixels[i]=color.linear;
+            for(int face=0;face<6;face++) map.SetPixels(pixels,(CubemapFace)face);
+            map.Apply(false,false); return map;
         }
 
         public static GdDict Apply(Transform root, GdDict atmosphere, bool isAway)

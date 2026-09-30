@@ -29,6 +29,7 @@ namespace SynapticSea.Runtime
             public StructuralModule module;
             public string integrity;
             public GameObject outline;
+            public Transform assembly;
         }
 
         public void Update(Camera camera, Vector3? player, Vector3? focus, float dt)
@@ -133,6 +134,8 @@ namespace SynapticSea.Runtime
             var state = new State { renderer = renderer, originals = renderer.sharedMaterials, originalOff = renderer.forceRenderingOff,
                 module = renderer.GetComponentInParent<StructuralModule>(), canFade = true, lastWanted = _clock };
             state.integrity = state.module != null ? state.module.integrityState : "";
+            var portal = renderer.GetComponentInParent<AuthoredPortalRuntime>();
+            state.assembly = state.module != null ? state.module.transform : portal != null ? portal.transform : renderer.transform;
             foreach (var material in state.originals) state.canFade &= SupportsRetainedFade(material);
             if (state.canFade)
             {
@@ -161,11 +164,22 @@ namespace SynapticSea.Runtime
                 renderer.sharedMaterials = state.fades;
             }
             // A thin floor-level footprint keeps a removed foreground wall/door boundary legible. It has no collider.
-            var bounds = renderer.bounds;
-            state.outline = RuntimeVisualCatalog.AddMesh(null, "CameraWallFootprint", RuntimeVisualCatalog.Cube,
-                RuntimeVisualCatalog.Material(new Color(0.65f, 0.72f, 0.8f, 0.22f), true, true),
-                new Vector3(bounds.center.x, bounds.min.y + 0.025f, bounds.center.z), Quaternion.identity,
-                new Vector3(Mathf.Max(0.05f, bounds.size.x), 0.05f, Mathf.Max(0.05f, bounds.size.z)), PhysicsLayers.Prop, false);
+            // One boundary at the assembly's deck floor, never one floating strip per trim mesh.
+            // An overhead floor/ceiling is being removed to expose the lower deck: retaining a tile-sized
+            // footprint at that upper height would cover the player again.
+            bool boundary = (state.module != null && state.module.layer == "edge") || portal != null;
+            // An upper-deck wall base is also an overhead obstruction to the lower-deck player.
+            if(_lastPlayer.HasValue && Mathf.Abs(state.assembly.position.y-_lastPlayer.Value.y)>2f) boundary=false;
+            foreach(var active in _states.Values) if(active.assembly == state.assembly && active.outline != null) boundary = false;
+            if(boundary)
+            {
+                var bounds = renderer.bounds;
+                foreach(var part in state.assembly.GetComponentsInChildren<Renderer>()) if(part.enabled) bounds.Encapsulate(part.bounds);
+                state.outline = RuntimeVisualCatalog.AddMesh(null, "CameraWallFootprint", RuntimeVisualCatalog.Cube,
+                    RuntimeVisualCatalog.Material(new Color(0.65f, 0.72f, 0.8f, 0.12f), true, true),
+                    new Vector3(bounds.center.x, state.assembly.position.y + 0.025f, bounds.center.z), Quaternion.identity,
+                    new Vector3(Mathf.Max(0.05f,bounds.size.x),0.05f,Mathf.Max(0.05f,bounds.size.z)), PhysicsLayers.Prop,false);
+            }
             return state;
         }
 

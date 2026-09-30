@@ -610,7 +610,7 @@ namespace SynapticSea.Runtime.Session
             string biomePath = "res://data/procgen/biomes/" + biomeId + ".json";
             if (biomeId.Length == 0 || !CatalogRegistry.Exists(biomePath))
             {
-                AtmosphereApplier.ApplyGodotDefaultEnvironment();
+                AtmosphereApplier.ApplyPlayableDefaultEnvironment();
                 return;
             }
             GdDict atmosphere = (CatalogRegistry.LoadDict(biomePath) ?? new GdDict()).GetDictOrEmpty("atmosphere");

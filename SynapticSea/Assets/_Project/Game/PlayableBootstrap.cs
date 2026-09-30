@@ -118,7 +118,7 @@ namespace SynapticSea.Game
             }
             Services = AppServices.Ensure();
             EnsureGlobalVolume();
-            AtmosphereApplier.ApplyGodotDefaultEnvironment();
+            AtmosphereApplier.ApplyPlayableDefaultEnvironment();
 
             HudDocument = MakeDocument("HUD", hudPanelSettings, 0);
             var hud = HudDocument.gameObject.AddComponent<HudRoot>();

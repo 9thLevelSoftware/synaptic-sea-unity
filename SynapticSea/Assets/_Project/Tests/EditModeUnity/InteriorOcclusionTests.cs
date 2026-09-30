@@ -127,6 +127,51 @@ namespace SynapticSea.Tests.Unity
             _occlusion.RestoreAll(); Assert.AreSame(original, renderer.sharedMaterial);
         }
 
+        [Test] public void UpperFloorRevealDoesNotRecreateTheObstructionAsAFootprint()
+        {
+            var floor = Wall(-3); floor.GetComponent<StructuralModule>().layer = "floor";
+            floor.gameObject.layer = PhysicsLayers.Walkable;
+            floor.transform.position = new Vector3(0, 2, -3); floor.transform.localScale = new Vector3(8, 0.2f, 8);
+            Reveal(); Reveal(); Assert.Greater(_occlusion.ActiveRendererCount, 0);
+            foreach (var node in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+                Assert.AreNotEqual("CameraWallFootprint", node.name, "upper floor must disappear completely");
+            Assert.IsTrue(floor.GetComponent<Collider>().enabled);
+        }
+
+        [Test] public void WallAssemblyHasOneFootprintAtItsBaseRatherThanAtEveryTrimHeight()
+        {
+            var root = new GameObject("LogicalWall"); _objects.Add(root);
+            root.transform.position = new Vector3(0, 0, -2); root.AddComponent<StructuralModule>().layer = "edge";
+            for (int i = 0; i < 3; i++)
+            {
+                var panel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                panel.transform.SetParent(root.transform, false); panel.transform.localPosition = new Vector3(0, 0.7f * (i + 1), 0);
+                panel.transform.localScale = new Vector3(4, 0.3f, 0.2f); panel.layer = PhysicsLayers.Structure;
+                panel.GetComponent<Renderer>().sharedMaterial = RuntimeVisualCatalog.Material(Color.gray);
+            }
+            Reveal(); Reveal(); int count = 0;
+            foreach (var node in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+                if (node.name == "CameraWallFootprint") { count++; Assert.Less(node.position.y, 0.1f); }
+            Assert.AreEqual(1, count);
+        }
+
+        [Test] public void CollisionOnlyImportedMeshIsHiddenWithoutRemovingCollision()
+        {
+            var helper = GameObject.CreatePrimitive(PrimitiveType.Cube); _objects.Add(helper);
+            helper.name = "Platform_Simple_1_convcolonly";
+            StructuralLayoutBuilder.HideCollisionOnlyVisuals(helper);
+            Assert.IsFalse(helper.GetComponent<Renderer>().enabled); Assert.IsTrue(helper.GetComponent<Collider>().enabled);
+        }
+
+        [Test] public void UpperWallDoesNotLeaveAnOverheadBoundaryForLowerDeckPlayer()
+        {
+            var wall=Wall(-4); wall.transform.position=new Vector3(0,3,-4);
+            Reveal(); Reveal(); Assert.Greater(_occlusion.ActiveRendererCount,0);
+            foreach(var node in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+                Assert.AreNotEqual("CameraWallFootprint",node.name);
+            _occlusion.RestoreAll(); Assert.IsTrue(wall.GetComponent<Collider>().enabled);
+        }
+
         [Test] public void SupportFloorIsKeptAndUpperDeckRestoresOnTeleport()
         {
             var floor = Wall(-2); floor.GetComponent<StructuralModule>().layer = "floor";

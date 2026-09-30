@@ -79,5 +79,18 @@ namespace SynapticSea.Tests.Unity
             Assert.AreEqual(0.02 * 1.6, summary.GetFloat("fog_density"), 1e-6);
             Assert.AreEqual(0.032f, RenderSettings.fogDensity, 1e-6f);
         }
+
+        [Test]
+        public void PlayableDefaultLightsMetalFloorsWithoutChangingLegacyCalibration()
+        {
+            AtmosphereApplier.ApplyPlayableDefaultEnvironment();
+            Assert.AreEqual(AtmosphereApplier.GodotClearColor,AtmosphereApplier.BackgroundColor);
+            var playable = (Cubemap)RenderSettings.customReflectionTexture;
+            Assert.Greater(playable.GetPixel(CubemapFace.PositiveX,0,0).r,AtmosphereApplier.GodotClearColor.linear.r*10);
+            AtmosphereApplier.ApplyGodotDefaultEnvironment();
+            Assert.AreNotSame(playable,RenderSettings.customReflectionTexture);
+            var legacy=(Cubemap)RenderSettings.customReflectionTexture;
+            Assert.AreEqual(AtmosphereApplier.GodotClearColor.linear.r,legacy.GetPixel(CubemapFace.PositiveX,0,0).r,0.0001f);
+        }
     }
 }
