@@ -116,7 +116,7 @@ namespace SynapticSea.Runtime.Session
             ComponentMarkers = new ComponentMarkerView(MakeChild("ComponentMarkerRoot"));
 
             ShipHost = new UnityShipSceneHost(transform);
-            ShipHost.RootAttached += _ => _environmentDirty = true;
+            ShipHost.RootAttached += _ => { _environmentDirty = true; SceneState?.CameraRig?.Occlusion.RefreshModules(); };
             ShipHost.RootFreed += r =>
             {
                 _environmentDirty = true;
@@ -267,9 +267,12 @@ namespace SynapticSea.Runtime.Session
         void LateUpdate()
         {
             if (Session == null || WorldLabels == null) return;
+            if (Input != null && !PointerOverScrollView()) RequestCameraZoom(Input.UI.ScrollWheel.ReadValue<Vector2>().y);
             PlayerController p = SceneState?.Player;
             Camera cam = SceneState?.CameraRig != null ? SceneState.CameraRig.Camera : null;
             WorldLabels.Update(cam, p != null ? p.transform.position : (Vector3?)null);
+            if (p != null && SceneState?.CameraRig != null)
+                SceneState.CameraRig.Occlusion.UpdateThreatVisibility(Threats.Nodes.Values, p.transform.position);
         }
 
         // ------------------------------------------------------------------ scene event views (D1/D2)
@@ -301,6 +304,25 @@ namespace SynapticSea.Runtime.Session
         public bool GameplayInputAllowed =>
             Session != null && !Paused && !(SimulationPaused != null && SimulationPaused()) && !Session.SliceComplete
             && !(GameplayInputBlocked != null && GameplayInputBlocked());
+
+        /// <summary>Wheel zoom shares the gameplay gate: inventory/menu scrolling cannot change the camera.</summary>
+        public bool RequestCameraZoom(float delta)
+        {
+            if (!GameplayInputAllowed || SceneState?.CameraRig == null || delta == 0f) return false;
+            SceneState.CameraRig.ZoomByWheel(delta);
+            return true;
+        }
+
+        bool PointerOverScrollView()
+        {
+            var panel = WorldLabels?.Container?.panel;
+            if (panel == null || Input == null) return false;
+            Vector2 point = Input.UI.Point.ReadValue<Vector2>();
+            var picked = panel.Pick(UnityEngine.UIElements.RuntimePanelUtils.ScreenToPanel(panel, new Vector2(point.x, Screen.height - point.y)));
+            for (var element = picked; element != null; element = element.parent)
+                if (element is UnityEngine.UIElements.ScrollView || element is UnityEngine.UIElements.Scroller) return true;
+            return false;
+        }
 
         /// <summary><c>attack_primary</c>: <see cref="RunSession.AttackWithEquippedWeapon"/> (null when refused by the gate).</summary>
         public GdDict RequestAttack()
@@ -479,6 +501,14 @@ namespace SynapticSea.Runtime.Session
             }
             string prompt = portal != null ? (portal.IsOpen ? "Close door" : portal.PortalKind == "LOCKED" ? "Unlock door" : "Open door")
                 : FocusedView != null ? FocusedView.PromptText : "";
+            // A screen-space label identifies the same authoritative focus as dispatch, even when a foreground wall
+            // covers the small marker. Capture this frame's selected anchor rather than another nearest target.
+            Vector3? focusAnchor = portal != null ? Frame.ToUnity(portal.GlobalPosition) :
+                FocusedView != null ? FocusedView.transform.position : (Vector3?)null;
+            if (SceneState?.CameraRig != null) SceneState.CameraRig.FocusAnchor = focusAnchor;
+            WorldLabels.Set("focused_interaction", string.IsNullOrEmpty(prompt) ? "" : "E · " + prompt,
+                () => focusAnchor.HasValue ? focusAnchor.Value + Vector3.up * 1.2f : (Vector3?)null,
+                new Color(1f, 0.95f, 0.65f), false, !string.IsNullOrEmpty(prompt));
             if (prompt != _focusPrompt)
             {
                 _focusPrompt = prompt;

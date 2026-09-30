@@ -31,6 +31,16 @@ namespace SynapticSea.EditorTools.Build
             library.litTransparentEmissive = Template(false, true, true);
             library.unlitOpaque = Template(true, false, false);
             library.unlitTransparent = Template(true, true, false);
+            const string silhouettePath = Folder + "/PlayerOcclusionSilhouette.mat";
+            var silhouette = AssetDatabase.LoadAssetAtPath<Material>(silhouettePath);
+            if (silhouette == null)
+            {
+                var shader = Shader.Find("SynapticSea/PlayerOcclusionSilhouette");
+                if (shader == null) throw new InvalidOperationException("Player occlusion silhouette shader is missing.");
+                silhouette = new Material(shader);
+                AssetDatabase.CreateAsset(silhouette, silhouettePath);
+            }
+            library.playerOcclusionSilhouette = silhouette;
             library.Validate();
             EditorUtility.SetDirty(library);
             AssetDatabase.SaveAssets();
@@ -81,6 +91,8 @@ namespace SynapticSea.EditorTools.Build
             if (library == null) throw new BuildFailedException("Missing runtime visual materials. Run Synaptic Sea/Build/Rebuild Runtime Visual Materials.");
             try { library.Validate(); }
             catch (InvalidOperationException error) { throw new BuildFailedException(error.Message); }
+            if (library.playerOcclusionSilhouette == null || library.playerOcclusionSilhouette.shader.name != "SynapticSea/PlayerOcclusionSilhouette")
+                throw new BuildFailedException("Player silhouette material is missing; rebuild runtime visual materials.");
         }
     }
 

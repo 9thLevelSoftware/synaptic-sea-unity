@@ -9,6 +9,7 @@ namespace SynapticSea.Runtime
         public const string ResourcePath = "Catalogs/RuntimeVisualMaterials";
         public Material litOpaque, litTransparent, litEmissive, litTransparentEmissive;
         public Material unlitOpaque, unlitTransparent;
+        public Material playerOcclusionSilhouette;
 
         public static RuntimeVisualMaterialLibrary Load()
         {

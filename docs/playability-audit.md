@@ -340,3 +340,22 @@ exception/error lines. This is owner-operated native play evidence; the agent
 did not send those inputs. Native agent-driven save/load and a native capture
 are still unverified. The owner also identified excessive camera height and
 poor in-room interaction visibility, which is the next separate fix.
+
+## Camera and interaction readability — 2026-09-30
+
+The owner's follow-up requested Project Zomboid-inspired framing, wheel zoom and wall hiding. The resulting camera uses a fixed approximately 30-degree diagonal orthographic view, default half-height 7 (14 metres of vertical view), with smooth bounded wheel levels 4 through 11. These are project tuning rather than documented PZ engine constants. Room scale, assets, collision and navigation are unchanged. A focused `E · <action>` world label follows the same authoritative interaction target. Menus and scrollable UI suppress camera zoom.
+
+Parallel screen rays reveal all structural obstructions over the player and focused object. Docked union collision does not retain individual module owners, so actual structural visual bounds participate too. Supported serialized URP variants fade; unsupported custom/purchased shaders use reversible hiding and a thin floor footprint. Upper-deck blockers restore along with walls on movement, zoom, pooling, teleports and teardown. A retained depth-tested shader provides a player-only silhouette. Physical line of sight still suppresses enemies behind solid walls. Shared materials are preserved and temporary material clones are destroyed. This is a fade/hide implementation with boundary context, not PZ's identical curved ankle-height cutaway.
+
+Final verification: **1,001 Edit Mode passes, zero failures, 17 unchanged upstream skips** (`camera-final-edit.xml`); **54 GPU Editor Play Mode passes**, zero failures/skips (`camera-final-play.xml`). The independently built GPU Windows test player passed **5/5**, zero failures/skips (`camera-final-windows-local.xml`): Title/New Run, wheel/focus, actual room rendering at multiple zoom/deck positions, F5/F9 save/load and retained shader support. Its supported NUnit callback saved results locally and the player exited. The initial Editor-connection launch failed with no callbacks and is not counted as a test pass. No native OS input was sent. Core code is unchanged; the previous 732-pass result was not rerun for this presentation slice.
+
+The separate development Mono build passed with **488.3 MB, zero errors**, timestamp **2026-09-30T17:05:02Z**, Unity **6000.6.0f1**, version **0.1.0**. Open:
+
+`F:\tmp\synaptic-sea-playable\builds\StandaloneWindows64\camera-zoom-20260930\TheSynapticSea.exe`
+
+Runtime assembly SHA-256:
+`0397328BDA7FC747DEC4A435811B3E9A1C182259C4FA8B87E87707BB3DA8B86A`.
+
+The working shader-fix build remains preserved. The owner should close their older game when convenient before launching this distinct camera build. The owner already accepted loading, movement and interaction on the shader-fix build; owner acceptance of these new camera controls and agent-native input remain pending. Existing saves and licensed source assets are untouched. Colony mechanics, class progression decisions and creature owner approvals remain paused.
+
+Actual 2048 x 1224 Windows GPU camera renders are in `builds/StandaloneWindows64/artifacts/screenshots/camera-{before,after,close,far,upper-deck}.png`. The comparison confirms larger indoor framing and obstruction reveal with unchanged structural transforms/collider states. These are real camera-only captures, not generated images or native desktop/HUD screenshots. Existing dark lighting and placeholder art remain; no broad lighting redesign, exhaustive material/performance benchmark or full-game completion is claimed. Detailed controls, restoration coverage, limitations and Unity opening instructions are in [camera-readability.md](playtest/camera-readability.md).

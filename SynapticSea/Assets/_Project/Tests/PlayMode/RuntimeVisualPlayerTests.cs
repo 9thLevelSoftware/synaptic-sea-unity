@@ -15,6 +15,8 @@ namespace SynapticSea.Tests.PlayMode
         {
             Assert.AreNotEqual(GraphicsDeviceType.Null, SystemInfo.graphicsDeviceType, "This test requires GPU rendering.");
             var library = RuntimeVisualMaterialLibrary.Load();
+            Assert.IsNotNull(library.playerOcclusionSilhouette);
+            Assert.IsTrue(library.playerOcclusionSilhouette.shader.isSupported, "player-only silhouette shader must survive build stripping");
             foreach (bool unlit in new[] { false, true })
             foreach (bool transparent in new[] { false, true })
             foreach (bool emissive in new[] { false, true })

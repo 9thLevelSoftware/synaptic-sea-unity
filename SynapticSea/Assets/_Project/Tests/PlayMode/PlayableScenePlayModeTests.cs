@@ -850,6 +850,108 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator CameraWheelZoomHonorsTheGameplayGateAndFocusedLabelMatchesDispatch()
+        {
+            yield return BootPlayable(RunLaunchRequest.NewRun());
+            var rig = _boot.Host.SceneState.CameraRig;
+            var mouse = InputSystem.AddDevice<Mouse>();
+            yield return null;
+            InputSystem.QueueDeltaStateEvent(mouse.scroll, new Vector2(0, 120));
+            yield return null; yield return null;
+            Assert.AreEqual(6f, rig.TargetViewSize, "real mouse scroll input reaches the camera");
+            float zoomDeadline = Time.realtimeSinceStartup + 2f;
+            while (Mathf.Abs(rig.Camera.orthographicSize - 6f) > 0.01f && Time.realtimeSinceStartup < zoomDeadline) yield return null;
+            Assert.AreEqual(6f, rig.Camera.orthographicSize, 0.05f);
+            var previousGate = _boot.Host.GameplayInputBlocked;
+            _boot.Host.GameplayInputBlocked = () => true;
+            try
+            {
+                InputSystem.QueueDeltaStateEvent(mouse.scroll, new Vector2(0, -120));
+                yield return null; yield return null;
+                Assert.AreEqual(6f, rig.TargetViewSize, "menu scrolling cannot zoom the world");
+                Assert.IsFalse(_boot.Host.RequestCameraZoom(-120));
+            }
+            finally { _boot.Host.GameplayInputBlocked = previousGate; }
+            var objective = _s.GetInteractableBySequence(1);
+            _boot.Host.SceneState.TeleportPlayer(objective.GlobalPosition);
+            yield return FixedSteps(3);
+            Assert.IsTrue(_boot.Host.WorldLabels.Has("focused_interaction"));
+            var label = _boot.Host.WorldLabels.Get("focused_interaction");
+            Assert.IsTrue(label.Visible);
+            Assert.IsTrue(label.Anchor().HasValue);
+            Assert.IsFalse(string.IsNullOrEmpty(label.Text));
+            Assert.IsNotNull(rig.FocusAnchor);
+            Assert.Less(Vector3.Distance(label.Anchor().Value, rig.FocusAnchor.Value + Vector3.up * 1.2f), 0.001f);
+            Assert.IsNotNull(Player.transform.Find("PlayerMarker/PlayerOcclusionSilhouette"));
+        }
+
+        [UnityTest]
+        public IEnumerator CameraComparisonCapturesRealRoomsAtOwnerResolutionWithoutChangingGeometry()
+        {
+            yield return BootPlayable(RunLaunchRequest.NewRun());
+            yield return FixedSteps(15);
+            var rig = _boot.Host.SceneState.CameraRig;
+            Vector3 configuredOffset = rig.godotOffset;
+            var root = _boot.Host.ShipHost.HomeLoader.GameObject;
+            var colliders = root.GetComponentsInChildren<Collider>(true);
+            var initialColliderStates = colliders.ToDictionary(c => c, c => c.enabled);
+            var modules = root.GetComponentsInChildren<StructuralModule>(true);
+            var initialTransforms = modules.ToDictionary(m => m, m => (m.transform.position, m.transform.localScale));
+            rig.enabled = false;
+            rig.godotOffset = new Vector3(16, 18, 16); rig.SetViewSize(11); rig.SyncToTarget();
+            float oldHeight = CaptureCameraComparison(rig.Camera, "camera-before.png");
+            rig.godotOffset = configuredOffset; rig.SetViewSize(7); rig.enabled = true; rig.SyncToTarget();
+            yield return FixedSteps(20);
+            yield return new WaitForSecondsRealtime(0.35f);
+            float newHeight = CaptureCameraComparison(rig.Camera, "camera-after.png");
+            Assert.Greater(rig.Occlusion.ActiveRendererCount, 0, "foreground reveal must run on actual docked ship geometry");
+            Assert.Greater(newHeight, oldHeight * 1.4f, "larger on-screen character without scaling rooms/player");
+            foreach (float level in new[] { 4f, 11f })
+            {
+                rig.SetViewSize(level); yield return FixedSteps(10);
+                yield return new WaitForSecondsRealtime(0.35f);
+                CaptureCameraComparison(rig.Camera, level == 4 ? "camera-close.png" : "camera-far.png");
+            }
+            var upper = _s.LootContainers.First(l => l.IsValid && l.GlobalPosition.Y > 3);
+            _boot.Host.SceneState.TeleportPlayer(upper.GlobalPosition);
+            rig.SetViewSize(7); yield return FixedSteps(20);
+            yield return new WaitForSecondsRealtime(0.35f);
+            CaptureCameraComparison(rig.Camera, "camera-upper-deck.png");
+            foreach (var collider in colliders) Assert.AreEqual(initialColliderStates[collider], collider.enabled, collider.name);
+            foreach (var module in modules)
+            {
+                Assert.AreEqual(initialTransforms[module].Item1, module.transform.position);
+                Assert.AreEqual(initialTransforms[module].Item2, module.transform.localScale);
+            }
+            Assert.AreEqual(0, rig.Camera.cullingMask & (1 << PhysicsLayers.Ceiling));
+            Assert.IsNotNull(SpawnClearance.FloorUnder(Player.transform.position));
+        }
+
+        float CaptureCameraComparison(Camera camera, string filename)
+        {
+            Assert.AreNotEqual(UnityEngine.Rendering.GraphicsDeviceType.Null, SystemInfo.graphicsDeviceType);
+            var target = new RenderTexture(2048, 1224, 24);
+            var pixels = new Texture2D(2048, 1224, TextureFormat.RGB24, false);
+            var previousTarget = camera.targetTexture; var previousActive = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = target; camera.Render(); RenderTexture.active = target;
+                pixels.ReadPixels(new Rect(0, 0, 2048, 1224), 0, 0); pixels.Apply();
+                string folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../../artifacts/screenshots"));
+                System.IO.Directory.CreateDirectory(folder);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(folder, filename), pixels.EncodeToPNG());
+                Vector3 feet = camera.WorldToViewportPoint(Player.transform.position);
+                Vector3 head = camera.WorldToViewportPoint(Player.transform.position + Vector3.up * PlayerController.DefaultCollisionHeight);
+                return Mathf.Abs(head.y - feet.y) * 1224;
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget; RenderTexture.active = previousActive;
+                Object.Destroy(target); Object.Destroy(pixels);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator LocalFloorOverlayPreservesThePlayableDeck()
         {
             yield return BootPlayable();

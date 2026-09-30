@@ -18,3 +18,4 @@ MonoBehaviour:
   litTransparentEmissive: {fileID: 2100000, guid: c886cea62f35c9c4f919927d6ed81007, type: 2}
   unlitOpaque: {fileID: 2100000, guid: 1c78d13b9287ac54d98fba595e85fded, type: 2}
   unlitTransparent: {fileID: 2100000, guid: fdc1e5f914c697e49a9d71de03624220, type: 2}
+  playerOcclusionSilhouette: {fileID: 2100000, guid: 5d30740f701ddf24899233131d20646d, type: 2}
