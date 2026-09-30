@@ -577,6 +577,23 @@ namespace SynapticSea.Tests.PlayMode
             yield return WalkTo(bridge.GlobalPosition, 1.2f);
             Assert.IsTrue(_s.TravelHome());
             Assert.IsFalse(_s.SliceComplete, "hub objective extraction remains available after returning");
+            var nextContact = _s.Scan().GetArrayOrEmpty("markers").Cast<GdDict>()
+                .FirstOrDefault(m => m.GetInt("size_class") >= 1 && !_s.VisitedShips.ContainsKey(m.GetString("marker_id")));
+            Assert.IsNotNull(nextContact, "normal scanner exposes a new larger wreck after one onboarding round trip");
+            bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
+            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            string nextId = nextContact.GetString("marker_id");
+            var nextTravel = _s.TravelToMarkerId(nextId);
+            Assert.IsTrue(nextTravel.GetBool("success"), "normal subsequent scanner travel: " + GdJson.Stringify(nextTravel));
+            for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+            Assert.AreEqual(SynapticSea.Core.Procgen.ExpeditionLayoutEngine.Profile, _s.CurrentShip.Blueprint.GenerationProfile);
+            Assert.AreEqual(SynapticSea.Core.Procgen.ExpeditionLayoutEngine.Profile, _s.CurrentShip.BuiltLayout.GetString("generation_profile"));
+            Debug.Log("[NaturalExpeditionRoute] second new destination=" + nextId + " size=" + nextContact.GetInt("size_class")
+                + " rooms=" + _s.CurrentShip.BuiltLayout.GetArrayOrEmpty("rooms").Count);
+            Assert.IsTrue(_s.RequestSave());
+            yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            Assert.AreEqual(SynapticSea.Core.Procgen.ExpeditionLayoutEngine.Profile, _s.CurrentShip.Blueprint.GenerationProfile, "actual Continue keeps expanded destination");
+            Assert.AreEqual(nextId, _s.CurrentShip.MarkerId);
         }
 
         bool NaturalChannelActive() => _s.RepairPoints.Any(r => r.IsValid && r.Channeling)
