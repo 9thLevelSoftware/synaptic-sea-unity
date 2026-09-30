@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
@@ -164,6 +165,30 @@ namespace SynapticSea.Tests.Session
             CollectionAssert.AreEqual(new[] { 42L, 777L }, seen);
             Assert.IsFalse(pick.Success);
             StringAssert.Contains(FirstRunAwayGate.UnsatisfiedReason, pick.Reason);
+        }
+
+        [Test]
+        public void FiniteHubMaintenanceCacheCoversDamagedFlightPartsAndTools()
+        {
+            RunSessionDeps deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
+            MilestoneALaunch.ApplyHubPaths(deps);
+            var session = RunSession.Create(deps);
+            Assert.IsTrue(session.InventoryState.Items.IsEmpty, "New Run grants no flight-repair inventory");
+            var cache = session.LootContainers.Single(c => c.ContainerId == "start_supply_a");
+            Assert.IsTrue(cache.TryInteract(cache.GlobalPosition));
+            var requirements = new Dictionary<string, int>();
+            var tools = new HashSet<string>();
+            foreach (var point in session.RepairPoints.Where(p => new[] { "power", "navigation", "scanners", "propulsion" }.Contains(p.SystemId)))
+            {
+                var sub = point.TargetManager.GetSystem(point.SystemId).GetSubcomponent(point.SubcomponentId);
+                foreach (string part in sub.RequiredParts) requirements[part] = requirements.TryGetValue(part, out int n) ? n + 1 : 1;
+                foreach (string tool in sub.RequiredTools) tools.Add(tool);
+            }
+            foreach (var part in requirements) Assert.GreaterOrEqual(session.InventoryState.GetQuantity(part.Key), part.Value, part.Key);
+            foreach (string tool in tools) Assert.Greater(session.InventoryState.GetQuantity(tool), 0, tool);
+            string before = GdJson.Stringify(session.InventoryState.Items);
+            Assert.IsFalse(cache.TryInteract(cache.GlobalPosition), "the finite supply cache pays only once");
+            Assert.AreEqual(before, GdJson.Stringify(session.InventoryState.Items));
         }
 
         [Test]

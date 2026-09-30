@@ -27,7 +27,20 @@ namespace SynapticSea.Tests
             "seed_000017_augmented_home", "seed_000017_augmented_away",
         };
 
-        public static GdDict Fixture(string caseName) => Fixtures.ReadDict($"{Dir}/{caseName}.json");
+        public static GdDict Fixture(string caseName)
+        {
+            GdDict fixture = Fixtures.ReadDict($"{Dir}/{caseName}.json");
+            // Captured Godot fixtures predate the finite Milestone A repair cache. Pin exactly
+            // that authored content change, retaining comparison of every other loader field.
+            if (caseName == "coherent_ship_001_home" || caseName == "coherent_ship_001_away")
+                ((GdDict)fixture.GetArray("loot_container_specs")[0])["contents"] = GdArray.Of(
+                    Stack("circuit_board", 3), Stack("power_cell", 3), Stack("data_core", 1),
+                    Stack("sensor_module", 2), Stack("reactor_core", 1), Stack("welder", 1),
+                    Stack("plasma_cutter", 1), Stack("hull_sealant", 6), Stack("fire_extinguisher", 1));
+            return fixture;
+        }
+
+        static GdDict Stack(string item, long quantity) => new GdDict { { "item_id", item }, { "qty", (double)quantity } };
 
         /// <summary>Absolute path of a fixture "inputs" entry (data/... under StreamingAssets, fixtures/... under the repo).</summary>
         public static string InputPath(string relative)

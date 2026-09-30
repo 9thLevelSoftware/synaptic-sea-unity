@@ -16,11 +16,12 @@ namespace SynapticSea.Tests.Session
         {
             public bool IsValid => true;
             public string PortalId => "test-door";
-            public string PortalKind => "DOOR";
+            public string Kind = "DOOR";
+            public string PortalKind => Kind;
             public bool IsExterior => false;
             public bool IsOpen { get; private set; }
             public Vec3 GlobalPosition { get; set; }
-            public string RequiredFlag() => "";
+            public string RequiredFlag() => Kind == "LOCKED" ? "lockpick" : "";
             public bool IsInRange(Vec3 position) => GlobalPosition.DistanceSquaredTo(position) <= 2.2 * 2.2;
             public GdDict TryInteract(GdDict flags, Vec3 position)
             {
@@ -29,6 +30,23 @@ namespace SynapticSea.Tests.Session
                 return new GdDict { { "ok", true }, { "open", IsOpen } };
             }
             public void RestorePersistentState(bool unlocked, bool open) => IsOpen = open;
+        }
+
+        [Test]
+        public void LockedPortalYieldsToReachableSuppliesWithoutUnlockingIt()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            var supplies = session.LootContainers[0];
+            session.Scene.PlayerPosition = supplies.GlobalPosition;
+            var locked = new TestPortal { Kind = "LOCKED", GlobalPosition = supplies.GlobalPosition };
+            ((FakeLoaderView)session.CurrentShip.SceneRoot).Portals.Add(locked);
+            Assert.IsNull(session.FocusedAuthoredPortal(session.Scene.PlayerPosition));
+            Assert.IsFalse(locked.IsOpen, "changing focus never opens or unlocks the door");
+            supplies.SetSearched(true);
+            Assert.AreSame(locked, session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "retain lock feedback when no ordinary target remains");
+            supplies.SetSearched(false);
+            session.CurrentShip.AuthoredUnlockedPortalIds.Add(locked.PortalId);
+            Assert.AreSame(locked, session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "an already unlocked closed door can be opened normally");
         }
 
         [Test]
@@ -115,6 +133,54 @@ namespace SynapticSea.Tests.Session
             sub.RequiredTools = new List<string>();
             sub.MinSkill = 0;
             return ship;
+        }
+
+        [Test]
+        public void BlockedRepairYieldsToAnActionableRepairAndKeepsItsRealSkillGate()
+        {
+            var rig = SessionHarness.CreateGolden();
+            var session = rig.Session;
+            var manager = BrokenReactorShip();
+            manager.GetSystem("power").GetSubcomponent("battery_cells").Health = 0;
+            var inventory = new InventoryState();
+            inventory.AddItem("reactor_core", 1);
+            inventory.AddItem("power_cell", 1);
+            var at = new Vec3(800, 0, 800);
+            var blocked = new RepairPoint();
+            var ready = new RepairPoint();
+            blocked.Configure("power", "reactor_core", manager, inventory, session.PlayerProgression, at, 4,
+                session.PlayerProgression.GetSkillLevel("repair") + 1);
+            ready.Configure("power", "battery_cells", manager, inventory, session.PlayerProgression, at, 4, 0);
+            session.RepairPoints.Clear();
+            session.RepairPoints.Add(blocked);
+            session.RepairPoints.Add(ready);
+            session.Scene.PlayerPosition = at;
+            Assert.IsFalse(blocked.CanBeginRepair());
+            Assert.IsTrue(ready.CanBeginRepair());
+            Assert.IsFalse(session.CanFocusInteractable(blocked));
+            Assert.IsTrue(session.CanFocusInteractable(ready));
+            Assert.AreEqual("repair_point", session.RequestInteract());
+            Assert.IsTrue(ready.Channeling);
+            Assert.IsFalse(blocked.Channeling);
+            ready.Free();
+            Assert.IsTrue(session.CanFocusInteractable(blocked), "retain blocked feedback when no actionable repair remains");
+        }
+
+        [Test]
+        public void BlockedRepairDoesNotHideReachableSupplies()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            var cache = session.LootContainers[0];
+            var blocked = new RepairPoint();
+            blocked.Configure("power", "reactor_core", BrokenReactorShip(), new InventoryState(), null, cache.GlobalPosition, 4, 0);
+            session.RepairPoints.Clear();
+            session.RepairPoints.Add(blocked);
+            session.Scene.PlayerPosition = cache.GlobalPosition;
+            Assert.IsFalse(blocked.CanBeginRepair());
+            Assert.IsFalse(session.CanFocusInteractable(blocked));
+            Assert.IsTrue(session.CanFocusInteractable(cache));
+            cache.SetSearched(true);
+            Assert.IsTrue(session.CanFocusInteractable(blocked), "the denied repair remains inspectable after supplies are searched");
         }
 
         [Test]

@@ -93,9 +93,17 @@ namespace SynapticSea.Core.Session
         }
 
         /// <summary>
-        /// Begins the channel if the player is in range and a dry-run of the gated repair would succeed (carries
-        /// parts/tools, meets skill). Returns true if the interaction was consumed.
+        /// Whether the repair has the required parts, tools and earned skill; does not consume resources.
         /// </summary>
+        public bool CanBeginRepair()
+        {
+            if (Channeling) return true;
+            if (Repaired || TargetManager == null) return false;
+            ShipSubcomponent sub = TargetManager.GetSystem(SystemId)?.GetSubcomponent(SubcomponentId);
+            return sub != null && !sub.IsFunctional() && PrecheckReason(sub, PlayerSkill()) == "ok";
+        }
+
+        /// <summary>Begins a channel in range, or consumes the interaction with a specific blocked reason.</summary>
         public bool TryStart(Vec3 playerPosition)
         {
             if (Channeling)

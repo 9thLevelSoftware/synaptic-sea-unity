@@ -325,6 +325,10 @@ namespace SynapticSea.Runtime
             marker.GodotBasisZ = spec.BasisZ;
 
             Vector3 size = Frame.SizeToUnity(spec.Size);
+            // This is a visible deck-change cue, not a sealed route. Its full-cell panel used to
+            // meet the adjoining door frame and leave less than capsule/agent clearance after a rebake.
+            // Keep a standing passage at both ends while retaining the solid cue and authored pose.
+            if (kind == RuntimeMarker.KindVerticalTransition) size.x = Mathf.Max(0.1f, size.x - 1.6f);
             Vector3 center = Frame.ToUnity(new Vec3(0f, spec.Size.Y * 0.5f, 0f));
             RuntimeVisualCatalog.AddMesh(go.transform, "Mesh", RuntimeVisualCatalog.Cube,
                 RuntimeVisualCatalog.Material(ToColor(spec.Color), emissionEnergy: 0.4f), center, Quaternion.identity, size, collisionLayer);

@@ -43,6 +43,23 @@ namespace SynapticSea.Tests.Unity
         ShipSceneBuilder NewBuilder() => ShipSceneBuilder.Create(_parent.transform);
 
         [TestCaseSource(nameof(Cases))]
+        public void DeckCueKeepsStandingPassagesAtBothEnds(string caseName)
+        {
+            var fixture = LoaderParity.Fixture(caseName);
+            var inputs = fixture.GetDict("inputs");
+            var builder = NewBuilder();
+            Assert.IsTrue(builder.LoadFromPaths(LoaderParity.InputPath(inputs.GetString("layout")),
+                LoaderParity.InputPath(inputs.GetString("kit")), LoaderParity.InputPath(inputs.GetString("gameplay_slice")), false));
+            foreach (var marker in builder.View.GetVisibleVerticalTransitionNodes())
+            {
+                float width = marker.GetComponentInChildren<BoxCollider>().size.x;
+                Assert.GreaterOrEqual((float)GeneratedShipLayout.CELL_SIZE - width + 0.0001f,
+                    4f * (PlayerController.DefaultCollisionRadius + SynapticSea.Runtime.Session.SpawnClearance.Skin),
+                    "both panel ends leave a full capsule passage beside the adjacent doorway");
+            }
+        }
+
+        [TestCaseSource(nameof(Cases))]
         public void LoadMatchesGodotLoader(string caseName)
         {
             Fixtures.Require($"{LoaderParity.Dir}/{caseName}.json");

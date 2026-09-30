@@ -3,6 +3,7 @@ using System.Linq;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Variant;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace SynapticSea.Runtime.Session
 {
@@ -12,6 +13,7 @@ namespace SynapticSea.Runtime.Session
         readonly List<Collider> _suppressedColliders = new List<Collider>();
         readonly List<Renderer> _suppressedRenderers = new List<Renderer>();
         readonly Dictionary<SessionInteractable, Vec3> _interactionOrigins = new Dictionary<SessionInteractable, Vec3>();
+        readonly Dictionary<SessionInteractable, float> _nextInteractionAttempt = new Dictionary<SessionInteractable, float>();
         SceneShipRoot _host, _mobile;
         Matrix4x4 _hostPose, _mobilePose;
         public int SuppressedColliderCount => _suppressedColliders.Count;
@@ -22,16 +24,53 @@ namespace SynapticSea.Runtime.Session
             foreach (var item in items)
             {
                 if (!item.IsValid || !ReferenceEquals(item.Parent, _mobile) || _interactionOrigins.ContainsKey(item)) continue;
-                if (!(item is RepairPoint || item is FireSuppressionPoint || item is BreachSealPoint)) continue;
+                if (!(item is RepairPoint || item is FireSuppressionPoint || item is BreachSealPoint || item is BridgeTerminal)) continue;
                 Vector3 point = Frame.ToUnity(item.GlobalPosition);
-                if (SpawnClearance.IsClear(point)) continue;
+                if (_nextInteractionAttempt.TryGetValue(item, out float next) && Time.unscaledTime < next) continue;
+                _nextInteractionAttempt[item] = Time.unscaledTime + 0.5f;
+                if (StandingAndConnected(point)) { _interactionOrigins[item] = item.LocalPosition; continue; }
                 bool OnDeck(Collider floor) => Mathf.Abs(floor.bounds.max.y - point.y) < 1f
                     && (floor.transform.IsChildOf(_host.GameObject.transform) || floor.transform.IsChildOf(_mobile.GameObject.transform));
-                if (!SpawnClearance.TryFindClear(point, OnDeck, out var clear)
+                if (!TryConnectedPoint(point, (float)item.InteractionRadius, OnDeck, out var clear)
                     || Vector3.Distance(point, clear) >= item.InteractionRadius) continue;
                 _interactionOrigins[item] = item.LocalPosition;
                 item.LocalPosition = Frame.ToGodot(_mobile.GameObject.transform.InverseTransformPoint(clear));
             }
+        }
+
+        bool StandingAndConnected(Vector3 point)
+        {
+            if (!SpawnClearance.IsClear(point) || SpawnClearance.FloorUnder(point) == null) return false;
+            // Unit-only roots without a loader retain the physical-clearance contract.
+            if (!(_host is IShipLoaderView loader)) return true;
+            var filter = new NavMeshQueryFilter { agentTypeID = ShipNavMesh.AgentTypeId, areaMask = NavMesh.AllAreas };
+            Vector3 entry = Frame.ToUnity(_host.GlobalTransform * loader.GetStartTransform().Origin);
+            if (!NavMesh.SamplePosition(entry, out var start, 2.5f, filter)
+                || !NavMesh.SamplePosition(point, out var target, 0.75f, filter)) return false;
+            if (Vector2.Distance(new Vector2(point.x, point.z), new Vector2(target.position.x, target.position.z)) > 0.2f) return false;
+            var path = new NavMeshPath();
+            return NavMesh.CalculatePath(start.position, target.position, filter, path) && path.status == NavMeshPathStatus.PathComplete;
+        }
+
+        bool TryConnectedPoint(Vector3 original, float limit, System.Func<Collider, bool> onDeck, out Vector3 clear)
+        {
+            clear = original;
+            for (float ring = SpawnClearance.SearchStep; ring < limit; ring += SpawnClearance.SearchStep)
+            {
+                int samples = Mathf.Max(8, Mathf.CeilToInt(2f * Mathf.PI * ring / SpawnClearance.SearchStep));
+                for (int i = 0; i < samples; i++)
+                {
+                    float angle = i * 2f * Mathf.PI / samples;
+                    Vector3 candidate = original + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * ring;
+                    Collider floor = SpawnClearance.FloorUnder(candidate);
+                    if (floor == null || !onDeck(floor)) continue;
+                    candidate.y = Mathf.Max(candidate.y, floor.bounds.max.y + SpawnClearance.Skin);
+                    if (Vector3.Distance(original, candidate) >= limit || !StandingAndConnected(candidate)) continue;
+                    clear = candidate;
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void Reconcile(SceneShipRoot host, SceneShipRoot mobile)
@@ -96,6 +135,7 @@ namespace SynapticSea.Runtime.Session
         {
             foreach (var origin in _interactionOrigins) if (origin.Key.IsValid) origin.Key.LocalPosition = origin.Value;
             _interactionOrigins.Clear();
+            _nextInteractionAttempt.Clear();
             foreach (var collider in _suppressedColliders) if (collider != null)
             {
                 var module = collider.GetComponentInParent<StructuralModule>();

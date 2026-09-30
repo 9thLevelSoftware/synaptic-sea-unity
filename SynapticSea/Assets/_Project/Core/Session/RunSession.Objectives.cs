@@ -394,6 +394,10 @@ namespace SynapticSea.Core.Session
             if (Loader != null)
             {
                 Vec3 roomCenter = Loader.GetRoomCenter("tool_storage_01");
+                // The Milestone A hub has maintenance instead of tool storage. Use an authored room,
+                // never an unchecked player-relative offset inside the overlapping docked airlock.
+                if (roomCenter == Vec3.Inf && Deps.LayoutPath == SynapticSea.Core.Procgen.MilestoneALaunch.HubLayoutPath)
+                    roomCenter = Loader.GetRoomCenter("maintenance_01");
                 if (roomCenter != Vec3.Inf)
                     return ToGlobal(Loader, roomCenter) + new Vec3(0.0f, (float)PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR, 0.0f);
             }

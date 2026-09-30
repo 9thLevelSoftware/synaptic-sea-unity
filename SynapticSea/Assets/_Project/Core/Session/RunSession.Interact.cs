@@ -21,6 +21,12 @@ namespace SynapticSea.Core.Session
             if (item is BridgeTerminal terminal && PilotedShip != null && PilotedShip.ShipId == terminal.ShipId) return false;
             if (item is LootContainer loot && loot.Searched) return false;
             if (item is RepairPoint repair && repair.Repaired) return false;
+            // Small ships can share room anchors. A blocked high-skill repair must not conceal
+            // an actionable repair at the same station. Keep blocked feedback when none can start.
+            if (item is RepairPoint blocked && !blocked.CanBeginRepair()
+                && (RepairPoints.Any(other => !ReferenceEquals(other, blocked) && other.IsValid && other.IsInsideTree
+                        && other.CanBeginRepair() && HasInteractionSightAndReach(other))
+                    || LootContainers.Any(loot => loot.IsValid && loot.IsInsideTree && !loot.Searched && HasInteractionSightAndReach(loot)))) return false;
             if (item is DockPortBarrier barrier && barrier.Opened) return false;
             if (item is ObjectiveInteractable objective && (!objective.Active || objective.Completed)) return false;
             if (item is DeckTransition deck) return deck.InReach(PlayerPos);
@@ -28,6 +34,10 @@ namespace SynapticSea.Core.Session
                 && Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, item.GlobalPosition + Vec3.Up, out _)) return false;
             return true;
         }
+
+        bool HasInteractionSightAndReach(SessionInteractable item) => item.IsPlayerInDirectRangeStrict(PlayerPos)
+            && (Deps.LosProbe == null || !Deps.LosProbe.HasSpace
+                || !Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, item.GlobalPosition + Vec3.Up, out _));
 
         IEnumerable<T> NearestInteractables<T>(IEnumerable<T> items, Vec3 player) where T : SessionInteractable =>
             items.Where(item => CanFocusInteractable(item)).OrderBy(item => item.GlobalPosition.DistanceSquaredTo(player)).ToList();
@@ -392,7 +402,10 @@ namespace SynapticSea.Core.Session
                 || DeckTransitions.Any(deck => CanFocusInteractable(deck) && deck.InReach(p));
             return loader.GetAuthoredPortals()
                 .Where(portal => portal != null && portal.IsValid && portal.IsInRange(p)
-                    && (!portal.IsOpen || !ordinaryTarget))
+                    && (!portal.IsOpen || !ordinaryTarget)
+                    && (!ordinaryTarget || portal.PortalKind != "LOCKED"
+                        || CurrentShip.AuthoredUnlockedPortalIds.Contains(portal.PortalId)
+                        || (UtilityItemState != null && V.Bool(UtilityItemState.ActiveFlags.Get(portal.RequiredFlag(), false)))))
                 .OrderBy(portal => portal.IsOpen ? 1 : 0)
                 .ThenBy(portal => portal.GlobalPosition.DistanceSquaredTo(p)).FirstOrDefault();
         }

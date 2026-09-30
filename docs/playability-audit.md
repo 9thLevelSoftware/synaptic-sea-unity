@@ -53,10 +53,10 @@ Then run **Synaptic Sea → Content → Enable Purchased MegaKit Floors (local)*
 
 ## Remaining high-impact work
 
-1. Extend the combined natural journey through resource acquisition, first-away combat and return. Title/New Run, walking, bidirectional deck transfers, loot, save/Continue, objective extraction/results/restart and normal-damage death/results/restart are now covered; first-away repair/travel/return currently has separate fixture-driven coverage.
+1. Extend the combined natural journey through first-away combat and more character classes/seeds. The fourth slice below closes default-Engineer resource acquisition, repair training, first-away looting, return and save/Continue with physical walking. Natural extraction and death/restart retain separate coverage.
 2. Review custom damaged/breached geometry, remaining contract/visual mismatches, connector openings and multi-deck transitions across more seeds. The reusable adapter deliberately accepts only compatible planar tiles; it is not a general mesh normalization solution.
 3. Complete authoritative interaction selection across all categories and presentation prompts. Common stale/nearest-target defects are fixed, but the dispatch architecture still has category-specific handlers.
-4. Integrate critter-crafter behind a safe placeholder fallback. The game currently instantiates primitive threat visuals and does not reference the companion package. Production generation requires approved skeletons/parts; draft assets are not autoapproved by this work.
+4. Complete owner review and configure approved production creature art. The third slice below integrates the pinned companion behind a safe placeholder fallback. Production generation requires approved skeletons/parts; draft assets are not autoapproved by this work.
 5. Implement a designed colony biomass/harvest/defense progression slice. Current infestation is scalar coverage/hull pressure and threats are fixed archetypes. The companion provides compatibility/budget generation and gait/IK constraints, not learning, resource harvesting or physical evolutionary adaptation. Those systems remain absent.
 
 The original checkouts and their local settings are preserved. No remote publication, merge or deployment is included.
@@ -119,3 +119,85 @@ standalone expedition or owner-creature rendering verification.
 
 The next proposed finite-harvest/biomass-reserve/alert-defense slice is specified in
 [colony-defense-proposal.md](colony-defense-proposal.md). It has not been implemented.
+
+## Fourth slice: natural first-away progression
+
+The default Engineer previously could not repair the lifeboat through ordinary
+play: the hub maintenance cache lacked required parts, and crafting a reactor
+core required unavailable inputs and fabrication skill. `start_supply_a` now
+contains a finite, authored repair kit: three circuit boards, three power cells,
+one data core, two sensor modules, one reactor core, a welder, a plasma cutter,
+six hull sealants and a fire extinguisher. Its existing location and one-search
+semantics remain. The other cache remains randomized. Existing saves that have
+already searched this cache do not receive replacement items; start a New Run
+to exercise the corrected onboarding supplies.
+
+Real repair tools, materials, channel durations and skill checks remain. The
+Engineer starts with repair skill three and earns the higher requirement by
+performing available lower-skill repairs. Shared repair stations now expose an
+actionable repair or unsearched supply before a blocked high-skill repair;
+blocked feedback remains when no actionable target exists. An unavailable locked
+door also yields interaction focus to an ordinary reachable target, without
+unlocking or opening the door. Presentation and dispatch use these same rules.
+
+The hub oxygen pump now uses its existing maintenance room when the authored
+tool-storage room is absent, rather than an arbitrary player-relative offset
+inside the overlapping dock. The fallback applies only to the supported hub.
+Docked bridge/repair anchors require a supported standing capsule and a complete
+navigation path from the host entry; relocation stays within original reach and
+restores on undock. Deck-transition cues retain solid geometry but leave standing
+passages beside their adjoining door frames. Authored sources, assets, docking
+transforms and lock checks remain intact.
+
+`WalkRepairTravelBoardAndReturnWithoutFixtureResources` starts through the real
+title/New Run flow, physically walks between decks and loot, acquires the pump,
+performs timed repairs and earns skill, seals breaches, walks to the cockpit,
+uses guarded scanner travel, boards the generated wreck, searches loot, walks
+back, returns home, saves and continues. It asserts persisted repaired systems,
+earned skill, the pump, the searched one-time home cache and away loot identity.
+It does not grant inventory, boost skills, teleport or complete objectives by
+fixture shortcuts. Natural death and objective extraction/results/restart remain
+separate acceptance tests, not a claim of one combined combat expedition.
+
+The historical loader snapshots still compare every field. Their one intentional
+cache change is pinned to the exact nine item/quantity pairs, not excluded from
+comparison. Regression coverage also preserves blocked repair and locked-door
+feedback and deck passage width across ten layouts.
+
+For a local player check, open Boot and select New Run with default Engineer,
+seed 17, breach field and standard difficulty. Use E at deck cues and doors,
+search the upper-deck maintenance supplies, collect the oxygen pump, then return
+to the lifeboat. Repair available lower-skill components before the reactor and
+scanner assembly; use the actual timed repair channels and seal open breaches.
+Walk to the cockpit, scan/select a reachable wreck, board and loot, then return
+to the cockpit and home. Save and Continue to inspect retained progress.
+Completing every hub objective intentionally ends the extraction slice; leave
+that chain unfinished while checking first-away travel.
+
+Actual gameplay-camera output is saved locally at
+`artifacts/screenshots/natural-first-away.png`. It omits the HUD and shows the
+current prototype presentation; it is not generated art or evidence of an
+approved production creature. Default Engineer/seed 17 is the combined journey
+covered here; other class onboarding, broad seed acceptance and combined
+first-away combat remain further work. Colony mechanics and owner approvals
+remain pending their separate decisions.
+
+Final fourth-slice aggregates: Core **714 passed, zero failed**
+(`builds/logs/first-away-final-core.trx`); Unity Edit Mode **966 passed, zero
+failed, 17 existing upstream skips** out of 983
+(`first-away-final-editmode-v2.xml`); GPU Unity Play Mode **51 passed, zero
+failed or skipped** (`first-away-final-playmode.xml`). The combined first-away
+journey and its final save/Continue assertions pass in that Play Mode aggregate.
+The 17 Edit Mode skips retain the companion library/export-fixture requirements
+documented above. Intermediate failing logs remain for diagnosis; they are not
+the final result.
+
+The final Windows development Mono player rebuilt successfully: **487.6 MB,
+zero errors**, version 0.1.0 (`first-away-final-build.log`). A hidden headless
+smoke launch reported the expected dev build stamp and reached the title without
+errors (`first-away-final-player-smoke.log`). The expedition itself was verified
+in GPU Unity Play Mode; standalone verification is limited to boot/title.
+
+The capture retains prototype visual weaknesses, including overlapping docking
+presentation, dim areas and primitive markers. Physical navigation/interaction
+acceptance does not establish production visual quality or full-game completion.

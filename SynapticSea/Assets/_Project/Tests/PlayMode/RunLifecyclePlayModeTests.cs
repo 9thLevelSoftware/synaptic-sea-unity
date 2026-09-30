@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using SynapticSea.App;
@@ -323,12 +324,14 @@ namespace SynapticSea.Tests.PlayMode
             var path = new NavMeshPath();
             for (int guard = 0; guard < 8; guard++)
             {
-                if (NavMesh.CalculatePath(player.transform.position, landing.position, filter, path) && path.status == NavMeshPathStatus.PathComplete) break;
+                if (TryStandingApproach(target, radius, player.transform.position, filter, out var standing))
+                { path = standing; break; }
+                NavMesh.CalculatePath(player.transform.position, landing.position, filter, path);
                 AuthoredPortalRuntime chosen = null;
                 NavMeshPath approach = null;
                 Vector3 blockedRouteEnd = path.corners.Length > 0 ? path.corners[path.corners.Length - 1] : landing.position;
-                foreach (var portal in _boot.Host.ShipHost.HomeLoader.View.GetAuthoredPortalNodes()
-                    .Where(p => !p.isOpen && !p.isExterior && p.portalKind != "LOCKED")
+                foreach (var portal in Object.FindObjectsByType<AuthoredPortalRuntime>()
+                    .Where(p => !p.isOpen && p.portalKind != "LOCKED")
                     .OrderBy(p => Vector3.Distance(p.transform.position, blockedRouteEnd)))
                 {
                     foreach (var offset in new[] { Vector3.right, Vector3.left, Vector3.forward, Vector3.back })
@@ -344,22 +347,15 @@ namespace SynapticSea.Tests.PlayMode
                     }
                     if (chosen != null) break;
                 }
-                if (chosen == null)
-                {
-                    // Interactions require reach, not standing inside the prop/ramp collider at its exact centre.
-                    for (float distance = 0.5f; distance <= radius; distance += 0.5f)
-                        foreach (var offset in new[] { Vector3.right, Vector3.left, Vector3.forward, Vector3.back })
-                        {
-                            Vector3 candidate = Frame.ToUnity(target) + offset * distance;
-                            candidate.y = player.transform.position.y;
-                            if (!NavMesh.SamplePosition(candidate, out var sample, 0.3f, filter)) continue;
-                            var candidatePath = new NavMeshPath();
-                            if (NavMesh.CalculatePath(player.transform.position, sample.position, filter, candidatePath)
-                                && candidatePath.status == NavMeshPathStatus.PathComplete)
-                            { yield return WalkAlong(candidatePath, 0.2f); yield break; }
-                        }
-                }
-                Assert.IsNotNull(chosen, "a reachable closed door or standing interaction approach exists for " + target);
+                Assert.IsNotNull(chosen, "a reachable closed door or standing interaction approach exists for " + target
+                    + "; player=" + player.transform.position + "; landing=" + landing.position + "; path=" + path.status
+                    + "; corners=" + string.Join(" -> ", path.corners.Select(c => c.ToString()))
+                    + "; portals=" + string.Join(", ", Object.FindObjectsByType<AuthoredPortalRuntime>().Where(p => p.transform.position.y < 2f)
+                        .Select(p => p.portalId + "@" + p.transform.position + " " + p.portalKind + " open=" + p.isOpen))
+                    + "; obstacles=" + string.Join(", ", Object.FindObjectsByType<NavMeshObstacle>().Where(o => o.transform.position.y < 2f)
+                        .Select(o => o.name + "@" + o.transform.TransformPoint(o.center) + " enabled=" + o.enabled + " size=" + o.size))
+                    + "; blockers=" + string.Join(", ", Physics.OverlapSphere(blockedRouteEnd + Vector3.up, 2f, SpawnClearance.BlockingMask)
+                        .Select(c => c.transform.parent.name + "/" + c.name + "@" + c.bounds.center + " size=" + c.bounds.size)));
                 Debug.Log("[NaturalWalk] target " + target + "; door " + chosen.portalId + "@" + chosen.transform.position + "; route " + string.Join(" -> ", approach.corners.Select(c => c.ToString())));
                 yield return WalkAlong(approach, 0.3f);
                 player.RequestInteract();
@@ -367,7 +363,33 @@ namespace SynapticSea.Tests.PlayMode
                 Assert.IsTrue(chosen.isOpen, "real interact opens " + chosen.portalId + "; handler " + _s.LastInteractHandlerId);
             }
             Assert.AreEqual(NavMeshPathStatus.PathComplete, path.status, "standing route to " + target);
-            yield return WalkAlong(path, radius);
+            yield return WalkAlong(path, 0.2f);
+        }
+
+        bool TryStandingApproach(Vec3 target, float radius, Vector3 from, NavMeshQueryFilter filter, out NavMeshPath path)
+        {
+            path = null;
+            Vector3 at = Frame.ToUnity(target);
+            bool deckCue = _s.DeckTransitions.Any(d => d.GlobalPosition == target);
+            float searchRadius = deckCue ? Mathf.Min(radius, 1.2f) : radius;
+            var directions = new[] { Vector3.right, Vector3.left, Vector3.forward, Vector3.back,
+                new Vector3(1, 0, 1).normalized, new Vector3(-1, 0, 1).normalized,
+                new Vector3(1, 0, -1).normalized, new Vector3(-1, 0, -1).normalized };
+            for (float distance = 0; distance <= searchRadius + 0.01f; distance += 0.25f)
+                foreach (Vector3 direction in directions)
+                {
+                    Vector3 feet = at + direction * distance;
+                    feet.y = from.y;
+                    if (!NavMesh.SamplePosition(feet, out var sample, 0.3f, filter)
+                        || Mathf.Abs(sample.position.y - at.y) > 1f || !SpawnClearance.IsClear(sample.position)) continue;
+                    if (!deckCue && Physics.Linecast(sample.position + Vector3.up, at + Vector3.up,
+                        SpawnClearance.BlockingMask, QueryTriggerInteraction.Ignore)) continue;
+                    var candidate = new NavMeshPath();
+                    if (!NavMesh.CalculatePath(from, sample.position, filter, candidate) || candidate.status != NavMeshPathStatus.PathComplete) continue;
+                    path = candidate;
+                    return true;
+                }
+            return false;
         }
 
         IEnumerator WalkAlong(NavMeshPath path, float radius)
@@ -399,6 +421,150 @@ namespace SynapticSea.Tests.PlayMode
                 }
             }
             finally { player.ClearScriptedMoveDirection(); }
+        }
+
+        [UnityTest]
+        public IEnumerator WalkRepairTravelBoardAndReturnWithoutFixtureResources()
+        {
+            yield return StartThroughTitle();
+            _s.RefreshDeckTransitions();
+            var up = _s.DeckTransitions.First(d => d.DestinationDeck == 1);
+            yield return WalkTo(up.GlobalPosition, 2.5f);
+            _boot.Host.SceneState.Player.RequestInteract();
+            for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+            Assert.Greater(_boot.Host.SceneState.Player.transform.position.y, 3.5f);
+            foreach (var loot in _s.LootContainers.Where(l => !l.Searched).ToList())
+            {
+                yield return WalkTo(loot.GlobalPosition);
+                _boot.Host.SceneState.Player.RequestInteract();
+                yield return null;
+                Assert.IsTrue(loot.Searched, "normal exploration searches " + loot.ContainerId);
+            }
+            if (!_s.ToolPickup.Acquired)
+            {
+                yield return WalkTo(_s.ToolPickup.GlobalPosition, (float)_s.ToolPickup.InteractionRadius - 0.1f);
+                _boot.Host.SceneState.Player.RequestInteract();
+                yield return null;
+                Assert.IsTrue(_s.ToolPickup.Acquired, "the maintenance pump is physically reachable");
+            }
+            var down = _s.DeckTransitions.First(d => d.DestinationDeck == 0);
+            yield return WalkTo(down.GlobalPosition, 2.5f);
+            _boot.Host.SceneState.Player.RequestInteract();
+            for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+            Assert.Less(_boot.Host.SceneState.Player.transform.position.y, 1.6f, "normal interact returns to the lower deck; handler=" + _s.LastInteractHandlerId);
+            var needed = new HashSet<string> { "power", "navigation", "scanners", "propulsion" };
+            var repairPoints = _s.RepairPoints.Where(r => r.IsValid && needed.Contains(r.SystemId)).ToList();
+            Debug.Log("[NaturalAway] inventory " + GdJson.Stringify(_s.InventoryState.Items));
+            foreach (var rp in repairPoints.Where(r => !r.Repaired))
+            {
+                var sub = rp.TargetManager.GetSystem(rp.SystemId).GetSubcomponent(rp.SubcomponentId);
+                Debug.Log("[NaturalAway] " + rp.NodeName + "@" + rp.GlobalPosition + " parts=" + string.Join(",", sub.RequiredParts)
+                    + " tools=" + string.Join(",", sub.RequiredTools) + " skill=" + rp.MinSkill);
+                foreach (string part in sub.RequiredParts) Assert.Greater(_s.InventoryState.GetQuantity(part), 0, "normal hub supplies " + part);
+                foreach (string tool in sub.RequiredTools) Assert.Greater(_s.InventoryState.GetQuantity(tool), 0, "normal hub supplies " + tool);
+            }
+            long coresBefore = _s.InventoryState.GetQuantity("reactor_core");
+            long startingRepair = _s.PlayerProgression.GetSkillLevel("repair");
+            for (int guard = 0; guard < 24 && needed.Any(id => !_s.ShipSystemsManager.IsOperational(id)); guard++)
+            {
+                var next = repairPoints.Where(r => !r.Repaired && r.MinSkill <= _s.PlayerProgression.GetSkillLevel("repair"))
+                    .OrderBy(r => r.MinSkill).FirstOrDefault();
+                Assert.IsNotNull(next, "normal repair XP unlocks every required remaining repair");
+                Assert.GreaterOrEqual(_s.PlayerProgression.GetSkillLevel("repair"), next.MinSkill, "earned skill meets the real gate");
+                yield return WalkAndFinishChannel(next.GlobalPosition);
+            }
+            foreach (string id in needed) Assert.IsTrue(_s.ShipSystemsManager.IsOperational(id), id + " repaired through normal channels");
+            Assert.Greater(_s.PlayerProgression.GetSkillLevel("repair"), startingRepair, "completed work earns repair training");
+            long earnedRepair = _s.PlayerProgression.GetSkillLevel("repair");
+            Assert.Less(_s.InventoryState.GetQuantity("reactor_core"), coresBefore, "normal repairs consume the looted core");
+            for (int guard = 0; guard < 16; guard++)
+            {
+                var seal = _s.BreachSealPoints.FirstOrDefault(p => p.IsValid && !p.Sealed &&
+                    V.Bool(_s.HullIntegrityState.Compartments.GetDictOrEmpty(p.CompartmentId).Get("breach_open", false)));
+                if (seal == null) break;
+                yield return WalkAndFinishChannel(seal.GlobalPosition);
+            }
+            float deadline = Time.realtimeSinceStartup + 30f;
+            while (!_s.PropulsionExpandedState.CanPropel() && Time.realtimeSinceStartup < deadline && !_s.SliceComplete) yield return null;
+            Assert.IsFalse(_s.SliceComplete, "natural repairs and seals are survivable");
+            Assert.IsTrue(_s.PropulsionExpandedState.CanPropel());
+            var bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
+            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            _boot.Ui.Scanner.Open();
+            var contacts = _s.Scan().GetArrayOrEmpty("markers");
+            Assert.Greater(contacts.Count, 0, "repaired navigation sees contacts");
+            GdDict travel = null;
+            for (int i = 0; i < contacts.Count; i++)
+            {
+                travel = _boot.Ui.Scanner.ConfirmSelection();
+                if (travel.GetBool("success")) break;
+                _boot.Ui.Scanner.MoveSelection(1);
+            }
+            Assert.IsTrue(travel != null && travel.GetBool("success"), "first-away travel: " + GdJson.Stringify(travel));
+            yield return null;
+            Assert.IsTrue(_s.AwayFromStart);
+            Assert.AreEqual("breach_field", _s.CurrentShip.BuiltLayout.GetString("biome_id"));
+            Assert.IsFalse(_s.SliceComplete, "first-away travel is not extraction");
+            string awayMarker = _s.CurrentShip.MarkerId;
+            for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+            foreach (var barrier in _s.DockBarriers.Where(b => b.IsValid && !b.Opened).ToList())
+                yield return WalkAndFinishChannel(barrier.GlobalPosition);
+            var awayLoot = _s.LootContainers.Where(l => l.IsValid && !l.Searched)
+                .OrderBy(l => l.GlobalPosition.DistanceSquaredTo(Frame.ToGodot(_boot.Host.SceneState.Player.transform.position))).FirstOrDefault();
+            Assert.IsNotNull(awayLoot, "the first wreck has an interior loot target");
+            yield return WalkTo(awayLoot.GlobalPosition, (float)awayLoot.InteractionRadius - 0.2f);
+            for (int attempt = 0; attempt < 6 && !awayLoot.Searched; attempt++)
+            {
+                var door = _s.FocusedAuthoredPortal(Frame.ToGodot(_boot.Host.SceneState.Player.transform.position));
+                bool closedDoor = door != null && !door.IsOpen;
+                _boot.Host.SceneState.Player.RequestInteract();
+                for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+                Assert.IsTrue(_s.AwayFromStart, "looting does not accidentally exit the wreck");
+                if (_s.LastInteractHandlerId == "authored_portal")
+                    Assert.IsTrue(closedDoor && door.IsOpen, "an adjacent door opened instead of stealing the loot interaction: " + door?.PortalId);
+                else break;
+            }
+            Assert.IsTrue(awayLoot.Searched, "physically boarded and searched the generated wreck; handler=" + _s.LastInteractHandlerId
+                + "; player=" + _boot.Host.SceneState.Player.transform.position + "; target=" + awayLoot.GlobalPosition);
+            CaptureGameCamera("natural-first-away.png");
+            bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
+            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            Assert.IsTrue(_s.TravelHome(), "return from the first expedition");
+            for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+            Assert.IsFalse(_s.AwayFromStart);
+            Assert.IsTrue(_s.ShipSystemsManager.IsOperational("propulsion"), "repairs survive return");
+            Assert.IsTrue(_s.RequestSave());
+            yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            Assert.IsFalse(_s.AwayFromStart);
+            foreach (string id in needed) Assert.IsTrue(_s.ShipSystemsManager.IsOperational(id), id + " survives Continue");
+            Assert.AreEqual(earnedRepair, _s.PlayerProgression.GetSkillLevel("repair"), "earned training survives Continue");
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("portable_oxygen_pump"), "acquired pump survives Continue");
+            Assert.IsTrue(_s.LootContainers.Single(l => l.ContainerId == "start_supply_a").Searched, "the finite maintenance cache cannot pay again after Continue");
+            Assert.IsTrue(_s.VisitedShips[awayMarker].LootedContainerIds.Contains(awayLoot.ContainerId), "searched wreck loot remains recorded after returning and Continue");
+            Assert.IsFalse(_s.SliceComplete, "hub objective extraction remains available after returning");
+        }
+
+        bool NaturalChannelActive() => _s.RepairPoints.Any(r => r.IsValid && r.Channeling)
+            || _s.FireSuppressionPoints.Any(r => r.IsValid && r.Channeling)
+            || _s.BreachSealPoints.Any(r => r.IsValid && r.Channeling)
+            || _s.DockBarriers.Any(r => r.IsValid && r.Channeling);
+
+        IEnumerator WalkAndFinishChannel(Vec3 at)
+        {
+            yield return WalkTo(at, 1.6f);
+            _boot.Host.SceneState.Player.RequestInteract();
+            Assert.That(_s.LastInteractHandlerId, Is.EqualTo("repair_point").Or.EqualTo("fire_suppression_point").Or.EqualTo("breach_seal_point").Or.EqualTo("dock_barrier"),
+                "work at " + at + "; standing=" + _boot.Host.SceneState.Player.transform.position);
+            if (_s.LastInteractHandlerId == "dock_barrier" && !NaturalChannelActive())
+            {
+                Assert.IsTrue(_s.DockBarriers.Any(b => b.Opened && b.IsPlayerInDirectRangeStrict(Frame.ToGodot(_boot.Host.SceneState.Player.transform.position))), "intact docking seam opened through normal interaction");
+                yield break;
+            }
+            Assert.IsTrue(NaturalChannelActive(), "normal interact begins a timed work channel");
+            float deadline = Time.realtimeSinceStartup + 60f;
+            while (NaturalChannelActive() && !_s.SliceComplete && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.IsFalse(NaturalChannelActive(), "work completed without teleporting, granting resources or boosting skills");
+            Assert.IsFalse(_s.SliceComplete, "survived the channel");
         }
 
         [UnityTest]
