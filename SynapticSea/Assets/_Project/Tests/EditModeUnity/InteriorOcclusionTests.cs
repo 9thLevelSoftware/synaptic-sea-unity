@@ -115,6 +115,18 @@ namespace SynapticSea.Tests.Unity
             _occlusion.RestoreAll(); Assert.IsFalse(enemy.GetComponent<Renderer>().forceRenderingOff);
         }
 
+        [Test] public void VisualBoundsRevealAllSiblingPanelsAndTrimsEvenWhenOnlyOneIntersects()
+        {
+            var wall = Wall(-2); wall.GetComponent<Collider>().enabled = false;
+            var trim = GameObject.CreatePrimitive(PrimitiveType.Cube); trim.transform.SetParent(wall.transform, false);
+            trim.transform.localPosition = new Vector3(0.45f, 0.5f, 0); trim.transform.localScale = Vector3.one * 0.05f;
+            trim.layer = PhysicsLayers.Structure; var renderer = trim.GetComponent<Renderer>();
+            renderer.sharedMaterial = RuntimeVisualCatalog.Material(Color.white); var original = renderer.sharedMaterial;
+            Reveal(); Assert.GreaterOrEqual(_occlusion.ActiveRendererCount, 2);
+            Assert.AreNotSame(original, renderer.sharedMaterial, "sibling trim follows the logical wall even outside sample rays");
+            _occlusion.RestoreAll(); Assert.AreSame(original, renderer.sharedMaterial);
+        }
+
         [Test] public void SupportFloorIsKeptAndUpperDeckRestoresOnTeleport()
         {
             var floor = Wall(-2); floor.GetComponent<StructuralModule>().layer = "floor";

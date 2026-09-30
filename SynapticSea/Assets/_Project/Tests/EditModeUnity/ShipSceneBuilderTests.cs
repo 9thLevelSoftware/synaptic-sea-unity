@@ -99,9 +99,9 @@ namespace SynapticSea.Tests.Unity
         {
             GdDict plan = layout.GetDict("structural_plan");
             if (plan == null || plan.IsEmpty) return;
-            VertexWrapperPlacement.Result resolved = VertexWrapperPlacement.Resolve(plan);
-            if (resolved.Covered.Count == 0 && resolved.Fallbacks.Count == 0) return;
             KitPrefabCatalog kit = KitCatalogResolver.ForLayout(layout);
+            VertexWrapperPlacement.Result resolved = StructuralLayoutBuilder.ResolveForKit(plan, kit);
+            if (resolved.Covered.Count == 0 && resolved.Fallbacks.Count == 0) return;
             Assert.IsNotNull(kit, "no kit catalog for the parity layout");
 
             var moduleByEdge = new Dictionary<string, string>();

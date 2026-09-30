@@ -547,7 +547,7 @@ namespace SynapticSea.Tests.Session
             s.HomeShip.BreachEnvironmentSummary = new GdDict { { "hazard_kind", "oxygen" }, { "breach_open", false } };
             Assert.IsTrue(s.MetaProgressionState.UnlockCodexEntry("slot_test_entry"));
             Assert.IsTrue(s.UniqueItemState.Claim("slot_test_unique", "slot_seed"));
-            ShipInstance visited = ShipInstance.Create("slot_test_ship", "9:9:9", new ShipBlueprint(), new ShipSystemsManager(), null);
+            ShipInstance visited = ShipInstance.Create("slot_test_ship", "9:9:9", new ShipBlueprint(2, 0, 42) { GenerationProfile = ExpeditionLayoutEngine.Profile }, new ShipSystemsManager(), null);
             s.VisitedShips["9:9:9"] = visited;
             RunSnapshot slot = RunSnapshotAssembler.Build(s);
             Assert.IsNotNull(slot);
@@ -581,6 +581,8 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(s.UniqueItemState.IsClaimed("slot_test_unique"), "unique items restored");
             Assert.IsTrue(s.VisitedShips.ContainsKey("9:9:9"), "visited ships restored");
             Assert.AreEqual("slot_test_ship", s.VisitedShips["9:9:9"].ShipId);
+            Assert.AreEqual(ExpeditionLayoutEngine.Profile, s.VisitedShips["9:9:9"].Blueprint.GenerationProfile);
+            Assert.AreEqual(42, s.VisitedShips["9:9:9"].Blueprint.SeedValue);
         }
     }
 }

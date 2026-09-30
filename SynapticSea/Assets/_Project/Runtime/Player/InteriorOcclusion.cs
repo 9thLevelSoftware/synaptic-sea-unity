@@ -58,7 +58,7 @@ namespace SynapticSea.Runtime
                 if (pair.Key == null || !pair.Key.gameObject.activeInHierarchy || (state.module != null && state.integrity != state.module.integrityState))
                 { Restore(state, state.module != null && state.module.HasSingleVisual && state.integrity != state.module.integrityState); _states.Remove(pair.Key); continue; }
                 bool wanted = _wanted.Contains(pair.Key) || _clock - state.lastWanted < ReleaseDelay;
-                state.alpha = Mathf.MoveTowards(state.alpha, wanted ? 0.08f : 1f, Mathf.Max(0, dt) / 0.16f);
+                state.alpha = Mathf.MoveTowards(state.alpha, wanted ? 0f : 1f, Mathf.Max(0, dt) / 0.16f);
                 Apply(state);
                 if (!wanted && state.alpha >= 1f) { Restore(state); _states.Remove(pair.Key); }
             }
@@ -81,7 +81,7 @@ namespace SynapticSea.Runtime
                     || (camera.cullingMask & (1 << renderer.gameObject.layer)) == 0) continue;
                 bool upperDeck = (module.layer == "floor" || module.layer == "ceiling") && renderer.bounds.min.y > anchor.y + 0.6f;
                 if (module.layer != "edge" && !upperDeck) continue;
-                if (renderer.bounds.IntersectRay(ray, out float hitDistance) && hitDistance < distance) _wanted.Add(renderer);
+                if (renderer.bounds.IntersectRay(ray, out float hitDistance) && hitDistance < distance) CollectAssembly(module.transform, camera);
             }
             foreach (var hit in Physics.RaycastAll(ray, distance, Mask, QueryTriggerInteraction.Ignore))
             {
@@ -100,6 +100,13 @@ namespace SynapticSea.Runtime
                         foreach (var renderer in portal.GetComponentsInChildren<Renderer>()) if (renderer.enabled) _wanted.Add(renderer);
                 }
             }
+        }
+
+        void CollectAssembly(Transform assembly, Camera camera)
+        {
+            foreach (var renderer in assembly.GetComponentsInChildren<Renderer>())
+                if (renderer.enabled && renderer.gameObject.activeInHierarchy && (camera.cullingMask & (1 << renderer.gameObject.layer)) != 0)
+                    _wanted.Add(renderer);
         }
 
         public void RefreshModules()

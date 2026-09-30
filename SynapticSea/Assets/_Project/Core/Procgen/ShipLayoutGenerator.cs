@@ -86,7 +86,10 @@ namespace SynapticSea.Core.Procgen
         GdDict GenerateOnce(ShipBlueprint blueprint, GdDict archetype, string biomeId, string difficultyId, bool extendedTemplates)
         {
             // Stage 1: select topology template.
-            TopologyTemplate template = extendedTemplates
+            bool expedition = blueprint.GenerationProfile == ExpeditionLayoutEngine.Profile;
+            if (blueprint.GenerationProfile.Length != 0 && !expedition)
+            { CoreServices.Log.Error("Unsupported generation profile: " + blueprint.GenerationProfile); return new GdDict(); }
+            TopologyTemplate template = expedition ? new TopologyTemplate { Id = ExpeditionLayoutEngine.Profile } : extendedTemplates
                 ? TemplateSelectorStage.SelectWithOptions(blueprint, archetype, true, true)
                 : TemplateSelectorStage.Select(blueprint, archetype);
             if (template == null)
@@ -98,17 +101,19 @@ namespace SynapticSea.Core.Procgen
             // Stage 2: assign rooms to template zones (with variant selector).
             List<GdDict> roomPlan;
             if (VariantSelector == null && biomeId.Length != 0) VariantSelector = new RoomVariantSelector();
-            roomPlan = VariantSelector != null
+            roomPlan = expedition ? new List<GdDict>() : VariantSelector != null
                 ? RoomAssignerStage.AssignWithSelector(template, blueprint, archetype, VariantSelector, biomeId)
                 : RoomAssignerStage.Assign(template, blueprint, archetype);
-            if (roomPlan.Count == 0)
+            if (!expedition && roomPlan.Count == 0)
             {
                 CoreServices.Log.Error("SHIP LAYOUT GENERATOR FAIL room assignment returned empty");
                 return new GdDict();
             }
 
             // Stage 3: place rooms on 2D grid.
-            GdDict cellGrid = CellLayoutEngineStage.Layout(roomPlan, template, blueprint.SeedValue);
+            GdDict cellGrid = expedition ? ExpeditionLayoutEngine.Layout(blueprint, out roomPlan) : CellLayoutEngineStage.Layout(roomPlan, template, blueprint.SeedValue);
+            if (expedition && VariantSelector != null)
+                for (int i = 0; i < roomPlan.Count; i++) roomPlan[i]["variant"] = VariantSelector.Pick(roomPlan[i].GetString("role"), i, blueprint.SeedValue, biomeId);
             if (cellGrid.GetDictOrEmpty("rooms").IsEmpty)
             {
                 CoreServices.Log.Error("SHIP LAYOUT GENERATOR FAIL cell layout returned empty rooms");
@@ -142,6 +147,7 @@ namespace SynapticSea.Core.Procgen
 
             // Stamp template_id / biome / difficulty / kit_id / hazard authority on the layout.
             layout["template_id"] = template.Id;
+            if (expedition) { layout["template_id"] = ExpeditionLayoutEngine.Profile; layout["generation_profile"] = ExpeditionLayoutEngine.Profile; }
             if (biomeId.Length != 0) layout["biome_id"] = biomeId;
             if (template.Id == "hive") layout["kit_id"] = "ship_structural_biomatter";
             else if (biomeId.Length != 0) layout["kit_id"] = KitIdForBiome(biomeId);

@@ -140,6 +140,10 @@ namespace SynapticSea.Core.Session
                 EmitTravelDeniedSfx();
                 return new GdDict { { "success", false }, { "reason", "not_aboard_ship" } };
             }
+            // A revisit regenerates the saved profile, never upgrades an existing legacy wreck in place.
+            ShipGenerator.RichExpeditions = VisitedShips.ContainsKey(marker.MarkerId)
+                ? VisitedShips[marker.MarkerId].Blueprint.GenerationProfile == ExpeditionLayoutEngine.Profile
+                : VisitedShips.Count > 0;
             GdDict firstRunResult = ApplyFirstRunContractToMarker(marker);
             if (firstRunResult.GetBool("applicable") && !firstRunResult.GetBool("success"))
             {
@@ -215,6 +219,7 @@ namespace SynapticSea.Core.Session
             else
             {
                 var newBp = new ShipBlueprint(marker.SizeClass, marker.Condition, marker.SeedValue);
+                newBp.GenerationProfile = newRoot.GetLayoutCopy().GetString("generation_profile");
                 var newMgr = new ShipSystemsManager();
                 newMgr.Configure(newMgr.LoadDefinitions(), newBp.ShipCondition, newBp.SeedValue);
                 inst = ShipInstance.Create("ship_" + mid, mid, newBp, newMgr, null);

@@ -109,6 +109,7 @@ namespace SynapticSea.Core.Procgen
         /// <summary>Per-derelict run context forwarded to generate_with_options (empty = legacy bare geometry).</summary>
         public string BiomeId = "";
         public string DifficultyId = "";
+        public bool RichExpeditions;
 
         readonly GdDict _wrapperMapCache = new GdDict();
 
@@ -179,6 +180,7 @@ namespace SynapticSea.Core.Procgen
         {
             if (USE_WORLDGEN && DerelictSource != null) return GenerateViaWorldgen(seedValue, size, condition);
             var blueprint = new ShipBlueprint(size, condition, seedValue);
+            if (RichExpeditions && size >= 1 && size <= 2) blueprint.GenerationProfile = ExpeditionLayoutEngine.Profile;
             return Generate(blueprint);
         }
 
