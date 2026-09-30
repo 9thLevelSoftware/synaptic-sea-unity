@@ -18,8 +18,8 @@ namespace SynapticSea.Runtime
     /// (linear); <c>CULL_DISABLED</c> → <c>_Cull</c> Off. Colors are passed as Godot's sRGB values; Unity linearizes
     /// them in a linear-space project exactly like Godot does.
     ///
-    /// The shaders are looked up by name, so builds must include URP Lit and Unlit (they are, as long as any project
-    /// material references them; add them to Always Included Shaders otherwise).
+    /// Serialized Resources material templates retain the shaders and the feature variants used by generated
+    /// visuals in players. Shader.Find alone is not a build dependency.
     /// </summary>
     public static class RuntimeVisualCatalog
     {
@@ -31,7 +31,7 @@ namespace SynapticSea.Runtime
 
         static readonly Dictionary<(float top, float bottom, float height), Mesh> Cylinders = new Dictionary<(float, float, float), Mesh>();
         static Mesh _cube, _sphere, _capsule;
-        static Shader _lit, _unlit;
+        static RuntimeVisualMaterialLibrary _library;
 
         /// <summary>A shared material for a Godot <c>StandardMaterial3D</c> configuration.</summary>
         public static Material Material(Color albedo, bool unshaded = false, bool transparent = false, float emissionEnergy = 0f, bool doubleSided = false)
@@ -39,10 +39,8 @@ namespace SynapticSea.Runtime
             var key = (albedo.r, albedo.g, albedo.b, albedo.a, unshaded, transparent, emissionEnergy, doubleSided);
             if (Materials.TryGetValue(key, out Material cached) && cached != null) return cached;
 
-            Shader shader = unshaded ? (_unlit != null ? _unlit : _unlit = Shader.Find(UnlitShaderName))
-                                     : (_lit != null ? _lit : _lit = Shader.Find(LitShaderName));
-            if (shader == null) throw new InvalidOperationException($"RuntimeVisualCatalog: shader '{(unshaded ? UnlitShaderName : LitShaderName)}' not found");
-            var m = new Material(shader)
+            if (_library == null) _library = RuntimeVisualMaterialLibrary.Load();
+            var m = new Material(_library.Select(unshaded, transparent, emissionEnergy > 0f))
             {
                 name = $"Runtime_{(unshaded ? "Unlit" : "Lit")}{(transparent ? "_Alpha" : "")}{(emissionEnergy > 0f ? "_Emissive" : "")}_{ColorUtility.ToHtmlStringRGBA(albedo)}",
                 hideFlags = HideFlags.DontSave,

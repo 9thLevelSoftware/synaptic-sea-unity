@@ -261,11 +261,81 @@ logs, not counted as final passes. The class tests explicitly expose blocked
 first-away paths; their passing assertions do not make those paths playable.
 
 The final changed-data Windows development Mono player rebuilt successfully:
-**487.6 MB, zero errors**, version 0.1.0 (`closing-final-build.log`). Standalone
-expedition behavior is covered by GPU Play Mode; standalone validation remains
+**487.6 MB, zero errors**, version 0.1.0 (`closing-final-build.log`). Expedition
+behavior is covered by Editor GPU Play Mode; standalone validation remains
 limited to a separate boot/title smoke check.
 
 That final player smoke check passed with the expected dev build stamp and
 `[TitleScreen] ready`, with no detected exceptions/errors or missing scripts
 (`builds/logs/closing-final-player-smoke.log`). No launched verification process
 is left running.
+
+## Windows New Run shader failure (2026-09-30)
+
+The owner reported the development executable staying on the New Run overlay.
+The preserved player stack (`builds/logs/user-reported-shader-failure.log`)
+confirms `RuntimeVisualCatalog.Material` threw while creating objective volumes:
+`Universal Render Pipeline/Unlit` was absent. The previous title-only player
+smoke check did not exercise this path and did not establish player playability.
+
+The catalog used `Shader.Find`, which does not declare a shader dependency for
+the player build. Unity documents this Editor-versus-player limitation in its
+[Shader.Find reference](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Shader.Find.html).
+The corrected catalog clones six serialized Resources material templates:
+opaque/transparent Unlit and opaque/transparent Lit with and without emission.
+This retains both URP shaders and the actual feature keyword combinations used
+by generated visuals, without substituting another shader or including every
+URP variant. Double-sided culling and per-object colors/emission remain runtime
+properties. The URP importer requires emissive template GI flags to retain the
+emission keyword; runtime clones retain the existing emission/GI behavior.
+
+`RuntimeVisualMaterialBuildCheck` validates the library and template keywords
+for every build, including manual builds. To deliberately regenerate authored
+templates, use **Synaptic Sea > Build > Rebuild Runtime Visual Materials**.
+Eight Edit Mode checks cover build dependencies, every template, runtime clone
+properties/cache identity, and incomplete/wrong-keyword rejection.
+
+The corrected development Mono output is in a distinct folder:
+`builds/StandaloneWindows64/shader-fix-20260930/TheSynapticSea.exe`.
+Its stamp is **2026-09-30T15:37:04Z**, version **0.1.0**, Unity **6000.6.0f1**;
+the build passed with **488.3 MB and zero errors** (`shader-final-build.log`).
+`TheSynapticSea.exe` itself is Unity's launcher: distinguish builds with the
+stamp and runtime assembly, not just the launcher's unchanged file hash.
+Runtime assembly SHA-256:
+`50F6924B85E55BD0D080B4F68EF5B1A227107221E1EF070998EBBD76E7AF2FB4`.
+The older `dev` output has been preserved and still contains the reported bug.
+
+Current full Edit Mode evidence: **992 passed, zero failed, 17 unchanged fixture
+skips** (`shader-final-edit.xml`). A separate GPU **WindowsPlayer** test run
+passed **2/2**, zero failures/skips (`shader-player-regression.xml`, build/run
+trace `shader-player-regression.log`): Title/New Run creates the real Playable
+scene and returns to Title, and all six shader configurations are supported
+with green opaque/alpha Unlit render/readback and real alpha blending against
+black. The bootstrap test uses UI command dispatch; the material probe uses
+actual GPU rendering in a separately built test executable. Neither is native
+OS input validation of the shipping development executable.
+
+The final affected **Editor GPU Play Mode aggregate passed 52/52**, zero
+failures or skips (`shader-final-play.xml`), including the existing natural
+first-away/combat/return/Save/Continue journeys and the new shader rendering
+regression. Core was unchanged by this slice; its previous 732-pass result is
+not described as a newly repeated run.
+
+Native testing is currently blocked by foreground access: the active VMware
+Horizon client retains the foreground even when normal Windows game activation
+is requested. No keyboard input is sent to an unverified foreground window.
+The owner must pause that session and foreground **The Synaptic Sea** from the
+distinct corrected folder before native Start Run/movement/save verification.
+No successful native-input journey or new native screenshot is claimed yet.
+Existing saves were backed up locally before testing; original repositories,
+assets, approvals and colony design choices remain untouched.
+
+The owner subsequently launched the distinct corrected development executable
+and confirmed: the game loaded, movement worked, and objects could be
+interacted with. Its actual player log (`shader-user-corrected-run.log`, process
+54556, observed at the corrected executable path) records a successful New Run
+bootstrap with seed 17, breach_field, standard, Engineer and no matching
+exception/error lines. This is owner-operated native play evidence; the agent
+did not send those inputs. Native agent-driven save/load and a native capture
+are still unverified. The owner also identified excessive camera height and
+poor in-room interaction visibility, which is the next separate fix.
