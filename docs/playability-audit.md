@@ -321,12 +321,13 @@ first-away/combat/return/Save/Continue journeys and the new shader rendering
 regression. Core was unchanged by this slice; its previous 732-pass result is
 not described as a newly repeated run.
 
-Native testing is currently blocked by foreground access: the active VMware
+Agent-driven native testing is currently blocked by foreground access: the active VMware
 Horizon client retains the foreground even when normal Windows game activation
 is requested. No keyboard input is sent to an unverified foreground window.
 The owner must pause that session and foreground **The Synaptic Sea** from the
 distinct corrected folder before native Start Run/movement/save verification.
-No successful native-input journey or new native screenshot is claimed yet.
+Owner startup/movement/interaction acceptance is recorded below; no successful
+agent-driven native-input journey or new native screenshot is claimed yet.
 Existing saves were backed up locally before testing; original repositories,
 assets, approvals and colony design choices remain untouched.
 
