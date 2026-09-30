@@ -53,7 +53,7 @@ Then run **Synaptic Sea → Content → Enable Purchased MegaKit Floors (local)*
 
 ## Remaining high-impact work
 
-1. Extend the combined natural journey through first-away combat and more character classes/seeds. The fourth slice below closes default-Engineer resource acquisition, repair training, first-away looting, return and save/Continue with physical walking. Natural extraction and death/restart retain separate coverage.
+1. Resolve the class progression and alternate-candidate decisions exposed by the closing matrix below. The default Engineer now has combined first-away combat/return/save/revisit acceptance; six other initial classes retain fresh-run travel skill blockers. Natural extraction and death/restart retain separate coverage.
 2. Review custom damaged/breached geometry, remaining contract/visual mismatches, connector openings and multi-deck transitions across more seeds. The reusable adapter deliberately accepts only compatible planar tiles; it is not a general mesh normalization solution.
 3. Complete authoritative interaction selection across all categories and presentation prompts. Common stale/nearest-target defects are fixed, but the dispatch architecture still has category-specific handlers.
 4. Complete owner review and configure approved production creature art. The third slice below integrates the pinned companion behind a safe placeholder fallback. Production generation requires approved skeletons/parts; draft assets are not autoapproved by this work.
@@ -201,3 +201,71 @@ in GPU Unity Play Mode; standalone verification is limited to boot/title.
 The capture retains prototype visual weaknesses, including overlapping docking
 presentation, dim areas and primitive markers. Physical navigation/interaction
 acceptance does not establish production visual quality or full-game completion.
+
+## Bounded closing regression pass
+
+The combined default first-away acceptance now also defeats an actual generated
+encounter through normal reach/facing/LOS/cooldown attacks, survives the fight,
+returns home, saves/continues and revisits the saved wreck to assert the defeated
+enemy does not respawn. Dead threats are intentionally swept from live/saved
+runtime lists; this test verifies removal and actual restoration rather than
+requiring a dead threat record. It injects no enemies, damage or inventory.
+
+Combat acquisition exposed a separate gap: crowbar fallback attacks still
+require an equipped weapon, but crowbars appeared in no loot table. One existing
+crowbar now supplements the finite maintenance cache and auto-equips through
+normal loot handling into an empty hand. The final cache therefore has ten exact
+stacks, superseding the fourth-slice nine-stack inventory above. Weapon damage,
+enemy tuning, range, cooldowns and class balance remain unchanged.
+
+The complete class/seed coverage table, limits and remaining decisions are in
+[milestone-a-closing-matrix.md](playtest/milestone-a-closing-matrix.md). Eight
+initial classes are checked through resource/skill-gated repairs and the partial
+hub objective route; all retain hub extraction. Only Engineer and Mechanic
+prepare all travel systems in the fresh-run matrix. Six classes need an intended
+nontechnical progression decision if fresh-run first-away travel is required.
+The default Engineer has physical Unity combat/return/save/revisit coverage;
+the class matrix is Core contract coverage, not eight physical expeditions.
+All 18 preferred-seed/size/condition candidates retain complete contract gating.
+Seed 777 supplies no required hazard in that matrix and is not a working
+guaranteed fallback. Colony scope and owner asset approvals remain pending.
+
+| Fresh starting class | Starting repair | Repair route earned level | Partial-hub route earned level | Travel systems ready | Hub extraction contract |
+|---|---:|---:|---:|---|---|
+| Engineer | 3 | 5 | 4 | Yes, both routes | Pass |
+| Mechanic | 4 | 5 | 5 | Yes, both routes | Pass |
+| Medic | 1 | 1 | 1 | Blocked | Pass |
+| Pilot | 1 | 1 | 1 | Blocked | Pass |
+| Scientist | 2 | 3 | 2 | Blocked | Pass |
+| Cook | 0 | 0 | 0 | Blocked | Pass |
+| Security | 1 | 1 | 1 | Blocked | Pass |
+| Communications | 0 | 0 | 0 | Blocked | Pass |
+
+The six blocked travel paths are diagnosed limitations, not successful physical
+expeditions. Class starting skills, multipliers, finite resources and real skill
+gates remain unchanged. The decisions are: whether these classes are intended
+to remain hub-extraction-only in Milestone A or need a designed nontechnical
+first-away route; whether to commission a guaranteed alternate first-away
+candidate instead of retaining the current seed/shape exclusions; colony scope;
+and owner approval of the draft crawler. No new feature or challenge rebalance
+has been implemented to conceal those decisions.
+
+Closing aggregate evidence: Core **732 passed, zero failed**
+(`builds/logs/closing-final-core-v3.trx`); Unity Edit Mode **984 passed, zero
+failed, 17 unchanged upstream fixture skips** out of 1001
+(`closing-final-editmode-v2.xml`); GPU Play Mode **51 passed, zero failed or
+skipped** (`closing-final-playmode.xml`). The combined generated encounter,
+return, Save/Continue and no-respawn revisit assertions pass within that final
+aggregate. Earlier diagnostic assertion failures are retained in intermediate
+logs, not counted as final passes. The class tests explicitly expose blocked
+first-away paths; their passing assertions do not make those paths playable.
+
+The final changed-data Windows development Mono player rebuilt successfully:
+**487.6 MB, zero errors**, version 0.1.0 (`closing-final-build.log`). Standalone
+expedition behavior is covered by GPU Play Mode; standalone validation remains
+limited to a separate boot/title smoke check.
+
+That final player smoke check passed with the expected dev build stamp and
+`[TitleScreen] ready`, with no detected exceptions/errors or missing scripts
+(`builds/logs/closing-final-player-smoke.log`). No launched verification process
+is left running.

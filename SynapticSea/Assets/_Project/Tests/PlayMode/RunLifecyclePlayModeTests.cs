@@ -509,6 +509,30 @@ namespace SynapticSea.Tests.PlayMode
             for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
             foreach (var barrier in _s.DockBarriers.Where(b => b.IsValid && !b.Opened).ToList())
                 yield return WalkAndFinishChannel(barrier.GlobalPosition);
+            Assert.AreEqual("crowbar", _s.EquipmentState.GetEquipped("primary_hand"), "the physically searched hub cache supplies and auto-equips the existing melee tool");
+            var hostile = _s.ThreatManager.Threats.Where(t => t.Health > 0)
+                .OrderBy(t => new Vec3(V.F64(t.WorldPosition[0]), V.F64(t.WorldPosition[1]), V.F64(t.WorldPosition[2]))
+                    .DistanceSquaredTo(Frame.ToGodot(_boot.Host.SceneState.Player.transform.position))).FirstOrDefault();
+            Assert.IsNotNull(hostile, "the generated first-away encounter supplies a real hostile");
+            string defeatedId = hostile.InstanceId;
+            int combatHits = 0;
+            float combatDeadline = Time.realtimeSinceStartup + 45f;
+            while (hostile.Health > 0 && !_s.SliceComplete && Time.realtimeSinceStartup < combatDeadline)
+            {
+                var at = new Vec3(V.F64(hostile.WorldPosition[0]), V.F64(hostile.WorldPosition[1]), V.F64(hostile.WorldPosition[2]));
+                yield return WalkTo(at, 2.1f);
+                var player = _boot.Host.SceneState.Player;
+                at = new Vec3(V.F64(hostile.WorldPosition[0]), V.F64(hostile.WorldPosition[1]), V.F64(hostile.WorldPosition[2]));
+                player.FaceAttackDirection(at - player.GodotPosition);
+                double before = hostile.Health;
+                var hit = _boot.Host.RequestAttack();
+                Assert.IsNotNull(hit, "ordinary gameplay attack is enabled");
+                if (hostile.Health < before) combatHits++;
+                yield return new WaitForSeconds(0.6f);
+            }
+            Assert.Greater(combatHits, 0, "physical reach/facing/LOS attacks damage the generated encounter");
+            Assert.LessOrEqual(hostile.Health, 0, "the real encounter is defeated without fixture damage or spawns");
+            Assert.IsFalse(_s.SliceComplete, "the player survives the expedition fight");
             var awayLoot = _s.LootContainers.Where(l => l.IsValid && !l.Searched)
                 .OrderBy(l => l.GlobalPosition.DistanceSquaredTo(Frame.ToGodot(_boot.Host.SceneState.Player.transform.position))).FirstOrDefault();
             Assert.IsNotNull(awayLoot, "the first wreck has an interior loot target");
@@ -541,6 +565,17 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(1, _s.InventoryState.GetQuantity("portable_oxygen_pump"), "acquired pump survives Continue");
             Assert.IsTrue(_s.LootContainers.Single(l => l.ContainerId == "start_supply_a").Searched, "the finite maintenance cache cannot pay again after Continue");
             Assert.IsTrue(_s.VisitedShips[awayMarker].LootedContainerIds.Contains(awayLoot.ContainerId), "searched wreck loot remains recorded after returning and Continue");
+            Assert.IsFalse(_s.VisitedShips[awayMarker].CombatSummary.GetArrayOrEmpty("threats").Cast<GdDict>().Any(t => t.GetString("instance_id") == defeatedId),
+                "normal death sweep removes the defeated encounter from the saved runtime");
+            Assert.AreEqual("crowbar", _s.EquipmentState.GetEquipped("primary_hand"), "acquired combat tool survives Continue");
+            bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
+            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            Assert.IsTrue(_s.TravelToMarkerId(awayMarker).GetBool("success"), "revisit the saved wreck through guarded travel");
+            for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+            Assert.IsFalse(_s.ThreatManager.Threats.Any(t => t.InstanceId == defeatedId), "defeated generated enemy does not respawn on actual saved-wreck restoration");
+            bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
+            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            Assert.IsTrue(_s.TravelHome());
             Assert.IsFalse(_s.SliceComplete, "hub objective extraction remains available after returning");
         }
 

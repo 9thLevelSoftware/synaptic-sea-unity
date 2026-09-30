@@ -87,7 +87,8 @@
         { "item_id": "welder", "qty": 1 },
         { "item_id": "plasma_cutter", "qty": 1 },
         { "item_id": "hull_sealant", "qty": 6 },
-        { "item_id": "fire_extinguisher", "qty": 1 }
+        { "item_id": "fire_extinguisher", "qty": 1 },
+        { "item_id": "crowbar", "qty": 1 }
       ] },
     { "id": "start_supply_b", "kind": "generic_locker", "room_id": "medbay_01",      "approach_cell": [7, -1, 1], "loot_table": "salvage_engineering" }
   ],

@@ -36,7 +36,7 @@ namespace SynapticSea.Tests
                 ((GdDict)fixture.GetArray("loot_container_specs")[0])["contents"] = GdArray.Of(
                     Stack("circuit_board", 3), Stack("power_cell", 3), Stack("data_core", 1),
                     Stack("sensor_module", 2), Stack("reactor_core", 1), Stack("welder", 1),
-                    Stack("plasma_cutter", 1), Stack("hull_sealant", 6), Stack("fire_extinguisher", 1));
+                    Stack("plasma_cutter", 1), Stack("hull_sealant", 6), Stack("fire_extinguisher", 1), Stack("crowbar", 1));
             return fixture;
         }
 
