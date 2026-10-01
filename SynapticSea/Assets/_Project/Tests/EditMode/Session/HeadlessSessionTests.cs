@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Session;
@@ -79,6 +80,89 @@ namespace SynapticSea.Tests.Session
             s.CurrentOccupancy=wreck;s.StageOxygen(1);
             Assert.Less(s.OxygenState.Oxygen,40,"boarding the burning wreck retains its real oxygen hazard");
             Assert.Greater(wreck.GetFire().GetTotalIntensity(),0,"shelter does not extinguish another ship's fire");
+        }
+
+        [Test]
+        public void HomeAssemblyDenialPreservesLocationAndReturnNeverSelfDocks()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ForceRepairAll();
+            Assert.IsTrue(s.SetPilotedShip(s.HomeShip).GetBool("success"));
+            var destination=s.SynapticSeaWorld.MarkersInRange(s.ScannerState.RangeRadius).First();
+            Vec3 before=s.SynapticSeaWorld.PlayerPosition;
+            var denied=s.TravelToMarkerId(destination.MarkerId);
+            Assert.IsFalse(denied.GetBool("success"));
+            Assert.AreEqual("insufficient_propulsion_capacity",denied.GetString("reason"));
+            Assert.AreEqual(before,s.SynapticSeaWorld.PlayerPosition);
+            Assert.AreEqual(Vec3.Zero,s.HomeSeaPosition);Assert.AreEqual("",s.HomeSeaMarkerId);
+            Assert.IsFalse(s.TravelHome());Assert.IsNull(s.HomeShip.ParentShip);
+            Assert.AreSame(s.HomeShip,s.LifeboatShip.ParentShip);
+        }
+
+        [Test]
+        public void InstalledHomeTransitFixturePreservesGraphAndRejectsOutOfRangeContact()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ThreatManager.Threats.Clear();
+            for(long sequence=1;sequence<=4;sequence++)Assert.IsTrue(s.CompleteObjectiveSequence(sequence));
+            s.ForceRepairAll();s.HullWebState.CutFree();s.HomeShip.GetWeb().CutFree();s.LifeboatShip.GetWeb().CutFree();
+            s.HomeShip.GetHull().Configure(new GdDict{{"compartments",GdArray.Of(new GdDict{{"compartment_id","fixture"},{"health",1.0},{"breach_open",false}})}});
+            s.HomeShip.Mobility=AssemblyMobility.CreateSpecification(s.HomeShip,true);
+            s.PropulsionExpandedState.Configure(new GdDict{{"thrust_percent",100.0},{"operational",true}});
+            var history=ShipInstance.Create("fixture_history","fixture_history",new SynapticSea.Core.Procgen.ShipBlueprint(1,0,17),new ShipSystemsManager(),null);
+            s.VisitedShips[history.MarkerId]=history;
+            Assert.IsTrue(s.SetPilotedShip(s.HomeShip).GetBool("success"));
+            var destination=s.SynapticSeaWorld.MarkersInRange(s.ScannerState.RangeRadius).First();
+            var boatParent=s.LifeboatShip.ParentShip;var pose=s.HomeShip.SceneRoot.GlobalTransform;
+            var moved=s.TravelToMarkerId(destination.MarkerId);
+            Assert.IsTrue(moved.GetBool("success"),GdJson.Stringify(moved));Assert.AreEqual("home_assembly_transit",moved.GetString("mode"));
+            Assert.AreEqual(destination.Position,s.HomeSeaPosition);Assert.AreEqual(destination.Position,s.SynapticSeaWorld.PlayerPosition);
+            Assert.AreSame(boatParent,s.LifeboatShip.ParentShip);Assert.AreEqual(pose,s.HomeShip.SceneRoot.GlobalTransform);Assert.IsNull(s.HomeShip.ParentShip);
+            var distant=new ShipMarker{MarkerId="unreachable-fixture",Position=new Vec3(100000,0,100000)};
+            var denied=s.TravelTo(distant);Assert.IsFalse(denied.GetBool("success"));Assert.AreEqual("out_of_range",denied.GetString("reason"));
+            Assert.AreEqual(destination.Position,s.HomeSeaPosition);
+        }
+
+        [Test]
+        public void SecuredMemberBridgeControlsHomeButMooredShuttleRemainsIndependent()
+        {
+            var s=SessionHarness.CreateGolden().Session;
+            var child=ShipInstance.Create("fixture_extension","fixture_extension",new SynapticSea.Core.Procgen.ShipBlueprint(1,0,17),new ShipSystemsManager(),null);
+            child.ParentShip=s.HomeShip;s.HomeShip.DockedShips.Add(child);child.DockingPorts.Add(new GdDict{{"connection_kind","secured"}});
+            child.GetAccess().Claim("player_local");s.VisitedShips[child.MarkerId]=child;
+            Assert.IsTrue(s.SetPilotedShip(child).GetBool("success"));Assert.AreSame(s.HomeShip,s.PilotedShip);
+            Assert.AreSame(s.HomeShip,child.ParentShip);Assert.AreEqual("secured",((GdDict)child.DockingPorts[0]).GetString("connection_kind"));
+            Assert.IsTrue(s.SetPilotedShip(s.LifeboatShip).GetBool("success"));Assert.AreSame(s.LifeboatShip,s.PilotedShip);
+        }
+
+        [Test]
+        public void MobileHomePositionRoundTripsAndMalformedLocationRejectsBeforeMutation()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;
+            var old=WorldSnapshotAssembler.Build(s);
+            Assert.IsFalse(old.MobileHomeState.Has("home_location"),"old stationary homes keep the optional-field contract");
+            s.HomeSeaPosition=new Vec3(42,0,-72);s.HomeSeaMarkerId="fixture-contact";
+            var moved=WorldSnapshotAssembler.Build(s);
+            Assert.AreEqual(42,V.F64(moved.MobileHomeState.GetDictOrEmpty("home_location").GetArrayOrEmpty("sea_position")[0]));
+            Assert.IsTrue(WorldSnapshotAssembler.Apply(s,moved));
+            Assert.AreEqual(new Vec3(42,0,-72),s.HomeSeaPosition);Assert.AreEqual("fixture-contact",s.HomeSeaMarkerId);
+            moved.MobileHomeState.GetDictOrEmpty("home_location")["sea_position"]=GdArray.Of(double.NaN,0.0,0.0);
+            var live=s.HomeShip;
+            Assert.IsFalse(WorldSnapshotAssembler.Apply(s,moved));Assert.AreSame(live,s.HomeShip);
+            Assert.AreEqual(new Vec3(42,0,-72),s.HomeSeaPosition);
+            Assert.IsTrue(WorldSnapshotAssembler.Apply(s,old));Assert.AreEqual(Vec3.Zero,s.HomeSeaPosition);
+        }
+
+        [Test]
+        public void DamageObserverAllocatesOnlyActualClampedLossAndInventoryReportsActualDebits()
+        {
+            var vitals=new VitalsState();vitals.Health=3;vitals.HealthDrainRate=0;vitals.Hunger=100;
+            var loss=new Dictionary<string,double>();vitals.HealthDamageObserved+=(source,amount)=>loss[source]=amount;
+            vitals.Tick(1,new GdDict{{"fire_health_drain",4.0},{"wound_health_drain",2.0},{"moving",false}});
+            Assert.AreEqual(0,vitals.Health);Assert.AreEqual(2,loss["fire_health_drain"],1e-9);
+            Assert.AreEqual(1,loss["wound_health_drain"],1e-9);Assert.AreEqual(3,loss.Values.Sum(),1e-9);
+            var inventory=new InventoryState();inventory.AddItem("purified_water",2);long debits=0;
+            inventory.ItemsRemoved+=(id,qty)=>{Assert.AreEqual("purified_water",id);debits+=qty;};
+            Assert.AreEqual(2,inventory.RemoveItem("purified_water",5));Assert.AreEqual(0,inventory.RemoveItem("purified_water",1));
+            Assert.AreEqual(2,debits,"failed/excess removals cannot fabricate resource use");
         }
 
         [Test]

@@ -57,7 +57,7 @@ namespace SynapticSea.Core.Session
             CatchUpShip(inst);
             inst.SceneRoot = newRoot;
             ShipHost?.AttachShipRoot(newRoot);
-            ShipHost?.SetShipRootPosition(newRoot, DERELICT_DOCK_OFFSET);
+            ShipHost?.SetShipRootPosition(newRoot, DerelictScenePosition(newRoot));
             if (inst.BuiltLayout.IsEmpty && newRoot != null)
                 inst.BuiltLayout = newRoot.GetLayoutCopy();
             if(inst.Mobility.IsEmpty) inst.Mobility = AssemblyMobility.CreateSpecification(inst, true);
@@ -137,7 +137,8 @@ namespace SynapticSea.Core.Session
                 return new GdDict { { "success", false }, { "reason", "already_here" } };
             }
             RecomputeOccupancy();
-            if (PilotedShip != null && CurrentOccupancy != PilotedShip)
+            if (PilotedShip != null && CurrentOccupancy != PilotedShip
+                && !(PilotedShip==HomeShip && IsHomeMember(CurrentOccupancy)))
             {
                 EmitTravelDeniedSfx();
                 return new GdDict { { "success", false }, { "reason", "not_aboard_ship" } };
@@ -148,6 +149,7 @@ namespace SynapticSea.Core.Session
                 EmitTravelDeniedSfx();
                 return new GdDict { { "success", false }, { "reason", capacity.GetString("reason") }, { "capability", capacity } };
             }
+            if(PilotedShip==HomeShip) return TravelHomeAssembly(marker,capacity);
             // A revisit regenerates the saved profile, never upgrades an existing legacy wreck in place.
             ShipGenerator.ExpeditionProfile = VisitedShips.ContainsKey(marker.MarkerId)
                 ? VisitedShips[marker.MarkerId].Blueprint.GenerationProfile : ConstrainedExpedition.Profile;
@@ -256,6 +258,8 @@ namespace SynapticSea.Core.Session
         /// <summary>Returns to the home ship: frees the derelict scene, re-docks the ride home, rebuilds home interactables.</summary>
         public bool TravelHome()
         {
+            if(PilotedShip==HomeShip)
+            { SetHazardFeedbackLine("You are already aboard the mobile home. Select a surveyed contact to move the assembly.");return false; }
             if (!AwayFromStart || HomeShip == null) return false;
             if(PilotedShip!=null && PilotedShip!=LifeboatShip && PilotedShip!=HomeShip)
                 return MoorRecoveredVesselAtHome();
@@ -341,6 +345,7 @@ namespace SynapticSea.Core.Session
             SpawnDockBarrier(HomeShip);
             CurrentOccupancy = PilotedShip ?? HomeShip;
             RecomputeOccupancy();
+            if(HomeSeaMarkerId.Length>0)SynapticSeaWorld?.SetPlayerPosition(HomeSeaPosition);
             EmitDockLandSfx();
             return true;
         }

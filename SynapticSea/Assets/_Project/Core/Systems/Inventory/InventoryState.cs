@@ -33,6 +33,8 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>item_id: String -> quantity: int</summary>
         public GdDict Items { get; set; } = new GdDict();
+        /// <summary>Actual player inventory debits, including cargo transfers; not synonymous with consumption.</summary>
+        public event Action<string,long> ItemsRemoved;
 
         /// <summary>Added by worn containers (set by the coordinator).</summary>
         public double BonusCapacity = 0.0;
@@ -135,6 +137,7 @@ namespace SynapticSea.Core.Systems
                 Items.Erase(itemId);
             else
                 Items[itemId] = current - removed;
+            ItemsRemoved?.Invoke(itemId,removed);
             return removed;
         }
 

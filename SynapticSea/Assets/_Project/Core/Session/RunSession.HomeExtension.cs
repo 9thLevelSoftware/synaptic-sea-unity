@@ -22,7 +22,11 @@ namespace SynapticSea.Core.Session
         public readonly List<HomeJoinControl> HomeJoinControls = new List<HomeJoinControl>();
         internal bool RestoringConnections;
         bool _switchingBoardedContext;
-        bool HasSecuredHomeExtension()
+        // Sea coordinates are distinct from the retained local scene frame used for walking.
+        public Vec3 HomeSeaPosition = Vec3.Zero;
+        public string HomeSeaMarkerId = "";
+        internal Vec3? RestoredActiveScenePosition;
+        internal bool HasSecuredHomeExtension()
         {
             if (HomeShip == null) return false;
             foreach (var child in HomeShip.DockedShips)
@@ -57,7 +61,7 @@ namespace SynapticSea.Core.Session
             if(!result.GetBool("success")) {Log.Warning("Home mooring denied: "+result.GetString("reason"));return false;}
             ApplyPlayerCarry(carry);RepositionSubtree(children);
             RebaseCombatPositions(ship,previousPose,ship.SceneRoot.GlobalTransform);
-            SynapticSeaWorld?.SetPlayerPosition(Vec3.Zero);
+            SynapticSeaWorld?.SetPlayerPosition(HomeSeaPosition);
             CurrentOccupancy=ship;
             if(CurrentShip!=ship) ActivateBoardedContext(ship);
             AwayFromStart=true; // active context and local services remain the recovered vessel's.
@@ -178,6 +182,7 @@ namespace SynapticSea.Core.Session
                 if(!HomeJoinPlanner.Validate(HomeShip,ship,h,m,out string reason)) return HomeWorkFailure(reason);
                 edge["connection_kind"]="secured";
                 edge["connection_open"]=false;
+                SpawnHomeBridge();
             }
             else
             {
@@ -198,11 +203,47 @@ namespace SynapticSea.Core.Session
         }
         internal void SpawnHomeBridge()
         {
-            if(HomeShip==null||HomeShip.Mobility.GetString("engine_id").Length==0||!RootValid(HomeShip.SceneRoot)) return;
+            if(HomeShip==null||(!HasSecuredHomeExtension()&&HomeShip.Mobility.GetString("engine_id").Length==0)||!RootValid(HomeShip.SceneRoot)) return;
             foreach(var old in BridgeTerminals.Where(t=>t.ShipId==HomeShip.ShipId).ToList()) {Despawn(old);BridgeTerminals.Remove(old);}
             var floor=AssemblyMobility.Floors(HomeShip.BuiltLayout).OrderBy(c=>c.DistanceSquaredTo(Vec3.Zero)).FirstOrDefault();
             var terminal=new BridgeTerminal();terminal.Configure(HomeShip.ShipId,floor+new Vec3(0,0.4,1),1.8);
             terminal.Parent=HomeShip.SceneRoot;terminal.LoginRequested+=OnLoginRequested;BridgeTerminals.Add(Spawn(terminal));
+        }
+        GdDict TravelHomeAssembly(ShipMarker marker, GdDict capacity)
+        {
+            if(marker==null || ScannerState==null || !SynapticSeaWorld.MarkersInRange(ScannerState.RangeRadius).Any(m=>m.MarkerId==marker.MarkerId))
+                return new GdDict{{"success",false},{"reason","out_of_range"}};
+            if(!HomeObjectivesComplete || VisitedShips.Count==0)
+                return new GdDict{{"success",false},{"reason","home_assembly_requires_onboarding_and_first_expedition"}};
+            if(marker.MarkerId==HomeSeaMarkerId) return new GdDict{{"success",false},{"reason","already_here"}};
+            if(HomeShip.ParentShip!=null || !DockingManager.TryConnectedMembers(HomeShip,out var members,out string reason))
+                return new GdDict{{"success",false},{"reason","invalid_home_assembly"}};
+            foreach(var member in members)
+                if(member is ShipInstance ship && WebFor(ship).AttachedToWeb)
+                    return new GdDict{{"success",false},{"reason","assembly_member_moored_to_biomatter:"+ship.ShipId}};
+            if(!CurrentSystemsOps().GetBool("propulsion") || !CurrentSystemsOps().GetBool("navigation"))
+                return new GdDict{{"success",false},{"reason","local_control_or_propulsion_offline"},{"capability",capacity}};
+            // A large home parks at the surveyed contact. It does not force its whole hull
+            // through a shuttle berth, generate/claim the contact, or detach secured members.
+            HomeSeaPosition=marker.Position;HomeSeaMarkerId=marker.MarkerId;
+            SynapticSeaWorld.SetPlayerPosition(HomeSeaPosition);
+            SetHazardFeedbackLine("Home assembly arrived. Board the independent shuttle to explore this contact.");
+            RequestSave();EmitTrainingEvent("plot_course",marker.MarkerId);EmitDockLandSfx();
+            return new GdDict{{"success",true},{"reason","ok"},{"mode","home_assembly_transit"},{"marker_id",marker.MarkerId},{"capability",capacity}};
+        }
+        Vec3 DerelictScenePosition(IShipLoaderView scene)
+        {
+            if(RestoredActiveScenePosition.HasValue) return RestoredActiveScenePosition.Value;
+            if(!HasSecuredHomeExtension() || !DockingManager.TryConnectedMembers(HomeShip,out var members,out _)) return DERELICT_DOCK_OFFSET;
+            var occupied=new List<Vec3>();
+            foreach(var member in members)
+                if(member is ShipInstance ship && RootValid(ship.SceneRoot))
+                    occupied.AddRange(AssemblyMobility.Floors(ship.BuiltLayout).Select(p=>ship.SceneRoot.GlobalTransform*p));
+            var destination=AssemblyMobility.Floors(scene.GetLayoutCopy());
+            if(occupied.Count==0 || destination.Count==0) return DERELICT_DOCK_OFFSET;
+            // Both hulls retain their authored scale. Reserve floor half-extents, walls and
+            // the independent shuttle's approach rather than overlapping the retained home.
+            return new Vec3(occupied.Min(p=>p.X)-destination.Max(p=>p.X)-16,0,0);
         }
         void ActivateBoardedContext(ShipInstance target)
         {

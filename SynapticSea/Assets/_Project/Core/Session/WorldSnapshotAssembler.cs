@@ -62,6 +62,14 @@ namespace SynapticSea.Core.Session
                 s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
             ws.MobileHomeState = new GdDict { { "version", 1L }, { "lifeboat_commissioned", s.LifeboatCommissioned },
                 { "lifeboat", s.LifeboatShip?.GetSummary() ?? new GdDict() }, { "home_mobility", s.HomeShip?.Mobility.DeepCopy() ?? new GdDict() } };
+            if(s.HomeSeaMarkerId.Length>0)
+                ws.MobileHomeState["home_location"]=new GdDict{{"version",1L},{"marker_id",s.HomeSeaMarkerId},
+                    {"sea_position",GdArray.Of((double)s.HomeSeaPosition.X,(double)s.HomeSeaPosition.Y,(double)s.HomeSeaPosition.Z)}};
+            if(s.HasSecuredHomeExtension() && s.CurrentShip!=null && !s.IsHomeMember(s.CurrentShip) && s.CurrentShip.SceneRoot!=null)
+            {
+                Vec3 position=s.CurrentShip.SceneRoot.GlobalTransform*Vec3.Zero;
+                ws.MobileHomeState["active_scene_position"]=GdArray.Of((double)position.X,(double)position.Y,(double)position.Z);
+            }
             ws.DockEdges = CurrentDockEdges(s);
             ws.PilotedShipId = s.PilotedShip != null ? s.PilotedShip.ShipId : "";
             ws.AboardShipId = s.CurrentOccupancy != null ? s.CurrentOccupancy.ShipId : "";
@@ -138,6 +146,11 @@ namespace SynapticSea.Core.Session
         {
             if (ws == null)
                 return false;
+            var homeLocation=ws.MobileHomeState.GetDictOrEmpty("home_location");
+            if((ws.MobileHomeState.Has("home_location") && (homeLocation.GetInt("version")!=1 || homeLocation.GetString("marker_id").Length==0
+                || !ValidScenePosition(homeLocation.GetArrayOrEmpty("sea_position"))))
+                || (ws.MobileHomeState.Has("active_scene_position") && !ValidScenePosition(ws.MobileHomeState.GetArrayOrEmpty("active_scene_position"))))
+            {s.Log.Warning("World load rejected invalid mobile-home position before changing live state");return false;}
             if (!ws.MobileHomeState.IsEmpty && (ws.MobileHomeState.GetInt("version") != 1
                 || ws.MobileHomeState.GetDictOrEmpty("lifeboat").GetString("ship_id") != "lifeboat"
                 || !AssemblyMobility.ValidSpecification(ws.MobileHomeState.GetDictOrEmpty("home_mobility"))
@@ -203,6 +216,8 @@ namespace SynapticSea.Core.Session
             s.UniqueItemState?.ApplySummary(ws.UniqueItemSummary);
             if (s.SynapticSeaWorld != null && !ws.WorldSummary.IsEmpty)
                 s.SynapticSeaWorld.ApplySummary(ws.WorldSummary);
+            s.HomeSeaPosition=homeLocation.IsEmpty?Vec3.Zero:Vec3.FromArray(homeLocation.GetArrayOrEmpty("sea_position"));
+            s.HomeSeaMarkerId=homeLocation.GetString("marker_id");
             ApplyVisitedShips(s, ws.VisitedShips);
             if(!ws.MobileHomeState.IsEmpty && s.HomeShip!=null) s.HomeShip.Mobility = ws.MobileHomeState.GetDictOrEmpty("home_mobility").DeepCopy();
             s.LifeboatCommissioned = ws.MobileHomeState.IsEmpty ? ws.VisitedShips.Count > 0
@@ -222,9 +237,11 @@ namespace SynapticSea.Core.Session
                     return true;
                 }
                 s.RestoringConnections=true;
+                s.RestoredActiveScenePosition=ws.MobileHomeState.Has("active_scene_position")
+                    ? Vec3.FromArray(ws.MobileHomeState.GetArrayOrEmpty("active_scene_position")) : (Vec3?)null;
                 bool activated;
                 try { activated=s.ActivateDerelictFromInstanceInternal(active, ws.PlayerPositionInShip); }
-                finally { s.RestoringConnections=false; }
+                finally { s.RestoringConnections=false;s.RestoredActiveScenePosition=null; }
                 if (!activated)
                 {
                     s.Log.Warning("PlayableGeneratedShip: world load — failed to re-activate derelict '" + ws.CurrentLocation + "'");
@@ -246,6 +263,7 @@ namespace SynapticSea.Core.Session
                     : s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", ""))));
             }
             ApplyDockingSnapshot(s, ws);
+            if(s.PilotedShip!=null && s.IsHomeMember(s.PilotedShip))s.SetPilotedShip(s.PilotedShip);
             s.RefreshThreatsAfterConnectionRestore();
             s.SpawnHomeBridge();
             s.RebuildHomeJoinControls();
@@ -255,6 +273,13 @@ namespace SynapticSea.Core.Session
 
         static bool OwnedInstallation(string shipId, GdDict spec) => spec.GetString("engine_id").Length == 0
             || spec.GetString("engine_id") == "propulsion:" + shipId;
+        static bool ValidScenePosition(GdArray position)
+        {
+            if(position.Count!=3)return false;
+            foreach(var coordinate in position)
+            {double value=V.F64(coordinate,double.NaN);if(double.IsNaN(value)||double.IsInfinity(value))return false;}
+            return true;
+        }
 
         /// <summary>
         /// Every retained ship's summary keyed by marker id; under the demo's <c>world_persistence.cross_run</c> block only

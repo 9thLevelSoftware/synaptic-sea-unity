@@ -292,6 +292,14 @@ namespace SynapticSea.Core.Session
                 return new GdDict { { "success", false }, { "reason", "unknown_ship" } };
             if (!inst.GetAccess().HasAccess(PLAYER_LOCAL_ID))
                 return new GdDict { { "success", false }, { "reason", "no_access" } };
+            // A welded extension is controlled as its complete home assembly. Ordinary
+            // bridge travel must never silently tear a secured edge out of that assembly.
+            if(inst!=HomeShip && IsHomeMember(inst))
+            {
+                if(!HomeShip.GetAccess().HasAccess(PLAYER_LOCAL_ID))
+                    return new GdDict{{"success",false},{"reason","no_access_to_assembly_root"}};
+                inst=HomeShip;
+            }
             PilotedShip = inst;
             RecomputeOccupancy();
             return new GdDict { { "success", true }, { "reason", "ok" } };

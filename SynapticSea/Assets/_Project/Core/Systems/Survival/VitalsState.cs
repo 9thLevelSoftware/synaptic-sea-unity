@@ -40,12 +40,16 @@ namespace SynapticSea.Core.Systems
         public double HealthRecoveryRate = DEFAULT_HEALTH_RECOVERY;
 
         public double Health = DEFAULT_MAX_HEALTH;
+        /// <summary>Observed actual health loss by source. Optional diagnostic observer; never changes rates or saves.</summary>
+        public event Action<string,double> HealthDamageObserved;
+        static readonly string[] DamageContextKeys = { SimKeys.RadiationHealthDrain, SimKeys.AtmosphereHealthDrain,
+            SimKeys.FireHealthDrain, SimKeys.SanityHealthDrain, SimKeys.EncumbranceHealthDrain, SimKeys.WoundHealthDrain };
 
         /// <summary>DamagePipeline writes health through this (the GDScript assigned <c>vitals.health</c> directly).</summary>
         double IDamageVitalsTarget.Health
         {
             get => Health;
-            set => Health = value;
+            set {double loss=Math.Max(0,Health-value);Health=value;if(loss>0)HealthDamageObserved?.Invoke("combat",loss);}
         }
         public double Stamina = DEFAULT_MAX_STAMINA;
         public double Hunger = DEFAULT_MAX_HUNGER;
@@ -189,7 +193,23 @@ namespace SynapticSea.Core.Systems
                 hDrain += V.F64(context.Get(SimKeys.WoundHealthDrain, 0.0)) * deltaSeconds;
             if (hDrain > 0.0 && Health > 0.0)
             {
+                double loss=Math.Min(Health,hDrain);
                 Health = Math.Max(0.0, Health - hDrain);
+                if(HealthDamageObserved!=null)
+                {
+                    double passive=Math.Max(0,HealthDrainRate*deltaSeconds);
+                    double starvation=Math.Max(0,HungerHealthDrainCurve(Hunger,MaxHunger)*deltaSeconds);
+                    double requested=passive+starvation;
+                    foreach(string key in DamageContextKeys)requested+=Math.Max(0,V.F64(context.Get(key,0.0))*deltaSeconds);
+                    if(requested>0)
+                    {
+                        double scale=loss/requested;
+                        if(passive>0)HealthDamageObserved("passive",passive*scale);
+                        if(starvation>0)HealthDamageObserved("starvation",starvation*scale);
+                        foreach(string key in DamageContextKeys)
+                        {double amount=Math.Max(0,V.F64(context.Get(key,0.0))*deltaSeconds)*scale;if(amount>0)HealthDamageObserved(key,amount);}
+                    }
+                }
                 changed = true;
             }
             else if (HealthRecoveryRate > 0.0 && Health < MaxHealth)
@@ -221,7 +241,9 @@ namespace SynapticSea.Core.Systems
         public GdDict ApplyDelta(GdDict delta)
         {
             if (delta == null) delta = new GdDict();
+            double before=Health;
             Health = GdMath.Clampf(Health + V.F64(delta.Get("health", 0.0)), 0.0, MaxHealth);
+            if(Health<before)HealthDamageObserved?.Invoke("direct_vitals_delta",before-Health);
             Stamina = GdMath.Clampf(Stamina + V.F64(delta.Get("stamina", 0.0)), 0.0, MaxStamina);
             Hunger = GdMath.Clampf(Hunger + V.F64(delta.Get("hunger", 0.0)), 0.0, MaxHunger);
             Thirst = GdMath.Clampf(Thirst + V.F64(delta.Get("thirst", 0.0)), 0.0, MaxThirst);
