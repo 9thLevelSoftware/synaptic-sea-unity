@@ -164,6 +164,21 @@ namespace SynapticSea.Tests.Session
         static GdDict GodotView(GdDict tree)
         {
             var view = SynapticSea.Tests.Parity.SavePortSchema.GodotView(tree);
+            if(view.Has("mobile_home_state"))
+            {
+                GdDict Spec(double area,double mass,string engine,double rating)=>new GdDict {
+                    {"version",1L},{"area_m2",area},{"dry_mass_kg",mass},{"engine_id",engine},{"rated_supported_kg",rating}};
+                var homeSystems=view.GetDictOrEmpty("home_ship").GetDictOrEmpty("ship_systems_summary");
+                var boatSystems=new GdDict {{"systems",homeSystems.GetDictOrEmpty("systems").DeepCopy()},{"system_order",homeSystems.GetArrayOrEmpty("system_order").DeepCopy()}};
+                var boat=new GdDict {{"ship_id","lifeboat"},{"marker_id",""},{"blueprint",new GdDict()},
+                    {"systems",boatSystems},
+                    {"access",new GdDict {{"owner_id","player_local"},{"access_ids",GdArray.Of("player_local")}}},
+                    {"mobility",Spec(48,4800,"propulsion:lifeboat",6000)}};
+                var exact=new GdDict {{"version",1L},{"lifeboat_commissioned",false},{"lifeboat",boat},
+                    {"home_mobility",Spec(416,41600,"",0)}};
+                Assert.IsEmpty(TreeDiff.Compare(exact,view.Get("mobile_home_state"),Strict()),"exact new golden owned mobile-home payload");
+                view.Erase("mobile_home_state");
+            }
             // Assert the exact new Unity contract, then compare every legacy Godot field unchanged.
             foreach (object value in view.GetArrayOrEmpty("dock_edges"))
             {

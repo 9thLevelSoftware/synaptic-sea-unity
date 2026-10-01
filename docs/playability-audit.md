@@ -1,6 +1,6 @@
 # Playability and asset integration audit
 
-This slice starts from game main `8dcc95c10ab5e08658546319f51f49b4abd256fc` and companion main `01230d8`. The playable bootstrap, hub objectives, inventory, repairs, ship travel, saves, HUD and results screens exist. New Run intentionally uses the Milestone A hub; unsupported seed/biome/difficulty requests remain rejected. Completing all hub objectives ends extraction; first-away travel does not.
+This work starts from game main `8dcc95c10ab5e08658546319f51f49b4abd256fc` and companion main `01230d8`, with subsequent local verified slices documented below. The playable bootstrap, hub objectives, inventory, repairs, ship travel, saves, HUD and results screens exist. New Run intentionally uses the Milestone A hub; unsupported seed/biome/difficulty requests remain rejected. The current persistent-life continuation keeps the player alive after onboarding objectives rather than ending extraction; first-away travel does not extract.
 
 ## Gameplay changes
 

@@ -153,7 +153,12 @@ namespace SynapticSea.Core.Session
                 return;
             }
             double fireO2 = 0.0;
-            FireSuppressionState afsO2 = ActiveFireState();
+            // The scene's boarded context can remain the wreck while the player
+            // physically shelters aboard its independently simulated shuttle.
+            // Do not charge one vessel's fires against another vessel's air.
+            FireSuppressionState afsO2 = CurrentOccupancy != null && CurrentOccupancy != CurrentShip
+                ? (CurrentOccupancy == HomeShip ? FireSuppressionState : CurrentOccupancy.GetFire())
+                : ActiveFireState();
             if (afsO2 != null)
                 fireO2 = FIRE_OXYGEN_DRAIN_PER_INTENSITY * afsO2.GetTotalIntensity();
             if (IsFieldSuitPressureActive())
@@ -225,9 +230,27 @@ namespace SynapticSea.Core.Session
         }
 
         /// <summary>True when suit O2 drains as hostile field atmosphere: aboard a derelict hull, not inside lifeboat/home.</summary>
+        internal bool OwnedRecoveryHabitatAir()
+        {
+            var ship=CurrentOccupancy;
+            if(ship==null || ship==HomeShip || ship==LifeboatShip || ship!=CurrentShip
+                || ship.Blueprint?.GenerationProfile!=SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                || ship.Blueprint.ShipCondition==(long)SynapticSea.Core.Procgen.ShipBlueprint.Condition.Wrecked
+                || !RootValid(ship.SceneRoot) || !ship.GetAccess().HasAccess(PLAYER_LOCAL_ID)
+                || ship.SystemsManager?.IsOperational("power")!=true || ship.SystemsManager.IsOperational("life_support")!=true
+                || ship.GetHull().GetBreachCount()>0 || (ship.Fire?.GetTotalIntensity() ?? 0)>0)return false;
+            Vec3 local=ToLocal(ship.SceneRoot,PlayerPos);
+            if(!AssemblyMobility.Floors(ship.BuiltLayout).Exists(c=>System.Math.Abs(local.X-c.X)<2.01 && System.Math.Abs(local.Z-c.Z)<2.01
+                && local.Y>=c.Y-.25 && local.Y<c.Y+3))return false;
+            var air=(ship.SceneRoot as IShipLoaderView)?.GetAuthoredAtmosphereAt(local) ?? new GdDict();
+            // Explicit authored leaks/vents remain authoritative. There is no cross-ship air conduit.
+            return !air.GetBool("vented") && !air.GetBool("depressurized")
+                && (!air.Has("oxygen_bp") || air.GetFloat("oxygen_bp")>=10000 || air.GetString("oxygen_source")=="initial_hull_condition_v1");
+        }
+
         bool IsFieldSuitPressureActive()
         {
-            if (!AwayFromStart)
+            if (!AwayFromStart || OwnedRecoveryHabitatAir())
                 return false;
             if (LifeboatShip != null && CurrentOccupancy == LifeboatShip)
                 return false;

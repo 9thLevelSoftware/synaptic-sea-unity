@@ -60,10 +60,11 @@ namespace SynapticSea.Core.Session
             ShipHost?.SetShipRootPosition(newRoot, DERELICT_DOCK_OFFSET);
             if (inst.BuiltLayout.IsEmpty && newRoot != null)
                 inst.BuiltLayout = newRoot.GetLayoutCopy();
+            if(inst.Mobility.IsEmpty) inst.Mobility = AssemblyMobility.CreateSpecification(inst, true);
             CurrentShip = inst;
             AwayFromStart = true;
             ResetTooltipFocus();
-            if (PilotedShip != null)
+            if (PilotedShip != null && !RestoringConnections)
             {
                 GdDict carry = CapturePlayerCarry();
                 List<SubtreeCapture> childCarry = CaptureSubtree();
@@ -111,6 +112,7 @@ namespace SynapticSea.Core.Session
             BuildFireZones();
             BuildFireSuppressionPoints();
             BuildExtinguisherRechargePort();
+            RebuildHomeJoinControls();
             if (_lastDerelictHazardBudget < 0 || _lastDerelictHazardBudget > 2)
             {
                 BuildArcZone();
@@ -139,6 +141,12 @@ namespace SynapticSea.Core.Session
             {
                 EmitTravelDeniedSfx();
                 return new GdDict { { "success", false }, { "reason", "not_aboard_ship" } };
+            }
+            var capacity = TravelCapability();
+            if (!capacity.GetBool("success"))
+            {
+                EmitTravelDeniedSfx();
+                return new GdDict { { "success", false }, { "reason", capacity.GetString("reason") }, { "capability", capacity } };
             }
             // A revisit regenerates the saved profile, never upgrades an existing legacy wreck in place.
             ShipGenerator.ExpeditionProfile = VisitedShips.ContainsKey(marker.MarkerId)
@@ -215,7 +223,7 @@ namespace SynapticSea.Core.Session
                 if (HasPlayer)
                     _homePlayerPosition = PlayerPos;
             }
-            else if (leaving != PilotedShip && RootValid(leaving.SceneRoot))
+            else if (leaving != PilotedShip && !IsHomeMember(leaving) && RootValid(leaving.SceneRoot))
             {
                 ShipHost?.FreeShipRoot(leaving.SceneRoot);
                 leaving.SceneRoot = null;
@@ -236,6 +244,7 @@ namespace SynapticSea.Core.Session
                 VisitedShips[mid] = inst;
                 SeedShipModels(inst);
             }
+            if (PilotedShip == LifeboatShip) LifeboatCommissioned = true;
             AttachDerelictActive(inst, newRoot, playerOxygenBeforeTransition);
             ConfigureThreatRuntimeForCurrentShip();
             RecomputeOccupancy();
@@ -247,8 +256,9 @@ namespace SynapticSea.Core.Session
         /// <summary>Returns to the home ship: frees the derelict scene, re-docks the ride home, rebuilds home interactables.</summary>
         public bool TravelHome()
         {
-            if (!AwayFromStart || HomeShip == null)
-                return false;
+            if (!AwayFromStart || HomeShip == null) return false;
+            if(PilotedShip!=null && PilotedShip!=LifeboatShip && PilotedShip!=HomeShip)
+                return MoorRecoveredVesselAtHome();
             // Reject an impossible berth before clearing active state or detaching the departing subtree.
             if (PilotedShip != null)
             {
@@ -281,7 +291,7 @@ namespace SynapticSea.Core.Session
             {
                 if (leaving.SceneRoot is IShipLoaderView leavingLoader)
                     Events.RaiseAffordancesCleared(leavingLoader);
-                if (leaving != PilotedShip && RootValid(leaving.SceneRoot))
+                if (leaving != PilotedShip && !IsHomeMember(leaving) && RootValid(leaving.SceneRoot))
                 {
                     ShipHost?.FreeShipRoot(leaving.SceneRoot);
                     leaving.SceneRoot = null;
@@ -314,6 +324,7 @@ namespace SynapticSea.Core.Session
             BuildHallucinationRuntime();
             BuildFireSuppressionPoints();
             BuildExtinguisherRechargePort();
+            RebuildHomeJoinControls();
             BuildCraftingStations();
             BuildProductionStations();
             if (Loader != null)
@@ -557,6 +568,8 @@ namespace SynapticSea.Core.Session
             ShipHost?.SetShipRootPosition(newRoot, DERELICT_DOCK_OFFSET);
             if (inst.BuiltLayout.IsEmpty)
                 inst.BuiltLayout = newRoot.GetLayoutCopy();
+            if (inst.Mobility.IsEmpty)
+                inst.Mobility = AssemblyMobility.CreateSpecification(inst, true);
             SpawnBridgeTerminal(inst);
             SpawnHangarControl(inst);
             SpawnCargoHoldControl(inst);

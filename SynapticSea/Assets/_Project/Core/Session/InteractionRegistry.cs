@@ -50,6 +50,7 @@ namespace SynapticSea.Core.Session
             new InteractionHandler("dock_barrier", InteractionScope.Both, "dock_barriers: b.try_start (unopened)", (s, p) => s.TryDockBarriers(p)),
             new InteractionHandler("authored_portal", InteractionScope.Both, "_try_authored_portal_interact", (s, p) => s.TryAuthoredPortalInteract(p)),
             new InteractionHandler("deck_transition", InteractionScope.Both, "authored vertical_connections", (s, p) => s.TryDeckTransition(p)),
+            new InteractionHandler("home_join", InteractionScope.Both, "validated exterior welding and owned propulsion installation", (s,p)=>s.TryHomeJoinWork(p)),
             new InteractionHandler("bridge_terminal", InteractionScope.Both, "bridge_terminals: t.try_login", (s, p) => s.TryBridgeTerminals(p)),
             new InteractionHandler("fire_suppression_point", InteractionScope.Both, "fire_suppression_points: fp.try_start", (s, p) => s.TryFireSuppressionPoints(p)),
             new InteractionHandler("repair_point", InteractionScope.Both, "repair_points: rp.try_start", (s, p) => s.TryRepairPoints(p)),

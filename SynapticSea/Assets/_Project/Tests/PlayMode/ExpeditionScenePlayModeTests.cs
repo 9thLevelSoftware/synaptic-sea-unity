@@ -17,6 +17,45 @@ namespace SynapticSea.Tests.PlayMode
     public class ExpeditionScenePlayModeTests
     {
         [UnityTest]
+        public IEnumerator RestoredDockMemberWallRebuildsCompositeNavigationAndReopensCorrectly()
+        {
+            var host=new GameObject("IntegrityNavHost");var mobile=new GameObject("IntegrityNavMember");
+            var mobileView=new SceneShipRoot(mobile);
+            host.transform.position=new Vector3(500,0,500);
+            mobileView.Transform=SynapticSea.Core.Session.SessionMath.Translation(Frame.ToGodot(host.transform.position));
+            try
+            {
+                foreach(var pair in new[]{(host,0f),(mobile,4f)})
+                {
+                    var floor=new GameObject("Floor"){layer=PhysicsLayers.Structure};floor.transform.SetParent(pair.Item1.transform,false);
+                    floor.transform.localPosition=new Vector3(pair.Item2,-.125f,0);floor.AddComponent<BoxCollider>().size=new Vector3(4,.25f,4);
+                }
+                // Give the collected volume normal ship headroom even while the
+                // dividing wall is destroyed; a floor-only volume is only 1.25 m tall.
+                var post=new GameObject("HullPost"){layer=PhysicsLayers.Structure};post.transform.SetParent(host.transform,false);
+                post.transform.localPosition=new Vector3(-1.8f,1.5f,-1.8f);post.AddComponent<BoxCollider>().size=new Vector3(.1f,3,.1f);
+                var wall=new GameObject("RestorableWall"){layer=PhysicsLayers.Structure};wall.transform.SetParent(mobile.transform,false);
+                wall.transform.localPosition=new Vector3(2,1.5f,0);var collider=wall.AddComponent<BoxCollider>();collider.size=new Vector3(.2f,3,4);collider.enabled=false;
+                var module=wall.AddComponent<StructuralModule>();var node=new SceneModuleNode(module,mobileView);
+                Physics.SyncTransforms();ShipNavMesh.Build(mobile);ShipNavMesh.BuildComposite(host,mobile);yield return null;
+                Assert.AreSame(host.GetComponent<ShipNavMesh>(),ShipNavMesh.ForActiveShip(mobile),"boarding a member uses its assembly owner");
+                Assert.IsFalse(mobile.GetComponent<ShipNavMesh>().HasNavMesh,"context changes must not reactivate overlapping standalone navigation");
+                var filter=new NavMeshQueryFilter{agentTypeID=ShipNavMesh.AgentTypeId,areaMask=NavMesh.AllAreas};
+                Assert.IsTrue(NavMesh.SamplePosition(host.transform.position,out var start,1,filter));
+                Assert.IsTrue(NavMesh.SamplePosition(host.transform.position+Vector3.right*4,out var end,1,filter),"composite contains the member's actual floor");
+                var path=new NavMeshPath();Assert.IsTrue(NavMesh.CalculatePath(start.position,end.position,filter,path));
+                Assert.AreEqual(NavMeshPathStatus.PathComplete,path.status,"removed wall permits the physical dock route");
+                node.SetCollisionEnabled(true);Physics.SyncTransforms();yield return null;yield return null;
+                Assert.IsTrue(collider.enabled);NavMesh.CalculatePath(start.position,end.position,filter,path);
+                Assert.AreNotEqual(NavMeshPathStatus.PathComplete,path.status,"restored member collision must close the owning composite route");
+                node.SetCollisionEnabled(false);Physics.SyncTransforms();yield return null;yield return null;
+                Assert.IsTrue(NavMesh.CalculatePath(start.position,end.position,filter,path));
+                Assert.AreEqual(NavMeshPathStatus.PathComplete,path.status,"removing the same wall reopens navigation without changing collision authority");
+            }
+            finally{Object.Destroy(host);Object.Destroy(mobile);}
+        }
+
+        [UnityTest]
         public IEnumerator CargoDockHasPhysicalRouteFromBoatToHost()
         {
             var previous=CoreServices.Resources; CoreServices.Resources=new FileSystemResourceReader(Application.streamingAssetsPath);

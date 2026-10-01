@@ -30,6 +30,7 @@ namespace SynapticSea.Core.Session
             _inTick = true;
             try
             {
+                if(!RestoringConnections && !_switchingBoardedContext && (HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile)) RecomputeOccupancy();
                 double delta = ctx.Delta;
                 WorldTime += delta;
                 if (PlayableStarted && !SliceComplete)
@@ -67,6 +68,13 @@ namespace SynapticSea.Core.Session
                 else
                     inSafe = !AwayFromStart && (OxygenState == null || !OxygenState.GetSummary().GetBool("breach_open"));
             }
+            if (location == SessionLocation.Away
+                && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                && CurrentOccupancy == LifeboatShip && LifeboatCommissioned
+                && LifeboatShip?.SystemsManager?.IsOperational("life_support") == true
+                && (LifeboatShip.Fire == null || LifeboatShip.Fire.GetTotalIntensity() <= 0))
+                inSafe = true; // The independently repaired shuttle is genuine local shelter.
+            if(location==SessionLocation.Away && OwnedRecoveryHabitatAir())inSafe=true;
             TickSanityAndHallucinations(delta, inSafe);
         }
 
@@ -122,9 +130,10 @@ namespace SynapticSea.Core.Session
             double covBefore = 0.0;
             if (HullWebState != null)
                 covBefore = HullWebState.Coverage;
-            AdvanceShip(HomeShip, delta);
-            if (AwayFromStart && CurrentShip != null && CurrentShip != HomeShip)
-                AdvanceShip(CurrentShip, delta);
+            var advanced = new System.Collections.Generic.HashSet<ShipInstance>();
+            foreach (var ship in AllKnownShipsInternal())
+                if (ship != null && RootValid(ship.SceneRoot) && advanced.Add(ship)
+                    && (ship != LifeboatShip || LifeboatCommissioned)) AdvanceShip(ship, delta);
             _biomatterPulseCooldown = Math.Max(0.0, _biomatterPulseCooldown - delta);
             if (HullWebState != null && HullWebState.Coverage > covBefore + 0.0001)
                 MaybeEmitBiomatterPulse();
@@ -239,7 +248,8 @@ namespace SynapticSea.Core.Session
             if (authoredLoader != null && authoredLoader.IsValid)
             {
                 GdArray authoredRadiationSpecs = authoredLoader.GetRadiationZoneSpecs() ?? new GdArray();
-                hasAuthoredRadiationSource = !authoredRadiationSpecs.IsEmpty;
+                hasAuthoredRadiationSource = !authoredRadiationSpecs.IsEmpty
+                    || (AwayFromStart && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile);
                 if (!authoredRadiationSpecs.IsEmpty && HasPlayer)
                 {
                     GdDict authoredRadiation = authoredLoader.GetRadiationZoneAt(ToLocal(authoredLoader, PlayerPos)) ?? new GdDict();
@@ -248,6 +258,10 @@ namespace SynapticSea.Core.Session
                 GdArray atmosphereSpecs = authoredLoader.AuthoredAtmosphereSpecs;
                 if (atmosphereSpecs != null)
                 {
+                    // Explicit room atmosphere is authoritative even when every room
+                    // has zero radiation. Do not invent a ship-wide radioactive field
+                    // just because no positive radiation source was authored.
+                    hasAuthoredRadiationSource |= !atmosphereSpecs.IsEmpty;
                     foreach (object specObj in atmosphereSpecs)
                     {
                         if (specObj is GdDict spec)

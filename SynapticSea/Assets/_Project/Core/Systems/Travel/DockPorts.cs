@@ -43,7 +43,7 @@ namespace SynapticSea.Core.Systems
 
         public static GdDict ForDerelict(GdDict layout, long seedValue = 0, long conditionClass = 0)
         {
-            if(layout != null && (layout.GetString("generation_profile")==SynapticSea.Core.Procgen.PurposefulExpedition.Profile || layout.GetString("generation_profile")==SynapticSea.Core.Procgen.ConstrainedExpedition.Profile))
+            if(layout != null && (layout.GetString("generation_profile")==SynapticSea.Core.Procgen.PurposefulExpedition.Profile || SynapticSea.Core.Procgen.ConstrainedExpedition.Supported(layout.GetString("generation_profile"))))
             {
                 var contract=layout.GetDictOrEmpty("docking_port"); var p=contract.GetArrayOrEmpty("position"); var f=contract.GetArrayOrEmpty("facing");
                 if(contract.GetInt("contract_version")!=1||p.Count!=3||f.Count!=3) return new GdDict();

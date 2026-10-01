@@ -361,7 +361,7 @@ namespace SynapticSea.Tests.PlayMode
                         Vector3 candidate = portal.transform.position + offset * 1.3f;
                         candidate.y = player.transform.position.y;
                         if (!NavMesh.SamplePosition(candidate, out var sample, 0.6f, filter)) continue;
-                        if (!SpawnClearance.IsClear(sample.position)) continue;
+                        if (!SpawnClearance.IsClear(sample.position, PlayerController.DefaultCollisionRadius + 0.05f)) continue;
                         var candidatePath = new NavMeshPath();
                         if (!NavMesh.CalculatePath(player.transform.position, sample.position, filter, candidatePath) || candidatePath.status != NavMeshPathStatus.PathComplete
                             || CrossesClosedPortal(candidatePath)) continue;
@@ -381,10 +381,13 @@ namespace SynapticSea.Tests.PlayMode
                     + "; blockers=" + string.Join(", ", Physics.OverlapSphere(blockedRouteEnd + Vector3.up, 2f, SpawnClearance.BlockingMask)
                         .Select(c => c.transform.parent.name + "/" + c.name + "@" + c.bounds.center + " size=" + c.bounds.size)));
                 Debug.Log("[NaturalWalk] target " + target + "; door " + chosen.portalId + "@" + chosen.transform.position + "; route " + string.Join(" -> ", approach.corners.Select(c => c.ToString())));
-                yield return WalkAlong(approach, 0.3f);
+                yield return WalkAlong(approach, 0.05f);
                 player.RequestInteract();
                 for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
-                Assert.IsTrue(chosen.isOpen, "real interact opens " + chosen.portalId + "; handler " + _s.LastInteractHandlerId);
+                Assert.IsTrue(chosen.isOpen, "real interact opens " + chosen.portalId + "; handler " + _s.LastInteractHandlerId
+                    + "; player="+player.transform.position+" distance="+Vector3.Distance(player.transform.position,chosen.transform.position)
+                    + "; current="+_s.CurrentShip.ShipId+" focused="+(_s.FocusedAuthoredPortal(player.GodotPosition)?.PortalId ?? "none")
+                    + "; portal-kind="+chosen.portalKind);
             }
             Assert.AreEqual(NavMeshPathStatus.PathComplete, path.status, "standing route to " + target);
             yield return WalkAlong(path, 0.2f);
@@ -448,16 +451,27 @@ namespace SynapticSea.Tests.PlayMode
                         Assert.Less(Time.realtimeSinceStartup, deadline, "player movement stalled at " + player.transform.position
                             + " en route to " + waypoint + "; nearby blockers: " + string.Join(", ", Physics.OverlapSphere(player.transform.position + Vector3.up * 0.8f, 1f, SpawnClearance.BlockingMask)
                                 .Select(c => c.transform.parent.name + "/" + c.name + "@" + c.bounds.center + " size " + c.bounds.size)));
-                        Assert.IsFalse(_s.SliceComplete, "the player survived exploration");
+                        Assert.IsFalse(_s.SliceComplete, "the player survived exploration; vitals="+GdJson.Stringify(_s.VitalsState.GetSummary())
+                            +" oxygen="+_s.OxygenState.Oxygen+" wounds="+GdJson.Stringify(_s.WoundState.GetSummary()));
+                        bool fighting=false;
                         if (_defendWhileExploring)
                         {
+                            foreach (var wound in _s.GetTreatableWounds().Cast<GdDict>())
+                                if (wound.GetBool("can_bandage")) Assert.IsTrue(_s.BandageWound(wound.GetString("wound_id")).GetBool("ok"));
+                                else if (wound.GetBool("can_treat")) Assert.IsTrue(_s.TreatWound(wound.GetString("wound_id")).GetBool("ok"));
+                            if (_s.VitalsState.Health < 65 && _s.InventoryState.GetQuantity("field_medkit") > 0)
+                                _s.UseConsumableItem("field_medkit"); // Medicine cooldowns and actual inventory still gate use.
                             var nearby = _s.ThreatManager.Threats.Where(t => t.Health > 0 && t.WorldPosition.Count >= 3)
                                 .Select(t => new Vec3(V.F64(t.WorldPosition[0]),V.F64(t.WorldPosition[1]),V.F64(t.WorldPosition[2])))
-                                .FirstOrDefault(at => at.DistanceSquaredTo(player.GodotPosition) < 2.4 * 2.4);
+                                .Where(at=>at.DistanceSquaredTo(player.GodotPosition)<2.4*2.4
+                                    && !Physics.Linecast(player.transform.position+Vector3.up*1.2f,Frame.ToUnity(at)+Vector3.up,
+                                        SpawnClearance.BlockingMask,QueryTriggerInteraction.Ignore))
+                                .OrderBy(at=>at.DistanceSquaredTo(player.GodotPosition)).FirstOrDefault();
                             if (nearby != Vec3.Zero)
                             {
                                 player.FaceAttackDirection(nearby-player.GodotPosition);
                                 _boot.Host.RequestAttack(); // Ordinary reach/LOS/cooldown still decide whether this hits.
+                                fighting=true;
                             }
                         }
                         Vector3 direction = waypoint - player.transform.position;
@@ -465,7 +479,7 @@ namespace SynapticSea.Tests.PlayMode
                         // Slow the final physics step instead of oscillating across a tight corner.
                         // CharacterController movement and collision remain authoritative.
                         float stride = player.GetEffectiveMoveSpeed() * Time.fixedDeltaTime;
-                        player.SetScriptedMoveDirection(Frame.ToGodot(direction.normalized * Mathf.Min(1f,direction.magnitude / Mathf.Max(stride,0.001f))));
+                        player.SetScriptedMoveDirection(fighting ? Vec3.Zero : Frame.ToGodot(direction.normalized * Mathf.Min(1f,direction.magnitude / Mathf.Max(stride,0.001f))));
                         yield return new WaitForFixedUpdate();
                     }
                 }
@@ -481,7 +495,40 @@ namespace SynapticSea.Tests.PlayMode
         [Timeout(360000)]
         public IEnumerator WalkRepairTravelExploreOddSeedCompositionAndReturnWithoutFixtureResources() => NaturalExpeditionJourney(true);
 
-        IEnumerator NaturalExpeditionJourney(bool cargoFamily)
+        [UnityTest, Timeout(600000)]
+        public IEnumerator ReclaimWeldWalkSaveAndLeaveByIndependentCraftWithoutFixtureResources()
+        {
+            string earned = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../../builds/artifacts/reclamation-earned-world.json"));
+            string moored=System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../builds/artifacts/reclamation-moored-world.json"));
+            string transport=System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../builds/artifacts/reclamation-transport-world.json"));
+            if(System.Environment.GetCommandLineArgs().Contains("-resumeEarnedTransport"))
+            {
+                Assert.IsTrue(System.IO.File.Exists(transport),"diagnostic transport replay requires an earned repair/salvage checkpoint");
+                _storage.WriteText(SynapticSea.Core.Systems.SaveLoadService.WORLD_SLOT_FILE,System.IO.File.ReadAllText(transport));
+                yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+                string excursion=_s.Scan().GetArrayOrEmpty("markers").Cast<GdDict>().First(m=>m.GetString("marker_id")!=_s.CurrentShip.MarkerId).GetString("marker_id");
+                _defendWhileExploring=true;yield return ReclaimTransportAndJoin(_s.CurrentShip,_s.CurrentShip.MarkerId,excursion);
+            }
+            else if(System.Environment.GetCommandLineArgs().Contains("-resumeEarnedHomeJoin"))
+            {
+                Assert.IsTrue(System.IO.File.Exists(moored),"debug join replay requires an earned mooring checkpoint");
+                _storage.WriteText(SynapticSea.Core.Systems.SaveLoadService.WORLD_SLOT_FILE,System.IO.File.ReadAllText(moored));
+                yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+                string excursion=_s.Scan().GetArrayOrEmpty("markers").Cast<GdDict>().First(m=>m.GetString("marker_id")!=_s.CurrentShip.MarkerId).GetString("marker_id");
+                _defendWhileExploring=true;yield return CompleteReclaimedJoin(_s.CurrentShip,_s.CurrentShip.MarkerId,excursion);
+            }
+            else if(System.Environment.GetCommandLineArgs().Contains("-resumeEarnedReclamation"))
+            {
+                Assert.IsTrue(System.IO.File.Exists(earned), "debug resume requires a checkpoint produced by the complete ordinary journey");
+                _storage.WriteText(SynapticSea.Core.Systems.SaveLoadService.WORLD_SLOT_FILE, System.IO.File.ReadAllText(earned));
+                yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+                string excursion=_s.Scan().GetArrayOrEmpty("markers").Cast<GdDict>().First(m=>m.GetString("marker_id")!=_s.CurrentShip.MarkerId).GetString("marker_id");
+                yield return ReclaimCurrentWreck(_s.CurrentShip.MarkerId,excursion);
+            }
+            else yield return NaturalExpeditionJourney(false, true);
+        }
+
+        IEnumerator NaturalExpeditionJourney(bool cargoFamily, bool reclaim = false)
         {
             yield return StartThroughTitle();
             _s.RefreshDeckTransitions();
@@ -563,6 +610,8 @@ namespace SynapticSea.Tests.PlayMode
                 yield return WalkTo(transfer.GlobalPosition,2.5f);_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
                 Assert.Less(_boot.Host.SceneState.Player.GodotPosition.Y,1.6,"real deck transfer returns to the boat");
             }
+            yield return CutBiomatterMooring(_s.HomeShip);
+            yield return CutBiomatterMooring(_s.LifeboatShip);
             float deadline = Time.realtimeSinceStartup + 30f;
             while (!_s.PropulsionExpandedState.CanPropel() && Time.realtimeSinceStartup < deadline && !_s.SliceComplete) yield return null;
             Assert.IsFalse(_s.SliceComplete, "natural repairs and seals are survivable");
@@ -664,7 +713,8 @@ namespace SynapticSea.Tests.PlayMode
                 .FirstOrDefault(m => m.GetInt("size_class") >= 1 && m.GetInt("size_class") <= 2
                     && !_s.VisitedShips.ContainsKey(m.GetString("marker_id"))
                     && availableMarkers.TryGetValue(m.GetString("marker_id"),out var candidate)
-                    && PurposefulExpedition.CrossHull(candidate.SeedValue) == cargoFamily);
+                    && PurposefulExpedition.CrossHull(candidate.SeedValue) == cargoFamily
+                    && (!reclaim || candidate.Condition == 0));
             Assert.IsNotNull(nextContact, "normal scanner exposes a new larger wreck after one onboarding round trip");
             bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
             yield return WalkTo(bridge, 1.2f);
@@ -680,6 +730,14 @@ namespace SynapticSea.Tests.PlayMode
             yield return BootPlayable(RunLaunchRequest.ContinueWorld());
             Assert.AreEqual(SynapticSea.Core.Procgen.ConstrainedExpedition.Profile, _s.CurrentShip.Blueprint.GenerationProfile, "actual Continue keeps expanded destination");
             Assert.AreEqual(nextId, _s.CurrentShip.MarkerId);
+            if (reclaim)
+            {
+                string earned=System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../builds/artifacts/reclamation-earned-world.json"));
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(earned));
+                System.IO.File.WriteAllText(earned,_storage.ReadText(SynapticSea.Core.Systems.SaveLoadService.WORLD_SLOT_FILE));
+                yield return ReclaimCurrentWreck(nextId, awayMarker);
+                yield break;
+            }
             if (System.Environment.GetCommandLineArgs().Contains("-profileExpeditionFrames"))
             {
                 Assert.AreEqual("constrained_composition",_s.CurrentShip.BuiltLayout.GetString("topology_family"));
@@ -697,6 +755,269 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(ConstrainedExpedition.Profile, _s.VisitedShips[nextId].Blueprint.GenerationProfile);
             Assert.AreEqual(cargoFamily,PurposefulExpedition.CrossHull(_s.VisitedShips[nextId].Blueprint.SeedValue),"normal return/Continue retains the saved seed that selects the hull family");
             _defendWhileExploring = false;
+        }
+
+        IEnumerator UseEarnedProvisions()
+        {
+            for(int i=0;i<8&&_s.VitalsState.Hunger<90&&_s.InventoryState.GetQuantity("ration_pack")>0;i++)
+                Assert.IsTrue(_s.UseConsumableItem("ration_pack").GetBool("ok"),"eat physically searched finite crew rations");
+            for(int i=0;i<8&&_s.VitalsState.Thirst<90&&_s.InventoryState.GetQuantity("purified_water")>0;i++)
+                Assert.IsTrue(_s.UseConsumableItem("purified_water").GetBool("ok"),"drink physically searched finite crew water");
+            yield return null;
+        }
+
+        IEnumerator CutBiomatterMooring(SynapticSea.Core.Systems.ShipInstance ship)
+        {
+            _s.RebuildHomeJoinControls();
+            var control=_s.HomeJoinControls.Single(c=>c.ShipId==ship.ShipId && c.ActionId=="cut_web_attachment");
+            Debug.Log("[NaturalReclamation] cut mooring " + ship.ShipId + " web="+control.Web.Coverage+" hull="+control.Hull.AverageIntegrity());
+            yield return WalkTo(control, 1.2f);
+            string inventory=GdJson.Stringify(_s.InventoryState.Items);
+            _s.BeginWorkHold(); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(12);
+            Assert.IsTrue(_s.WorkActionDriver.IsWorking(), "ordinary held interaction starts cut-free work; handler="+_s.LastInteractHandlerId);
+            _s.EndWorkHold(); Assert.IsTrue(_s.CancelWorkAction());
+            Assert.IsTrue(control.Web.AttachedToWeb, "interrupted cutting does not detach the vessel");
+            Assert.AreEqual(inventory,GdJson.Stringify(_s.InventoryState.Items), "cutting interruption consumes no inventory");
+            float restDeadline=Time.realtimeSinceStartup+30;
+            while(_s.VitalsState.Stamina<_s.VitalsState.MaxStamina*.95 && !_s.SliceComplete && Time.realtimeSinceStartup<restDeadline)yield return null;
+            double integrity=control.Hull.AverageIntegrity();
+            _s.BeginWorkHold();_boot.Host.SceneState.Player.RequestInteract();
+            float deadline=Time.realtimeSinceStartup+20;
+            while(_s.WorkActionDriver.IsWorking()&&!_s.SliceComplete&&Time.realtimeSinceStartup<deadline)yield return null;
+            _s.EndWorkHold();
+            Assert.IsFalse(_s.WorkActionDriver.IsWorking(),"cut-free channel finishes within its bounded duration");
+            Assert.IsFalse(control.Web.AttachedToWeb,"successful work detaches only this vessel's web mooring");
+            Assert.LessOrEqual(control.Hull.AverageIntegrity(),integrity,"cutting does not magically restore hull integrity");
+            Assert.AreEqual(inventory,GdJson.Stringify(_s.InventoryState.Items),"existing plasma cutter action does not grant or consume salvage");
+            Assert.IsFalse(_s.SliceComplete,"survive the cut-free channel");
+        }
+
+        IEnumerator ReclaimCurrentWreck(string marker, string excursion)
+        {
+            _defendWhileExploring = true;
+            var wreck = _s.CurrentShip;
+            Debug.Log("[NaturalReclamation] arrived " + marker + " systems=" + GdJson.Stringify(wreck.SystemsManager.GetSummary()));
+            foreach (var barrier in _s.DockBarriers.Where(b => b.IsValid && !b.Opened).ToList())
+                yield return WalkAndFinishChannel(barrier.GlobalPosition);
+            yield return CutBiomatterMooring(wreck);
+            var medical = _s.LootContainers.FirstOrDefault(l => l.IsValid && !l.Searched && l.ContainerId.Contains("medical"));
+            Assert.IsNotNull(medical, "the purposeful expedition exposes its finite medical cache");
+            yield return WalkTo(medical); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+            Assert.IsTrue(medical.Searched); Assert.Greater(_s.InventoryState.GetQuantity("field_medkit"), 0, "ordinary medical-room exploration acquires usable care");
+            foreach(var wound in _s.GetTreatableWounds().Cast<GdDict>().Where(w=>w.GetBool("can_bandage")))
+                Assert.IsTrue(_s.BandageWound(wound.GetString("wound_id")).GetBool("ok"));
+            if(_s.VitalsState.Health<80)Assert.IsTrue(_s.UseConsumableItem("field_medkit").GetBool("ok"));
+            yield return RecoverInOwnedShuttle();
+            var crew=_s.LootContainers.Single(l=>l.IsValid&&l.ContainerId=="loot_crew_quarters_01");
+            yield return WalkTo(crew);
+            for(int attempt=0;attempt<6&&!crew.Searched;attempt++)
+            { _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);if(_s.LastInteractHandlerId!="authored_portal")break; }
+            Assert.IsTrue(crew.Searched,"explore the real crew stores before prolonged repair work");
+            Assert.AreEqual(8,_s.InventoryState.GetQuantity("ration_pack"));Assert.AreEqual(8,_s.InventoryState.GetQuantity("purified_water"));
+            yield return UseEarnedProvisions();
+            if (_s.OxygenState.Oxygen < 70) yield return RecoverInOwnedShuttle();
+            for(int guard=0;guard<16;guard++)
+            {
+                yield return UseEarnedProvisions();
+                if (_s.OxygenState.Oxygen < 70) yield return RecoverInOwnedShuttle();
+                var fire=_s.FireSuppressionPoints.FirstOrDefault(p=>p.IsValid&&!p.Extinguished);
+                if(fire==null)break;
+                if(!_s.ExtinguisherState.HasChargeForUse())
+                {
+                    yield return UseEarnedProvisions();
+                    if (_s.OxygenState.Oxygen < 70 || _s.SanityState.Sanity < 50) yield return RecoverInOwnedShuttle();
+                    var recharge=_s.ExtinguisherRechargePort;
+                    Assert.IsNotNull(recharge,"a real powered recharge station supports repeated suppression");
+                    yield return WalkTo(recharge,1.2f);
+                    float chargeDeadline=Time.realtimeSinceStartup+25;
+                    while(_s.ExtinguisherState.Charge<_s.ExtinguisherState.MaxCharge && !_s.SliceComplete && Time.realtimeSinceStartup<chargeDeadline)yield return null;
+                    Assert.IsFalse(_s.SliceComplete,"survive physical extinguisher recharging; vitals="+GdJson.Stringify(_s.VitalsState.GetSummary())+" oxygen="+_s.OxygenState.Oxygen+" sanity="+_s.SanityState.Sanity+" load="+_s.InventoryState.GetLoadRatio()+" powered="+recharge.Powered+" charge="+_s.ExtinguisherState.Charge);
+                    Assert.GreaterOrEqual(_s.ExtinguisherState.Charge,_s.ExtinguisherState.MaxCharge-.01,"normal powered station refills the real tool");
+                    fire=_s.FireSuppressionPoints.FirstOrDefault(p=>p.IsValid&&!p.Extinguished);
+                    if(fire==null)break;
+                }
+                Debug.Log("[NaturalReclamation] suppress " + fire.CompartmentId + " oxygen=" + _s.OxygenState.Oxygen+" vitals="+GdJson.Stringify(_s.VitalsState.GetSummary())+" load="+_s.InventoryState.GetLoadRatio());
+                yield return WalkAndFinishChannel(fire.GlobalPosition);
+                // A salvage trip uses the already repaired, physically reachable shuttle
+                // as shelter; no fixture refill or suit-budget bypass.
+                if (_s.OxygenState.Oxygen < 70)
+                {
+                    var shelter = _s.BridgeTerminals.Single(t => t.ShipId == _s.LifeboatShip.ShipId);
+                    yield return WalkTo(shelter, 1.2f);
+                    float refillDeadline = Time.realtimeSinceStartup + 40;
+                    while (_s.OxygenState.Oxygen < 99 && !_s.SliceComplete && Time.realtimeSinceStartup < refillDeadline) yield return null;
+                    Assert.IsFalse(_s.SliceComplete, "ordinary shuttle shelter permits recovery");
+                    Assert.GreaterOrEqual(_s.OxygenState.Oxygen, 99, "suit refills through actual boat occupancy; occupied="+_s.CurrentOccupancy?.ShipId+" player="+_boot.Host.SceneState.Player.GodotPosition+" boat="+_s.LifeboatShip.SceneRoot.GlobalTransform);
+                }
+            }
+            Assert.IsFalse(_s.FireSuppressionPoints.Any(p=>p.IsValid&&!p.Extinguished),"normal salvage first extinguishes fires that would destroy the vessel's systems");
+            Debug.Log("[NaturalReclamation] resources=" + GdJson.Stringify(_s.InventoryState.Items) + " health=" + _s.VitalsState.Health);
+            var maintenance = _s.LootContainers.Single(l=>l.IsValid && l.ContainerId=="loot_maintenance_01");
+            yield return WalkTo(maintenance); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+            Assert.IsTrue(maintenance.Searched, "finite ordinary maintenance supplies support recovery");
+            foreach (var repair in _s.RepairPoints.Where(r=>r.IsValid && (r.SystemId=="power" || r.SystemId=="life_support")).ToList())
+                if (!repair.TargetManager.GetSystem(repair.SystemId).GetSubcomponent(repair.SubcomponentId).IsFunctional())
+                {
+                    yield return UseEarnedProvisions();
+                    if (_s.SanityState.Sanity < 50) yield return RecoverInOwnedShuttle();
+                    Debug.Log("[NaturalReclamation] repair " + repair.SystemId + "." + repair.SubcomponentId + " vitals=" + GdJson.Stringify(_s.VitalsState.GetSummary()) + " sanity="+_s.SanityState.Sanity+" oxygen="+_s.OxygenState.Oxygen+" load="+_s.InventoryState.GetLoadRatio());
+                    yield return WalkAndFinishChannel(repair.GlobalPosition);
+                }
+            Assert.IsTrue(wreck.SystemsManager.IsOperational("power"), "repair earned power before claiming the bridge");
+            for (int guard=0;guard<8;guard++)
+            {
+                var seal=_s.BreachSealPoints.FirstOrDefault(p=>p.IsValid&&!p.Sealed && wreck.GetHull().Compartments.GetDictOrEmpty(p.CompartmentId).GetBool("breach_open"));
+                if(seal==null)break;
+                Debug.Log("[NaturalReclamation] seal hull " + seal.CompartmentId + " integrity=" + wreck.GetHull().AverageIntegrity());
+                yield return WalkAndFinishChannel(seal.GlobalPosition);
+            }
+            Assert.IsFalse(wreck.GetWeb().AttachedToWeb, "departure follows real cut-free work");
+            Assert.AreEqual(0, wreck.GetHull().GetBreachCount(), "actual sealant repairs the breached vessel before claiming departure");
+            foreach (var loot in _s.LootContainers.Where(l => l.IsValid && !l.Searched)
+                .OrderBy(l => l.ContainerId.Contains("cargo") ? 0 : 1).ToList())
+            {
+                if (_s.InventoryState.GetQuantity("plating") >= 2) break;
+                yield return WalkTo(loot);
+                for(int attempt=0;attempt<6&&!loot.Searched;attempt++)
+                {
+                    _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+                    if(_s.LastInteractHandlerId!="authored_portal")break;
+                }
+                Assert.IsTrue(loot.Searched, "ordinary wreck exploration acquires reclamation materials from " + loot.ContainerId + "; handler="+_s.LastInteractHandlerId);
+                Debug.Log("[NaturalReclamation] searched=" + loot.ContainerId + " resources=" + GdJson.Stringify(_s.InventoryState.Items) + " health=" + _s.VitalsState.Health + " radiation="+_s.RadiationState.Radiation+" wounds="+GdJson.Stringify(_s.WoundState.GetSummary()));
+            }
+            Assert.GreaterOrEqual(_s.InventoryState.GetQuantity("plating"), 2, "finite salvage or existing crafting must supply the two real hull plates; inventory=" + GdJson.Stringify(_s.InventoryState.Items));
+            Assert.IsTrue(_s.RequestSave());
+            if(Application.isEditor)
+            {
+                string checkpoint=System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../builds/artifacts/reclamation-transport-world.json"));
+                System.IO.File.WriteAllText(checkpoint,_storage.ReadText(SynapticSea.Core.Systems.SaveLoadService.WORLD_SLOT_FILE));
+            }
+            yield return ReclaimTransportAndJoin(wreck,marker,excursion);
+        }
+
+        IEnumerator ReclaimTransportAndJoin(SynapticSea.Core.Systems.ShipInstance wreck,string marker,string excursion)
+        {
+            Debug.Log("[NaturalReclamation] transport health="+_s.VitalsState.Health+" oxygen="+_s.OxygenState.Oxygen+" hostiles="+_s.ThreatManager.Threats.Count);
+            var bridge = _s.BridgeTerminals.Single(t => t.ShipId == wreck.ShipId);
+            yield return WalkTo(bridge, 1.2f);
+            for(int attempt=0;attempt<6&&_s.PilotedShip!=wreck;attempt++)
+            {
+                _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+                if(_s.LastInteractHandlerId!="authored_portal")break;
+            }
+            Assert.AreSame(wreck, _s.PilotedShip, "normal bridge login claims the working vessel; handler="+_s.LastInteractHandlerId+" target="+bridge.GlobalPosition+" player="+_boot.Host.SceneState.Player.GodotPosition);
+            Debug.Log("[NaturalReclamation] claimed bridge health="+_s.VitalsState.Health+" oxygen="+_s.OxygenState.Oxygen);
+            var hold=_s.CargoHoldControls.Single(c=>c.IsValid&&c.CarrierId==wreck.ShipId);
+            yield return WalkTo(hold,.5f);
+            var boatPose=_s.LifeboatShip.SceneRoot.GlobalTransform;
+            var boatParent=_s.LifeboatShip.ParentShip;
+            for(int attempt=0;attempt<6&&!_boot.Ui.Inventory.IsOpen();attempt++)
+            { _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8); }
+            Assert.IsTrue(_boot.Ui.Inventory.IsOpen(),"physical hold interaction opens the normal transfer panel");
+            Assert.AreEqual("cargo_deposit",_s.LastInteractHandlerId,"cargo focus and dispatch agree");
+            Assert.AreSame(boatParent,_s.LifeboatShip.ParentShip,"opening cargo must not bay or launch the shuttle");
+            Assert.AreEqual(boatPose,_s.LifeboatShip.SceneRoot.GlobalTransform,"opening cargo must not move the shuttle");
+            long scrap=_s.InventoryState.GetQuantity("scrap_metal");
+            Assert.AreEqual(scrap,_boot.Ui.Inventory.TransferQuantity(SynapticSea.UI.InventoryPanel.PaneSelf,"scrap_metal",scrap));
+            _boot.Ui.Inventory.Close();yield return FixedSteps(8);
+            Assert.LessOrEqual(_s.InventoryState.GetLoadRatio(),1,"stow unnecessary haul without consuming welding plates");
+            yield return RecoverInOwnedShuttle();yield return UseEarnedProvisions();
+            yield return WalkTo(bridge,1.2f);
+            Assert.IsTrue(_s.TravelCapability().GetBool("success"), GdJson.Stringify(_s.TravelCapability()));
+            Assert.IsTrue(_s.TravelHome(), "owned repaired wreck returns with its carried boat"); yield return FixedSteps(10);
+            Assert.IsTrue(_s.RequestSave());
+            if(Application.isEditor)
+            {
+                string checkpoint=System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../builds/artifacts/reclamation-moored-world.json"));
+                System.IO.File.WriteAllText(checkpoint,_storage.ReadText(SynapticSea.Core.Systems.SaveLoadService.WORLD_SLOT_FILE));
+            }
+            yield return CompleteReclaimedJoin(wreck,marker,excursion);
+        }
+
+        IEnumerator CompleteReclaimedJoin(SynapticSea.Core.Systems.ShipInstance wreck,string marker,string excursion)
+        {
+            yield return RecoverInOwnedShuttle();yield return UseEarnedProvisions();
+            var weld = _s.HomeJoinControls.Single(c => c.ShipId == wreck.ShipId && c.ActionId == "secure_connection");
+            yield return WalkTo(weld, 1.2f);
+            long plates = _s.InventoryState.GetQuantity("plating");
+            _s.BeginWorkHold(); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(12);
+            Assert.IsTrue(_s.WorkActionDriver.IsWorking(), "ordinary held interaction begins timed welding");
+            _s.EndWorkHold(); Assert.IsTrue(_s.CancelWorkAction());
+            Assert.AreEqual(plates, _s.InventoryState.GetQuantity("plating"), "interruption does not consume plates");
+            Assert.AreEqual("moored", ((GdDict)wreck.DockingPorts[0]).GetString("connection_kind"));
+            yield return RecoverInOwnedShuttle();yield return UseEarnedProvisions();
+            float restDeadline = Time.realtimeSinceStartup + 30;
+            while (_s.VitalsState.Stamina < _s.VitalsState.MaxStamina * .95 && !_s.SliceComplete && Time.realtimeSinceStartup < restDeadline) yield return null;
+            Assert.GreaterOrEqual(_s.VitalsState.Stamina, _s.VitalsState.MaxStamina * .95, "ordinary rest restores enough stamina for welding");
+            yield return WalkTo(weld,1.2f);
+            if(_s.VitalsState.Health<80&&_s.InventoryState.GetQuantity("field_medkit")>0)Assert.IsTrue(_s.UseConsumableItem("field_medkit").GetBool("ok"));
+            _s.BeginWorkHold(); _boot.Host.SceneState.Player.RequestInteract();
+            float deadline = Time.realtimeSinceStartup + 30;
+            float reportAt=0;
+            while (_s.WorkActionDriver.IsWorking() && Time.realtimeSinceStartup < deadline && !_s.SliceComplete)
+            {
+                if(Time.realtimeSinceStartup>=reportAt)
+                {
+                    Debug.Log("[NaturalReclamation] weld progress="+_s.WorkActionDriver.ProgressRatio()+" held="+_s.IsWorkInteractHeld+" paused="+_boot.Host.Paused
+                        +" vitals="+GdJson.Stringify(_s.VitalsState.GetSummary())+" oxygen="+_s.OxygenState.Oxygen+" sanity="+_s.SanityState.Sanity+" load="+_s.InventoryState.GetLoadRatio());
+                    reportAt=Time.realtimeSinceStartup+5;
+                }
+                yield return null;
+            }
+            _s.EndWorkHold();Assert.IsFalse(_s.SliceComplete,"survive welding: vitals="+GdJson.Stringify(_s.VitalsState.GetSummary())+" oxygen="+_s.OxygenState.Oxygen+" sanity="+_s.SanityState.Sanity);
+            Assert.IsFalse(_s.WorkActionDriver.IsWorking(),"bounded weld progress="+_s.WorkActionDriver.ProgressRatio()+" paused="+_boot.Host.Paused);
+            Assert.AreEqual("secured", ((GdDict)wreck.DockingPorts[0]).GetString("connection_kind"));
+            Assert.AreEqual(plates - 2, _s.InventoryState.GetQuantity("plating"), "successful work consumes exactly two plates once");
+            yield return FixedSteps(10);
+            var doors = _s.HomeJoinControls.Where(c => c.ShipId == wreck.ShipId && c.ActionId == "connection_door").ToList();
+            var wreckDoor = doors.Single(c => ReferenceEquals(c.Parent, wreck.SceneRoot));
+            var homeSide = doors.Single(c => ReferenceEquals(c.Parent, _s.HomeShip.SceneRoot));
+            Assert.IsTrue(Physics.Linecast(Frame.ToUnity(wreckDoor.GlobalPosition) + Vector3.up * .5f,
+                Frame.ToUnity(homeSide.GlobalPosition) + Vector3.up * .5f, SpawnClearance.BlockingMask, QueryTriggerInteraction.Ignore),
+                "the secured connection starts physically closed; welding must not bypass the door");
+            yield return WalkTo(wreckDoor, 1.2f); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(10);
+            Assert.IsTrue(((GdDict)wreck.DockingPorts[0]).GetBool("connection_open"));
+            var homeDoor = _s.HomeJoinControls.Single(c => c.ShipId == wreck.ShipId && c.ActionId == "connection_door" && ReferenceEquals(c.Parent, _s.HomeShip.SceneRoot));
+            yield return WalkTo(homeDoor, .6f); Assert.AreSame(_s.HomeShip, _s.CurrentShip, "actual passage switches to home services");
+            float refillDeadline=Time.realtimeSinceStartup+40;
+            while(_s.OxygenState.Oxygen<99&&!_s.SliceComplete&&Time.realtimeSinceStartup<refillDeadline)yield return null;
+            Assert.IsFalse(_s.SliceComplete,"home's own repaired services permit ordinary recovery");Assert.GreaterOrEqual(_s.OxygenState.Oxygen,99);
+            wreckDoor = _s.HomeJoinControls.Single(c => c.ShipId == wreck.ShipId && c.ActionId == "connection_door" && ReferenceEquals(c.Parent, wreck.SceneRoot));
+            yield return WalkTo(wreckDoor, .6f); Assert.AreSame(wreck, _s.CurrentShip, "reverse walking returns to recovered local services");
+            yield return CaptureHud("natural-reclaimed-passage.png");
+            Assert.IsTrue(_s.RequestSave()); yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            wreck = _s.CurrentShip;
+            Assert.AreEqual(marker, wreck.MarkerId); Assert.IsTrue(_s.IsHomeMember(wreck));
+            Assert.AreEqual(plates - 2, _s.InventoryState.GetQuantity("plating"));
+            Assert.AreNotSame(wreck.SystemsManager, _s.LifeboatShip.SystemsManager);
+            if(System.Environment.GetCommandLineArgs().Contains("-profileJoinedHomeFrames"))
+            {
+                Assert.IsTrue(SynapticSea.Core.Systems.DockingManager.TryConnectedMembers(_s.HomeShip,out var members,out _));
+                Debug.Log("[JoinedHomeProfile] connected_members="+members.Count+" active_context="+wreck.ShipId);
+                yield return ProfileLiveExpedition();
+            }
+            var bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.LifeboatShip.ShipId);
+            yield return WalkTo(bridge, 1.2f); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+            Assert.AreSame(_s.LifeboatShip, _s.PilotedShip);
+            Assert.IsTrue(_s.TravelToMarkerId(excursion).GetBool("success")); yield return FixedSteps(8);
+            bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.LifeboatShip.ShipId);
+            yield return WalkTo(bridge, 1.2f); Assert.IsTrue(_s.TravelHome()); yield return FixedSteps(8);
+            Assert.IsTrue(_s.IsHomeMember(_s.VisitedShips[marker]), "independent departure and return preserve the home extension");
+            Assert.IsTrue(_s.RequestSave()); yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            Assert.IsTrue(_s.IsHomeMember(_s.VisitedShips[marker])); Assert.IsFalse(_s.SliceComplete);
+            _defendWhileExploring = false;
+        }
+
+        IEnumerator RecoverInOwnedShuttle()
+        {
+            var shelter=_s.BridgeTerminals.Single(t=>t.ShipId==_s.LifeboatShip.ShipId);
+            yield return WalkTo(shelter,1.2f);
+            float deadline=Time.realtimeSinceStartup+45;
+            while((_s.SanityState.Sanity<90 || _s.OxygenState.Oxygen<99) && !_s.SliceComplete && Time.realtimeSinceStartup<deadline)yield return null;
+            Assert.IsFalse(_s.SliceComplete,"survived ordinary local shelter recovery");
+            Assert.GreaterOrEqual(_s.SanityState.Sanity,90,"owned operational boat permits actual sanity recovery");
+            Assert.GreaterOrEqual(_s.OxygenState.Oxygen,99);
         }
 
         IEnumerator ReviewPurposefulRooms()
@@ -742,7 +1063,7 @@ namespace SynapticSea.Tests.PlayMode
                 Debug.Log($"[LiveExpeditionProfile] family={_s.CurrentShip.BuiltLayout.GetString("topology_family")} rooms={_s.CurrentShip.BuiltLayout.GetArrayOrEmpty("rooms").Count} "
                     + $"threats={_s.ThreatManager.Threats.Count} renderers={Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None).Length} samples={frames.Count} completion_median_ms={frames[60]:F2} completion_p95_ms={frames[114]:F2} "
                     + $"frame_samples={frameIntervals.Count} frame_interval_median_ms={frameIntervals[frameIntervals.Count/2]:F2} frame_interval_p95_ms={frameIntervals[(int)(frameIntervals.Count*.95)]:F2} "
-                    + $"gpu_completion_fenced={SystemInfo.supportsAsyncGPUReadback} device={SystemInfo.graphicsDeviceName}; live host/player/camera/AI/survival/UI active, stationary bridge view");
+                    + $"gpu_completion_fenced={SystemInfo.supportsAsyncGPUReadback} device={SystemInfo.graphicsDeviceName}; live host/player/camera/AI/survival/UI active, stationary gameplay view");
             }
             finally { camera.targetTexture=oldTarget; panel.targetTexture=oldHudTarget; Application.targetFrameRate=oldRate; QualitySettings.vSyncCount=oldVsync; Time.timeScale=oldScale; Object.Destroy(target); Object.Destroy(hudTarget); }
         }
@@ -831,7 +1152,12 @@ namespace SynapticSea.Tests.PlayMode
         IEnumerator WalkAndFinishChannel(Vec3 at)
         {
             yield return WalkTo(at, 1.6f);
-            _boot.Host.SceneState.Player.RequestInteract();
+            for(int attempt=0;attempt<6;attempt++)
+            {
+                _boot.Host.SceneState.Player.RequestInteract();
+                if(_s.LastInteractHandlerId!="authored_portal")break;
+                yield return FixedSteps(8);
+            }
             Assert.That(_s.LastInteractHandlerId, Is.EqualTo("repair_point").Or.EqualTo("fire_suppression_point").Or.EqualTo("breach_seal_point").Or.EqualTo("dock_barrier"),
                 "work at " + at + "; standing=" + _boot.Host.SceneState.Player.transform.position);
             if (_s.LastInteractHandlerId == "dock_barrier" && !NaturalChannelActive())

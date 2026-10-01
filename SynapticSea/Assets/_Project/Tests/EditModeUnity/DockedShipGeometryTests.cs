@@ -39,6 +39,11 @@ namespace SynapticSea.Tests.Unity
                 Assert.AreEqual(1, geometry.SuppressedColliderCount);
                 geometry.Reconcile(host, mobile);
                 Assert.AreEqual(1, geometry.SuppressedColliderCount, "repeat view passes do not accumulate changes");
+                var overlapModule=overlap.GetComponent<StructuralModule>();
+                overlapModule.SetIntegrity(StructuralModule.IntegrityDamaged);
+                new SceneModuleNode(overlapModule,mobile).SetCollisionEnabled(true);
+                Assert.IsFalse(overlap.enabled,"a later integrity refresh cannot restore a wall through the baked dock passage");
+                Assert.IsTrue(overlapModule.DockOverlapOpening);
                 var retainedWall = Module(hostGo, "wall_straight_1x1", "edge", new Vector3(0, 1.5f, 0), new Vector3(4, 3, 0.2f));
                 retainedWall.GetComponent<StructuralModule>().roomIds = new[] { "corridor_01" };
                 var point = new SynapticSea.Core.Session.RepairPoint { Parent = mobile,
@@ -50,6 +55,7 @@ namespace SynapticSea.Tests.Unity
                 geometry.Reconcile(null, null);
                 Assert.AreEqual(original, point.LocalPosition, "undocking restores the authored marker anchor");
                 Assert.IsTrue(overlap.enabled, "undocking restores the source instance collision");
+                Assert.IsFalse(overlapModule.DockOverlapOpening);Assert.IsEmpty(overlapModule.DockOverlapColliders);
             }
             finally { Object.DestroyImmediate(hostGo); Object.DestroyImmediate(mobileGo); }
         }

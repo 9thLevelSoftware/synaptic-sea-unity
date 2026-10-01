@@ -7,6 +7,10 @@ using UnityEngine.UIElements;
 
 namespace SynapticSea.UI
 {
+    public interface IAssemblyScannerHost
+    {
+        GdDict TravelCapability();
+    }
     /// <summary>The coordinator seam the scanner panel calls (Godot duck-typed PlayableGeneratedShip).</summary>
     public interface IScannerHost
     {
@@ -299,6 +303,16 @@ namespace SynapticSea.UI
                 lines.Add("Likely offline " + unknown);
             }
             lines.Add("Salvage " + (view.Has("loot_hint") ? V.Str(view["loot_hint"]) : unknown));
+            if (_host is IAssemblyScannerHost assembly)
+            {
+                var capability = assembly.TravelCapability();
+                lines.Add("Owned assembly load " + GdString.FormatFixed(capability.GetFloat("total_mass_kg"), 0)
+                    + " kg / supported " + GdString.FormatFixed(capability.GetFloat("supported_kg"), 0) + " kg");
+                lines.Add("Departure " + capability.GetString("reason"));
+                foreach (var value in capability.GetArrayOrEmpty("engines"))
+                    if (value is GdDict engine && engine.GetString("excluded_reason").Length > 0)
+                        lines.Add(engine.GetString("ship_id") + ": " + engine.GetString("excluded_reason"));
+            }
             return string.Join("\n", lines);
         }
 

@@ -50,6 +50,9 @@ namespace SynapticSea.Runtime
         public string integrityState = IntegrityIntact;
 
         public const string IntegrityDestroyed = "destroyed";
+        [NonSerialized] public bool ConnectionOpening;
+        [NonSerialized] public bool DockOverlapOpening;
+        public readonly System.Collections.Generic.HashSet<Collider> DockOverlapColliders = new System.Collections.Generic.HashSet<Collider>();
 
         /// <summary>
         /// True for Godot "legacy" wrappers with a single <c>VisualInstance</c> (corners, T-junction, end cap, ceiling,
@@ -84,6 +87,13 @@ namespace SynapticSea.Runtime
         public void SetIntegrity(string state)
         {
             integrityState = string.IsNullOrEmpty(state) ? IntegrityIntact : state;
+            if (ConnectionOpening || DockOverlapOpening)
+            {
+                if (intactVisual != null) intactVisual.SetActive(false);
+                if (damagedVisual != null) damagedVisual.SetActive(false);
+                if (breachedVisual != null) breachedVisual.SetActive(false);
+                return;
+            }
             if (HasSingleVisual)
             {
                 intactVisual.SetActive(!string.Equals(integrityState, IntegrityDestroyed, StringComparison.Ordinal));

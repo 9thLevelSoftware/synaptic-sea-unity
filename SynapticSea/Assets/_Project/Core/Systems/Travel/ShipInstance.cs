@@ -49,6 +49,7 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>The layout dict scene_root was built from (for dock-port derivation).</summary>
         public GdDict BuiltLayout = new GdDict();
+        public GdDict Mobility = new GdDict();
 
         /// <summary>
         /// 5a: <c>ship_root</c> is the ship's positioned root — it IS scene_root, exposed under the docking-domain name.
@@ -200,6 +201,7 @@ namespace SynapticSea.Core.Systems
                 result["module_integrity"] = ModuleIntegritySummary.DeepCopy();
             if (!ComponentPlacementSummary.IsEmpty)
                 result["component_placement"] = ComponentPlacementSummary.DeepCopy();
+            if (!Mobility.IsEmpty) result["mobility"] = Mobility.DeepCopy();
             return result;
         }
 
@@ -215,6 +217,7 @@ namespace SynapticSea.Core.Systems
         {
             if (!(summaryVariant is GdDict summary) || summary.IsEmpty)
                 return false;
+            if(summary.Get("mobility") is GdDict mobility) Mobility = mobility.DeepCopy();
             ShipId = V.Str(summary.Get("ship_id", ShipId));
             MarkerId = V.Str(summary.Get("marker_id", MarkerId));
             object bpDict = summary.Get("blueprint", null);

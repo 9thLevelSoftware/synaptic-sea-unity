@@ -79,6 +79,7 @@ namespace SynapticSea.Runtime.Session
         Transform _threatRoot;
         readonly Dictionary<SessionInteractable, InteractableView> _interactables = new Dictionary<SessionInteractable, InteractableView>();
         readonly Dictionary<SessionZone, ZoneView> _zones = new Dictionary<SessionZone, ZoneView>();
+        readonly HomeAssemblyGeometry _homeAssembly = new HomeAssemblyGeometry();
         readonly HashSet<SessionInteractable> _liveInteractables = new HashSet<SessionInteractable>();
         readonly HashSet<SessionZone> _liveZones = new HashSet<SessionZone>();
         IShipSceneRoot _appliedActiveRoot;
@@ -160,6 +161,7 @@ namespace SynapticSea.Runtime.Session
             // The music stems / ambient beds follow the session's audio models (explicit, instead of a host lookup).
             if (audio != null && Session.AudioManager != null)
                 audio.BindSessionModels(Session.AudioManager.MusicState, Session.AudioManager.AmbientZoneState);
+            _homeAssembly.Reconcile(Session.HomeShip);
             Reconcile();
             ApplyActiveShipIfChanged(force: true);
             ResolveSpawnClearance();
@@ -237,6 +239,7 @@ namespace SynapticSea.Runtime.Session
             if (Session == null) return;
             var mobile = Session.LifeboatShip;
             _dockedGeometry.Reconcile(mobile?.ParentShip?.SceneRoot as SceneShipRoot, mobile?.SceneRoot as SceneShipRoot);
+            _homeAssembly.Reconcile(Session.HomeShip);
             Reconcile();
             ApplyActiveShipIfChanged(force: false);
             _dockedGeometry.NormalizeInteractions(_liveInteractables, SceneState?.Player != null ? SceneState.Player.transform.position : (Vector3?)null);
@@ -443,6 +446,7 @@ namespace SynapticSea.Runtime.Session
             AddAll(s.LootContainers);
             AddAll(s.WorkYieldDrops);
             AddAll(s.SealedHatches);
+            AddAll(s.HomeJoinControls);
             AddAll(s.RepairPoints);
             AddAll(s.BreachSealPoints);
             AddAll(s.FireSuppressionPoints);
@@ -598,10 +602,10 @@ namespace SynapticSea.Runtime.Session
         {
             if (ThreatNavigation == null) return;
             GameObject root = active is SceneShipRoot scene && scene.IsValid ? scene.GameObject : null;
-            ShipNavMesh nav = root != null ? ShipNavMesh.Build(root) : null;
+            ShipNavMesh nav = ShipNavMesh.ForActiveShip(root);
             if (root != null && nav == null)
                 Debug.LogWarning($"[RunSessionHost] no NavMesh built for {root.name}; threats fall back to the nav graph");
-            ThreatNavigation.SetShip(nav);
+            ThreatNavigation.SetShip(nav, rebind: true);
         }
 
         static void ApplyEnvironment(ShipLoaderNode loader, bool away)
@@ -621,6 +625,7 @@ namespace SynapticSea.Runtime.Session
 
         void OnDestroy()
         {
+            _homeAssembly.Restore();
             UnbindPlayer();
             Threats?.Unbind();
             Affordances?.Clear();

@@ -398,11 +398,14 @@ namespace SynapticSea.Core.Session
                 CurrentShip = ShipInstance.Create("ship_start", "", LoadBlueprintForSystems(), ShipSystemsManager, Loader);
                 HomeShip = CurrentShip;
                 HomeShip.BuiltLayout = Loader.GetLayoutCopy();
+                HomeShip.Mobility = AssemblyMobility.CreateSpecification(HomeShip, false);
+                HomeShip.GetAccess().Claim(PLAYER_LOCAL_ID);
                 SpawnHangarControl(HomeShip);
                 SpawnCargoHoldControl(HomeShip);
                 SpawnCartControlsForShip(HomeShip);
                 CurrentOccupancy = HomeShip;
                 BuildLifeboatAtHome();
+                RebuildHomeJoinControls();
             }
             ConfigureThreatRuntimeForCurrentShip();
             BuildInteractables();
@@ -495,8 +498,13 @@ namespace SynapticSea.Core.Session
                 return;
             }
             RecordKitPath(lbRoot, built.KitPath);
-            LifeboatShip = ShipInstance.Create("lifeboat", "", null, ShipSystemsManager, lbRoot);
+            var boatSystems = new ShipSystemsManager();
+            boatSystems.Configure(boatSystems.LoadDefinitions(), 0, 0);
+            boatSystems.ApplySummary(ShipSystemsManager.GetSummary());
+            LifeboatCommissioned = false;
+            LifeboatShip = ShipInstance.Create("lifeboat", "", null, boatSystems, lbRoot);
             LifeboatShip.BuiltLayout = LifeBoatBuilder.BuildLayout();
+            LifeboatShip.Mobility = AssemblyMobility.CreateSpecification(LifeboatShip, true);
             LifeboatShip.GetAccess().Claim(PLAYER_LOCAL_ID);
             ShipHost.AttachShipRoot(lbRoot);
             PilotedShip = LifeboatShip;

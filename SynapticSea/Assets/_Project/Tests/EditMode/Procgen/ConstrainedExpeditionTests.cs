@@ -10,6 +10,20 @@ namespace SynapticSea.Tests.Procgen
     public class ConstrainedExpeditionTests
     {
         [SetUp] public void Setup(){CoreServices.Resources=new FileSystemResourceReader(Fixtures.StreamingDataRoot);CoreServices.Log=NullLog.Instance;CatalogRegistry.Clear();}
+        [Test]
+        public void SavedV3ProfileKeepsOriginalLootAndExactRegeneration()
+        {
+            var generator=new ShipGenerator {RichExpeditions=true};generator.ConfigureRunContext("dead_fleet","standard");
+            var bp=new ShipBlueprint(2,0,17){GenerationProfile=ConstrainedExpedition.LegacyProfile};
+            var before=generator.Generate(bp);var restored=ShipBlueprint.FromDict(GdJson.ParseDict(GdJson.Stringify(bp.ToDict())));
+            var after=generator.Generate(restored);Assert.AreEqual(ConstrainedExpedition.LegacyProfile,after.Layout.GetString("generation_profile"));
+            Assert.AreEqual(before.LayoutJson,after.LayoutJson);Assert.AreEqual(before.GameplaySliceJson,after.GameplaySliceJson);
+            var port=SynapticSea.Core.Systems.DockPorts.ForDerelict(after.Layout);
+            Assert.IsFalse(port.IsEmpty);var expectedPort=after.Layout.GetDictOrEmpty("docking_port");
+            Assert.AreEqual(Vec3.FromArray(expectedPort["position"]),port["position"],"saved v3 uses the published boundary port, not the old room center fallback");
+            Assert.IsFalse(after.GameplaySlice.GetArrayOrEmpty("loot_containers").Cast<GdDict>().Any(c=>c.Has("contents")),"existing v3 worlds retain original rolled loot rather than receiving new supplies");
+        }
+
         [TestCase(1)] [TestCase(2)]
         public void SeedMatrixComposesPhysicalRoutesVariedDimensionsBranchesAndRoles(int size)
         {
@@ -33,6 +47,31 @@ namespace SynapticSea.Tests.Procgen
                 Assert.AreNotEqual("dock_01",layout.GetDictOrEmpty("prototype").GetString("goal_room"));
                 Assert.AreEqual("dock_01",docs.GameplaySlice.GetString("start_room"));
                 Assert.AreEqual(layout.GetDictOrEmpty("prototype").GetString("goal_room"),docs.GameplaySlice.GetString("goal_room"));
+                foreach(var room in rooms.Values)
+                {
+                    Assert.AreEqual("initial_hull_condition_v1",room.GetString("oxygen_source"));
+                    bool vacuum=room.GetString("variant")=="breached"||room.GetString("variant")=="collapsed";
+                    Assert.AreEqual(vacuum?0:10000,room.GetInt("oxygen_bp"),"initial air follows actual room condition");
+                }
+                var medicalId=rooms.Values.Single(r=>r.GetString("room_role")=="medical").GetString("id");
+                var medical=docs.GameplaySlice.GetArrayOrEmpty("loot_containers").Cast<GdDict>().Single(c=>c.GetString("room_id")==medicalId);
+                Assert.AreEqual("loot_"+medicalId,medical.GetString("id"),"care preserves the existing finite container identity");
+                var contents=medical.GetArrayOrEmpty("contents");Assert.AreEqual(2,contents.Count);
+                Assert.AreEqual("field_medkit",((GdDict)contents[0]).GetString("item_id"));Assert.AreEqual(2,((GdDict)contents[0]).GetInt("qty"));
+                Assert.AreEqual("bandage_kit",((GdDict)contents[1]).GetString("item_id"));Assert.AreEqual(2,((GdDict)contents[1]).GetInt("qty"));
+                Assert.AreEqual(2,((GdDict)contents[0]).Count);Assert.AreEqual(2,((GdDict)contents[1]).Count,"no extra grants hidden in the medical payload");
+                var crewId=rooms.Values.Single(r=>r.GetString("id")=="crew_quarters_01").GetString("id");
+                var provisions=docs.GameplaySlice.GetArrayOrEmpty("loot_containers").Cast<GdDict>().Single(c=>c.GetString("room_id")==crewId).GetArrayOrEmpty("contents").Cast<GdDict>().ToList();
+                Assert.AreEqual(2,provisions.Count);Assert.AreEqual("ration_pack",provisions[0].GetString("item_id"));Assert.AreEqual(8,provisions[0].GetInt("qty"));
+                Assert.AreEqual("purified_water",provisions[1].GetString("item_id"));Assert.AreEqual(8,provisions[1].GetInt("qty"));
+                Assert.IsTrue(provisions.All(p=>p.Count==2),"finite crew stores carry exact existing consumable payloads");
+                var maintenanceId=rooms.Values.Single(r=>r.GetString("id")=="maintenance_01").GetString("id");
+                var maintenance=docs.GameplaySlice.GetArrayOrEmpty("loot_containers").Cast<GdDict>().Single(c=>c.GetString("room_id")==maintenanceId);
+                Assert.AreEqual("loot_"+maintenanceId,maintenance.GetString("id"));
+                var supplies=maintenance.GetArrayOrEmpty("contents").Cast<GdDict>().ToList();Assert.AreEqual(4,supplies.Count);
+                CollectionAssert.AreEqual(new[]{"reactor_core","power_cell","oxygen_filter","sealant"},supplies.Select(c=>c.GetString("item_id")));
+                CollectionAssert.AreEqual(new long[]{1,2,2,1},supplies.Select(c=>c.GetInt("qty")));
+                Assert.IsTrue(supplies.All(c=>c.Count==2),"finite repair parts, no hidden tools or skill grants");
                 Assert.AreEqual(1,graph[layout.GetDictOrEmpty("composition_diagnostics").GetString("branch_room")].Count,"published protected branch survives dock insertion");
                 Assert.IsTrue(ShipLayoutGenerator.LayoutIsConnected(layout));Assert.GreaterOrEqual(layout.GetArrayOrEmpty("portals").Count-rooms.Count+1,2);
                 Assert.IsTrue(graph.Any(g=>g.Key!="dock_01"&&g.Value.Count==1),"deliberate side branch");

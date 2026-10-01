@@ -119,6 +119,7 @@ namespace SynapticSea.Runtime.Session
                 switch (Model)
                 {
                     case ObjectiveInteractable o: return o.PromptText;
+                    case HomeJoinControl c: return c.Prompt;
                     case DeckTransition d: return "Change deck: " + d.DestinationDeck;
                     case RepairPoint rp: return "Repair: " + rp.SubcomponentId;
                     case BreachSealPoint sp: return "Seal breach: " + sp.CompartmentId;
@@ -145,6 +146,7 @@ namespace SynapticSea.Runtime.Session
             {
                 case "dock_port_barrier": return "dock_barrier";
                 case "deck_transition": return "deck_transition";
+                case "home_join_control": return "home_join";
                 case "bridge_terminal": return "bridge_terminal";
                 case "fire_suppression_point": return "fire_suppression_point";
                 case "repair_point": return "repair_point";
@@ -210,6 +212,9 @@ namespace SynapticSea.Runtime.Session
                     break;
                 case LootContainer lc:
                     _marker = GameplayProp(lc.PropId);
+                    break;
+                case HomeJoinControl _:
+                    _marker = GameplayProp("breach_patch_panel");
                     break;
                 case CraftingStation _:
                     _marker = GameplayProp("workbench");

@@ -58,6 +58,10 @@ namespace SynapticSea.Core.Session
                 Vec3 p = s.Scene.PlayerPosition;
                 ws.PlayerPositionInShip = GdArray.Of((double)p.X, (double)p.Y, (double)p.Z);
             }
+            if (!s.LifeboatCommissioned && s.LifeboatShip?.SystemsManager != null && s.ShipSystemsManager != null)
+                s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
+            ws.MobileHomeState = new GdDict { { "version", 1L }, { "lifeboat_commissioned", s.LifeboatCommissioned },
+                { "lifeboat", s.LifeboatShip?.GetSummary() ?? new GdDict() }, { "home_mobility", s.HomeShip?.Mobility.DeepCopy() ?? new GdDict() } };
             ws.DockEdges = CurrentDockEdges(s);
             ws.PilotedShipId = s.PilotedShip != null ? s.PilotedShip.ShipId : "";
             ws.AboardShipId = s.CurrentOccupancy != null ? s.CurrentOccupancy.ShipId : "";
@@ -107,6 +111,8 @@ namespace SynapticSea.Core.Session
                     foreach (string field in new[] { "connection_version", "host_local_port", "mobile_local_port", "connection_kind" })
                         edge[field] = connection.Get(field);
                 }
+                if(inst.DockingPorts.Count>0 && inst.DockingPorts[0] is GdDict doorConnection && doorConnection.Has("connection_open"))
+                    edge["connection_open"]=doorConnection.GetBool("connection_open");
                 edges.Add(edge);
             }
             return edges;
@@ -132,6 +138,20 @@ namespace SynapticSea.Core.Session
         {
             if (ws == null)
                 return false;
+            if (!ws.MobileHomeState.IsEmpty && (ws.MobileHomeState.GetInt("version") != 1
+                || ws.MobileHomeState.GetDictOrEmpty("lifeboat").GetString("ship_id") != "lifeboat"
+                || !AssemblyMobility.ValidSpecification(ws.MobileHomeState.GetDictOrEmpty("home_mobility"))
+                || !AssemblyMobility.ValidSpecification(ws.MobileHomeState.GetDictOrEmpty("lifeboat").GetDictOrEmpty("mobility"))))
+            { s.Log.Warning("World load rejected unsupported mobile-home ownership before changing live state"); return false; }
+            foreach (var value in ws.VisitedShips.Values)
+                if (value is GdDict ship && ship.Has("mobility")
+                    && (!AssemblyMobility.ValidSpecification(ship.GetDictOrEmpty("mobility"))
+                        || !OwnedInstallation(ship.GetString("ship_id"), ship.GetDictOrEmpty("mobility"))))
+                { s.Log.Warning("World load rejected invalid retained propulsion ownership before changing live state"); return false; }
+            if (!ws.MobileHomeState.IsEmpty
+                && (!OwnedInstallation(s.HomeShip?.ShipId ?? "ship_start", ws.MobileHomeState.GetDictOrEmpty("home_mobility"))
+                    || !OwnedInstallation("lifeboat", ws.MobileHomeState.GetDictOrEmpty("lifeboat").GetDictOrEmpty("mobility"))))
+            { s.Log.Warning("World load rejected invalid home propulsion ownership before changing live state"); return false; }
             if (!ValidateConnectionSnapshot(s, ws, out _, out string graphFailure))
             {
                 s.Log.Warning("World load rejected connection graph before changing live state: " + graphFailure);
@@ -184,6 +204,14 @@ namespace SynapticSea.Core.Session
             if (s.SynapticSeaWorld != null && !ws.WorldSummary.IsEmpty)
                 s.SynapticSeaWorld.ApplySummary(ws.WorldSummary);
             ApplyVisitedShips(s, ws.VisitedShips);
+            if(!ws.MobileHomeState.IsEmpty && s.HomeShip!=null) s.HomeShip.Mobility = ws.MobileHomeState.GetDictOrEmpty("home_mobility").DeepCopy();
+            s.LifeboatCommissioned = ws.MobileHomeState.IsEmpty ? ws.VisitedShips.Count > 0
+                : ws.MobileHomeState.GetBool("lifeboat_commissioned");
+            if (s.LifeboatShip != null)
+            {
+                if (!ws.MobileHomeState.IsEmpty) s.LifeboatShip.ApplySummary(ws.MobileHomeState.GetDictOrEmpty("lifeboat"));
+                else s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
+            }
             s.WorldTime = ws.WorldTime;
             if (ws.CurrentLocation != "")
             {
@@ -193,7 +221,11 @@ namespace SynapticSea.Core.Session
                     s.Log.Warning("PlayableGeneratedShip: world load — current_location '" + ws.CurrentLocation + "' missing from visited_ships");
                     return true;
                 }
-                if (!s.ActivateDerelictFromInstanceInternal(active, ws.PlayerPositionInShip))
+                s.RestoringConnections=true;
+                bool activated;
+                try { activated=s.ActivateDerelictFromInstanceInternal(active, ws.PlayerPositionInShip); }
+                finally { s.RestoringConnections=false; }
+                if (!activated)
                 {
                     s.Log.Warning("PlayableGeneratedShip: world load — failed to re-activate derelict '" + ws.CurrentLocation + "'");
                     return true;
@@ -214,8 +246,15 @@ namespace SynapticSea.Core.Session
                     : s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", ""))));
             }
             ApplyDockingSnapshot(s, ws);
+            s.RefreshThreatsAfterConnectionRestore();
+            s.SpawnHomeBridge();
+            s.RebuildHomeJoinControls();
+            s.RecomputeOccupancy();
             return true;
         }
+
+        static bool OwnedInstallation(string shipId, GdDict spec) => spec.GetString("engine_id").Length == 0
+            || spec.GetString("engine_id") == "propulsion:" + shipId;
 
         /// <summary>
         /// Every retained ship's summary keyed by marker id; under the demo's <c>world_persistence.cross_run</c> block only

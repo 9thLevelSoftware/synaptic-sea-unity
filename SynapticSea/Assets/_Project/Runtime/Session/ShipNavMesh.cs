@@ -34,7 +34,10 @@ namespace SynapticSea.Runtime.Session
         List<Vector3> _avoided = new List<Vector3>();
         float _avoidedCellSize;
         GameObject _dockedRoot;
+        GameObject[] _assemblyRoots;
         bool _suppressedByDock;
+        ShipNavMesh _compositeOwner;
+        bool _collisionDirty;
 
         public static void BuildComposite(GameObject host, GameObject mobile)
         {
@@ -44,8 +47,19 @@ namespace SynapticSea.Runtime.Session
             if (mobile.TryGetComponent(out ShipNavMesh mobileNav))
             {
                 mobileNav._suppressedByDock = true;
+                mobileNav._compositeOwner = nav;
                 if (mobileNav._surface != null) mobileNav._surface.RemoveData();
             }
+            nav.Rebuild();
+        }
+
+        public static void BuildAssembly(GameObject host, IEnumerable<GameObject> members)
+        {
+            var roots=members.Where(r=>r!=null && r!=host).Distinct().ToArray();
+            var nav=Build(host);if(nav==null)return;
+            nav._assemblyRoots=roots;
+            foreach(var root in roots)
+                if(root.TryGetComponent(out ShipNavMesh other)) {other._suppressedByDock=true;other._compositeOwner=nav;other._surface?.RemoveData();}
             nav.Rebuild();
         }
 
@@ -53,6 +67,7 @@ namespace SynapticSea.Runtime.Session
         {
             if (!host.TryGetComponent(out ShipNavMesh nav)) return;
             nav._dockedRoot = null;
+            nav._assemblyRoots=null;
             nav.Rebuild();
         }
 
@@ -131,13 +146,24 @@ namespace SynapticSea.Runtime.Session
             return true;
         }
 
-        /// <summary>Builds (or rebuilds) the surface of <paramref name="shipRoot"/>; returns null when it has no floor.</summary>
+        /// <summary>Returns the physical assembly owner; initializes standalone navigation only for unowned roots.</summary>
+        public static ShipNavMesh ForActiveShip(GameObject shipRoot)
+        {
+            // Boarding changes threat context, not physical assembly membership. Keep the
+            // owning composite's walls/doors instead of activating an overlapping child bake.
+            if(shipRoot!=null && shipRoot.TryGetComponent(out ShipNavMesh member) && member._suppressedByDock && member._compositeOwner!=null)
+                return member._compositeOwner;
+            return Build(shipRoot);
+        }
+
+        /// <summary>Builds standalone navigation, or initializes an assembly owner.</summary>
         public static ShipNavMesh Build(GameObject shipRoot)
         {
             if (shipRoot == null) return null;
             // TryGetComponent, not ?? : a missing component comes back as Unity's fake null, which ?? keeps.
             if (!shipRoot.TryGetComponent(out ShipNavMesh nav)) nav = shipRoot.AddComponent<ShipNavMesh>();
             nav._suppressedByDock = false;
+            nav._compositeOwner = null;
             nav.Rebuild();
             return nav.HasNavMesh ? nav : null;
         }
@@ -155,10 +181,11 @@ namespace SynapticSea.Runtime.Session
                 // Godot's threats never left the deck they spawned on, and neither engine has a walkable deck
                 // change (port-status decision 57), so no links are generated between decks.
             }
-            _surface.collectObjects = _dockedRoot != null ? CollectObjects.Volume : CollectObjects.Children;
-            if (_dockedRoot != null)
+            var combined = _assemblyRoots ?? (_dockedRoot!=null ? new[]{_dockedRoot} : new GameObject[0]);
+            _surface.collectObjects = combined.Length>0 ? CollectObjects.Volume : CollectObjects.Children;
+            if (combined.Length>0)
             {
-                var colliders = GetComponentsInChildren<Collider>().Concat(_dockedRoot.GetComponentsInChildren<Collider>()).Where(c => c.enabled && !c.isTrigger).ToArray();
+                var colliders = GetComponentsInChildren<Collider>().Concat(combined.Where(r=>r!=null).SelectMany(r=>r.GetComponentsInChildren<Collider>())).Where(c => c.enabled && !c.isTrigger).ToArray();
                 if (colliders.Length > 0)
                 {
                     var bounds = colliders[0].bounds;
@@ -169,6 +196,7 @@ namespace SynapticSea.Runtime.Session
             }
             _surface.RemoveData();
             _surface.BuildNavMesh();
+            _collisionDirty = false;
             _placedAt = transform.position;
             _placedRotation = transform.rotation;
         }
@@ -179,12 +207,21 @@ namespace SynapticSea.Runtime.Session
         /// </summary>
         void LateUpdate()
         {
+            if (_collisionDirty && !_suppressedByDock) Rebuild();
             if (!HasNavMesh) return;
             if (transform.position == _placedAt && transform.rotation == _placedRotation) return;
             _placedAt = transform.position;
             _placedRotation = transform.rotation;
             _surface.RemoveData();
             _surface.AddData();
+        }
+
+        /// <summary>Batch integrity/seal collision changes into one bake of the actual owning assembly.</summary>
+        public static void StructureCollisionChanged(GameObject root)
+        {
+            if(root==null || !root.TryGetComponent(out ShipNavMesh nav))return;
+            while(nav._compositeOwner!=null)nav=nav._compositeOwner;
+            nav._collisionDirty=true;
         }
 
         void OnDestroy()

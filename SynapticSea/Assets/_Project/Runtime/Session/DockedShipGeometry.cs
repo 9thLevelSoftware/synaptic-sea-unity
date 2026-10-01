@@ -12,6 +12,7 @@ namespace SynapticSea.Runtime.Session
     {
         readonly List<Collider> _suppressedColliders = new List<Collider>();
         readonly List<Renderer> _suppressedRenderers = new List<Renderer>();
+        readonly List<StructuralModule> _openedModules = new List<StructuralModule>();
         readonly Dictionary<SessionInteractable, Vec3> _interactionOrigins = new Dictionary<SessionInteractable, Vec3>();
         readonly Dictionary<SessionInteractable, float> _nextInteractionAttempt = new Dictionary<SessionInteractable, float>();
         SceneShipRoot _host, _mobile;
@@ -132,9 +133,10 @@ namespace SynapticSea.Runtime.Session
                 if (module.GetComponentInChildren<NavMeshBlocker>() != null) continue;
                 var activeColliders = module.GetComponentsInChildren<BoxCollider>().Where(c => c.enabled && !c.isTrigger).ToArray();
                 bool entireBoundaryCovered = activeColliders.Length > 0 && activeColliders.All(c => Covered(c.bounds, floors));
+                if(entireBoundaryCovered) {module.DockOverlapOpening=true;_openedModules.Add(module);}
                 foreach (var collider in activeColliders)
                     if (collider.enabled && !collider.isTrigger && Covered(collider.bounds, floors))
-                    { collider.enabled = false; _suppressedColliders.Add(collider); }
+                    { collider.enabled = false; module.DockOverlapColliders.Add(collider); _suppressedColliders.Add(collider); }
                 foreach (var renderer in module.GetComponentsInChildren<Renderer>())
                     // Upper trim bounds are not at floor height. When the entire physical boundary
                     // yields to a supported dock overlap, hide its whole visual assembly too.
@@ -151,8 +153,11 @@ namespace SynapticSea.Runtime.Session
             foreach (var collider in _suppressedColliders) if (collider != null)
             {
                 var module = collider.GetComponentInParent<StructuralModule>();
-                if (module == null || module.integrityState != StructuralModule.IntegrityDestroyed) collider.enabled = true;
+                if(module!=null) module.DockOverlapColliders.Remove(collider);
+                if (module == null || (module.integrityState != StructuralModule.IntegrityDestroyed && !module.ConnectionOpening)) collider.enabled = true;
             }
+            foreach(var module in _openedModules)if(module!=null){module.DockOverlapOpening=false;module.SetIntegrity(module.integrityState);}
+            _openedModules.Clear();
             foreach (var renderer in _suppressedRenderers) if (renderer != null) renderer.enabled = true;
             _suppressedColliders.Clear(); _suppressedRenderers.Clear();
             if (_host != null && _host.IsValid) ShipNavMesh.ResetComposite(_host.GameObject);

@@ -40,6 +40,256 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
+        public void RepairedRecoveryHabitatAirRequiresPhysicalOwnershipLocalServicesSealingAndNoAuthoredVent()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ForceRepairAll();
+            var bp=new SynapticSea.Core.Procgen.ShipBlueprint(1,0,17){GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.Profile};
+            var ownSystems=new ShipSystemsManager();ownSystems.Configure(ownSystems.LoadDefinitions(),0,17);ownSystems.ApplySummary(s.ShipSystemsManager.GetSummary());
+            var ship=ShipInstance.Create("recovered_test","test",bp,ownSystems,s.HomeShip.SceneRoot);ship.BuiltLayout=s.HomeShip.BuiltLayout;
+            ship.GetHull().Configure(new GdDict{{"compartments",GdArray.Of(new GdDict{{"compartment_id","cargo"},{"health",1.0},{"breach_open",false}})}});
+            var floor=AssemblyMobility.Floors(ship.BuiltLayout)[0];rig.Scene.PlayerPosition=floor+new Vec3(0,.55,0);
+            s.CurrentShip=ship;s.CurrentOccupancy=ship;s.AwayFromStart=true;
+            Assert.IsFalse(s.OwnedRecoveryHabitatAir(),"unclaimed wreck is not powered shelter");ship.GetAccess().Claim("player_local");
+            Assert.IsTrue(s.OwnedRecoveryHabitatAir());s.OxygenState.Oxygen=40;s.StageOxygen(1);Assert.Greater(s.OxygenState.Oxygen,40);
+            ship.SystemsManager.DamageSubcomponent("life_support","air_recycler",1);Assert.IsFalse(s.OwnedRecoveryHabitatAir());
+            Assert.IsTrue(s.ShipSystemsManager.IsOperational("life_support"),"working home services do not supply the recovered hull");
+            double offlineBefore=s.OxygenState.Oxygen;s.StageOxygen(1);Assert.Less(s.OxygenState.Oxygen,offlineBefore,"offline local life support cannot refill from another ship");
+            ship.SystemsManager.ForceRepair("life_support","air_recycler");
+            ship.GetHull().DamageCompartment("cargo",1,true);Assert.IsFalse(s.OwnedRecoveryHabitatAir());ship.GetHull().SealCompartment("cargo",1);
+            var model=((FakeLoaderView)s.Loader).Model;model.AuthoredAtmosphereSpecs=GdArray.Of(new GdDict{{"position",floor},{"vented",true},{"oxygen_bp",0L}});
+            Assert.IsFalse(s.OwnedRecoveryHabitatAir(),"explicit ventilation remains hazardous");model.AuthoredAtmosphereSpecs.Clear();
+            var explicitAir=new GdDict{{"position",floor},{"depressurized",true},{"oxygen_bp",0L},{"oxygen_source","initial_hull_condition_v1"}};
+            model.AuthoredAtmosphereSpecs.Add(explicitAir);double before=s.OxygenState.Oxygen;s.StageOxygen(1);
+            Assert.IsFalse(s.OwnedRecoveryHabitatAir());Assert.Less(s.OxygenState.Oxygen,before);
+            Assert.IsTrue(explicitAir.GetBool("depressurized"),"shelter refresh must not overwrite explicit room depressurization");
+            model.AuthoredAtmosphereSpecs.Clear();
+            rig.Scene.PlayerPosition=floor+new Vec3(400,.55,400);Assert.IsFalse(s.OwnedRecoveryHabitatAir(),"stale ownership outside the physical floor cannot refill a suit");
+        }
+
+        [Test]
+        public void WreckFireDoesNotConsumeAirWhilePhysicallyShelteringInIndependentShuttle()
+        {
+            var s=SessionHarness.CreateGolden().Session;s.ForceRepairAll();
+            var bp=new SynapticSea.Core.Procgen.ShipBlueprint(1,0,17);
+            var wreck=ShipInstance.Create("burning_wreck","test",bp,s.ShipSystemsManager,s.HomeShip.SceneRoot);
+            wreck.GetFire().Ignite("engineering",1);
+            s.CurrentShip=wreck;s.CurrentOccupancy=s.LifeboatShip;s.AwayFromStart=true;
+            s.OxygenState.Oxygen=40;s.StageOxygen(1);
+            Assert.Greater(s.OxygenState.Oxygen,40,"shuttle air is independent of the adjacent burning wreck");
+            s.CurrentOccupancy=wreck;s.StageOxygen(1);
+            Assert.Less(s.OxygenState.Oxygen,40,"boarding the burning wreck retains its real oxygen hazard");
+            Assert.Greater(wreck.GetFire().GetTotalIntensity(),0,"shelter does not extinguish another ship's fire");
+        }
+
+        [Test]
+        public void SharedCargoBayRoomFocusAndDispatchSelectNearestEligibleConsoleWithoutMovingCraft()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;
+            s.HangarControls.Clear();s.CargoHoldControls.Clear();
+            var cargo=new CargoHoldControl();cargo.Configure(s.HomeShip.ShipId,new Vec3(1000,0,1000));
+            var hangar=new HangarBayControl();hangar.Configure(s.HomeShip.ShipId,new Vec3(1001.25,0,1000));
+            int deposits=0,docks=0;cargo.CargoDepositRequested+=_=>deposits++;hangar.BayDockRequested+=(_,__)=>docks++;
+            s.CargoHoldControls.Add(cargo);s.HangarControls.Add(hangar);
+            var pose=s.LifeboatShip.SceneRoot.GlobalTransform;var parent=s.LifeboatShip.ParentShip;
+            rig.Scene.PlayerPosition=cargo.GlobalPosition;
+            Assert.IsTrue(s.CanFocusInteractable(cargo));Assert.IsFalse(s.CanFocusInteractable(hangar));
+            Assert.AreEqual("cargo_deposit",s.RequestInteract());Assert.AreEqual(1,deposits);Assert.AreEqual(0,docks);
+            Assert.AreSame(parent,s.LifeboatShip.ParentShip);Assert.AreEqual(pose,s.LifeboatShip.SceneRoot.GlobalTransform);
+            rig.Scene.PlayerPosition=hangar.GlobalPosition;
+            Assert.IsTrue(s.CanFocusInteractable(hangar));Assert.IsFalse(s.CanFocusInteractable(cargo));
+            Assert.AreEqual("hangar",s.RequestInteract());Assert.AreEqual(1,docks);Assert.AreEqual(1,deposits);
+        }
+
+        [Test]
+        public void PublishedRationsAndWaterHaveRealInventoryAndHotbarUseWithSpoilageScaling()
+        {
+            var s=SessionHarness.CreateGolden().Session;
+            s.InventoryState.AddItem("ration_pack",2);s.InventoryState.AddItem("purified_water",1);
+            s.VitalsState.Hunger=30;s.VitalsState.Thirst=30;
+            Assert.IsTrue(s.ConsumableState.AssignHotbarSlot(0,"ration_pack"));Assert.IsTrue(s.ConsumableState.AssignHotbarSlot(1,"purified_water"));
+            Assert.IsFalse(s.ConsumableState.HasUseAction("hull_sealant"));Assert.IsFalse(s.ConsumableState.HasUseAction("power_cell"));
+            Assert.IsTrue(s.UseConsumableItem("ration_pack").GetBool("ok"));Assert.AreEqual(45,s.VitalsState.Hunger);Assert.AreEqual(35,s.VitalsState.Thirst);
+            Assert.IsTrue(s.UseConsumableItem("purified_water").GetBool("ok"));Assert.AreEqual(50,s.VitalsState.Thirst);
+            var food=s.SpoilageState.AddFood("ration_pack",s.ConsumableState.Definitions.GetDictOrEmpty("ration_pack"));food.CurrentStage=(long)FoodState.Stage.STALE;
+            Assert.IsTrue(s.UseConsumableItem("ration_pack").GetBool("ok"));Assert.AreEqual(54,s.VitalsState.Hunger,.001);Assert.AreEqual(53,s.VitalsState.Thirst,.001);
+            Assert.AreEqual(0,s.InventoryState.GetQuantity("ration_pack"));Assert.AreEqual(0,s.InventoryState.GetQuantity("purified_water"));
+        }
+
+        [Test]
+        public void CutMooringRequiresToolSkillReachAndPreservesDamageOtherShipsAndSaveState()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;
+            s.ThreatManager.Threats.Clear();
+            var at=new Vec3(800,.4,800);
+            var control=new HomeJoinControl {ShipId=s.HomeShip.ShipId,ActionId="cut_web_attachment",Parent=s.HomeShip.SceneRoot,
+                LocalPosition=at,InteractionRadius=1.8,Web=s.HullWebState,Hull=s.HullIntegrityState};
+            s.HomeJoinControls.Clear();s.HomeJoinControls.Add(control);rig.Scene.PlayerPosition=control.GlobalPosition;
+            s.PlayerProgression.Skills["repair"]=1L;
+            s.BeginWorkHold();Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));Assert.IsFalse(s.WorkActionDriver.IsWorking(),"missing cutter blocks work");
+            s.InventoryState.AddItem("plasma_cutter",1);
+            Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));Assert.IsFalse(s.WorkActionDriver.IsWorking(),"real repair skill gate remains");
+            s.PlayerProgression.Skills["repair"]=2L;
+            Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));TickSeconds(rig,.5);
+            Assert.IsTrue(s.WorkActionDriver.IsWorking());s.EndWorkHold();Assert.IsTrue(s.CancelWorkAction());
+            Assert.IsTrue(s.HullWebState.AttachedToWeb,"interruption preserves attachment");
+            s.BeginWorkHold();Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));
+            rig.Scene.PlayerPosition+=new Vec3(8,0,0);TickSeconds(rig,.25);
+            Assert.IsFalse(s.WorkActionDriver.IsWorking(),"leaving the actual work site interrupts");Assert.IsTrue(s.HullWebState.AttachedToWeb);
+            rig.Scene.PlayerPosition=control.GlobalPosition;s.BeginWorkHold();Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));
+            double before=s.HullIntegrityState.AverageIntegrity();string inventory=GdJson.Stringify(s.InventoryState.Items);
+            TickSeconds(rig,8);s.EndWorkHold();
+            Assert.IsFalse(s.HullWebState.AttachedToWeb);Assert.IsTrue(s.LifeboatShip.GetWeb().AttachedToWeb,"other vessel remains attached");
+            Assert.LessOrEqual(s.HullIntegrityState.AverageIntegrity(),before,"no automatic hull restoration");
+            Assert.AreEqual(inventory,GdJson.Stringify(s.InventoryState.Items),"no resource grant or consumption");
+            var snapshot=WorldSnapshotAssembler.Build(s);s.HullWebState.AttachedToWeb=true;
+            Assert.IsTrue(WorldSnapshotAssembler.Apply(s,snapshot));Assert.IsFalse(s.HullWebState.AttachedToWeb,"cut-free state survives world restore");
+        }
+
+        [Test]
+        public void CutMooringRejectsAnotherOwnersShipAndAChangedToolAtCompletion()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ThreatManager.Threats.Clear();
+            var at=new Vec3(800,.4,800);var control=new HomeJoinControl {ShipId=s.HomeShip.ShipId,ActionId="cut_web_attachment",
+                Parent=s.HomeShip.SceneRoot,LocalPosition=at,InteractionRadius=1.8};
+            s.HomeJoinControls.Clear();s.HomeJoinControls.Add(control);rig.Scene.PlayerPosition=control.GlobalPosition;
+            s.PlayerProgression.Skills["repair"]=2L;s.InventoryState.AddItem("plasma_cutter",1);
+            s.HomeShip.GetAccess().OwnerId="other_player";s.HomeShip.GetAccess().AccessIds.Clear();
+            Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));Assert.IsFalse(s.WorkActionDriver.IsWorking());
+            s.HomeShip.GetAccess().OwnerId="";s.BeginWorkHold();Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));
+            Assert.IsTrue(s.WorkActionDriver.IsWorking());s.InventoryState.RemoveItem("plasma_cutter",1);
+            TickSeconds(rig,8);s.EndWorkHold();Assert.IsTrue(s.HullWebState.AttachedToWeb,"completion revalidates actual tool possession");
+        }
+
+        [Test]
+        public void RecoveryHullSealUsesItsProtectedCargoAnchorAndLegacyPlacementIsRetained()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.CurrentShip=s.HomeShip;s.AwayFromStart=true;
+            s.CurrentShip.Blueprint.GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.Profile;
+            var anchor=new Vec3(125,.12,17);
+            ((FakeLoaderView)s.Loader).Model.LootContainerSpecs=GdArray.Of(new GdDict{{"id","loot_cargo_01"},{"room_id","cargo_01"},{"position",anchor}});
+            s.HullIntegrityState.DamageCompartment("cargo",1,true);
+            var build=typeof(RunSession).GetMethod("BuildBreachSealPoints",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+            build.Invoke(s,null);var seal=s.BreachSealPoints.Find(p=>p.CompartmentId=="cargo");
+            Assert.IsNotNull(seal);Assert.AreEqual(anchor,seal.LocalPosition);
+            s.CurrentShip.Blueprint.GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.LegacyProfile;
+            build.Invoke(s,null);Assert.AreNotEqual(anchor,s.BreachSealPoints.Find(p=>p.CompartmentId=="cargo").LocalPosition);
+        }
+
+        [Test]
+        public void CommissionedShuttleHasIndependentSavedSystemsAndLegacyMigrationKeepsEarnedRepairs()
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session; s.ForceRepairAll();
+            TickSeconds(rig, 1);
+            s.LifeboatCommissioned = true;
+            s.HomeShip.SystemsManager.DamageSubcomponent("power", "reactor_core", 1);
+            Assert.IsTrue(s.LifeboatShip.SystemsManager.IsOperational("power"), "home damage cannot affect commissioned craft");
+            var snapshot = WorldSnapshotAssembler.Build(s);
+            Assert.IsTrue(WorldSnapshotAssembler.Apply(s, snapshot));
+            Assert.AreNotSame(s.HomeShip.SystemsManager, s.LifeboatShip.SystemsManager);
+            Assert.IsFalse(s.HomeShip.SystemsManager.IsOperational("power"));
+            Assert.IsTrue(s.LifeboatShip.SystemsManager.IsOperational("power"));
+            s.ForceRepairAll(); snapshot = WorldSnapshotAssembler.Build(s); snapshot.MobileHomeState.Clear();
+            Assert.IsTrue(WorldSnapshotAssembler.Apply(s, snapshot), "old saves explicitly migrate the previously shared repaired systems");
+            Assert.AreNotSame(s.HomeShip.SystemsManager, s.LifeboatShip.SystemsManager);
+            Assert.IsTrue(s.LifeboatShip.SystemsManager.IsOperational("power"));
+        }
+
+        [Test]
+        public void CommissionedShuttleShelterRequiresItsOwnLifeSupportAndPhysicalOccupancy()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ForceRepairAll();TickSeconds(rig,1);
+            s.LifeboatCommissioned=true;s.CurrentShip=s.HomeShip;s.AwayFromStart=true;
+            s.CurrentShip.Blueprint.GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.Profile;
+            s.CurrentOccupancy=s.LifeboatShip;s.SanityState.Sanity=50;
+            s.StageSanityHallucination(2,SessionLocation.Away);Assert.Greater(s.SanityState.Sanity,50);
+            s.LifeboatShip.SystemsManager.DamageSubcomponent("life_support","air_recycler",1);
+            s.SanityState.Sanity=50;s.StageSanityHallucination(2,SessionLocation.Away);Assert.Less(s.SanityState.Sanity,50,"broken boat services are not shelter");
+            s.LifeboatShip.SystemsManager.ForceRepair("life_support","air_recycler");s.CurrentOccupancy=s.CurrentShip;
+            s.SanityState.Sanity=50;s.StageSanityHallucination(2,SessionLocation.Away);Assert.Less(s.SanityState.Sanity,50,"remote repaired boat is not a global safe zone");
+        }
+
+        [Test]
+        public void RecoveryProfileRepairsUseProtectedFunctionalAnchorWithLegacyPlacementUnchanged()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ForceRepairAll();
+            s.CurrentShip=s.HomeShip;s.AwayFromStart=true;
+            s.CurrentShip.Blueprint.GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.Profile;
+            var anchor=new Vec3(125,.12,17);
+            ((FakeLoaderView)s.Loader).Model.LootContainerSpecs=GdArray.Of(new GdDict{{"id","loot_medical_01"},{"room_id","medical_01"},{"position",anchor}});
+            s.ShipSystemsManager.DamageSubcomponent("life_support","air_recycler",1);
+            var build=typeof(RunSession).GetMethod("BuildRepairPoints",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+            build.Invoke(s,null);var repair=s.RepairPoints.Find(p=>p.SubcomponentId=="air_recycler");
+            Assert.IsNotNull(repair);Assert.AreEqual(anchor,repair.LocalPosition);Assert.AreEqual(2,repair.MinSkill);
+            Assert.AreSame(s.ShipSystemsManager,repair.TargetManager);
+            s.CurrentShip.Blueprint.GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.LegacyProfile;
+            build.Invoke(s,null);Assert.AreNotEqual(anchor,s.RepairPoints.Find(p=>p.SubcomponentId=="air_recycler").LocalPosition);
+        }
+
+        [Test]
+        public void SuppressedFireExposesComponentsBrokenAfterBoardingForRealRepair()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ForceRepairAll();
+            s.ShipSystemsManager.DamageSubcomponent("power","reactor_core",1);
+            typeof(RunSession).GetMethod("OnFireExtinguished",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(s,new object[]{"power"});
+            var point=s.RepairPoints.Find(p=>p.SystemId=="power"&&p.SubcomponentId=="reactor_core");
+            Assert.IsNotNull(point,"new fire damage must remain repairable after suppression");
+            Assert.AreSame(s.ShipSystemsManager,point.TargetManager);
+            Assert.IsFalse(point.Repaired);Assert.AreEqual(4,point.MinSkill);
+        }
+
+        [Test]
+        public void NewRecoveryProfileHasOnlyAuthoredRadiationWhileLegacyFallbackRemains()
+        {
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;var loader=(FakeLoaderView)s.Loader;
+            loader.Model.AuthoredAtmosphereSpecs.Clear();loader.Model.RadiationZoneSpecs.Clear();
+            var bp=new SynapticSea.Core.Procgen.ShipBlueprint(1,0,17){GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.Profile};
+            s.CurrentShip=ShipInstance.Create("radiation_test","test",bp,s.ShipSystemsManager,s.Loader);
+            s.CurrentShip.BuiltLayout=s.HomeShip.BuiltLayout;s.AwayFromStart=true;s.RadiationState.Radiation=0;
+            TickSeconds(rig,2);Assert.AreEqual(0,s.RadiationState.Radiation,"a new ship without a radiation source is not universally radioactive");
+            s.CurrentShip.Blueprint.GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.LegacyProfile;
+            TickSeconds(rig,2);Assert.Greater(s.RadiationState.Radiation,0,"legacy saves retain their prior fallback contract");
+        }
+
+        [Test]
+        public void ExplicitNonRadiatingAtmosphereDoesNotUseLegacyShipWideHazardFallback()
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session;
+            var loader = (FakeLoaderView)s.Loader;
+            loader.Model.AuthoredAtmosphereSpecs = GdArray.Of(new GdDict {{ "radiation_bp", 0L }});
+            s.RadiationState.Radiation = 0;
+            s.AwayFromStart = true;
+            s.CurrentShip = s.HomeShip;
+            TickSeconds(rig, 5);
+            Assert.AreEqual(0, s.RadiationState.Radiation, "zero-authored radiation must not become a positive global source");
+        }
+
+        [Test]
+        public void SuppressionControlUsesMatchingFireLocationRatherThanObjectiveOrder()
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session;
+            s.FireSuppressionState.Ignite("power", 1);
+            var firePosition = new Vec3(8, .12f, -12);
+            s.FireZoneNodes["power"] = new SessionZone { CompartmentOrRoomId = "power", LocalPosition = firePosition, Parent = s.LifeboatShip.SceneRoot };
+            typeof(RunSession).GetMethod("BuildFireSuppressionPoints", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(s, null);
+            var control = s.FireSuppressionPoints.Find(p => p.CompartmentId == "power");
+            Assert.IsNotNull(control);
+            Assert.AreEqual(firePosition, control.LocalPosition);
+            Assert.AreSame(s.LifeboatShip.SceneRoot, control.Parent);
+        }
+
+        [Test]
+        public void InvalidOwnedMobilityRejectsSaveBeforeChangingLiveShip()
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session;
+            var snapshot = WorldSnapshotAssembler.Build(s); var original = s.HomeShip;
+            snapshot.MobileHomeState.GetDictOrEmpty("lifeboat").GetDictOrEmpty("mobility")["engine_id"] = "propulsion:ship_start";
+            Assert.IsFalse(WorldSnapshotAssembler.Apply(s, snapshot)); Assert.AreSame(original, s.HomeShip);
+            snapshot = WorldSnapshotAssembler.Build(s);
+            snapshot.MobileHomeState.GetDictOrEmpty("home_mobility")["dry_mass_kg"] = double.PositiveInfinity;
+            Assert.IsFalse(WorldSnapshotAssembler.Apply(s, snapshot)); Assert.AreSame(original, s.HomeShip);
+        }
+
+        [Test]
         public void DepartureUsesPilotedHullRatherThanDeterioratedHomeHull()
         {
             var rig=SessionHarness.CreateGolden(); var s=rig.Session; s.ForceRepairAll();

@@ -56,8 +56,21 @@ namespace SynapticSea.Core.Systems
         public bool HasUseAction(string itemId)
         {
             GdDict definition = ItemDefs.GetDefinition(Definitions, itemId);
-            string category = V.Str(definition.Get("category", ""));
+            string category = UseCategory(definition);
             return UseCategories.Contains(category);
+        }
+
+        static string UseCategory(GdDict definition)
+        {
+            string category=definition.GetString("category");
+            // Published ration/water definitions are inventory supplies. Their authored restorative
+            // fields identify consumable food/drink; ordinary supply parts remain ineligible.
+            if(category=="supply")
+            {
+                if(definition.GetFloat("hunger_restore")>0)return "food";
+                if(definition.GetFloat("thirst_restore")>0)return "drink";
+            }
+            return category;
         }
 
         public bool AssignHotbarSlot(long slotIndex, string itemId)
@@ -87,7 +100,7 @@ namespace SynapticSea.Core.Systems
             GdDict definition = ItemDefs.GetDefinition(Definitions, itemId);
             if (definition.IsEmpty)
                 return new GdDict { { "ok", false }, { "reason", "unknown_definition" }, { "item_id", itemId } };
-            string category = V.Str(definition.Get("category", ""));
+            string category = UseCategory(definition);
             long iterations = useAll ? quantity : 1;
             iterations = Math.Max(1L, iterations);
             long successes = 0;

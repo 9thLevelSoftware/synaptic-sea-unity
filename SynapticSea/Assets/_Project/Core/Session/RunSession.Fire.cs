@@ -649,7 +649,13 @@ namespace SynapticSea.Core.Session
             int idx = 0;
             foreach (object cid in burning)
             {
+                // A compartment's suppression control belongs to its actual fire, not
+                // an unrelated objective selected by list order. Legacy unplaced fires
+                // retain the distributed-room fallback.
                 Vec3 pos = positions[idx % positions.Count];
+                foreach (SessionZone zone in FireZoneNodes.Values)
+                    if (zone.CompartmentOrRoomId == V.Str(cid))
+                    { pos = zone.LocalPosition; break; }
                 idx += 1;
                 var fp = new FireSuppressionPoint();
                 fp.Configure(V.Str(cid), afs, ExtinguisherState, InventoryState, PlayerProgression, pos, 4.0, "fire_extinguisher", 1.8);
@@ -671,6 +677,9 @@ namespace SynapticSea.Core.Session
         void OnFireExtinguished(string compartmentId)
         {
             RefreshFireZones();
+            // A fire can break components after initial boarding, when no damaged
+            // repair points existed. Expose the real new damage once suppression ends.
+            BuildRepairPoints();
             EmitTrainingEvent("decontaminate_zone", compartmentId);
             PlaySfx(AudioEventSeam.SFX_TOOL_USE);
         }

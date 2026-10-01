@@ -39,6 +39,7 @@ namespace SynapticSea.Tests.PlayMode
             if (string.IsNullOrEmpty(_playerPath)) return;
             var path = _playerPath; _playerPath = null;
             string profiling = Environment.GetCommandLineArgs().Contains("-profileExpeditionFrames") ? " -profileExpeditionFrames" : "";
+            if(Environment.GetCommandLineArgs().Contains("-profileJoinedHomeFrames")) profiling+=" -profileJoinedHomeFrames";
             Process.Start(new ProcessStartInfo(path, "-batchmode -screen-fullscreen 0 -screen-width 2048 -screen-height 1224 -quietTestResults \"" + _resultPath + "\" -logFile \"" + _logPath + "\"" + profiling)
                 { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
         }

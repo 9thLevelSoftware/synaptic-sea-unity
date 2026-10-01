@@ -1146,6 +1146,7 @@ namespace SynapticSea.Core.Procgen
                 };
                 if (room.Has("atmosphere_bp") || room.Has("oxygen_bp"))
                     spec["oxygen_bp"] = V.I64(room.Get("atmosphere_bp", room.Get("oxygen_bp", 10000L)));
+                if(room.Has("oxygen_source"))spec["oxygen_source"]=room.GetString("oxygen_source");
                 if (room.Has("temperature_c")) spec["temperature_c"] = V.F64(room["temperature_c"]);
                 AuthoredAtmosphereSpecs.Add(spec);
                 AtmosphereVolumes.Add(new TriggerVolumeSpec

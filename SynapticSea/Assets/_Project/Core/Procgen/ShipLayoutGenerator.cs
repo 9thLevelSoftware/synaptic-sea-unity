@@ -73,7 +73,7 @@ namespace SynapticSea.Core.Procgen
                 bestEffort = candidate;
                 if (LayoutIsConnected(candidate)) return candidate;
             }
-            if (blueprint.GenerationProfile == ConstrainedExpedition.Profile)
+            if (ConstrainedExpedition.Supported(blueprint.GenerationProfile))
             { CoreServices.Log.Error("Constrained expedition failed final connectivity validation seed=" + baseSeed); return new GdDict(); }
             if (!bestEffort.IsEmpty)
             {
@@ -113,7 +113,7 @@ namespace SynapticSea.Core.Procgen
             }
 
             // Stage 3: place rooms on 2D grid.
-            GdDict cellGrid = blueprint.GenerationProfile == ConstrainedExpedition.Profile ? ConstrainedExpedition.Layout(blueprint, out roomPlan)
+            GdDict cellGrid = ConstrainedExpedition.Supported(blueprint.GenerationProfile) ? ConstrainedExpedition.Layout(blueprint, out roomPlan)
                 : blueprint.GenerationProfile == PurposefulExpedition.Profile ? PurposefulExpedition.Layout(blueprint, out roomPlan)
                 : expedition ? ExpeditionLayoutEngine.Layout(blueprint, out roomPlan) : CellLayoutEngineStage.Layout(roomPlan, template, blueprint.SeedValue);
             if (expedition && VariantSelector != null)
@@ -154,7 +154,7 @@ namespace SynapticSea.Core.Procgen
             if (expedition) { layout["template_id"] = blueprint.GenerationProfile; layout["generation_profile"] = blueprint.GenerationProfile; }
             if (blueprint.GenerationProfile == PurposefulExpedition.Profile)
                 layout["topology_family"] = PurposefulExpedition.CrossHull(blueprint.SeedValue) ? "cargo_exchange" : "service_loop";
-            if (blueprint.GenerationProfile == ConstrainedExpedition.Profile)
+            if (ConstrainedExpedition.Supported(blueprint.GenerationProfile))
             { layout["topology_family"] = "constrained_composition"; layout["composition_diagnostics"] = cellGrid.GetDictOrEmpty("composition_diagnostics").DeepCopy(); }
             PurposefulExpedition.StampDockContract(layout);
             if (biomeId.Length != 0) layout["biome_id"] = biomeId;
@@ -167,6 +167,17 @@ namespace SynapticSea.Core.Procgen
 
             // Overlay locks/breaches before compile; recompile after stamping; wreck lands after the last compile.
             ApplyConditionMutators(layout, blueprint);
+            if(blueprint.GenerationProfile==ConstrainedExpedition.Profile)
+                foreach(GdDict room in layout.GetArrayOrEmpty("rooms"))
+                {
+                    // New recovery layouts author their initial compartment air explicitly, using the
+                    // existing atmosphere-volume contract. Saved v3 documents are not reinterpreted.
+                    bool vacuum=blueprint.ShipCondition==(long)ShipBlueprint.Condition.Wrecked
+                        || room.GetString("variant")=="breached" || room.GetString("variant")=="collapsed"
+                        || room.GetBool("vented") || room.GetBool("depressurized");
+                    if(!room.Has("oxygen_bp")&&!room.Has("atmosphere_bp"))
+                    { room["oxygen_bp"]=vacuum?0L:10000L;room["oxygen_source"]="initial_hull_condition_v1"; }
+                }
             if (!StampStructuralPlan(layout))
             {
                 CoreServices.Log.Error("SHIP LAYOUT GENERATOR FAIL structural plan validation failed");

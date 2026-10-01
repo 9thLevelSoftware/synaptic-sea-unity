@@ -732,6 +732,11 @@ namespace SynapticSea.Core.Session
                 return;
             if (!WorkActionDriver.IsWorking())
                 return;
+            if(WorkActionDriver.Work.ActionId=="secure_connection" || WorkActionDriver.Work.ActionId=="commission_home_propulsion" || WorkActionDriver.Work.ActionId=="cut_web_attachment")
+            {
+                var control=HomeJoinControls.Find(c=>c.IsValid && c.ActionId==WorkActionDriver.Work.ActionId && c.ShipId==WorkActionDriver.Work.TargetId);
+                if(control==null || !HasInteractionSightAndReach(control)) {HomeWorkFailure("left_work_site");_workRequiresHold=false;RefreshWorkActionHud();return;}
+            }
             // Unity port (B3): switching to hold_to_tap mid-action releases the hold requirement.
             if (_workRequiresHold && !HoldToWorkEnabled)
                 _workRequiresHold = false;
@@ -766,7 +771,8 @@ namespace SynapticSea.Core.Session
                 GdDict inv = InventoryQtyDictForWork();
                 GdDict res;
                 string actionId = WorkActionDriver.Work != null ? WorkActionDriver.Work.ActionId : "";
-                if (actionId == "dismount_component" || actionId == "unbolt_component")
+                if(actionId=="secure_connection" || actionId=="commission_home_propulsion" || actionId=="cut_web_attachment") res=CompleteHomeWork(actionId);
+                else if (actionId == "dismount_component" || actionId == "unbolt_component")
                 {
                     res = ComponentMountResolver.ResolveDismount(WorkActionDriver.Work, ComponentPlacementState, inv);
                     if (res.GetBool("ok"))

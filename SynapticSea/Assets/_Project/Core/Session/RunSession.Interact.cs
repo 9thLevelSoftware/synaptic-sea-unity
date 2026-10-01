@@ -30,6 +30,7 @@ namespace SynapticSea.Core.Session
             if (item is DockPortBarrier barrier && barrier.Opened) return false;
             if (item is ObjectiveInteractable objective && (!objective.Active || objective.Completed)) return false;
             if (item is DeckTransition deck) return deck.InReach(PlayerPos);
+            if ((item is HangarBayControl || item is CargoHoldControl) && !ReferenceEquals(item, NearestShipConsole())) return false;
             if (HasPlayer && Deps.LosProbe != null && Deps.LosProbe.HasSpace
                 && Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, item.GlobalPosition + Vec3.Up, out _)) return false;
             return true;
@@ -38,6 +39,16 @@ namespace SynapticSea.Core.Session
         bool HasInteractionSightAndReach(SessionInteractable item) => item.IsPlayerInDirectRangeStrict(PlayerPos)
             && (Deps.LosProbe == null || !Deps.LosProbe.HasSpace
                 || !Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, item.GlobalPosition + Vec3.Up, out _));
+
+        SessionInteractable NearestShipConsole() => CargoHoldControls.Cast<SessionInteractable>()
+            .Concat(HangarControls.Where(c => {
+                var carrier=FindShipById(c.CarrierId);
+                return carrier!=null && carrier.GetHangar().SlotCount>0
+                    && (BayDockCandidate(carrier)!=null || FirstOccupiedSlot(carrier.GetHangar())>=0);
+            }))
+            .Where(c=>c.IsValid && c.IsInsideTree && HasInteractionSightAndReach(c))
+            .OrderBy(c=>c.GlobalPosition.DistanceSquaredTo(PlayerPos))
+            .ThenBy(c=>c is CargoHoldControl ? 0 : 1).ThenBy(c=>c.NodeName,System.StringComparer.Ordinal).FirstOrDefault();
 
         IEnumerable<T> NearestInteractables<T>(IEnumerable<T> items, Vec3 player) where T : SessionInteractable =>
             items.Where(item => CanFocusInteractable(item)).OrderBy(item => item.GlobalPosition.DistanceSquaredTo(player)).ToList();
@@ -218,7 +229,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Walk-up cargo deposit (strict in-range gate at a cargo control).</summary>
         internal bool TryCargoDeposit(Vec3 p)
         {
-            foreach (CargoHoldControl ch in new List<CargoHoldControl>(CargoHoldControls))
+            foreach (CargoHoldControl ch in NearestInteractables(CargoHoldControls,p))
             {
                 if (ch.IsValid && ch.TryDeposit(p))
                     return true;
@@ -229,7 +240,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Hangar: prefer docking a co-present candidate, else launch the first bayed ship.</summary>
         internal bool TryHangarInteract(Vec3 p)
         {
-            foreach (HangarBayControl c in new List<HangarBayControl>(HangarControls))
+            foreach (HangarBayControl c in NearestInteractables(HangarControls,p))
             {
                 if (!c.IsValid)
                     continue;

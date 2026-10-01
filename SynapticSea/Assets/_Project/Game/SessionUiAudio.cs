@@ -63,7 +63,7 @@ namespace SynapticSea.Game
     }
 
     /// <summary><see cref="IScannerHost"/> over the session (scan + travel run the session's scene surgery).</summary>
-    public sealed class SessionScannerHost : IScannerHost
+    public sealed class SessionScannerHost : IScannerHost, IAssemblyScannerHost
     {
         readonly RunSession _session;
 
@@ -75,6 +75,7 @@ namespace SynapticSea.Game
 
         public IUiAudio Audio { get; }
         public GdDict Scan() => _session.Scan();
+        public GdDict TravelCapability() => _session.TravelCapability();
         public GdDict TravelToMarkerId(string markerId) => _session.TravelToMarkerId(markerId);
         public void EmitTrainingEvent(string eventId, string targetId) => _session.EmitTrainingEvent(eventId, targetId);
     }

@@ -9,7 +9,9 @@ namespace SynapticSea.Core.Procgen
     /// <summary>Versioned BSP composition with doors selected only from physically shared boundaries.</summary>
     public static class ConstrainedExpedition
     {
-        public const string Profile = "constrained_expedition_v3";
+        public const string Profile = "reclamation_expedition_v4";
+        public const string LegacyProfile = "constrained_expedition_v3";
+        public static bool Supported(string profile) => profile == Profile || profile == LegacyProfile;
         sealed class Room { public int X,Y,W,H; public string Role,Id; }
         sealed class Edge { public int A,B; public readonly List<(Vec2i a,Vec2i b)> Cells=new List<(Vec2i,Vec2i)>(); }
         public static GdDict Layout(ShipBlueprint bp, out List<GdDict> plan) => LayoutWithAttemptBudget(bp,4,out plan);

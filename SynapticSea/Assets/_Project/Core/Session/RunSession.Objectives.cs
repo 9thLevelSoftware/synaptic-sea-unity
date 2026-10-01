@@ -83,6 +83,7 @@ namespace SynapticSea.Core.Session
                 // Home objectives are onboarding milestones, not an escape or end of this life.
                 CurrentObjectiveSequence = totalSequences + 1;
                 Log.Info("HOME ONBOARDING COMPLETE objectives_completed=" + ObjectiveCompletionCount);
+                RebuildHomeJoinControls();
                 AutoSaveCurrentRun();
                 ActivateCurrentObjective();
                 return;

@@ -34,6 +34,16 @@ namespace SynapticSea.Core.Session
                     if (sub.IsFunctional())
                         continue;
                     Vec3 pos = positions[idx % positions.Count];
+                    if (AwayFromStart && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile)
+                    {
+                        // Reuse the generator's protected, reachable work/loot anchor.
+                        // List order is not a meaningful owner or room-placement contract.
+                        string roomId = sid == "life_support" ? "medical_01" : sid == "power" ? "maintenance_01" : "";
+                        if (roomId.Length > 0 && CurrentShip.SceneRoot is IShipLoaderView active)
+                            foreach (object raw in active.GetLootContainerSpecsCopy())
+                                if (raw is GdDict slot && slot.GetString("room_id") == roomId && slot.Get("position") is Vec3 protectedAnchor)
+                                { pos = protectedAnchor; break; }
+                    }
                     idx += 1;
                     var rp = new RepairPoint();
                     rp.Configure(sid, sub.SubcomponentId, mgr, InventoryState, PlayerProgression, pos, sub.RepairSeconds, sub.MinSkill, 1.8);
@@ -78,6 +88,15 @@ namespace SynapticSea.Core.Session
             foreach (string cid in breached)
             {
                 Vec3 pos = positions[idx % positions.Count];
+                if (AwayFromStart && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                    && CurrentShip.SceneRoot is IShipLoaderView active)
+                {
+                    // Hull work shares protected reachable anchors with the corresponding room's salvage.
+                    string roomId = cid == "cargo" ? "cargo_01" : cid == "engineering" ? "maintenance_01" : "medical_01";
+                    foreach (object raw in active.GetLootContainerSpecsCopy())
+                        if (raw is GdDict slot && slot.GetString("room_id") == roomId && slot.Get("position") is Vec3 anchor)
+                        { pos = anchor; break; }
+                }
                 idx += 1;
                 var sp = new BreachSealPoint();
                 sp.Configure(cid, hull, InventoryState, PlayerProgression, pos, 4.0, "hull_sealant", 1.0, 1.8);

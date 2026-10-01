@@ -21,33 +21,40 @@ registry together.
 | 1 | dock_barrier | Both | `dock_barriers`: `b.try_start(player)` on unopened barriers |
 | 2 | authored_portal | Both | `_try_authored_portal_interact(player)` (closed doors before stations; open doors yield to ordinary targets) |
 | 3 | deck_transition | Both | Authored `vertical_connections`: safe bidirectional player landing |
-| 4 | bridge_terminal | Both | `bridge_terminals`: `t.try_login(player)` |
-| 5 | fire_suppression_point | Both | `fire_suppression_points`: `fp.try_start(player)` |
-| 6 | repair_point | Both | `repair_points`: `rp.try_start(player)` |
-| 7 | breach_seal_point | Both | `breach_seal_points`: `sp.try_start(player)` |
-| 8 | crafting_station | Home | `crafting_stations`: `st.try_interact(player)` |
-| 9 | production_station | Home | `production_stations`: `st.try_interact(player)` |
-| 10 | loot_container | Both | `loot_containers`: `lc.try_interact(player)` |
-| 11 | hatch_bypass | Away | `_try_bypass_nearest_hatch()` |
-| 12 | hatch_reseal | Away | `_try_reseal_nearest_hatch()` |
-| 13 | derelict_objective | Away | `derelict_interactables`: `it.try_interact(player)` |
-| 14 | tool_pickup | Home | `_try_tool_pickup_interact(tool_pickup, player)` |
-| 15 | junction_calibrator_pickup | Home | `_try_tool_pickup_interact(junction_calibrator_pickup, player)` |
-| 16 | home_objective | Home | `interactables`: `interactable.try_interact(player)` |
-| 17 | hangar | Both | `_try_hangar_interact(player)` |
-| 18 | cargo_deposit | Both | `_try_cargo_deposit(player)` |
-| 19 | cart | Both | `_try_cart_interact(player)` |
-| 20 | work_yield_drop | Both | `_try_work_yield_drop_interact(player)` |
-| 21 | work_action | Both | `_try_work_action_interact(player)` |
+| 4 | home_join | Both | Reachable biomatter cut-free work; qualified reclaimed-home weld, installation and connection-door controls |
+| 5 | bridge_terminal | Both | `bridge_terminals`: `t.try_login(player)` |
+| 6 | fire_suppression_point | Both | `fire_suppression_points`: `fp.try_start(player)` |
+| 7 | repair_point | Both | `repair_points`: `rp.try_start(player)` |
+| 8 | breach_seal_point | Both | `breach_seal_points`: `sp.try_start(player)` |
+| 9 | crafting_station | Home | `crafting_stations`: `st.try_interact(player)` |
+| 10 | production_station | Home | `production_stations`: `st.try_interact(player)` |
+| 11 | loot_container | Both | `loot_containers`: `lc.try_interact(player)` |
+| 12 | hatch_bypass | Away | `_try_bypass_nearest_hatch()` |
+| 13 | hatch_reseal | Away | `_try_reseal_nearest_hatch()` |
+| 14 | derelict_objective | Away | `derelict_interactables`: `it.try_interact(player)` |
+| 15 | tool_pickup | Home | `_try_tool_pickup_interact(tool_pickup, player)` |
+| 16 | junction_calibrator_pickup | Home | `_try_tool_pickup_interact(junction_calibrator_pickup, player)` |
+| 17 | home_objective | Home | `interactables`: `interactable.try_interact(player)` |
+| 18 | hangar | Both | `_try_hangar_interact(player)` |
+| 19 | cargo_deposit | Both | `_try_cargo_deposit(player)` |
+| 20 | cart | Both | `_try_cart_interact(player)` |
+| 21 | work_yield_drop | Both | `_try_work_yield_drop_interact(player)` |
+| 22 | work_action | Both | `_try_work_action_interact(player)` |
 <!-- interaction-order:end -->
+
+Cargo and bay controls use a shared nearest-eligible-console choice within their
+overlapping ranges, including line of sight. Cargo wins an exact-distance tie.
+The same eligibility drives HUD focus and dispatch; an unusable bay does not
+hide cargo. Generated cargo rooms that also provide a bay give its console a
+distinct anchor. Opening cargo must never dock, launch or reposition a craft.
 
 ## Resulting chains
 
-**Home:** dock_barrier, authored_portal, deck_transition, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, crafting_station,
+**Home:** dock_barrier, authored_portal, deck_transition, home_join, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, crafting_station,
 production_station, loot_container, tool_pickup, junction_calibrator_pickup, home_objective, hangar, cargo_deposit, cart,
 work_yield_drop, work_action. If none claims the request, the soft-miss cue plays.
 
-**Away:** dock_barrier, authored_portal, deck_transition, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, loot_container,
+**Away:** dock_barrier, authored_portal, deck_transition, home_join, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, loot_container,
 hatch_bypass, hatch_reseal, derelict_objective, hangar, cargo_deposit, cart, work_yield_drop,
 work_action. If none claims the request, the soft-miss cue plays.
 

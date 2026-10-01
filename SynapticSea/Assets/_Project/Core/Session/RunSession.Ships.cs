@@ -4,6 +4,7 @@
 // dock/launch (2740-2896).
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
@@ -83,6 +84,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_recompute_expanded_ship_systems(delta)</c>: power grid, propulsion, life support, stations, sustenance.</summary>
         void RecomputeExpandedShipSystems(double delta)
         {
+            SyncStartingShuttleCommissioning();
             if (PowerGridState == null)
                 return;
             double powerHealth = 0.0;
@@ -97,7 +99,8 @@ namespace SynapticSea.Core.Session
                 var propulsionManager = PilotedShip?.SystemsManager ?? ShipSystemsManager;
                 PropulsionExpandedState.Tick(delta, new GdDict
                 {
-                    { "powered_ratio", PowerGridState.GetAllocationRatio("propulsion") },
+                    { "powered_ratio", PilotedShip==null || PilotedShip==HomeShip ? PowerGridState.GetAllocationRatio("propulsion")
+                        : (propulsionManager!=null && propulsionManager.IsOperational("power") ? propulsionManager.GetSystem("power").Health() : 0.0) },
                     { "manager_operational", propulsionManager != null && propulsionManager.IsOperational("propulsion") },
                     { "hull_penalty", 1.0 - pilotedHull.AverageIntegrity() },
                 });
@@ -217,6 +220,9 @@ namespace SynapticSea.Core.Session
                 entries.Add(new OccupancyEntry(HomeShip, HomeShip.InteriorAabb()));
             if (CurrentShip != null && CurrentShip != HomeShip && RootValid(CurrentShip.SceneRoot) && ShipBoardable(CurrentShip))
                 entries.Add(new OccupancyEntry(CurrentShip, CurrentShip.InteriorAabb()));
+            foreach(var ship in AllKnownShipsInternal())
+                if(ship!=null && ship!=CurrentShip && ship!=HomeShip && ship!=LifeboatShip && ship!=PilotedShip
+                    && IsHomeMember(ship) && RootValid(ship.SceneRoot)) entries.Add(new OccupancyEntry(ship,ship.InteriorAabb()));
             return entries;
         }
 
@@ -243,13 +249,22 @@ namespace SynapticSea.Core.Session
             ShipInstance resolved = HomeShip;
             if (HasPlayer)
             {
-                if (ShipOccupancy.Resolve(PlayerPos, OccupancyEntries()) is ShipInstance r)
-                    resolved = r;
+                var candidates=AllKnownShipsInternal().Where(ship=>ship!=null && RootValid(ship.SceneRoot))
+                    .OrderBy(ship=>ship==PilotedShip?0:ship==LifeboatShip?1:ship==CurrentShip?2:ship==HomeShip?3:4);
+                ShipInstance exact=null;
+                foreach(var ship in candidates)
+                {
+                    Vec3 local=SessionMath.AffineInverse(ship.SceneRoot.GlobalTransform)*PlayerPos;
+                    if(AssemblyMobility.Floors(ship.BuiltLayout).Any(c=>Math.Abs(local.X-c.X)<2.01 && Math.Abs(local.Z-c.Z)<2.01
+                        && local.Y>=c.Y-0.25 && local.Y<c.Y+3.0)) {exact=ship;break;}
+                }
+                if(exact!=null) resolved=exact;
+                else if (ShipOccupancy.Resolve(PlayerPos, OccupancyEntries()) is ShipInstance r) resolved = r;
             }
             CurrentOccupancy = resolved;
-            bool atHomeComplex = CurrentOccupancy == HomeShip
-                || (PilotedShip != null && CurrentOccupancy == PilotedShip && PilotedShip.ParentShip == HomeShip);
-            AwayFromStart = !atHomeComplex;
+            if(!RestoringConnections && !_switchingBoardedContext && resolved!=LifeboatShip && resolved!=CurrentShip
+                && IsHomeMember(resolved) && IsHomeMember(CurrentShip)) ActivateBoardedContext(resolved);
+            AwayFromStart = CurrentShip != HomeShip;
         }
 
         /// <summary>A bridge terminal requested login: claim + pilot a working vessel.</summary>
@@ -260,6 +275,8 @@ namespace SynapticSea.Core.Session
                 return;
             if (!inst.IsWorkingVessel())
             {
+                Log.Warning("Bridge login denied: vessel propulsion/dependencies offline ship="+shipId+" systems="+GdJson.Stringify(inst.SystemsManager?.GetSummary() ?? new GdDict()));
+                SetHazardFeedbackLine("Bridge offline: repair propulsion, power and navigation.");
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
                 return;
             }
@@ -280,11 +297,27 @@ namespace SynapticSea.Core.Session
             return new GdDict { { "success", true }, { "reason", "ok" } };
         }
 
+        void SyncStartingShuttleCommissioning()
+        {
+            if (!LifeboatCommissioned && LifeboatShip?.SystemsManager != null && ShipSystemsManager != null)
+                LifeboatShip.SystemsManager.ApplySummary(ShipSystemsManager.GetSummary());
+        }
+
         /// <summary>Travel capability comes from the PILOTED ship's systems (fallback: the coordinator's starting manager).</summary>
+        public GdDict TravelCapability()
+        {
+            SyncStartingShuttleCommissioning();
+            SyncPillarSummariesForSave();
+            return AssemblyMobility.Evaluate(PilotedShip, InventoryState?.GetTotalWeight() ?? 0);
+        }
+
         GdDict CurrentSystemsOps()
         {
+            // Initial repairs commission the starting shuttle once. After its first departure its
+            // controls are owned independently: home damage/repair can no longer mutate the boat.
+            SyncStartingShuttleCommissioning();
             ShipSystemsManager mgr = PilotedShip != null && PilotedShip.SystemsManager != null ? PilotedShip.SystemsManager : ShipSystemsManager;
-            bool propulsionOk = mgr != null && mgr.IsOperational("propulsion");
+            bool propulsionOk = mgr != null && mgr.IsOperational("propulsion") && TravelCapability().GetBool("success");
             if (PropulsionExpandedState != null)
                 propulsionOk = propulsionOk && PropulsionExpandedState.CanPropel();
             return new GdDict
@@ -491,6 +524,11 @@ namespace SynapticSea.Core.Session
             foreach (object a in anchors)
                 center += (Vec3)a;
             center = center / (float)anchors.Count;
+            // A cargo room can also contain a bay. Give its console a distinct standing
+            // anchor so the same interaction cannot alternate between cargo and launch.
+            Vec3 cargoCenter=DockPorts.RoomFloorCenter(inst.BuiltLayout,"cargo","cargo");
+            if(cargoCenter!=Vec3.Inf && center.DistanceTo(cargoCenter)<2.4)
+                center=(Vec3)anchors[0]+new Vec3(1.25,0,0);
             var kept = new List<HangarBayControl>();
             foreach (HangarBayControl c in HangarControls)
             {

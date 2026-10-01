@@ -258,7 +258,10 @@ namespace SynapticSea.Core.Systems
             if (!PortsCompatibleForRestore(localHost, localMobile)) return Result(false, "invalid_connection_endpoints");
             var result = Dock(host, mobile, HostPortToWorld(host, localHost), localMobile);
             if (result.GetBool("success") && mobile.DockingPorts.Count > 0)
+            {
                 ((GdDict)mobile.DockingPorts[0])["connection_kind"] = contract.GetString("connection_kind", "moored");
+                if(contract.Has("connection_open")) ((GdDict)mobile.DockingPorts[0])["connection_open"] = contract.GetBool("connection_open");
+            }
             return result;
         }
 

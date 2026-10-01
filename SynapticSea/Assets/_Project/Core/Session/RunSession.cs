@@ -153,6 +153,7 @@ namespace SynapticSea.Core.Session
         public double RunPlayTimeSeconds;
 
         public ShipInstance LifeboatShip;
+        public bool LifeboatCommissioned;
         public ShipInstance PilotedShip;
 
         /// <summary>Narrative objective flags with no manager backing (supplies/logs), in insertion order.</summary>
