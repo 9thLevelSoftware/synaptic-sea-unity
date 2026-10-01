@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using SynapticSea.Core.Variant;
+using SynapticSea.Core.Session;
 
 namespace SynapticSea.Core.Systems
 {
@@ -79,11 +81,67 @@ namespace SynapticSea.Core.Systems
         static bool PortValid(GdDict p)
         {
             return p != null && p.Has("position") && p.Has("facing")
-                && p["position"] is Vec3 && p["facing"] is Vec3 facing
-                && facing.Length() > 0.0001;
+                && p["position"] is Vec3 position && p["facing"] is Vec3 facing
+                && Finite(position) && Finite(facing) && facing.Length() > 0.0001;
         }
 
-        public static GdDict Dock(IDockableShip hostInst, IDockableShip mobileInst, GdDict hostPort, GdDict mobilePort)
+        static bool Finite(Vec3 v) => !double.IsNaN(v.X) && !double.IsInfinity(v.X)
+            && !double.IsNaN(v.Y) && !double.IsInfinity(v.Y)
+            && !double.IsNaN(v.Z) && !double.IsInfinity(v.Z);
+
+        /// <summary>Validate the existing reciprocal tree before a transactional graph change.</summary>
+        public static bool TryConnectedMembers(IDockableShip member, out List<IDockableShip> members, out string reason)
+        {
+            members = new List<IDockableShip>(); reason = "ok";
+            if (member == null) { reason = "missing_member"; return false; }
+            var ancestry = new HashSet<IDockableShip>();
+            var root = member;
+            while (root.ParentShip != null)
+            {
+                if (!ancestry.Add(root)) { reason = "dock_cycle"; return false; }
+                var parent = root.ParentShip;
+                int references = 0;
+                foreach (var child in parent.DockedShips) if (ReferenceEquals(child, root)) references++;
+                if (references != 1) { reason = "inconsistent_dock_parent"; return false; }
+                root = parent;
+            }
+            var seen = new HashSet<IDockableShip>();
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            var pending = new Stack<IDockableShip>(); pending.Push(root);
+            while (pending.Count > 0)
+            {
+                var ship = pending.Pop();
+                if (ship == null || !seen.Add(ship)) { reason = "duplicate_or_cyclic_member"; return false; }
+                if (ship is ShipInstance instance && (string.IsNullOrEmpty(instance.ShipId) || !ids.Add(instance.ShipId)))
+                { reason = "invalid_ship_identity"; return false; }
+                members.Add(ship);
+                foreach (var child in ship.DockedShips)
+                {
+                    if (child == null || !ReferenceEquals(child.ParentShip, ship))
+                    { reason = "inconsistent_dock_child"; return false; }
+                    pending.Push(child);
+                }
+            }
+            return true;
+        }
+
+        static bool SiteOccupied(IDockableShip ship, string site, IDockableShip replacingMobile)
+        {
+            // Unnamed legacy math-only endpoints have no site-ownership contract.
+            if (site.Length == 0) return false;
+            if (!ReferenceEquals(ship, replacingMobile) && ship.ParentShip != null
+                && ship.DockingPorts.Count > 0 && ship.DockingPorts[0] is GdDict own
+                && own.GetDictOrEmpty("mobile_local_port").GetString("site_id") == site)
+                return true;
+            foreach (var child in ship.DockedShips)
+                if (!ReferenceEquals(child, replacingMobile) && child.DockingPorts.Count > 0
+                    && child.DockingPorts[0] is GdDict edge
+                    && edge.GetDictOrEmpty("host_local_port").GetString("site_id") == site)
+                    return true;
+            return false;
+        }
+
+        public static GdDict CanDock(IDockableShip hostInst, IDockableShip mobileInst, GdDict hostPort, GdDict mobilePort)
         {
             // Reject null insts and self-docking (a ship docking to itself would create a self-referential
             // parent_ship/docked_ships cycle).
@@ -91,10 +149,28 @@ namespace SynapticSea.Core.Systems
                 return Result(false, "dock_failed");
             if (!PortValid(hostPort) || !PortValid(mobilePort))
                 return Result(false, "dock_failed");
+            // Reject before severing a previous berth or changing any transform.
+            if (!TryConnectedMembers(hostInst, out _, out string hostFailure)) return Result(false, hostFailure);
+            if (!TryConnectedMembers(mobileInst, out _, out string mobileFailure)) return Result(false, mobileFailure);
+            for (var ancestor = hostInst; ancestor != null; ancestor = ancestor.ParentShip)
+                if (ReferenceEquals(ancestor, mobileInst)) return Result(false, "dock_cycle");
+            // A site can be the host OR mobile end of an existing edge. A wreck carrying
+            // its shuttle must use another boundary when joining a home assembly.
+            if (SiteOccupied(hostInst, hostPort.GetString("site_id"), mobileInst)
+                || SiteOccupied(mobileInst, mobilePort.GetString("site_id"), mobileInst))
+                return Result(false, "connection_site_occupied");
             // GDScript also checked `"scene_root" in mobile_inst`; the interface always has the member.
             IShipSceneRoot root = mobileInst.SceneRoot;
             if (root == null || !root.IsValid)
                 return Result(false, "dock_failed");
+            return Result(true, "ok");
+        }
+
+        public static GdDict Dock(IDockableShip hostInst, IDockableShip mobileInst, GdDict hostPort, GdDict mobilePort)
+        {
+            var validation = CanDock(hostInst, mobileInst, hostPort, mobilePort);
+            if (!validation.GetBool("success")) return validation;
+            IShipSceneRoot root = mobileInst.SceneRoot;
             // Sever any existing dock relationship first so the previous host's docked_ships list does not retain
             // a stale reference to this mobile ship.
             if (mobileInst.ParentShip != null)
@@ -105,7 +181,19 @@ namespace SynapticSea.Core.Systems
             mobileInst.ParentShip = hostInst;
             if (!hostInst.DockedShips.Contains(mobileInst))
                 hostInst.DockedShips.Add(mobileInst);
-            mobileInst.DockingPorts = GdArray.Of(new GdDict { { "host_port", hostPort }, { "mobile_port", mobilePort } });
+            var connection = new GdDict { { "host_port", hostPort.DeepCopy() }, { "mobile_port", mobilePort.DeepCopy() } };
+            if (hostInst.SceneRoot != null && hostInst.SceneRoot.IsValid && hostInst.SceneRoot.IsInsideTree)
+            {
+                Xform3 inv = SessionMath.AffineInverse(hostInst.SceneRoot.GlobalTransform);
+                var local = hostPort.DeepCopy();
+                local["position"] = inv * (Vec3)hostPort["position"];
+                local["facing"] = (inv.Basis * (Vec3)hostPort["facing"]).Normalized();
+                connection["connection_version"] = 1L;
+                connection["host_local_port"] = PackPort(local);
+                connection["mobile_local_port"] = PackPort(mobilePort);
+                connection["connection_kind"] = "moored";
+            }
+            mobileInst.DockingPorts = GdArray.Of(connection);
             return Result(true, "ok");
         }
 
@@ -123,15 +211,58 @@ namespace SynapticSea.Core.Systems
                 return new GdDict();
             // RUNTIME: reads Node3D.global_transform through IShipSceneRoot.
             Xform3 x = root.GlobalTransform;
-            return new GdDict
-            {
-                { "position", x * PortVec(localPort, "position", Vec3.Zero) },
-                { "facing", (x.Basis * PortVec(localPort, "facing", Vec3.Forward)).Normalized() },
-                { "type", V.Str(localPort.Get("type", "airlock")) },
-                { "size_class", V.I64(localPort.Get("size_class", 1L)) },
-                { "condition", V.Str(localPort.Get("condition", "intact")) },
-            };
+            var world = localPort.DeepCopy();
+            world["position"] = x * PortVec(localPort, "position", Vec3.Zero);
+            world["facing"] = (x.Basis * PortVec(localPort, "facing", Vec3.Forward)).Normalized();
+            world["type"] = localPort.Get("type", "airlock");
+            world["size_class"] = localPort.Get("size_class", 1L);
+            world["condition"] = localPort.Get("condition", "intact");
+            return world;
         }
+
+        /// <summary>JSON-safe, ship-local endpoint contract. Never serialize world-space endpoints as local.</summary>
+        public static GdDict PackPort(GdDict port)
+        {
+            if (!PortValid(port)) return new GdDict();
+            var packed = port.DeepCopy();
+            packed["position"] = ((Vec3)port["position"]).ToArray();
+            packed["facing"] = ((Vec3)port["facing"]).ToArray();
+            packed["type"] = port.Get("type", "airlock");
+            packed["size_class"] = port.Get("size_class", 1L);
+            if (packed.GetString("site_id").Length == 0)
+            {
+                Vec3 position = (Vec3)port["position"], facing = (Vec3)port["facing"];
+                packed["site_id"] = string.Format(CultureInfo.InvariantCulture,
+                    "endpoint-v1:{0}:{1}:{2}:{3}:{4}:{5}",
+                    Math.Round(position.X * 1000), Math.Round(position.Y * 1000), Math.Round(position.Z * 1000),
+                    Math.Round(facing.X * 1000), Math.Round(facing.Y * 1000), Math.Round(facing.Z * 1000));
+            }
+            return packed;
+        }
+
+        public static GdDict UnpackPort(GdDict packed)
+        {
+            if (packed == null || packed.GetArrayOrEmpty("position").Count != 3
+                || packed.GetArrayOrEmpty("facing").Count != 3) return new GdDict();
+            var port = packed.DeepCopy();
+            port["position"] = Vec3.FromArray(packed["position"], Vec3.Inf);
+            port["facing"] = Vec3.FromArray(packed["facing"], Vec3.Zero);
+            return PortValid(port) ? port : new GdDict();
+        }
+
+        public static GdDict RestoreConnection(IDockableShip host, IDockableShip mobile, GdDict contract)
+        {
+            if (contract == null || contract.GetInt("connection_version") != 1) return Result(false, "unsupported_connection_contract");
+            var localHost = UnpackPort(contract.GetDictOrEmpty("host_local_port"));
+            var localMobile = UnpackPort(contract.GetDictOrEmpty("mobile_local_port"));
+            if (!PortsCompatibleForRestore(localHost, localMobile)) return Result(false, "invalid_connection_endpoints");
+            var result = Dock(host, mobile, HostPortToWorld(host, localHost), localMobile);
+            if (result.GetBool("success") && mobile.DockingPorts.Count > 0)
+                ((GdDict)mobile.DockingPorts[0])["connection_kind"] = contract.GetString("connection_kind", "moored");
+            return result;
+        }
+
+        static bool PortsCompatibleForRestore(GdDict a, GdDict b) => PortValid(a) && PortValid(b) && DockPorts.PortsCompatible(a, b);
 
         public static GdDict Undock(IDockableShip mobileInst)
         {

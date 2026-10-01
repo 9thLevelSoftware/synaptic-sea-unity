@@ -181,6 +181,38 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
+        public void OccupiedHomeBerthRejectsReturnWithoutClearingActiveShip()
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session;
+            var wreck = ShipInstance.Create("reclaimed", "1:1:1", null, null,
+                new SynapticSea.Tests.Systems.FakeRoot());
+            wreck.BuiltLayout = s.HomeShip.BuiltLayout.DeepCopy();
+            s.CurrentShip = wreck; s.PilotedShip = wreck; s.AwayFromStart = true;
+            var homeRoot = s.HomeShip.SceneRoot; var player = rig.Scene.PlayerPosition;
+            Assert.IsFalse(s.TravelHome(), "the shuttle already occupies this home endpoint");
+            Assert.AreSame(wreck, s.CurrentShip); Assert.IsTrue(s.AwayFromStart);
+            Assert.AreSame(homeRoot, s.HomeShip.SceneRoot); Assert.AreEqual(player, rig.Scene.PlayerPosition);
+            Assert.IsNull(wreck.ParentShip);
+            Assert.AreSame(s.HomeShip, s.LifeboatShip.ParentShip);
+        }
+
+        [Test]
+        public void UnsupportedConnectionRestorePreservesLiveWorldAndSave()
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session;
+            Assert.IsTrue(s.RequestSave());
+            var ws = s.SaveLoadService.LoadWorld();
+            Assert.Greater(ws.DockEdges.Count, 0);
+            ((GdDict)ws.DockEdges[0])["connection_version"] = 99L;
+            Assert.IsTrue(s.SaveLoadService.SaveWorld(ws));
+            var root = s.HomeShip.SceneRoot; var player = s.Scene.PlayerPosition;
+            Assert.IsFalse(s.RequestLoad());
+            Assert.AreSame(root, s.HomeShip.SceneRoot, "preflight must reject before freeing/rebuilding live roots");
+            Assert.AreEqual(player, s.Scene.PlayerPosition);
+            Assert.IsTrue(s.SaveLoadService.HasSave(), "incompatible save is preserved for recovery");
+        }
+
+        [Test]
         public void PartialJunctionRestorePreservesStepEligibilityWithoutReplayingCompletion()
         {
             var s = SessionHarness.CreateGolden().Session;

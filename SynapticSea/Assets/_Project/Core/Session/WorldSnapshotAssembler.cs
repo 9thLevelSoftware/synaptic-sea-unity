@@ -1,6 +1,7 @@
 // Ported from scripts/procgen/playable_generated_ship.gd @ 96ecb2b0: _build_world_snapshot (10830-10917),
 // _current_dock_edges / _opened_port_marker_ids (10923-10972), _apply_world_snapshot (11043-11161) and the docking
 // snapshot model half _apply_docking_snapshot / _redock_bayed (11168-11221).
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Systems;
@@ -92,13 +93,21 @@ namespace SynapticSea.Core.Session
                         slotIndex = slot;
                     }
                 }
-                edges.Add(new GdDict
+                var edge = new GdDict
                 {
                     { "host", parent.MarkerId },
+                    { "host_ship_id", parent.ShipId },
                     { "mobile", inst.ShipId },
                     { "port_type", portType },
                     { "slot_index", slotIndex },
-                });
+                };
+                if (portType == "airlock" && inst.DockingPorts.Count > 0 && inst.DockingPorts[0] is GdDict connection
+                    && connection.GetInt("connection_version") == 1)
+                {
+                    foreach (string field in new[] { "connection_version", "host_local_port", "mobile_local_port", "connection_kind" })
+                        edge[field] = connection.Get(field);
+                }
+                edges.Add(edge);
             }
             return edges;
         }
@@ -123,6 +132,11 @@ namespace SynapticSea.Core.Session
         {
             if (ws == null)
                 return false;
+            if (!ValidateConnectionSnapshot(s, ws, out _, out string graphFailure))
+            {
+                s.Log.Warning("World load rejected connection graph before changing live state: " + graphFailure);
+                return false;
+            }
             RunSnapshot homeSnap = RunSnapshot.FromDict(ws.HomeShip, SaveLoadService.CURRENT_SLICE_VERSION, s.Deps.Engine.VersionString);
             if (homeSnap == null)
             {
@@ -195,7 +209,9 @@ namespace SynapticSea.Core.Session
                 if (!(edgeV is GdDict edge))
                     continue;
                 s.EnsureDerelictGeometryInternal(s.FindShipByIdInternal(V.Str(edge.Get("mobile", ""))));
-                s.EnsureDerelictGeometryInternal(s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", ""))));
+                s.EnsureDerelictGeometryInternal(edge.Has("host_ship_id")
+                    ? s.FindShipByIdInternal(edge.GetString("host_ship_id"))
+                    : s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", ""))));
             }
             ApplyDockingSnapshot(s, ws);
             return true;
@@ -289,26 +305,90 @@ namespace SynapticSea.Core.Session
             }
         }
 
+        public static bool ValidateConnectionSnapshot(RunSession s, WorldSnapshot ws, out GdArray ordered, out string reason)
+        {
+            ordered = new GdArray(); reason = "ok";
+            var ids = new HashSet<string>(StringComparer.Ordinal) { s.HomeShip?.ShipId ?? "ship_start", s.LifeboatShip?.ShipId ?? "lifeboat" };
+            var markers = new Dictionary<string, string>(StringComparer.Ordinal) { { "", s.HomeShip?.ShipId ?? "ship_start" } };
+            foreach (object marker in ws.VisitedShips.Keys)
+            {
+                if (!(ws.VisitedShips[marker] is GdDict ship)) continue;
+                string id = ship.GetString("ship_id");
+                if (id.Length == 0 || !ids.Add(id)) { reason = "duplicate_or_missing_ship_identity"; return false; }
+                markers[V.Str(marker)] = id;
+            }
+            var parentOf = new Dictionary<string, string>(StringComparer.Ordinal);
+            var pending = new Dictionary<string, GdDict>(StringComparer.Ordinal);
+            var occupied = new HashSet<string>(StringComparer.Ordinal);
+            foreach (object value in ws.DockEdges)
+            {
+                if (!(value is GdDict edge)) { reason = "malformed_dock_edge"; return false; }
+                string mobile = edge.GetString("mobile");
+                string host = edge.GetString("host_ship_id");
+                if (host.Length == 0) markers.TryGetValue(edge.GetString("host"), out host);
+                if (string.IsNullOrEmpty(host) || !ids.Contains(host) || !ids.Contains(mobile) || host == mobile || parentOf.ContainsKey(mobile))
+                { reason = "invalid_connection_member"; return false; }
+                if (edge.Has("connection_version"))
+                {
+                    if (edge.GetInt("connection_version") != 1) { reason = "unsupported_connection_contract"; return false; }
+                    var h = DockingManager.UnpackPort(edge.GetDictOrEmpty("host_local_port"));
+                    var m = DockingManager.UnpackPort(edge.GetDictOrEmpty("mobile_local_port"));
+                    string hsite = h.GetString("site_id"), msite = m.GetString("site_id");
+                    if (hsite.Length == 0 || msite.Length == 0 || !DockPorts.PortsCompatible(h, m))
+                    { reason = "invalid_connection_endpoints"; return false; }
+                    if (!occupied.Add(host + ":" + hsite) || !occupied.Add(mobile + ":" + msite))
+                    { reason = "connection_site_occupied"; return false; }
+                    string kind = edge.GetString("connection_kind", "moored");
+                    if (kind != "moored" && kind != "secured") { reason = "invalid_connection_kind"; return false; }
+                }
+                parentOf[mobile] = host; pending[mobile] = edge;
+            }
+            // Restore host transforms before descendants, independent of JSON/registry ordering.
+            var ready = new HashSet<string>(ids, StringComparer.Ordinal);
+            foreach (string mobile in pending.Keys) ready.Remove(mobile);
+            while (pending.Count > 0)
+            {
+                string next = null;
+                foreach (string mobile in pending.Keys)
+                    if (ready.Contains(parentOf[mobile]) && (next == null || string.CompareOrdinal(mobile, next) < 0)) next = mobile;
+                if (next == null) { reason = "dock_cycle"; return false; }
+                ordered.Add(pending[next]); ready.Add(next); pending.Remove(next);
+            }
+            return true;
+        }
+
         /// <summary>Restores the piloted pointer, dock-edge set, and occupancy (every saved docking field is read here).</summary>
         public static void ApplyDockingSnapshot(RunSession s, WorldSnapshot ws)
         {
+            if (!ValidateConnectionSnapshot(s, ws, out GdArray restoreEdges, out string failure))
+            { s.Log.Warning("Rejected docking restore: " + failure); return; }
             if (ws.PilotedShipId != "")
             {
                 ShipInstance p = s.FindShipByIdInternal(ws.PilotedShipId);
                 if (p != null)
                     s.PilotedShip = p;
             }
-            foreach (object edgeV in ws.DockEdges)
+            foreach (object edgeV in restoreEdges)
             {
                 if (!(edgeV is GdDict edge))
                     continue;
                 ShipInstance mobile = s.FindShipByIdInternal(V.Str(edge.Get("mobile", "")));
-                ShipInstance host = s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", "")));
+                ShipInstance host = edge.Has("host_ship_id")
+                    ? s.FindShipByIdInternal(edge.GetString("host_ship_id"))
+                    : s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", "")));
                 if (mobile == null || host == null)
                     continue;
                 if (V.Str(edge.Get("port_type", "airlock")) == "hangar")
                 {
                     s.RedockBayedInternal(mobile, host, V.I64(edge.Get("slot_index", -1L)));
+                }
+                else if (edge.Has("connection_version"))
+                {
+                    string hostId = edge.GetString("host_ship_id");
+                    if (hostId.Length == 0 || host.ShipId != hostId)
+                    { s.Log.Warning("World load rejected inconsistent connection host identity"); continue; }
+                    GdDict restored = DockingManager.RestoreConnection(host, mobile, edge);
+                    if (!restored.GetBool("success")) s.Log.Warning("World load rejected connection: " + restored.GetString("reason"));
                 }
                 else if (mobile.ParentShip != host)
                 {

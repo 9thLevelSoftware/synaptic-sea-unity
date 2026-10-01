@@ -161,7 +161,26 @@ namespace SynapticSea.Tests.Session
             Assert.IsEmpty(d, where + " " + key + ":\n" + TreeDiff.Format(d));
         }
 
-        static GdDict GodotView(GdDict tree) => SynapticSea.Tests.Parity.SavePortSchema.GodotView(tree);
+        static GdDict GodotView(GdDict tree)
+        {
+            var view = SynapticSea.Tests.Parity.SavePortSchema.GodotView(tree);
+            // Assert the exact new Unity contract, then compare every legacy Godot field unchanged.
+            foreach (object value in view.GetArrayOrEmpty("dock_edges"))
+            {
+                var edge = (GdDict)value;
+                if (!edge.Has("connection_version")) continue;
+                Assert.AreEqual(1L, edge.GetInt("connection_version"));
+                Assert.AreEqual("ship_start", edge.GetString("host_ship_id"));
+                Assert.AreEqual("moored", edge.GetString("connection_kind"));
+                GdDict Port(double x, double z, double facing) => new GdDict {
+                    { "position", GdArray.Of(x, 0.0, z) }, { "facing", GdArray.Of(facing, 0.0, 0.0) },
+                    { "type", "airlock" }, { "size_class", 1L }, { "condition", "intact" }, { "site_id", "canonical-airlock" } };
+                Assert.IsEmpty(TreeDiff.Compare(Port(2.0, 2.0, 1.0), edge.Get("host_local_port"), Strict()), "exact golden home endpoint");
+                Assert.IsEmpty(TreeDiff.Compare(Port(-2.0, 0.0, -1.0), edge.Get("mobile_local_port"), Strict()), "exact golden shuttle endpoint");
+                foreach (string key in new[] { "connection_version", "host_ship_id", "connection_kind", "host_local_port", "mobile_local_port" }) edge.Erase(key);
+            }
+            return view;
+        }
 
         static string RoundTripPath(string rel) => RoundTripRoot + rel.Substring(Root.Length);
 

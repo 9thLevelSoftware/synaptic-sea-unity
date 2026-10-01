@@ -35,6 +35,7 @@ namespace SynapticSea.Core.Systems
                 { "position", center + new Vec3(-HALF_CELL, 0.0, 0.0) },
                 { "facing", new Vec3(-1.0, 0.0, 0.0) },
                 { "type", "airlock" },
+                { "site_id", "canonical-airlock" },
                 { "size_class", AIRLOCK_SIZE_CLASS },
                 { "condition", "intact" },
             };
@@ -50,7 +51,7 @@ namespace SynapticSea.Core.Systems
                 if(double.IsNaN(position.X)||double.IsInfinity(position.X)||double.IsNaN(position.Y)||double.IsInfinity(position.Y)
                     ||double.IsNaN(position.Z)||double.IsInfinity(position.Z)||facing.Y!=0
                     || !((System.Math.Abs(facing.X)==1 && facing.Z==0) || (facing.X==0 && System.Math.Abs(facing.Z)==1))) return new GdDict();
-                return new GdDict {{"position",position},{"facing",facing},{"type","airlock"},{"size_class",AIRLOCK_SIZE_CLASS},
+                return new GdDict {{"position",position},{"facing",facing},{"type","airlock"},{"site_id","canonical-airlock"},{"size_class",AIRLOCK_SIZE_CLASS},
                     {"condition",ConditionFromSeed(seedValue,conditionClass)}};
             }
             Vec3 center = RoomFloorCenter(layout, "dock", "dock");
@@ -65,6 +66,7 @@ namespace SynapticSea.Core.Systems
                 { "position", center },
                 { "facing", new Vec3(1.0, 0.0, 0.0) },
                 { "type", "airlock" },
+                { "site_id", "canonical-airlock" },
                 { "size_class", AIRLOCK_SIZE_CLASS },
                 { "condition", ConditionFromSeed(seedValue, conditionClass) },
             };

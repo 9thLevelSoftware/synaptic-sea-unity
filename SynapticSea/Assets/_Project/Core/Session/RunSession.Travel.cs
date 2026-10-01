@@ -184,14 +184,23 @@ namespace SynapticSea.Core.Session
             {
                 GdDict targetLocal = DockPorts.ForDerelict(newRoot.GetLayoutCopy(), marker.SeedValue, marker.Condition);
                 GdDict lbLocal = PilotedPortLocal();
-                if (!DockPorts.PortsCompatible(targetLocal, lbLocal))
+                string dockFailure = "";
+                if (!DockPorts.PortsCompatible(targetLocal, lbLocal)) dockFailure = "dock_incompatible";
+                else
+                {
+                    ShipInstance target = VisitedShips.ContainsKey(marker.MarkerId) ? VisitedShips[marker.MarkerId]
+                        : ShipInstance.Create("ship_" + marker.MarkerId, marker.MarkerId, null, null, newRoot);
+                    var preflight = DockingManager.CanDock(target, PilotedShip, targetLocal, lbLocal);
+                    if (!preflight.GetBool("success")) dockFailure = preflight.GetString("reason");
+                }
+                if (dockFailure.Length > 0)
                 {
                     ShipHost?.FreeShipRoot(newRoot);
                     SynapticSeaWorld.SetPlayerPosition(prevPlayerPos);
                     if (!wasGenerated)
                         SynapticSeaWorld.UnmarkGenerated(marker.MarkerId);
                     EmitTravelDeniedSfx();
-                    return new GdDict { { "success", false }, { "reason", "dock_incompatible" } };
+                    return new GdDict { { "success", false }, { "reason", dockFailure } };
                 }
             }
             SyncCurrentShipCombatSummary();
@@ -240,6 +249,21 @@ namespace SynapticSea.Core.Session
         {
             if (!AwayFromStart || HomeShip == null)
                 return false;
+            // Reject an impossible berth before clearing active state or detaching the departing subtree.
+            if (PilotedShip != null)
+            {
+                var hostPort = DockingManager.HostPortToWorld(HomeShip,
+                    DockPorts.ForDerelict(HomeShip.BuiltLayout, ShipSeed(HomeShip), 0));
+                var mobilePort = PilotedPortLocal();
+                var preflight = DockPorts.PortsCompatible(hostPort, mobilePort)
+                    ? DockingManager.CanDock(HomeShip, PilotedShip, hostPort, mobilePort)
+                    : new GdDict { { "success", false }, { "reason", "dock_incompatible" } };
+                if (!preflight.GetBool("success"))
+                {
+                    EmitTravelDeniedSfx(); Log.Warning("Travel home denied before transition: " + preflight.GetString("reason"));
+                    return false;
+                }
+            }
             double playerOxygenBeforeTransition = OxygenState != null ? V.F64(OxygenState.GetSummary().Get("oxygen", -1.0)) : -1.0;
             SyncCurrentShipCombatSummary();
             SyncCurrentShipArcSummary();
