@@ -141,9 +141,10 @@ namespace SynapticSea.Core.Session
                 return new GdDict { { "success", false }, { "reason", "not_aboard_ship" } };
             }
             // A revisit regenerates the saved profile, never upgrades an existing legacy wreck in place.
+            ShipGenerator.ExpeditionProfile = VisitedShips.ContainsKey(marker.MarkerId)
+                ? VisitedShips[marker.MarkerId].Blueprint.GenerationProfile : PurposefulExpedition.Profile;
             ShipGenerator.RichExpeditions = VisitedShips.ContainsKey(marker.MarkerId)
-                ? VisitedShips[marker.MarkerId].Blueprint.GenerationProfile == ExpeditionLayoutEngine.Profile
-                : VisitedShips.Count > 0;
+                ? ShipGenerator.ExpeditionProfile.Length != 0 : VisitedShips.Count > 0;
             GdDict firstRunResult = ApplyFirstRunContractToMarker(marker);
             if (firstRunResult.GetBool("applicable") && !firstRunResult.GetBool("success"))
             {

@@ -18,33 +18,37 @@ namespace SynapticSea.Runtime.Session
         Matrix4x4 _hostPose, _mobilePose;
         public int SuppressedColliderCount => _suppressedColliders.Count;
 
-        public void NormalizeInteractions(IEnumerable<SessionInteractable> items)
+        public void NormalizeInteractions(IEnumerable<SessionInteractable> items, Vector3? reachableFrom = null)
         {
             if (_mobile == null || !_mobile.IsValid) return;
             foreach (var item in items)
             {
-                if (!item.IsValid || !ReferenceEquals(item.Parent, _mobile) || _interactionOrigins.ContainsKey(item)) continue;
+                if (!item.IsValid || !ReferenceEquals(item.Parent, _mobile)) continue;
                 if (!(item is RepairPoint || item is FireSuppressionPoint || item is BreachSealPoint || item is BridgeTerminal)) continue;
                 Vector3 point = Frame.ToUnity(item.GlobalPosition);
                 if (_nextInteractionAttempt.TryGetValue(item, out float next) && Time.unscaledTime < next) continue;
                 _nextInteractionAttempt[item] = Time.unscaledTime + 0.5f;
-                if (StandingAndConnected(point)) { _interactionOrigins[item] = item.LocalPosition; continue; }
+                // Portal carving settles after the composite is built and can invalidate an initially
+                // accepted anchor. Recheck periodically rather than cache that first navigation result.
+                if (StandingAndConnected(point, reachableFrom)) continue;
                 bool OnDeck(Collider floor) => Mathf.Abs(floor.bounds.max.y - point.y) < 1f
                     && (floor.transform.IsChildOf(_host.GameObject.transform) || floor.transform.IsChildOf(_mobile.GameObject.transform));
-                if (!TryConnectedPoint(point, (float)item.InteractionRadius, OnDeck, out var clear)
+                if (!TryConnectedPoint(point, (float)item.InteractionRadius, OnDeck, reachableFrom, out var clear)
                     || Vector3.Distance(point, clear) >= item.InteractionRadius) continue;
-                _interactionOrigins[item] = item.LocalPosition;
+                if (!_interactionOrigins.ContainsKey(item)) _interactionOrigins[item] = item.LocalPosition;
                 item.LocalPosition = Frame.ToGodot(_mobile.GameObject.transform.InverseTransformPoint(clear));
             }
         }
 
-        bool StandingAndConnected(Vector3 point)
+        bool StandingAndConnected(Vector3 point, Vector3? reachableFrom)
         {
             if (!SpawnClearance.IsClear(point) || SpawnClearance.FloorUnder(point) == null) return false;
             // Unit-only roots without a loader retain the physical-clearance contract.
             if (!(_host is IShipLoaderView loader)) return true;
             var filter = new NavMeshQueryFilter { agentTypeID = ShipNavMesh.AgentTypeId, areaMask = NavMesh.AllAreas };
-            Vector3 entry = Frame.ToUnity(_host.GlobalTransform * loader.GetStartTransform().Origin);
+            // A restored player may be on the boat side of an overlapping host boundary. An anchor
+            // reachable only from the host's authored spawn is not a usable boat control for them.
+            Vector3 entry = reachableFrom ?? Frame.ToUnity(_host.GlobalTransform * loader.GetStartTransform().Origin);
             if (!NavMesh.SamplePosition(entry, out var start, 2.5f, filter)
                 || !NavMesh.SamplePosition(point, out var target, 0.75f, filter)) return false;
             if (Vector2.Distance(new Vector2(point.x, point.z), new Vector2(target.position.x, target.position.z)) > 0.2f) return false;
@@ -52,7 +56,7 @@ namespace SynapticSea.Runtime.Session
             return NavMesh.CalculatePath(start.position, target.position, filter, path) && path.status == NavMeshPathStatus.PathComplete;
         }
 
-        bool TryConnectedPoint(Vector3 original, float limit, System.Func<Collider, bool> onDeck, out Vector3 clear)
+        bool TryConnectedPoint(Vector3 original, float limit, System.Func<Collider, bool> onDeck, Vector3? reachableFrom, out Vector3 clear)
         {
             clear = original;
             for (float ring = SpawnClearance.SearchStep; ring < limit; ring += SpawnClearance.SearchStep)
@@ -65,7 +69,7 @@ namespace SynapticSea.Runtime.Session
                     Collider floor = SpawnClearance.FloorUnder(candidate);
                     if (floor == null || !onDeck(floor)) continue;
                     candidate.y = Mathf.Max(candidate.y, floor.bounds.max.y + SpawnClearance.Skin);
-                    if (Vector3.Distance(original, candidate) >= limit || !StandingAndConnected(candidate)) continue;
+                    if (Vector3.Distance(original, candidate) >= limit || !StandingAndConnected(candidate, reachableFrom)) continue;
                     clear = candidate;
                     return true;
                 }
@@ -118,15 +122,23 @@ namespace SynapticSea.Runtime.Session
             {
                 if (module.layer != "edge" || !(module.moduleId.StartsWith("wall_")
                     || (includeFrames && module.moduleId == "doorway_frame_open_1x1"))) continue;
-                // The host admits the mobile only at its airlock, not through corridor/room boundaries or locks.
-                if (!includeFrames && (module.roomIds == null || !module.roomIds.Any(id => id.StartsWith("airlock"))
-                    || module.roomIds.Length > 1)) continue;
+                // Dedicated generated docks admit the same supported overlap as the hub airlock.
+                // Interior boundaries, locks and unsupported void remain authoritative.
+                // Compiled hull edges include an empty exterior owner. That is not a second
+                // interior room; only distinct, nonempty owners identify a protected boundary.
+                var owners = module.roomIds?.Where(id => !string.IsNullOrEmpty(id)).Distinct().ToArray();
+                if (!includeFrames && (owners == null || !owners.Any(id => id.StartsWith("airlock") || id.StartsWith("dock"))
+                    || owners.Length > 1)) continue;
                 if (module.GetComponentInChildren<NavMeshBlocker>() != null) continue;
-                foreach (var collider in module.GetComponentsInChildren<BoxCollider>())
+                var activeColliders = module.GetComponentsInChildren<BoxCollider>().Where(c => c.enabled && !c.isTrigger).ToArray();
+                bool entireBoundaryCovered = activeColliders.Length > 0 && activeColliders.All(c => Covered(c.bounds, floors));
+                foreach (var collider in activeColliders)
                     if (collider.enabled && !collider.isTrigger && Covered(collider.bounds, floors))
                     { collider.enabled = false; _suppressedColliders.Add(collider); }
                 foreach (var renderer in module.GetComponentsInChildren<Renderer>())
-                    if (renderer.enabled && Covered(renderer.bounds, floors))
+                    // Upper trim bounds are not at floor height. When the entire physical boundary
+                    // yields to a supported dock overlap, hide its whole visual assembly too.
+                    if (renderer.enabled && (entireBoundaryCovered || Covered(renderer.bounds, floors)))
                     { renderer.enabled = false; _suppressedRenderers.Add(renderer); }
             }
         }

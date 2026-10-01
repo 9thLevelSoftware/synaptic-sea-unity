@@ -110,6 +110,7 @@ namespace SynapticSea.Core.Procgen
         public string BiomeId = "";
         public string DifficultyId = "";
         public bool RichExpeditions;
+        public string ExpeditionProfile = PurposefulExpedition.Profile;
 
         readonly GdDict _wrapperMapCache = new GdDict();
 
@@ -180,7 +181,7 @@ namespace SynapticSea.Core.Procgen
         {
             if (USE_WORLDGEN && DerelictSource != null) return GenerateViaWorldgen(seedValue, size, condition);
             var blueprint = new ShipBlueprint(size, condition, seedValue);
-            if (RichExpeditions && size >= 1 && size <= 2) blueprint.GenerationProfile = ExpeditionLayoutEngine.Profile;
+            if (RichExpeditions && size >= 1 && size <= 2) blueprint.GenerationProfile = ExpeditionProfile;
             return Generate(blueprint);
         }
 
@@ -413,6 +414,7 @@ namespace SynapticSea.Core.Procgen
             // Build the gameplay slice first so builder-authored hazard links land on the layout before it is written
             // (the loader reads arc_zones from layout.json).
             GdDict gameplay = new GameplaySliceBuilder().Build(layout);
+            PurposefulExpedition.Furnish(layout, gameplay);
             object layoutArcs = layout.Get("arc_zones", new GdArray());
             object sliceArcs = gameplay.Get("arc_zones", new GdArray());
             if ((!(layoutArcs is GdArray la) || la.IsEmpty) && sliceArcs is GdArray sa && !sa.IsEmpty)

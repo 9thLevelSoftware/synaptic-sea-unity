@@ -91,11 +91,15 @@ namespace SynapticSea.Core.Session
             PowerGridState.Rebalance(powerHealth, ManagerBrokenSystems());
             if (PropulsionExpandedState != null && HullIntegrityState != null)
             {
+                // The hub and mobile share onboarding systems, not hull health. A deteriorating home
+                // must not disable an intact boat; a damaged claimed/piloted hull retains its penalty.
+                var pilotedHull = PilotedShip != null && PilotedShip != HomeShip ? PilotedShip.GetHull() : HullIntegrityState;
+                var propulsionManager = PilotedShip?.SystemsManager ?? ShipSystemsManager;
                 PropulsionExpandedState.Tick(delta, new GdDict
                 {
                     { "powered_ratio", PowerGridState.GetAllocationRatio("propulsion") },
-                    { "manager_operational", ShipSystemsManager != null && ShipSystemsManager.IsOperational("propulsion") },
-                    { "hull_penalty", 1.0 - HullIntegrityState.AverageIntegrity() },
+                    { "manager_operational", propulsionManager != null && propulsionManager.IsOperational("propulsion") },
+                    { "hull_penalty", 1.0 - pilotedHull.AverageIntegrity() },
                 });
             }
             if (LifeSupportExpandedState != null && HullIntegrityState != null)

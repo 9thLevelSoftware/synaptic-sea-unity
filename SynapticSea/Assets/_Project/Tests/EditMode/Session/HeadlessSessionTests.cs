@@ -40,6 +40,31 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
+        public void DepartureUsesPilotedHullRatherThanDeterioratedHomeHull()
+        {
+            var rig=SessionHarness.CreateGolden(); var s=rig.Session; s.ForceRepairAll();
+            foreach(object id in new List<object>(s.HullIntegrityState.Compartments.Keys)) s.HullIntegrityState.DamageCompartment(V.Str(id),1.0);
+            TickSeconds(rig,10);
+            Assert.AreEqual(0,s.HullIntegrityState.AverageIntegrity(),"home deterioration is retained");
+            Assert.IsTrue(s.PropulsionExpandedState.CanPropel(),"the intact piloted boat has its own hull authority");
+            s.PilotedShip.GetHull().Configure(new GdDict {{"compartments",GdArray.Of(new GdDict {{"compartment_id","boat"},{"health",.2}})}});
+            TickSeconds(rig,10);
+            Assert.IsFalse(s.PropulsionExpandedState.CanPropel(),"an actually damaged piloted hull still gates propulsion");
+        }
+
+        [Test]
+        public void OperationalDepartureSurvivesHomeWorldSaveAndContinue()
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session;
+            s.ForceRepairAll(); TickSeconds(rig, 10);
+            Assert.IsTrue(s.PropulsionExpandedState.CanPropel(), GdJson.Stringify(s.GetShipSystemsExpandedSummary()));
+            var before = s.GetShipSystemsExpandedSummary();
+            Assert.IsTrue(s.RequestSave()); Assert.IsTrue(s.RequestLoad());
+            Assert.IsTrue(s.PropulsionExpandedState.CanPropel(), "before="+GdJson.Stringify(before)+" after="+GdJson.Stringify(s.GetShipSystemsExpandedSummary()));
+            Assert.IsTrue(s.PilotedShip.SystemsManager.IsOperational("propulsion"));
+        }
+
+        [Test]
         public void GoldenSession_BootsLikeTheGodotSlice()
         {
             var rig = SessionHarness.CreateGolden();

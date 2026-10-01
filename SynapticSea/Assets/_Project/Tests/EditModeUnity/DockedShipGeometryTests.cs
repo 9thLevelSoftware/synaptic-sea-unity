@@ -53,5 +53,28 @@ namespace SynapticSea.Tests.Unity
             }
             finally { Object.DestroyImmediate(hostGo); Object.DestroyImmediate(mobileGo); }
         }
+
+        [Test]
+        public void DedicatedDockAdmitsSupportedBoatOverlapButKeepsInternalBoundaries()
+        {
+            var hostGo=new GameObject("DockHost"); var mobileGo=new GameObject("DockBoat"); var geometry=new DockedShipGeometry();
+            try
+            {
+                Module(hostGo,"floor_1x1","floor",new Vector3(0,-.125f,0),new Vector3(4,.25f,4));
+                Module(mobileGo,"floor_1x1","floor",new Vector3(0,-.125f,0),new Vector3(4,.25f,4));
+                var admission=Module(hostGo,"wall_straight_1x1","edge",new Vector3(0,1.5f,0),new Vector3(4,3,.2f));
+                admission.GetComponent<StructuralModule>().roomIds=new[]{"dock_01", ""};
+                var trim=GameObject.CreatePrimitive(PrimitiveType.Cube);
+                trim.transform.SetParent(admission.transform,false); trim.transform.localPosition=new Vector3(0,1.35f,0);
+                trim.transform.localScale=new Vector3(4,.1f,.2f); Object.DestroyImmediate(trim.GetComponent<Collider>());
+                var trimRenderer=trim.GetComponent<Renderer>();
+                var internalWall=Module(hostGo,"wall_straight_1x1","edge",new Vector3(0,1.5f,1),new Vector3(4,3,.2f));
+                internalWall.GetComponent<StructuralModule>().roomIds=new[]{"dock_01","corridor_01"};
+                geometry.Reconcile(new SceneShipRoot(hostGo),new SceneShipRoot(mobileGo));
+                Assert.IsFalse(admission.enabled); Assert.IsFalse(trimRenderer.enabled,"a removed dock boundary cannot leave floating upper trim"); Assert.IsTrue(internalWall.enabled);
+                geometry.Reconcile(null,null); Assert.IsTrue(admission.enabled); Assert.IsTrue(trimRenderer.enabled,"undocking restores the complete assembly");
+            }
+            finally {Object.DestroyImmediate(hostGo);Object.DestroyImmediate(mobileGo);}
+        }
     }
 }

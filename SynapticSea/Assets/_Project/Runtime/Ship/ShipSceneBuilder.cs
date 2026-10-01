@@ -176,6 +176,7 @@ namespace SynapticSea.Runtime
                 AddPlacedProps(model, structuralRoot);
                 AddAuthoredPortals(model, structural, structuralRoot);
                 AddDressingVisuals(model, structuralRoot);
+                AddPurposefulInteriors(layout, structuralRoot);
 
                 // Publish.
                 structuralRoot.SetParent(View.transform, false);
@@ -444,6 +445,43 @@ namespace SynapticSea.Runtime
         // ------------------------------------------------------------------ dressing (PKG-B5.1)
 
         static readonly Color PipeColor = new Color(0.45f, 0.48f, 0.42f);
+
+        static void AddPurposefulInteriors(GdDict layout, Transform parent)
+        {
+            var items = layout.GetArrayOrEmpty("purposeful_interiors"); if (items.IsEmpty) return;
+            var bindings = new SynapticSea.Core.Systems.PropVisualBindingCatalog();
+            if (!bindings.LoadFromPath()) { Debug.LogWarning("Purposeful interiors: prop bindings unavailable"); return; }
+            var root = new GameObject("PurposefulInteriors"); root.transform.SetParent(parent, false);
+            foreach (GdDict item in items)
+            {
+                GameObject visual;
+                string asset = item.GetString("asset_id");
+                if (asset == "sleep_berth" || asset == "exam_cot")
+                {
+                    visual = new GameObject("SleepBerth") { layer = PhysicsLayers.Prop };
+                    RuntimeVisualCatalog.AddMesh(visual.transform, "Frame", RuntimeVisualCatalog.Cube, RuntimeVisualCatalog.Material(new Color(.22f,.25f,.27f)),
+                        new Vector3(0,.15f,0), Quaternion.identity, new Vector3(.9f,.3f,1.9f), PhysicsLayers.Prop);
+                    RuntimeVisualCatalog.AddMesh(visual.transform, "Mattress", RuntimeVisualCatalog.Cube, RuntimeVisualCatalog.Material(asset == "exam_cot" ? new Color(.8f,.85f,.83f) : new Color(.5f,.57f,.58f)),
+                        new Vector3(0,.375f,0), Quaternion.identity, new Vector3(.8f,.15f,1.75f), PhysicsLayers.Prop);
+                    RuntimeVisualCatalog.AddMesh(visual.transform, "Pillow", RuntimeVisualCatalog.Cube, RuntimeVisualCatalog.Material(new Color(.75f,.76f,.69f)),
+                        new Vector3(0,.49f,.57f), Quaternion.identity, new Vector3(.55f,.1f,.35f), PhysicsLayers.Prop);
+                }
+                else visual = RuntimePropVisualBinder.CreateDressingVisual(bindings.GetDressingBinding(asset));
+                if (visual == null) { Debug.LogWarning("Purposeful interior visual unavailable: " + asset); continue; }
+                if (asset == "cargo_pallet")
+                    for (int level = 0; level < 2; level++)
+                    {
+                        var crate = RuntimePropVisualBinder.CreateDressingVisual(bindings.GetDressingBinding("generic_crate"));
+                        if (crate == null) break; crate.transform.SetParent(visual.transform, false); crate.transform.localPosition = new Vector3(0,.3f + level*.42f,0);
+                    }
+                visual.name = item.GetString("id"); visual.transform.SetParent(root.transform, false);
+                var cell = item.GetArrayOrEmpty("cell");
+                visual.transform.localPosition = Frame.ToUnity(new Vec3(V.F64(cell[0])*4 + V.F64(item["offset_x"]), item.GetInt("deck")*4 + GeneratedShipLayout.FLOOR_Y_OFFSET,
+                    V.F64(cell[1])*4 + V.F64(item["offset_z"])));
+                visual.transform.localRotation = Frame.Rotation(new Vec3(0,item.GetInt("yaw"),0));
+                var marker = visual.AddComponent<DressingVisual>(); marker.roomId = item.GetString("room_id"); marker.role = "purposeful"; marker.dressingKind = asset;
+            }
+        }
         static readonly Color GrowthColor = new Color(0.42f, 0.16f, 0.22f);
         static readonly Color CrateColor = new Color(0.55f, 0.42f, 0.28f);
 
@@ -456,6 +494,13 @@ namespace SynapticSea.Runtime
             View.DressingRoot = dressingRoot;
             foreach (var item in model.BuildDressingPlan())
             {
+                if (item.Kind == GeneratedShipLayout.DressingKind.Prop && model.LayoutDoc.GetString("generation_profile") == PurposefulExpedition.Profile)
+                {
+                    bool furnished = false;
+                    foreach (GdDict interior in model.LayoutDoc.GetArrayOrEmpty("purposeful_interiors"))
+                        if (interior.GetString("room_id") == item.RoomId) { furnished = true; break; }
+                    if (furnished) continue; // Replace generic role-less wall clutter; retain room lights and fog.
+                }
                 GameObject go;
                 switch (item.Kind)
                 {

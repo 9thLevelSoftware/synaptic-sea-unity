@@ -239,7 +239,7 @@ namespace SynapticSea.Runtime.Session
             _dockedGeometry.Reconcile(mobile?.ParentShip?.SceneRoot as SceneShipRoot, mobile?.SceneRoot as SceneShipRoot);
             Reconcile();
             ApplyActiveShipIfChanged(force: false);
-            _dockedGeometry.NormalizeInteractions(_liveInteractables);
+            _dockedGeometry.NormalizeInteractions(_liveInteractables, SceneState?.Player != null ? SceneState.Player.transform.position : (Vector3?)null);
             foreach (InteractableView v in _interactables.Values) v.Sync();
             foreach (ZoneView z in _zones.Values) z.Sync();
             Threats.Bind(Session.ThreatManager);

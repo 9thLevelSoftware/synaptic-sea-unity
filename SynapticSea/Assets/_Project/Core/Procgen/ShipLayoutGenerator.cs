@@ -86,7 +86,7 @@ namespace SynapticSea.Core.Procgen
         GdDict GenerateOnce(ShipBlueprint blueprint, GdDict archetype, string biomeId, string difficultyId, bool extendedTemplates)
         {
             // Stage 1: select topology template.
-            bool expedition = blueprint.GenerationProfile == ExpeditionLayoutEngine.Profile;
+            bool expedition = PurposefulExpedition.Supported(blueprint.GenerationProfile);
             if (blueprint.GenerationProfile.Length != 0 && !expedition)
             { CoreServices.Log.Error("Unsupported generation profile: " + blueprint.GenerationProfile); return new GdDict(); }
             TopologyTemplate template = expedition ? new TopologyTemplate { Id = ExpeditionLayoutEngine.Profile } : extendedTemplates
@@ -111,7 +111,8 @@ namespace SynapticSea.Core.Procgen
             }
 
             // Stage 3: place rooms on 2D grid.
-            GdDict cellGrid = expedition ? ExpeditionLayoutEngine.Layout(blueprint, out roomPlan) : CellLayoutEngineStage.Layout(roomPlan, template, blueprint.SeedValue);
+            GdDict cellGrid = blueprint.GenerationProfile == PurposefulExpedition.Profile ? PurposefulExpedition.Layout(blueprint, out roomPlan)
+                : expedition ? ExpeditionLayoutEngine.Layout(blueprint, out roomPlan) : CellLayoutEngineStage.Layout(roomPlan, template, blueprint.SeedValue);
             if (expedition && VariantSelector != null)
                 for (int i = 0; i < roomPlan.Count; i++) roomPlan[i]["variant"] = VariantSelector.Pick(roomPlan[i].GetString("role"), i, blueprint.SeedValue, biomeId);
             if (cellGrid.GetDictOrEmpty("rooms").IsEmpty)
@@ -147,7 +148,10 @@ namespace SynapticSea.Core.Procgen
 
             // Stamp template_id / biome / difficulty / kit_id / hazard authority on the layout.
             layout["template_id"] = template.Id;
-            if (expedition) { layout["template_id"] = ExpeditionLayoutEngine.Profile; layout["generation_profile"] = ExpeditionLayoutEngine.Profile; }
+            if (expedition) { layout["template_id"] = blueprint.GenerationProfile; layout["generation_profile"] = blueprint.GenerationProfile; }
+            if (blueprint.GenerationProfile == PurposefulExpedition.Profile)
+                layout["topology_family"] = PurposefulExpedition.CrossHull(blueprint.SeedValue) ? "cargo_exchange" : "service_loop";
+            PurposefulExpedition.StampDockContract(layout);
             if (biomeId.Length != 0) layout["biome_id"] = biomeId;
             if (template.Id == "hive") layout["kit_id"] = "ship_structural_biomatter";
             else if (biomeId.Length != 0) layout["kit_id"] = KitIdForBiome(biomeId);

@@ -35,10 +35,12 @@ namespace SynapticSea.Tests.PlayMode
         PlayableBootstrap _boot;
         RunSession _s;
         float _previousTimeScale;
+        bool _defendWhileExploring;
 
         [SetUp]
         public void SetUp()
         {
+            _defendWhileExploring = false;
             _previousStorage = CoreServices.UserStorage;
             _previousTimeScale = Time.timeScale;
             _previousResources = CoreServices.Resources;
@@ -339,8 +341,10 @@ namespace SynapticSea.Tests.PlayMode
                         Vector3 candidate = portal.transform.position + offset * 1.3f;
                         candidate.y = player.transform.position.y;
                         if (!NavMesh.SamplePosition(candidate, out var sample, 0.6f, filter)) continue;
+                        if (!SpawnClearance.IsClear(sample.position)) continue;
                         var candidatePath = new NavMeshPath();
-                        if (!NavMesh.CalculatePath(player.transform.position, sample.position, filter, candidatePath) || candidatePath.status != NavMeshPathStatus.PathComplete) continue;
+                        if (!NavMesh.CalculatePath(player.transform.position, sample.position, filter, candidatePath) || candidatePath.status != NavMeshPathStatus.PathComplete
+                            || CrossesClosedPortal(candidatePath)) continue;
                         chosen = portal;
                         approach = candidatePath;
                         break;
@@ -385,10 +389,21 @@ namespace SynapticSea.Tests.PlayMode
                     if (!deckCue && Physics.Linecast(sample.position + Vector3.up, at + Vector3.up,
                         SpawnClearance.BlockingMask, QueryTriggerInteraction.Ignore)) continue;
                     var candidate = new NavMeshPath();
-                    if (!NavMesh.CalculatePath(from, sample.position, filter, candidate) || candidate.status != NavMeshPathStatus.PathComplete) continue;
+                    if (!NavMesh.CalculatePath(from, sample.position, filter, candidate) || candidate.status != NavMeshPathStatus.PathComplete
+                        || CrossesClosedPortal(candidate)) continue;
                     path = candidate;
                     return true;
                 }
+            return false;
+        }
+
+        static bool CrossesClosedPortal(NavMeshPath path)
+        {
+            // A restored door's physical blocker can precede its asynchronous navigation carve.
+            // Do not treat that transient stale path as permission to walk through the door.
+            for(int i=1;i<path.corners.Length;i++)
+                if(Physics.Linecast(path.corners[i-1]+Vector3.up*.8f,path.corners[i]+Vector3.up*.8f,
+                    1<<PhysicsLayers.Portal,QueryTriggerInteraction.Ignore)) return true;
             return false;
         }
 
@@ -402,20 +417,35 @@ namespace SynapticSea.Tests.PlayMode
                     Vector3 waypoint = corner;
                     // The threat NavMesh has a smaller clearance margin than the player's controller skin.
                     // Keep automated steering inside physically standing space, as a player would when turning.
-                    SpawnClearance.TryFindClear(corner, floor => Mathf.Abs(floor.bounds.max.y - corner.y) < 0.5f, out waypoint);
+                    SpawnClearance.TryFindClear(corner, floor => Mathf.Abs(floor.bounds.max.y - corner.y) < 0.5f, out waypoint,
+                        radius: PlayerController.DefaultCollisionRadius + 0.05f);
                     float deadline = Time.realtimeSinceStartup + 25f;
                     // NavMesh corners sit on the baked agent margin; the CharacterController also has a skin width.
                     // Approach within the interaction radius instead of pressing the capsule into a doorway edge.
-                    float reach = corner == path.corners.Last() ? Mathf.Max(radius, 0.2f) : 0.2f;
+                    float reach = corner == path.corners.Last() ? Mathf.Max(radius, 0.2f) : 0.05f;
                     while (Vector2.Distance(new Vector2(player.transform.position.x, player.transform.position.z), new Vector2(waypoint.x, waypoint.z)) > reach)
                     {
                         Assert.Less(Time.realtimeSinceStartup, deadline, "player movement stalled at " + player.transform.position
                             + " en route to " + waypoint + "; nearby blockers: " + string.Join(", ", Physics.OverlapSphere(player.transform.position + Vector3.up * 0.8f, 1f, SpawnClearance.BlockingMask)
                                 .Select(c => c.transform.parent.name + "/" + c.name + "@" + c.bounds.center + " size " + c.bounds.size)));
                         Assert.IsFalse(_s.SliceComplete, "the player survived exploration");
+                        if (_defendWhileExploring)
+                        {
+                            var nearby = _s.ThreatManager.Threats.Where(t => t.Health > 0 && t.WorldPosition.Count >= 3)
+                                .Select(t => new Vec3(V.F64(t.WorldPosition[0]),V.F64(t.WorldPosition[1]),V.F64(t.WorldPosition[2])))
+                                .FirstOrDefault(at => at.DistanceSquaredTo(player.GodotPosition) < 2.4 * 2.4);
+                            if (nearby != Vec3.Zero)
+                            {
+                                player.FaceAttackDirection(nearby-player.GodotPosition);
+                                _boot.Host.RequestAttack(); // Ordinary reach/LOS/cooldown still decide whether this hits.
+                            }
+                        }
                         Vector3 direction = waypoint - player.transform.position;
                         direction.y = 0;
-                        player.SetScriptedMoveDirection(Frame.ToGodot(direction.normalized));
+                        // Slow the final physics step instead of oscillating across a tight corner.
+                        // CharacterController movement and collision remain authoritative.
+                        float stride = player.GetEffectiveMoveSpeed() * Time.fixedDeltaTime;
+                        player.SetScriptedMoveDirection(Frame.ToGodot(direction.normalized * Mathf.Min(1f,direction.magnitude / Mathf.Max(stride,0.001f))));
                         yield return new WaitForFixedUpdate();
                     }
                 }
@@ -424,7 +454,14 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator WalkRepairTravelBoardAndReturnWithoutFixtureResources()
+        [Timeout(360000)]
+        public IEnumerator WalkRepairTravelBoardAndReturnWithoutFixtureResources() => NaturalExpeditionJourney(false);
+
+        [UnityTest]
+        [Timeout(360000)]
+        public IEnumerator WalkRepairTravelExploreCargoFamilyAndReturnWithoutFixtureResources() => NaturalExpeditionJourney(true);
+
+        IEnumerator NaturalExpeditionJourney(bool cargoFamily)
         {
             yield return StartThroughTitle();
             _s.RefreshDeckTransitions();
@@ -577,8 +614,14 @@ namespace SynapticSea.Tests.PlayMode
             yield return WalkTo(bridge.GlobalPosition, 1.2f);
             Assert.IsTrue(_s.TravelHome());
             Assert.IsFalse(_s.SliceComplete, "hub objective extraction remains available after returning");
+            // Scanner rows expose IDs and size, not the full saved marker seed. Resolve family
+            // from the same in-range world markers, while requiring a selectable scanner row.
+            var availableMarkers = _s.SynapticSeaWorld.MarkersInRange(_s.ScannerState.RangeRadius).ToDictionary(m=>m.MarkerId);
             var nextContact = _s.Scan().GetArrayOrEmpty("markers").Cast<GdDict>()
-                .FirstOrDefault(m => m.GetInt("size_class") >= 1 && !_s.VisitedShips.ContainsKey(m.GetString("marker_id")));
+                .FirstOrDefault(m => m.GetInt("size_class") >= 1 && m.GetInt("size_class") <= 2
+                    && !_s.VisitedShips.ContainsKey(m.GetString("marker_id"))
+                    && availableMarkers.TryGetValue(m.GetString("marker_id"),out var candidate)
+                    && PurposefulExpedition.CrossHull(candidate.SeedValue) == cargoFamily);
             Assert.IsNotNull(nextContact, "normal scanner exposes a new larger wreck after one onboarding round trip");
             bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
             yield return WalkTo(bridge.GlobalPosition, 1.2f);
@@ -586,14 +629,79 @@ namespace SynapticSea.Tests.PlayMode
             var nextTravel = _s.TravelToMarkerId(nextId);
             Assert.IsTrue(nextTravel.GetBool("success"), "normal subsequent scanner travel: " + GdJson.Stringify(nextTravel));
             for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
-            Assert.AreEqual(SynapticSea.Core.Procgen.ExpeditionLayoutEngine.Profile, _s.CurrentShip.Blueprint.GenerationProfile);
-            Assert.AreEqual(SynapticSea.Core.Procgen.ExpeditionLayoutEngine.Profile, _s.CurrentShip.BuiltLayout.GetString("generation_profile"));
+            Assert.AreEqual(SynapticSea.Core.Procgen.PurposefulExpedition.Profile, _s.CurrentShip.Blueprint.GenerationProfile);
+            Assert.AreEqual(SynapticSea.Core.Procgen.PurposefulExpedition.Profile, _s.CurrentShip.BuiltLayout.GetString("generation_profile"));
             Debug.Log("[NaturalExpeditionRoute] second new destination=" + nextId + " size=" + nextContact.GetInt("size_class")
                 + " rooms=" + _s.CurrentShip.BuiltLayout.GetArrayOrEmpty("rooms").Count);
             Assert.IsTrue(_s.RequestSave());
             yield return BootPlayable(RunLaunchRequest.ContinueWorld());
-            Assert.AreEqual(SynapticSea.Core.Procgen.ExpeditionLayoutEngine.Profile, _s.CurrentShip.Blueprint.GenerationProfile, "actual Continue keeps expanded destination");
+            Assert.AreEqual(SynapticSea.Core.Procgen.PurposefulExpedition.Profile, _s.CurrentShip.Blueprint.GenerationProfile, "actual Continue keeps expanded destination");
             Assert.AreEqual(nextId, _s.CurrentShip.MarkerId);
+            if (System.Environment.GetCommandLineArgs().Contains("-profileExpeditionFrames"))
+            {
+                Assert.AreEqual(cargoFamily ? "cargo_exchange" : "service_loop",_s.CurrentShip.BuiltLayout.GetString("topology_family"));
+                _defendWhileExploring = true;
+                yield return CaptureHud(cargoFamily ? "purposeful-cargo-arrival.png" : "purposeful-service-arrival.png");
+                yield return ProfileLiveExpedition();
+                yield return ReviewPurposefulRooms();
+            }
+            bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
+            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            Assert.IsTrue(_s.TravelHome(), "expanded expedition returns through existing travel checks");
+            Debug.Log("[DepartureBeforeSave] "+GdJson.Stringify(_s.GetShipSystemsExpandedSummary()));
+            Assert.IsTrue(_s.RequestSave()); yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            Assert.IsFalse(_s.AwayFromStart);
+            Assert.AreEqual(PurposefulExpedition.Profile, _s.VisitedShips[nextId].Blueprint.GenerationProfile);
+            Assert.AreEqual(cargoFamily,PurposefulExpedition.CrossHull(_s.VisitedShips[nextId].Blueprint.SeedValue),"normal return/Continue retains the saved seed that selects the hull family");
+            _defendWhileExploring = false;
+        }
+
+        IEnumerator ReviewPurposefulRooms()
+        {
+            string family=_s.CurrentShip.BuiltLayout.GetString("topology_family");
+            foreach(string role in new[]{"cargo","medical","crew_quarters","engineering"})
+            {
+                var room=_s.CurrentShip.BuiltLayout.GetArrayOrEmpty("rooms").Cast<GdDict>().FirstOrDefault(r=>r.GetString("room_role")==role);
+                if(room==null) continue;
+                var cell=LayoutSerializer.ParseSlotCell(room.GetArrayOrEmpty("cells")[room.GetArrayOrEmpty("cells").Count/2]);
+                var local=new Vec3(V.F64(cell[0])*4,.55,V.F64(cell[1])*4);
+                yield return WalkTo(_s.CurrentShip.SceneRoot.GlobalTransform*local,1.2f);
+                yield return FixedSteps(10); yield return CaptureHud("purposeful-"+family+"-"+role+".png");
+            }
+        }
+
+        IEnumerator ProfileLiveExpedition()
+        {
+            var camera = _boot.Host.SceneState.CameraRig.Camera; var oldTarget = camera.targetTexture;
+            var target = new RenderTexture(2048,1224,24); var frames = new List<double>();
+            var frameIntervals=new List<double>();
+            var panel=_boot.HudDocument.panelSettings; var oldHudTarget=panel.targetTexture;
+            var hudTarget=new RenderTexture(2048,1224,0,RenderTextureFormat.ARGB32);
+            int oldRate = Application.targetFrameRate, oldVsync = QualitySettings.vSyncCount; float oldScale = Time.timeScale;
+            double worldBefore = _s.WorldTime; var clock = new System.Diagnostics.Stopwatch();
+            try
+            {
+                camera.targetTexture = target; panel.targetTexture=hudTarget; Application.targetFrameRate = -1; QualitySettings.vSyncCount = 0; Time.timeScale = 1;
+                for(int i=0;i<150;i++)
+                {
+                    clock.Restart(); yield return null;
+                    if(i>=30) frameIntervals.Add(Time.unscaledDeltaTime*1000);
+                    if(SystemInfo.supportsAsyncGPUReadback)
+                    {
+                        var completion = UnityEngine.Rendering.AsyncGPUReadback.Request(target,0,0,1,0,1,0,1);
+                        while(!completion.done && clock.Elapsed.TotalSeconds < 5)
+                        { yield return null; if(i>=30) frameIntervals.Add(Time.unscaledDeltaTime*1000); }
+                        Assert.IsTrue(completion.done); Assert.IsFalse(completion.hasError);
+                    }
+                    if(i>=30) frames.Add(clock.Elapsed.TotalMilliseconds);
+                }
+                frames.Sort(); frameIntervals.Sort(); Assert.Greater(_s.WorldTime,worldBefore,"live survival/combat session continues during profile");
+                Debug.Log($"[LiveExpeditionProfile] family={_s.CurrentShip.BuiltLayout.GetString("topology_family")} rooms={_s.CurrentShip.BuiltLayout.GetArrayOrEmpty("rooms").Count} "
+                    + $"threats={_s.ThreatManager.Threats.Count} renderers={Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None).Length} samples={frames.Count} completion_median_ms={frames[60]:F2} completion_p95_ms={frames[114]:F2} "
+                    + $"frame_samples={frameIntervals.Count} frame_interval_median_ms={frameIntervals[frameIntervals.Count/2]:F2} frame_interval_p95_ms={frameIntervals[(int)(frameIntervals.Count*.95)]:F2} "
+                    + $"gpu_completion_fenced={SystemInfo.supportsAsyncGPUReadback} device={SystemInfo.graphicsDeviceName}; live host/player/camera/AI/survival/UI active, stationary bridge view");
+            }
+            finally { camera.targetTexture=oldTarget; panel.targetTexture=oldHudTarget; Application.targetFrameRate=oldRate; QualitySettings.vSyncCount=oldVsync; Time.timeScale=oldScale; Object.Destroy(target); Object.Destroy(hudTarget); }
         }
 
         bool NaturalChannelActive() => _s.RepairPoints.Any(r => r.IsValid && r.Channeling)
