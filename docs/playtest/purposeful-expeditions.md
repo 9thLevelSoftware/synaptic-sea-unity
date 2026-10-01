@@ -36,9 +36,11 @@ Core coverage compares exact regenerated blueprint identity, legacy/v1 preservat
 
 The Windows normal journey uses Title/New Run, real walking and door interaction, finite onboarding supplies, skill-gated repairs, first-away combat, return, Continue, revisit and normal next-contact selection. It then restores the v2 expedition, explores representative room roles, returns home and saves/Continues again. Actual camera/HUD render-texture captures and bounded live-host frame profiling are separate evidence from native desktop input. No keys were sent to the owner's session and no screenshots were uploaded.
 
-## Remaining generator roadmap
-
 ## Final verification - 2026-10-01
+
+Development build: `F:\tmp\synaptic-sea-playable\builds\StandaloneWindows64\purposeful-expeditions-20261001\TheSynapticSea.exe`. Unity 6000.6.0f1, Windows Mono, **489.8 MB**, zero errors; data validation passed with 137 files and 204 asset references. Build stamp: version **0.1.0+9fe8939**, source commit `9fe893907998fce66a6ace712451ec47e0cc1560`, built **2026-10-01T02:50:13Z**. Runtime assembly SHA-256: `78CF2D5E671CDE12062B0F1ECBC537DA7D84691D501870619CA00448BB8A320F`. Build log: `builds/logs/purposeful-v2-development-build.log`.
+
+Close the older game when convenient, then launch this distinct executable. Continue retains existing saves and old visited generation profiles; New Run retains the supported default starter. The natural gameplay evidence below comes from independent Windows test players built from the same final runtime source. Their runtime assembly hash is `F49E092F3C592AC5881EC9C126202F73F53FB577EF15D13DE53D570A403CD833`; the development build uses a different build configuration and binary hash. Native desktop input in this development executable was not tested, and the owner's active process was not closed or controlled.
 
 | Check | Result | Local evidence |
 | --- | --- | --- |
