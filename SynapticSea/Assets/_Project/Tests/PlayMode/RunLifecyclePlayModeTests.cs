@@ -1136,7 +1136,7 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsFalse(_s.SliceComplete,"home's own repaired services permit ordinary recovery");Assert.GreaterOrEqual(_s.OxygenState.Oxygen,99);
             wreckDoor = _s.HomeJoinControls.Single(c => c.ShipId == wreck.ShipId && c.ActionId == "connection_door" && ReferenceEquals(c.Parent, wreck.SceneRoot));
             yield return WalkTo(wreckDoor, .6f); Assert.AreSame(wreck, _s.CurrentShip, "reverse walking returns to recovered local services");
-            yield return CaptureHud("natural-reclaimed-passage.png");
+            yield return CaptureHud(_installedAssemblyFixture?"installed-connection-fixture.png":"natural-reclaimed-passage.png");
             Assert.IsTrue(_s.RequestSave()); yield return BootPlayable(RunLaunchRequest.ContinueWorld());
             wreck = _s.CurrentShip;
             Assert.AreEqual(marker, wreck.MarkerId); Assert.IsTrue(_s.IsHomeMember(wreck));
