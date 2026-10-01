@@ -73,6 +73,8 @@ namespace SynapticSea.Core.Procgen
                 bestEffort = candidate;
                 if (LayoutIsConnected(candidate)) return candidate;
             }
+            if (blueprint.GenerationProfile == ConstrainedExpedition.Profile)
+            { CoreServices.Log.Error("Constrained expedition failed final connectivity validation seed=" + baseSeed); return new GdDict(); }
             if (!bestEffort.IsEmpty)
             {
                 CoreServices.Log.Warning("ShipLayoutGenerator: layout connectivity soft-fail after " +
@@ -111,7 +113,8 @@ namespace SynapticSea.Core.Procgen
             }
 
             // Stage 3: place rooms on 2D grid.
-            GdDict cellGrid = blueprint.GenerationProfile == PurposefulExpedition.Profile ? PurposefulExpedition.Layout(blueprint, out roomPlan)
+            GdDict cellGrid = blueprint.GenerationProfile == ConstrainedExpedition.Profile ? ConstrainedExpedition.Layout(blueprint, out roomPlan)
+                : blueprint.GenerationProfile == PurposefulExpedition.Profile ? PurposefulExpedition.Layout(blueprint, out roomPlan)
                 : expedition ? ExpeditionLayoutEngine.Layout(blueprint, out roomPlan) : CellLayoutEngineStage.Layout(roomPlan, template, blueprint.SeedValue);
             if (expedition && VariantSelector != null)
                 for (int i = 0; i < roomPlan.Count; i++) roomPlan[i]["variant"] = VariantSelector.Pick(roomPlan[i].GetString("role"), i, blueprint.SeedValue, biomeId);
@@ -151,6 +154,8 @@ namespace SynapticSea.Core.Procgen
             if (expedition) { layout["template_id"] = blueprint.GenerationProfile; layout["generation_profile"] = blueprint.GenerationProfile; }
             if (blueprint.GenerationProfile == PurposefulExpedition.Profile)
                 layout["topology_family"] = PurposefulExpedition.CrossHull(blueprint.SeedValue) ? "cargo_exchange" : "service_loop";
+            if (blueprint.GenerationProfile == ConstrainedExpedition.Profile)
+            { layout["topology_family"] = "constrained_composition"; layout["composition_diagnostics"] = cellGrid.GetDictOrEmpty("composition_diagnostics").DeepCopy(); }
             PurposefulExpedition.StampDockContract(layout);
             if (biomeId.Length != 0) layout["biome_id"] = biomeId;
             if (template.Id == "hive") layout["kit_id"] = "ship_structural_biomatter";

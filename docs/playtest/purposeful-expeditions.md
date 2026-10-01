@@ -1,5 +1,7 @@
 # Purposeful expedition generation
 
+This records the verified v2 delivery. The subsequent [constrained v3 checkpoint](constrained-expeditions.md) preserves this saved profile while replacing composition for new eligible wrecks. Persistent-survival correction supersedes demo extraction as the product target.
+
 ## What changes in normal play
 
 New, previously unvisited size-1/size-2 contacts after the first successful expedition use `purposeful_expedition_v2`. Odd seeds select a cargo-exchange hull: a broad central cargo hall, radial service routes, distinct medical/crew/bridge/engineering wings and a maintenance extension. Even seeds retain the parallel service-loop family with its sector and side-pocket variation. These are physically different room graphs and hull silhouettes, not color variants. Cargo-hall dimensions and quarter-turn orientation vary deterministically with the seed.

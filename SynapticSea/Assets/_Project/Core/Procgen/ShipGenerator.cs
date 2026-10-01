@@ -110,7 +110,7 @@ namespace SynapticSea.Core.Procgen
         public string BiomeId = "";
         public string DifficultyId = "";
         public bool RichExpeditions;
-        public string ExpeditionProfile = PurposefulExpedition.Profile;
+        public string ExpeditionProfile = ConstrainedExpedition.Profile;
 
         readonly GdDict _wrapperMapCache = new GdDict();
 

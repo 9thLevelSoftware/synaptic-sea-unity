@@ -459,7 +459,7 @@ namespace SynapticSea.Tests.PlayMode
 
         [UnityTest]
         [Timeout(360000)]
-        public IEnumerator WalkRepairTravelExploreCargoFamilyAndReturnWithoutFixtureResources() => NaturalExpeditionJourney(true);
+        public IEnumerator WalkRepairTravelExploreOddSeedCompositionAndReturnWithoutFixtureResources() => NaturalExpeditionJourney(true);
 
         IEnumerator NaturalExpeditionJourney(bool cargoFamily)
         {
@@ -629,19 +629,19 @@ namespace SynapticSea.Tests.PlayMode
             var nextTravel = _s.TravelToMarkerId(nextId);
             Assert.IsTrue(nextTravel.GetBool("success"), "normal subsequent scanner travel: " + GdJson.Stringify(nextTravel));
             for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
-            Assert.AreEqual(SynapticSea.Core.Procgen.PurposefulExpedition.Profile, _s.CurrentShip.Blueprint.GenerationProfile);
-            Assert.AreEqual(SynapticSea.Core.Procgen.PurposefulExpedition.Profile, _s.CurrentShip.BuiltLayout.GetString("generation_profile"));
+            Assert.AreEqual(SynapticSea.Core.Procgen.ConstrainedExpedition.Profile, _s.CurrentShip.Blueprint.GenerationProfile);
+            Assert.AreEqual(SynapticSea.Core.Procgen.ConstrainedExpedition.Profile, _s.CurrentShip.BuiltLayout.GetString("generation_profile"));
             Debug.Log("[NaturalExpeditionRoute] second new destination=" + nextId + " size=" + nextContact.GetInt("size_class")
                 + " rooms=" + _s.CurrentShip.BuiltLayout.GetArrayOrEmpty("rooms").Count);
             Assert.IsTrue(_s.RequestSave());
             yield return BootPlayable(RunLaunchRequest.ContinueWorld());
-            Assert.AreEqual(SynapticSea.Core.Procgen.PurposefulExpedition.Profile, _s.CurrentShip.Blueprint.GenerationProfile, "actual Continue keeps expanded destination");
+            Assert.AreEqual(SynapticSea.Core.Procgen.ConstrainedExpedition.Profile, _s.CurrentShip.Blueprint.GenerationProfile, "actual Continue keeps expanded destination");
             Assert.AreEqual(nextId, _s.CurrentShip.MarkerId);
             if (System.Environment.GetCommandLineArgs().Contains("-profileExpeditionFrames"))
             {
-                Assert.AreEqual(cargoFamily ? "cargo_exchange" : "service_loop",_s.CurrentShip.BuiltLayout.GetString("topology_family"));
+                Assert.AreEqual("constrained_composition",_s.CurrentShip.BuiltLayout.GetString("topology_family"));
                 _defendWhileExploring = true;
-                yield return CaptureHud(cargoFamily ? "purposeful-cargo-arrival.png" : "purposeful-service-arrival.png");
+                yield return CaptureHud(cargoFamily ? "constrained-odd-arrival.png" : "constrained-even-arrival.png");
                 yield return ProfileLiveExpedition();
                 yield return ReviewPurposefulRooms();
             }
@@ -651,7 +651,7 @@ namespace SynapticSea.Tests.PlayMode
             Debug.Log("[DepartureBeforeSave] "+GdJson.Stringify(_s.GetShipSystemsExpandedSummary()));
             Assert.IsTrue(_s.RequestSave()); yield return BootPlayable(RunLaunchRequest.ContinueWorld());
             Assert.IsFalse(_s.AwayFromStart);
-            Assert.AreEqual(PurposefulExpedition.Profile, _s.VisitedShips[nextId].Blueprint.GenerationProfile);
+            Assert.AreEqual(ConstrainedExpedition.Profile, _s.VisitedShips[nextId].Blueprint.GenerationProfile);
             Assert.AreEqual(cargoFamily,PurposefulExpedition.CrossHull(_s.VisitedShips[nextId].Blueprint.SeedValue),"normal return/Continue retains the saved seed that selects the hull family");
             _defendWhileExploring = false;
         }
@@ -666,7 +666,7 @@ namespace SynapticSea.Tests.PlayMode
                 var cell=LayoutSerializer.ParseSlotCell(room.GetArrayOrEmpty("cells")[room.GetArrayOrEmpty("cells").Count/2]);
                 var local=new Vec3(V.F64(cell[0])*4,.55,V.F64(cell[1])*4);
                 yield return WalkTo(_s.CurrentShip.SceneRoot.GlobalTransform*local,1.2f);
-                yield return FixedSteps(10); yield return CaptureHud("purposeful-"+family+"-"+role+".png");
+                yield return FixedSteps(10); yield return CaptureHud("constrained-"+family+"-"+role+".png");
             }
         }
 

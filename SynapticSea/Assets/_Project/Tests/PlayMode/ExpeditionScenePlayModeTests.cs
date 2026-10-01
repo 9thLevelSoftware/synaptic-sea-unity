@@ -24,7 +24,7 @@ namespace SynapticSea.Tests.PlayMode
             var scenes=new UnityShipSceneHost(root.transform); var geometry=new DockedShipGeometry();
             try
             {
-                var generator=new ShipGenerator {RichExpeditions=true}; generator.ConfigureRunContext("dead_fleet","standard");
+                var generator=new ShipGenerator {RichExpeditions=true, ExpeditionProfile=PurposefulExpedition.Profile}; generator.ConfigureRunContext("dead_fleet","standard");
                 var docs=generator.GenerateFromSeed(367936917,1,0);
                 Assert.IsTrue(host.LoadFromDocuments(docs.Layout,docs.Kit,docs.GameplaySlice,true));
                 var boat=scenes.BuildLifeboatScene(LifeBoatBuilder.Build("dead_fleet")); scenes.AttachShipRoot(boat);
@@ -78,7 +78,12 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator PurposefulFamiliesBuildImportedInteriorsAndReachableWorkAnchors()
+        public IEnumerator PurposefulFamiliesBuildImportedInteriorsAndReachableWorkAnchors() => ReviewComposedScenes(PurposefulExpedition.Profile, "purposeful");
+
+        [UnityTest]
+        public IEnumerator ConstrainedCompositionsBuildImportedInteriorsAndReachableWorkAnchors() => ReviewComposedScenes(ConstrainedExpedition.Profile, "constrained");
+
+        IEnumerator ReviewComposedScenes(string profile, string capturePrefix)
         {
             var previous = CoreServices.Resources; var previousLog = CoreServices.Log;
             CoreServices.Resources = new FileSystemResourceReader(Application.streamingAssetsPath); CoreServices.Log = NullLog.Instance;
@@ -88,7 +93,7 @@ namespace SynapticSea.Tests.PlayMode
                 foreach (int seed in new[] { 17, 42, 777 })
                 {
                     CatalogRegistry.Clear(); builder = ShipSceneBuilder.Create(name: "PurposefulAcceptance");
-                    var generator = new ShipGenerator { RichExpeditions = true }; generator.ConfigureRunContext("dead_fleet", "standard");
+                    var generator = new ShipGenerator { RichExpeditions = true, ExpeditionProfile=profile }; generator.ConfigureRunContext("dead_fleet", "standard");
                     var docs = generator.GenerateFromSeed(seed, seed == 17 ? 1 : 2, 0);
                     Assert.IsTrue(builder.LoadFromDocuments(docs.Layout, docs.Kit, docs.GameplaySlice, true));
                     foreach (var portal in builder.View.GetComponentsInChildren<AuthoredPortalRuntime>()) portal.RestorePersistentState(true,true);
@@ -121,14 +126,14 @@ namespace SynapticSea.Tests.PlayMode
                     var floors = builder.View.Modules.Where(m => m.layer == "floor").ToArray(); var bounds = new Bounds(floors[0].transform.position,Vector3.zero);
                     foreach(var floor in floors) bounds.Encapsulate(floor.transform.position);
                     camera.transform.position = bounds.center + new Vector3(40,65,-40); camera.transform.LookAt(bounds.center); camera.orthographicSize = Mathf.Max(bounds.size.x,bounds.size.z)*.65f;
-                    Capture(camera,"purposeful-overview-"+seed+".png");
+                    Capture(camera,capturePrefix+"-overview-"+seed+".png");
                     foreach(string role in new[] { "cargo", "medical", "crew_quarters", "engineering" })
                     {
                         var room = docs.Layout.GetArrayOrEmpty("rooms").Cast<GdDict>().FirstOrDefault(r => r.GetString("room_role") == role); if(room == null) continue;
                         var cell = LayoutSerializer.ParseSlotCell(room.GetArrayOrEmpty("cells")[0]);
                         Vector3 anchor = Frame.ToUnity(new Vec3(V.F64(cell[0])*4,.12,V.F64(cell[1])*4));
                         camera.transform.position = anchor + new Vector3(16,13.064f,-16); camera.transform.LookAt(anchor); camera.orthographicSize = 7;
-                        var reveal = new InteriorOcclusion(); reveal.Update(camera,anchor,null,.2f); Capture(camera,"purposeful-"+role+"-"+seed+".png"); reveal.RestoreAll();
+                        var reveal = new InteriorOcclusion(); reveal.Update(camera,anchor,null,.2f); Capture(camera,capturePrefix+"-"+role+"-"+seed+".png"); reveal.RestoreAll();
                     }
                     Object.DestroyImmediate(builder.View.gameObject); builder = null; Object.DestroyImmediate(cameraRoot); cameraRoot = null;
                 }
@@ -151,7 +156,7 @@ namespace SynapticSea.Tests.PlayMode
             GameObject cameraRoot = null;
             try
             {
-                var generator = new ShipGenerator { RichExpeditions = true }; generator.ConfigureRunContext("dead_fleet", "standard");
+                var generator = new ShipGenerator { RichExpeditions = true, ExpeditionProfile=ExpeditionLayoutEngine.Profile }; generator.ConfigureRunContext("dead_fleet", "standard");
                 var started = System.Diagnostics.Stopwatch.StartNew(); var docs = generator.GenerateFromSeed(42, 2, 0);
                 Assert.NotNull(docs); Assert.IsTrue(builder.LoadFromDocuments(docs.Layout, docs.Kit, docs.GameplaySlice, true));
                 foreach (var portal in builder.View.GetComponentsInChildren<AuthoredPortalRuntime>()) portal.RestorePersistentState(true, true);

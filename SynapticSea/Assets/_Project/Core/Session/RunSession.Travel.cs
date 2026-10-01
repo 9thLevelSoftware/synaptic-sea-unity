@@ -142,7 +142,7 @@ namespace SynapticSea.Core.Session
             }
             // A revisit regenerates the saved profile, never upgrades an existing legacy wreck in place.
             ShipGenerator.ExpeditionProfile = VisitedShips.ContainsKey(marker.MarkerId)
-                ? VisitedShips[marker.MarkerId].Blueprint.GenerationProfile : PurposefulExpedition.Profile;
+                ? VisitedShips[marker.MarkerId].Blueprint.GenerationProfile : ConstrainedExpedition.Profile;
             ShipGenerator.RichExpeditions = VisitedShips.ContainsKey(marker.MarkerId)
                 ? ShipGenerator.ExpeditionProfile.Length != 0 : VisitedShips.Count > 0;
             GdDict firstRunResult = ApplyFirstRunContractToMarker(marker);

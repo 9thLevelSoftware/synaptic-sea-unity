@@ -8,12 +8,12 @@ namespace SynapticSea.Core.Procgen
     public static class PurposefulExpedition
     {
         public const string Profile = "purposeful_expedition_v2";
-        public static bool Supported(string profile) => profile == Profile || profile == ExpeditionLayoutEngine.Profile;
+        public static bool Supported(string profile) => profile == Profile || profile == ExpeditionLayoutEngine.Profile || profile == ConstrainedExpedition.Profile;
         public static bool CrossHull(long seed) => (seed & 1) != 0;
 
         public static void StampDockContract(GdDict layout)
         {
-            if(layout.GetString("generation_profile")!=Profile) return;
+            if(layout.GetString("generation_profile")!=Profile && layout.GetString("generation_profile")!=ConstrainedExpedition.Profile) return;
             var rooms=layout.GetArrayOrEmpty("rooms"); GdDict dock=null;
             foreach(GdDict room in rooms) if(room.GetString("room_role")=="dock") {dock=room;break;}
             if(dock==null) return;
@@ -84,7 +84,7 @@ namespace SynapticSea.Core.Procgen
 
         public static void Furnish(GdDict layout, GdDict gameplay)
         {
-            if (layout.GetString("generation_profile") != Profile) return;
+            if (layout.GetString("generation_profile") != Profile && layout.GetString("generation_profile") != ConstrainedExpedition.Profile) return;
             var reserved = new HashSet<string>();
             string Key(GdArray cell) => cell.Count >= 2 ? V.I64(cell[0]) + ":" + V.I64(cell[1]) : "";
             foreach (GdDict portal in layout.GetArrayOrEmpty("portals"))

@@ -19,7 +19,7 @@ namespace SynapticSea.Tests.Procgen
         [Test]
         public void CargoExchangeVariesItsFootprintAndKeepsEveryPortalAndWorkCellClear()
         {
-            var areas=new HashSet<int>(); var generator=new ShipGenerator {RichExpeditions=true}; generator.ConfigureRunContext("dead_fleet","standard");
+            var areas=new HashSet<int>(); var generator=new ShipGenerator {RichExpeditions=true, ExpeditionProfile=PurposefulExpedition.Profile}; generator.ConfigureRunContext("dead_fleet","standard");
             foreach(int seed in new[]{17,19,21,23,25,27,29,31})
             {
                 var docs=generator.GenerateFromSeed(seed,1,0); Assert.NotNull(docs);
@@ -40,7 +40,7 @@ namespace SynapticSea.Tests.Procgen
         [TestCase(17)] [TestCase(42)] [TestCase(777)] [TestCase(998)]
         public void VersionedDockUsesARealExteriorCellAndRejectsMissingContract(int seed)
         {
-            var generator=new ShipGenerator {RichExpeditions=true}; generator.ConfigureRunContext("dead_fleet","standard");
+            var generator=new ShipGenerator {RichExpeditions=true, ExpeditionProfile=PurposefulExpedition.Profile}; generator.ConfigureRunContext("dead_fleet","standard");
             var layout=generator.GenerateFromSeed(seed,1,0).Layout;
             var contract=layout.GetDictOrEmpty("docking_port"); var cell=contract.GetArrayOrEmpty("cell");
             var port=SynapticSea.Core.Systems.DockPorts.ForDerelict(layout,seed,0); Assert.IsFalse(port.IsEmpty);
@@ -61,7 +61,7 @@ namespace SynapticSea.Tests.Procgen
         [TestCase(17,1)] [TestCase(42,1)] [TestCase(777,2)] [TestCase(998,2)]
         public void BothFamiliesKeepPhysicalCyclesPurposeAndExactSavedIdentity(int seed, int size)
         {
-            var generator = new ShipGenerator { RichExpeditions = true }; generator.ConfigureRunContext("dead_fleet", "standard");
+            var generator = new ShipGenerator { RichExpeditions = true, ExpeditionProfile=PurposefulExpedition.Profile }; generator.ConfigureRunContext("dead_fleet", "standard");
             var docs = generator.GenerateFromSeed(seed, size, 0); Assert.NotNull(docs);
             Assert.AreEqual(PurposefulExpedition.Profile, docs.Layout.GetString("generation_profile"));
             Assert.AreEqual(seed % 2 == 0 ? "service_loop" : "cargo_exchange", docs.Layout.GetString("topology_family"));
