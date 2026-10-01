@@ -194,6 +194,16 @@ namespace SynapticSea.Tests.Session
                 Assert.IsEmpty(TreeDiff.Compare(Port(-2.0, 0.0, -1.0), edge.Get("mobile_local_port"), Strict()), "exact golden shuttle endpoint");
                 foreach (string key in new[] { "connection_version", "host_ship_id", "connection_kind", "host_local_port", "mobile_local_port" }) edge.Erase(key);
             }
+            void AssertExactUtilityRecipeExtension(GdDict run)
+            {
+                if(!run.Has("crafting_summary"))return;
+                var craft=run.GetDictOrEmpty("crafting_summary");
+                Assert.AreEqual(62L,craft.GetInt("recipe_count"),"the two earned utility recipes extend the exact 60-recipe capture");
+                Assert.AreEqual(62L,craft.GetDictOrEmpty("field_crafting").GetInt("recipe_count"));
+                craft["recipe_count"]=60L;craft.GetDictOrEmpty("field_crafting")["recipe_count"]=60L;
+            }
+            AssertExactUtilityRecipeExtension(view);
+            if(view.Has("home_ship"))AssertExactUtilityRecipeExtension(view.GetDictOrEmpty("home_ship"));
             return view;
         }
 

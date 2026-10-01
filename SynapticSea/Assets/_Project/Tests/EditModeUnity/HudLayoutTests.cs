@@ -66,6 +66,22 @@ namespace SynapticSea.Tests.Unity
             Assert.IsEmpty(work.GetStatusLines());
         }
 
+        [TestCase("exhausted","Rest before continuing")]
+        [TestCase("left_work_site","Return within reach")]
+        [TestCase("access","do not have access")]
+        [TestCase("materials","Required materials missing")]
+        [TestCase("tool","Required tool missing")]
+        public void WorkDenialReasonRemainsReadableInCompactHud(string reason,string expected)
+        {
+            var work=new WorkActionStrip();
+            work.SetWorkState(new GdDict{{"status","blocked"},{"block_reason",reason}});
+            StringAssert.Contains(expected,work.StateText);work.SetCompact(true);
+            StringAssert.Contains(expected,work.StateText);
+            Assert.IsTrue(work.IsOpen());
+            work.SetWorkState(new GdDict{{"status","active"}});
+            StringAssert.DoesNotContain(expected,work.StateText,"a new action clears old denial feedback");
+        }
+
         sealed class Hud : IDisposable
         {
             public readonly UiHarness Harness;

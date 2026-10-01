@@ -2,6 +2,7 @@
 // scripts/interaction/sealed_hatch.gd @ 96ecb2b0): sphere collision, marker mesh, visibility and collider state.
 using System.Collections.Generic;
 using SynapticSea.Core.Session;
+using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 using UnityEngine;
 
@@ -91,6 +92,12 @@ namespace SynapticSea.Runtime.Session
             if (Model == null) return;
             bool live = Model.IsValid && Model.IsInsideTree;
             transform.position = Frame.ToUnity(Model.GlobalPosition);
+            if(Model is SealedHatch)
+            {
+                var basis=Model.Parent!=null?Model.Parent.GlobalTransform.Basis:Basis3.Identity;
+                transform.rotation=Frame.BasisRotation(new Vec3(basis.Row0.X,basis.Row1.X,basis.Row2.X),
+                    new Vec3(basis.Row0.Y,basis.Row1.Y,basis.Row2.Y),new Vec3(basis.Row0.Z,basis.Row1.Z,basis.Row2.Z));
+            }
             bool markerShown = live && MarkerShown(Model);
             if (_marker != null && _marker.activeSelf != markerShown) _marker.SetActive(markerShown);
             bool sensorOn = live && !CollisionDisabled(Model);
@@ -129,7 +136,7 @@ namespace SynapticSea.Runtime.Session
                     case CraftingStation cs: return "Use: " + cs.StationKind;
                     case ProductionStation ps: return "Use: " + ps.StationKind;
                     case LootContainer _: return "Search";
-                    case SealedHatch h: return h.Bypassed ? "Reseal hatch" : "Bypass hatch (" + h.LockKind + ")";
+                    case SealedHatch h: return h.Bypassed ? "Reseal hatch" : "Bypass hatch: use " + (h.LockKind == SealedHatch.MECHANICAL ? "lockpick set" : "hack chip") + " (craft at workbench)";
                     case ToolPickup t: return "Pick up: " + t.ToolId;
                     case HangarBayControl _: return "Hangar bay";
                     case CargoHoldControl _: return "Cargo hold";
@@ -238,6 +245,7 @@ namespace SynapticSea.Runtime.Session
                     _blocker = blockerGo.AddComponent<BoxCollider>();
                     _blocker.size = new Vector3(r, r * 2f, 0.4f);
                     _blocker.center = new Vector3(0f, r, 0f);
+                    NavMeshBlocker.Attach(_blocker);
                     break;
                 case RepairPoint _:
                     _marker = Box(new Vector3(r * 0.5f, r * 0.5f, r * 0.5f), new Color(0.95f, 0.45f, 0.15f, 0.7f));

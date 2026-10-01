@@ -149,9 +149,12 @@ namespace SynapticSea.Core.Session
                 bool tool=cutting ? inv.GetInt("plasma_cutter")>0 : inv.GetInt("welder")>0 || inv.GetInt("welding_lance")>0;
                 var ctx=new GdDict {{"tool_class",tool?(cutting?"plasma_cutter":"welder"):""},{"skill_id","repair"},
                     {"skill_level",PlayerProgression?.GetSkillLevel("repair") ?? 0},{"inventory",inv}};
-                if(ship==null||!(cutting ? CanCutWeb(ship) : ship.GetAccess().HasAccess(PLAYER_LOCAL_ID))
-                    ||!WorkActionDriver.StartAction(control.ActionId,control.ShipId,ctx))
-                { Log.Warning("Home work blocked: tool, repair eligibility, materials or access"); EmitTravelDeniedSfx();return true; }
+                if(ship==null||!(cutting ? CanCutWeb(ship) : ship.GetAccess().HasAccess(PLAYER_LOCAL_ID)))
+                {BlockWorkAction(control.ActionId,control.ShipId,"access");EmitTravelDeniedSfx();return true;}
+                if(VitalsState!=null&&VitalsState.Stamina<=.001)
+                {BlockWorkAction(control.ActionId,control.ShipId,"exhausted");EmitTravelDeniedSfx();return true;}
+                if(!WorkActionDriver.StartAction(control.ActionId,control.ShipId,ctx))
+                { Log.Warning("Home work blocked: "+WorkActionDriver.Work?.BlockReason);RefreshWorkActionHud(); EmitTravelDeniedSfx();return true; }
                 _workRequiresHold=HoldToWorkEnabled;RefreshWorkActionHud();return true;
             }
             return false;
@@ -198,8 +201,16 @@ namespace SynapticSea.Core.Session
         bool CanCutWeb(ShipInstance ship) => ship!=null && (ship.GetAccess().OwnerId.Length==0 || ship.GetAccess().HasAccess(PLAYER_LOCAL_ID));
         GdDict HomeWorkFailure(string reason)
         {
-            WorkActionDriver.Work.Interrupt(); Log.Warning("Home work cancelled without consuming materials: "+reason);
+            WorkActionDriver.Work.Interrupt();WorkActionDriver.Work.BlockReason=reason; Log.Warning("Home work cancelled without consuming materials: "+reason);
             return new GdDict {{"ok",false},{"reason",reason}};
+        }
+        void BlockWorkAction(string actionId,string targetId,string reason)
+        {
+            WorkActionDriver.Work=new WorkActionState();
+            WorkActionDriver.Work.ConfigureAction(actionId,WorkActionDriver.Catalog.GetAction(actionId));
+            WorkActionDriver.Work.TargetId=targetId;WorkActionDriver.Work.Status=WorkActionState.STATUS_BLOCKED;
+            WorkActionDriver.Work.BlockReason=reason;_workRequiresHold=false;RefreshWorkActionHud();
+            Log.Warning("Work blocked: "+reason);
         }
         internal void SpawnHomeBridge()
         {

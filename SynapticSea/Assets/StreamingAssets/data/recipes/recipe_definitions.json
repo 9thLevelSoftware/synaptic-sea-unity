@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "schema_notes": "PKG-B2.4b final authoring schema: knowledge_source (starter|book|reverse_engineer|codex), station_tier_min (int>=0), work_verb (craft|weld|splice|cook|synthesize|field), batch_size. Missing fields default: knowledge_source=starter, station_tier_min=0, work_verb=craft.",
   "station_kinds": ["fabricator", "workbench", "medbay", "kitchen", "synthesizer", "field_crafting"],
   "quality_tiers": {
@@ -10,6 +10,36 @@
     "masterwork": { "label": "Masterwork", "multiplier": 2.0, "color": "#FF6B6B" }
   },
   "recipes": [
+    {
+      "recipe_id": "craft_lockpick_set",
+      "display_name": "Machine Lockpick Set",
+      "category": "utility",
+      "ingredients": { "scrap_metal": 2 },
+      "produces": { "item_id": "lockpick_set", "quantity": 1 },
+      "craft_time_seconds": 12.0,
+      "required_skill_level": 1,
+      "station_kind": "workbench",
+      "station_tier_min": 0,
+      "knowledge_source": "starter",
+      "work_verb": "craft",
+      "power_cost": 1.0,
+      "batch_size": 1
+    },
+    {
+      "recipe_id": "craft_hack_chip",
+      "display_name": "Assemble Hatch Bypass Chip",
+      "category": "utility",
+      "ingredients": { "circuit_board": 1, "wiring_spool": 1 },
+      "produces": { "item_id": "hack_chip", "quantity": 1 },
+      "craft_time_seconds": 18.0,
+      "required_skill_level": 1,
+      "station_kind": "workbench",
+      "station_tier_min": 0,
+      "knowledge_source": "starter",
+      "work_verb": "splice",
+      "power_cost": 1.0,
+      "batch_size": 1
+    },
     {
       "recipe_id": "weld_plating",
       "display_name": "Weld Hull Plating",

@@ -32,6 +32,19 @@ namespace SynapticSea.Tests.Session
             public void RestorePersistentState(bool unlocked, bool open) => IsOpen = open;
         }
 
+        [TestCase(0f)]
+        [TestCase(90f)]
+        [TestCase(180f)]
+        public void HatchSightPointLiesOutsideItsOwnFaceInTheOwningHullFrame(float yaw)
+        {
+            var root=new SynapticSea.Tests.Systems.FakeRoot{Transform=new Xform3(Basis3.FromAxisAngle(Vec3.Up,yaw*(float)System.Math.PI/180),new Vec3(100,0,200))};
+            var hatch=new SealedHatch{Parent=root};hatch.Configure("gate",SealedHatch.MECHANICAL,Vec3.Zero);
+            var player=root.GlobalTransform*new Vec3(0,.15,1.35);
+            var face=SessionMath.AffineInverse(root.GlobalTransform)*hatch.InteractionSightPoint(player);
+            Assert.AreEqual(.26,face.Z,.0001,"ray stops outside the .2m blocker face");Assert.AreEqual(0,face.X,.0001);
+            Assert.IsFalse(hatch.TryBypass(player,new GdDict()).GetBool("ok"),"a visible hatch still requires its tool flag");
+        }
+
         [Test]
         public void LockedPortalYieldsToReachableSuppliesWithoutUnlockingIt()
         {

@@ -136,6 +136,7 @@ namespace SynapticSea.Core.Session
                 { "verb", verb },
                 { "progress", WorkActionDriver.ProgressRatio() },
                 { "status", st },
+                { "block_reason", WorkActionDriver.Work?.BlockReason ?? "" },
                 { "noise", noise },
             });
         }
@@ -292,6 +293,7 @@ namespace SynapticSea.Core.Session
                 return false;
             if (VitalsState != null && VitalsState.Stamina <= 0.001)
             {
+                BlockWorkAction(actionId,targetId,"exhausted");
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
                 return false;
             }
@@ -308,6 +310,7 @@ namespace SynapticSea.Core.Session
             };
             if (!WorkActionDriver.StartAction(actionId, targetId, ctx))
             {
+                RefreshWorkActionHud();
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
                 return false;
             }
@@ -752,7 +755,7 @@ namespace SynapticSea.Core.Session
             {
                 if (VitalsState.Stamina <= 0.001)
                 {
-                    InterruptWorkOnDamage();
+                    InterruptWorkOnDamage("exhausted");
                     _workRequiresHold = false;
                     return;
                 }
@@ -943,11 +946,12 @@ namespace SynapticSea.Core.Session
             PlaySfx(AudioEventSeam.SFX_TOOL_PICKUP);
         }
 
-        void InterruptWorkOnDamage()
+        void InterruptWorkOnDamage(string reason="damage")
         {
             if (WorkActionDriver == null || !WorkActionDriver.IsWorking())
                 return;
             WorkActionDriver.Work?.Interrupt();
+            if(WorkActionDriver.Work!=null)WorkActionDriver.Work.BlockReason=reason;
             PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
             RefreshWorkActionHud();
         }

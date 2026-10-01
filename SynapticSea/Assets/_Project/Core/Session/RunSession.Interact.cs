@@ -32,13 +32,16 @@ namespace SynapticSea.Core.Session
             if (item is DeckTransition deck) return deck.InReach(PlayerPos);
             if ((item is HangarBayControl || item is CargoHoldControl) && !ReferenceEquals(item, NearestShipConsole())) return false;
             if (HasPlayer && Deps.LosProbe != null && Deps.LosProbe.HasSpace
-                && Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, item.GlobalPosition + Vec3.Up, out _)) return false;
+                && Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, InteractionSightPoint(item) + Vec3.Up, out _)) return false;
             return true;
         }
 
+        Vec3 InteractionSightPoint(SessionInteractable item) => item is SealedHatch hatch
+            ? hatch.InteractionSightPoint(PlayerPos) : item.GlobalPosition;
+
         bool HasInteractionSightAndReach(SessionInteractable item) => item.IsPlayerInDirectRangeStrict(PlayerPos)
             && (Deps.LosProbe == null || !Deps.LosProbe.HasSpace
-                || !Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, item.GlobalPosition + Vec3.Up, out _));
+                || !Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, InteractionSightPoint(item) + Vec3.Up, out _));
 
         SessionInteractable NearestShipConsole() => CargoHoldControls.Cast<SessionInteractable>()
             .Concat(HangarControls.Where(c => {
@@ -353,7 +356,7 @@ namespace SynapticSea.Core.Session
             bool deniedInRange = false;
             foreach (SealedHatch h in new List<SealedHatch>(SealedHatches))
             {
-                if (!h.IsValid || h.Bypassed)
+                if (!h.IsValid || h.Bypassed || !HasInteractionSightAndReach(h))
                     continue;
                 GdDict res = h.TryBypass(p, flags);
                 if (res.GetBool("ok"))
@@ -376,7 +379,7 @@ namespace SynapticSea.Core.Session
                 return false;
             foreach (SealedHatch h in new List<SealedHatch>(SealedHatches))
             {
-                if (!h.IsValid || !h.Bypassed)
+                if (!h.IsValid || !h.Bypassed || !HasInteractionSightAndReach(h))
                     continue;
                 if (h.TryReseal(p).GetBool("ok"))
                     return true;

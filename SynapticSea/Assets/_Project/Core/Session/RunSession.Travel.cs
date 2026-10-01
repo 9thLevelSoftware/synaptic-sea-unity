@@ -345,7 +345,7 @@ namespace SynapticSea.Core.Session
             SpawnDockBarrier(HomeShip);
             CurrentOccupancy = PilotedShip ?? HomeShip;
             RecomputeOccupancy();
-            if(HomeSeaMarkerId.Length>0)SynapticSeaWorld?.SetPlayerPosition(HomeSeaPosition);
+            if(HomeSeaMarkerId.Length>0 || HasSecuredHomeExtension())SynapticSeaWorld?.SetPlayerPosition(HomeSeaPosition);
             EmitDockLandSfx();
             return true;
         }

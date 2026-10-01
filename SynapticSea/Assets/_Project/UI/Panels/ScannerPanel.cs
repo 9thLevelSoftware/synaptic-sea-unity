@@ -308,7 +308,10 @@ namespace SynapticSea.UI
                 var capability = assembly.TravelCapability();
                 lines.Add("Owned assembly load " + GdString.FormatFixed(capability.GetFloat("total_mass_kg"), 0)
                     + " kg / supported " + GdString.FormatFixed(capability.GetFloat("supported_kg"), 0) + " kg");
-                lines.Add("Departure " + capability.GetString("reason"));
+                string departureReason=capability.GetString("reason");
+                lines.Add(departureReason=="insufficient_propulsion_capacity"
+                    ? "Departure blocked: install or repair owned propulsion, or reduce assembly payload."
+                    : departureReason=="ok" ? "Departure capacity available." : "Departure " + departureReason);
                 foreach (var value in capability.GetArrayOrEmpty("engines"))
                     if (value is GdDict engine && engine.GetString("excluded_reason").Length > 0)
                         lines.Add(engine.GetString("ship_id") + ": " + engine.GetString("excluded_reason"));
