@@ -6,7 +6,15 @@ This correction includes the immutable `constrained_expedition_v3` generator che
 
 ## Normal play
 
-Use the distinct development executable recorded below. Preserve the old executable and current save. Close your old player normally before opening another player that accesses the same save; automated test players use isolated in-memory storage and do not access that save.
+Development build: **0.1.0+3b85cb0**, source commit `3b85cb02c049da38e58603697587dc52728333c4`, stamped **2026-10-01T04:31:16Z**, Unity 6000.6.0f1, Windows Mono, 489.8 MB, zero build errors.
+
+```text
+F:\tmp\synaptic-sea-playable\builds\StandaloneWindows64\persistent-survival-20261001\TheSynapticSea.exe
+```
+
+Build log: `builds/logs/persistent-survival-development-build.log`. The packaged `TheSynapticSea_Data/StreamingAssets/build_stamp.json` records kind `dev` and Git SHA `3b85cb0`. Production Core assembly SHA-256: `B9782490B817FB3BAAE61FF62A13935801740E3AD2DCC4883AC76B1A9C0A90AF`. The development executable was built successfully but not driven with native desktop input; the separately compiled Windows test player supplied the gameplay/render acceptance evidence on the same final source.
+
+Use this distinct development executable. Preserve the old executable and current save. Close your old player normally before opening another player that accesses the same save; automated test players use isolated in-memory storage and do not access that save.
 
 For a new life, choose the supported default Milestone A setup: seed 17, breach_field, standard, engineer. Walk, explore/search the starter supplies and maintenance cache, acquire the portable oxygen pump, and perform the real required repairs with the acquired tools/materials and earned repair training. Finish the home objectives if desired; the HUD should show **Explore, repair and survive — 4/4**, and ordinary saving/travel remain enabled.
 
