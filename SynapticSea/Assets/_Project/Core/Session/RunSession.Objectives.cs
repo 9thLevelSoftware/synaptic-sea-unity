@@ -80,21 +80,11 @@ namespace SynapticSea.Core.Session
             long totalSequences = SequenceInteractables.Count;
             if (ObjectiveCompletionCount >= totalSequences)
             {
-                SliceComplete = true;
+                // Home objectives are onboarding milestones, not an escape or end of this life.
                 CurrentObjectiveSequence = totalSequences + 1;
-                Events.RaiseTrackerRunComplete();
-                TryUnlockAchievement("run_complete", "complete");
-                Log.Info("PLAYABLE SLICE COMPLETE objectives_completed=" + ObjectiveCompletionCount);
-                ApplyMetaPayoutAndPersist("completion");
-                if (SaveLoadService != null)
-                {
-                    SaveLoadService.DeleteCurrentRun();
-                    foreach (object slotId in SaveSlotState.AutosaveSlotIds)
-                        SaveLoadService.DeleteSlot(V.Str(slotId));
-                }
-                GdDict objectiveCompletionSummary = GetSliceCompletionSummary();
-                objectiveCompletionSummary["reason"] = "complete";
-                PlayableSliceCompleted?.Invoke(objectiveCompletionSummary);
+                Log.Info("HOME ONBOARDING COMPLETE objectives_completed=" + ObjectiveCompletionCount);
+                AutoSaveCurrentRun();
+                ActivateCurrentObjective();
                 return;
             }
             // REQ-012: advance FIRST so the checkpoint captures the resumed sequence, then auto-save.
@@ -180,7 +170,7 @@ namespace SynapticSea.Core.Session
             long expectedTotal = SequenceInteractables.Count;
             if (expectedTotal <= 0)
                 return false;
-            while (!SliceComplete)
+            while (!HomeObjectivesComplete && !SliceComplete)
             {
                 long sequence = CurrentObjectiveSequence;
                 if (sequence > expectedTotal)
@@ -188,7 +178,7 @@ namespace SynapticSea.Core.Session
                 if (!CompleteObjectiveSequence(sequence))
                     return false;
             }
-            return SliceComplete && ObjectiveCompletionCount == expectedTotal;
+            return HomeObjectivesComplete && !SliceComplete;
         }
 
         /// <summary>Teleport the player onto the first interactable of a sequence (was <c>teleport_player_to_objective_for_validation</c>).</summary>

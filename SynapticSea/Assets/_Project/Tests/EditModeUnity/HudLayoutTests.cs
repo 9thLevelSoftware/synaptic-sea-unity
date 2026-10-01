@@ -41,9 +41,12 @@ namespace SynapticSea.Tests.Unity
             chip.SetInteractionPrompt("[E] Open hatch");
             Assert.AreEqual("[E] Open hatch", prompt, "the prompt goes to the transient context slot, not the chip");
             StringAssert.Contains(ObjectiveChip.ControlsLine, chip.GetHudText(), "controls/systems stay behind disclosure");
+            chip.SetCurrentSequence(3);
+            StringAssert.Contains("survive",chip.ChipText);
+            Assert.IsFalse(chip.RunComplete);
             chip.MarkRunComplete();
-            StringAssert.StartsWith("COMPLETE", chip.ChipText);
-            Assert.IsTrue(chip.ClassListContains(UiClasses.SevSuccess));
+            StringAssert.StartsWith("LIFE ENDED", chip.ChipText);
+            Assert.IsTrue(chip.ClassListContains(UiClasses.SevCaution));
         }
 
         [Test]

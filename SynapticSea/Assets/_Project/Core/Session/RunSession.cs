@@ -482,12 +482,15 @@ namespace SynapticSea.Core.Session
 
         public long GetCurrentObjectiveSequence() => CurrentObjectiveSequence;
 
+        public bool HomeObjectivesComplete => SequenceInteractables.Count > 0 && ObjectiveCompletionCount >= SequenceInteractables.Count;
+
         public GdDict GetSliceCompletionSummary() => new GdDict
         {
             { "objective_count", (long)Interactables.Count },
             { "objectives_completed", ObjectiveCompletionCount },
             { "current_sequence", CurrentObjectiveSequence },
             { "run_complete", SliceComplete },
+            { "home_objectives_complete", HomeObjectivesComplete },
             { "play_time_seconds", RunPlayTimeSeconds },
             { "rooms_discovered", (long)DiscoveredRoomIds.Count },
             { "threats_killed", ThreatsKilledCount },

@@ -273,12 +273,13 @@ namespace SynapticSea.Tests.Session
                 + " ready=" + ready + " completed=" + string.Join(",", completed));
             if (ready) Assert.IsFalse(s.SliceComplete, "repairing for travel is not extraction");
             else Assert.IsFalse(s.RepairPoints.Any(r => r.CanBeginRepair()), "a stopped path has no eligible remaining repair, including side work");
-            for (int guard = 0; guard < 24 && !s.SliceComplete; guard++)
+            for (int guard = 0; guard < 24 && !s.HomeObjectivesComplete && !s.SliceComplete; guard++)
             {
                 var objective = s.Interactables.First(o => o.Active && !o.Completed);
                 Assert.IsTrue(objective.TryInteract(objective.GlobalPosition));
             }
-            Assert.IsTrue(s.SliceComplete, "all eight classes retain the supported hub objective/extraction route");
+            Assert.IsTrue(s.HomeObjectivesComplete, "all classes can complete the existing onboarding tasks");
+            Assert.IsFalse(s.SliceComplete, "onboarding does not terminate survival");
             Assert.AreEqual(classId, s.PlayerProgression.ClassId, "onboarding retains the chosen class");
         }
 

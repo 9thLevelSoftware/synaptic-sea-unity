@@ -154,21 +154,55 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(100, V.I64(s4.Get("power_percent", 0L)));
             Assert.AreEqual(100, V.I64(s4.Get("reactor_stability_percent", 0L)));
 
-            // completion smoke.
-            Assert.IsTrue(s.SliceComplete);
+            // Onboarding completion keeps this life and world active.
+            Assert.IsTrue(s.HomeObjectivesComplete);
+            Assert.IsFalse(s.SliceComplete);
             Assert.AreEqual(4, s.ObjectiveCompletionCount);
             Assert.AreEqual(5, s.CurrentObjectiveSequence);
             CollectionAssert.AreEqual(new long[] { 1, 2, 3, 4 }, interactions);
-            Assert.IsNotNull(completion, "playable_slice_completed raised");
-            Assert.IsTrue(completion.GetBool("run_complete"));
-            Assert.AreEqual("complete", completion.GetString("reason"));
-            Assert.IsTrue(s.GetSliceCompletionSummary().GetBool("run_complete"));
+            Assert.IsNull(completion, "onboarding must not emit terminal results");
+            Assert.IsFalse(s.GetSliceCompletionSummary().GetBool("run_complete"));
+            Assert.IsTrue(s.GetSliceCompletionSummary().GetBool("home_objectives_complete"));
 
-            // After completion the per-frame systems stop; only world_time moves.
+            // Survival and saving continue after onboarding.
             double playTime = s.RunPlayTimeSeconds;
             TickSeconds(rig, 2.0);
-            Assert.AreEqual(playTime, s.RunPlayTimeSeconds, 1e-12);
-            Assert.IsFalse(rig.Storage.FileExists(SaveLoadService.SAVE_PATH), "completion deletes the current-run save");
+            Assert.AreEqual(playTime + 2.0, s.RunPlayTimeSeconds, 1e-12);
+            Assert.IsTrue(rig.Storage.FileExists(SaveLoadService.WORLD_SLOT_FILE), "onboarding checkpoints the ongoing world");
+            Assert.IsTrue(s.RequestSave());
+            Assert.IsTrue(s.RequestLoad());
+            Assert.IsTrue(s.HomeObjectivesComplete);
+            Assert.IsFalse(s.SliceComplete);
+            foreach (var objective in s.Interactables)
+            {
+                Assert.IsTrue(objective.Completed, "restored onboarding marker " + objective.InteractionId);
+                Assert.IsFalse(objective.Active);
+            }
+        }
+
+        [Test]
+        public void PartialJunctionRestorePreservesStepEligibilityWithoutReplayingCompletion()
+        {
+            var s = SessionHarness.CreateGolden().Session;
+            Assert.IsTrue(s.CompleteObjectiveSequence(1));
+            var first = s.SequenceInteractables[2][0];
+            first.SetValidationPlayerInRange(true);
+            Assert.IsTrue(first.TryInteract(first.GlobalPosition));
+            Assert.AreEqual(2, s.CurrentObjectiveSequence);
+            Assert.IsTrue(s.RequestSave());
+            int replayed = 0;
+            s.Events.TrackerCompleted += _ => replayed++;
+            Assert.IsTrue(s.RequestLoad());
+            var restored = s.SequenceInteractables[2];
+            Assert.IsTrue(restored[0].Completed);
+            Assert.IsFalse(restored[0].Active);
+            Assert.IsFalse(restored[0].TryInteract(restored[0].GlobalPosition));
+            Assert.IsFalse(restored[1].Completed);
+            Assert.IsTrue(restored[1].Active);
+            Assert.AreEqual(1, replayed, "only completed sequence 1 is replayed to the tracker, not junction completion/rewards");
+            Assert.IsTrue(s.CompleteObjectiveSequence(2));
+            Assert.AreEqual(3, s.CurrentObjectiveSequence);
+            Assert.AreEqual(2, s.ObjectiveCompletionCount);
         }
 
         [Test]

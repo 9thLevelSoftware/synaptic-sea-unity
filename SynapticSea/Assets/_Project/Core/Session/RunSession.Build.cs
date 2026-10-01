@@ -645,13 +645,15 @@ namespace SynapticSea.Core.Session
         void ActivateCurrentObjective()
         {
             foreach (ObjectiveInteractable it in Interactables)
-                it.SetActive(it.Sequence == CurrentObjectiveSequence);
+                it.SetActive(!it.Completed && it.Sequence == CurrentObjectiveSequence);
             Events.RaiseTrackerCurrentSequence(CurrentObjectiveSequence);
             GdDict progress = ObjectiveProgressState != null ? ObjectiveProgressState.GetStepProgress(CurrentObjectiveSequence) : new GdDict();
             Events.RaiseTrackerStepProgress(CurrentObjectiveSequence, progress);
             ObjectiveInteractable current = GetInteractableBySequence(CurrentObjectiveSequence);
             if (current != null)
                 Events.RaiseTrackerInteractionPrompt(current.PromptText);
+            else if (HomeObjectivesComplete)
+                Events.RaiseTrackerInteractionPrompt("Establish a safe home. Survey, salvage and repair derelicts.");
         }
     }
 }

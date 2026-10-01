@@ -103,17 +103,17 @@ namespace SynapticSea.Tests.Unity
         }
 
         [Test]
-        public void SliceCompleteReasonOpensExtractionResults()
+        public void OnboardingCompletionNeverOpensTerminalResults()
         {
             RunSession session = SessionHarness.CreateGolden().Session;
             using (var menus = new UiHarness())
             {
                 SessionUiBridge bridge = BindBridge(session, menus.Document);
-                // Objective completion emits reason=complete; the panel (and Godot) treats that as extraction.
+                // The former completion alias must not destroy a persistent life or show escape results.
                 session.EndRun("complete");
-                Assert.IsNotNull(bridge.Results, "slice complete opens RunResultsPanel");
-                Assert.AreEqual("extraction", bridge.Results.NormalizedOutcome());
-                StringAssert.Contains("Outcome: extraction", bridge.Results.BodyText);
+                Assert.IsNull(bridge.Results);
+                Assert.IsFalse(session.SliceComplete);
+                Assert.IsTrue(session.RequestSave());
             }
         }
 

@@ -19,7 +19,7 @@ namespace SynapticSea.UI
     public sealed class ObjectiveChip : VisualElement
     {
         public const string DefaultPrompt = "Approach the highlighted objective and press E.";
-        public const string CompletePrompt = "Slice complete. Extraction route found.";
+        public const string CompletePrompt = "Life ended.";
         public const string ControlsLine = "Controls: WASD or Arrows move / E or Enter or Space interact / F5 save / F9 load";
 
         GdArray _objectives = new GdArray();
@@ -117,7 +117,7 @@ namespace SynapticSea.UI
         {
             var lines = new List<string>
             {
-                "Synaptic Sea First Playable",
+                "The Synaptic Sea",
                 ControlsLine,
                 "Progress: " + GdString.FormatInt(_completed.Count) + "/" + GdString.FormatInt(_objectives.Count),
             };
@@ -126,7 +126,7 @@ namespace SynapticSea.UI
                 lines.Add("Systems:");
                 foreach (string line in _systemStatusLines) lines.Add("  " + line);
             }
-            lines.Add(_runComplete ? "Current: COMPLETE - Extraction route found" : "Current: " + CurrentObjectiveDisplay());
+            lines.Add(_runComplete ? "Current: LIFE ENDED" : "Current: " + CurrentObjectiveDisplay());
             lines.Add("Prompt: " + _interactionPrompt);
             return lines;
         }
@@ -140,11 +140,11 @@ namespace SynapticSea.UI
 
         void Refresh()
         {
-            _line.text = _runComplete ? "COMPLETE — Extraction route found" : CurrentObjectiveDisplay();
+            _line.text = _runComplete ? "LIFE ENDED" : CurrentObjectiveDisplay();
             _marker.text = _runComplete ? "✓" : "▶";
             _progress.text = GdString.FormatInt(_completed.Count) + "/" + GdString.FormatInt(_objectives.Count);
             UiFactory.SetShown(_progress, _objectives.Count > 0);
-            SeverityText.Apply(this, _runComplete ? Severity.Success : Severity.None);
+            SeverityText.Apply(this, _runComplete ? Severity.Caution : Severity.None);
         }
 
         public string CurrentObjectiveDisplay()
@@ -161,7 +161,8 @@ namespace SynapticSea.UI
                     label = label + " (" + GdString.FormatInt(completedSteps) + "/" + GdString.FormatInt(requiredSteps) + ")";
                 return GdString.FormatIntPadded(sequence, 2) + " " + label + " @ " + RoomDisplay(V.Str(objective.Get("room_id", "room")));
             }
-            return GdString.FormatIntPadded(_currentSequence, 2) + " Objective";
+            if (_objectives.Count > 0) return "Explore, repair and survive";
+            return "Establish a safe home";
         }
 
         /// <summary>REQ-011: kind "repair_junction" reads "Repair junction" although the type stays restore_systems.</summary>

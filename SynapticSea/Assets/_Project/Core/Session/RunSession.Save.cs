@@ -21,7 +21,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public long EndRun(string reason = "extraction")
         {
-            if (SliceComplete)
+            if (SliceComplete || reason == "complete" || reason == "completion")
                 return 0;
             SliceComplete = true;
             Events.RaiseTrackerRunComplete();
@@ -548,7 +548,16 @@ namespace SynapticSea.Core.Session
             BuildCraftingStations();
             BuildProductionStations();
             CurrentObjectiveSequence = Math.Max(1L, snapshot.CurrentObjectiveSequence);
+            // Restore presentation/eligibility without replaying rewards or completion events.
+            foreach (ObjectiveInteractable it in Interactables)
+            {
+                GdArray completedSteps = ObjectiveProgressState?.GetStepProgress(it.Sequence)
+                    .GetArrayOrEmpty("completed_step_ids") ?? new GdArray();
+                it.Completed = it.Sequence < CurrentObjectiveSequence
+                    || (it.IsStep && completedSteps.Contains(it.StepId));
+            }
             ActivateCurrentObjective();
+            RefreshHomeTrackerCompleted();
             RefreshWeaponHotbar();
             if (HasPlayer && snapshot.PlayerPosition.Count >= 3)
                 SetPlayerPosition(new Vec3(V.F64(snapshot.PlayerPosition[0]), V.F64(snapshot.PlayerPosition[1]), V.F64(snapshot.PlayerPosition[2])));

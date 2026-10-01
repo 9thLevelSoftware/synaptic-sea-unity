@@ -316,6 +316,26 @@ namespace SynapticSea.Tests.PlayMode
             for (int i = 0; i < 30; i++) yield return new WaitForFixedUpdate();
         }
 
+        IEnumerator WalkTo(SessionInteractable target, float radius = 1.2f)
+        {
+            // Docked controls are relocated onto connected standing space after portal carving.
+            // Resolve the live anchor after that bounded reconciliation, rather than walking to
+            // a copied pre-LateUpdate position after travel/Continue. All reach/LOS/path checks remain.
+            float deadline = Time.unscaledTime + 3f;
+            float stableSince = Time.unscaledTime;
+            Vec3 previous = target.GlobalPosition;
+            while (Time.unscaledTime - stableSince < 0.55f)
+            {
+                Assert.IsTrue(target.IsValid, "the live interaction survives dock reconciliation");
+                Assert.Less(Time.unscaledTime, deadline, "docked interaction anchor never settled: " + target.NodeName);
+                yield return new WaitForFixedUpdate();
+                Vec3 current = target.GlobalPosition;
+                if (current.DistanceSquaredTo(previous) > 0.0001)
+                { previous = current; stableSince = Time.unscaledTime; }
+            }
+            yield return WalkTo(target.GlobalPosition, radius);
+        }
+
         IEnumerator WalkTo(Vec3 target, float radius = 1.2f)
         {
             // A restored/rebuilt surface receives portal carving on the next navigation update.
@@ -521,12 +541,34 @@ namespace SynapticSea.Tests.PlayMode
                 if (seal == null) break;
                 yield return WalkAndFinishChannel(seal.GlobalPosition);
             }
+            for (int guard=0;guard<16&&!_s.HomeObjectivesComplete;guard++)
+            {
+                var objective=_s.Interactables.FirstOrDefault(o=>o.Active&&!o.Completed);
+                Assert.IsNotNull(objective,"an onboarding task remains");
+                int wantedDeck=objective.GlobalPosition.Y>3?1:0;
+                if((_boot.Host.SceneState.Player.GodotPosition.Y>3?1:0)!=wantedDeck)
+                {
+                    _s.RefreshDeckTransitions();var transfer=_s.DeckTransitions.First(d=>d.DestinationDeck==wantedDeck);
+                    yield return WalkTo(transfer.GlobalPosition,2.5f);_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+                    Assert.AreEqual(wantedDeck,_boot.Host.SceneState.Player.GodotPosition.Y>3?1:0,"real deck transfer reaches the onboarding task");
+                }
+                yield return WalkTo(objective.GlobalPosition);_boot.Host.SceneState.Player.RequestInteract();yield return null;
+            }
+            Assert.IsTrue(_s.HomeObjectivesComplete,"finish onboarding before departing");
+            Assert.IsFalse(_s.SliceComplete,"onboarding does not terminate this life");Assert.IsNull(_boot.Results);
+            earnedRepair=_s.PlayerProgression.GetSkillLevel("repair");
+            if(_boot.Host.SceneState.Player.GodotPosition.Y>3)
+            {
+                _s.RefreshDeckTransitions();var transfer=_s.DeckTransitions.First(d=>d.DestinationDeck==0);
+                yield return WalkTo(transfer.GlobalPosition,2.5f);_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+                Assert.Less(_boot.Host.SceneState.Player.GodotPosition.Y,1.6,"real deck transfer returns to the boat");
+            }
             float deadline = Time.realtimeSinceStartup + 30f;
             while (!_s.PropulsionExpandedState.CanPropel() && Time.realtimeSinceStartup < deadline && !_s.SliceComplete) yield return null;
             Assert.IsFalse(_s.SliceComplete, "natural repairs and seals are survivable");
             Assert.IsTrue(_s.PropulsionExpandedState.CanPropel());
             var bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
-            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            yield return WalkTo(bridge, 1.2f);
             _boot.Ui.Scanner.Open();
             var contacts = _s.Scan().GetArrayOrEmpty("markers");
             Assert.Greater(contacts.Count, 0, "repaired navigation sees contacts");
@@ -589,7 +631,7 @@ namespace SynapticSea.Tests.PlayMode
                 + "; player=" + _boot.Host.SceneState.Player.transform.position + "; target=" + awayLoot.GlobalPosition);
             CaptureGameCamera("natural-first-away.png");
             bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
-            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            yield return WalkTo(bridge, 1.2f);
             Assert.IsTrue(_s.TravelHome(), "return from the first expedition");
             for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
             Assert.IsFalse(_s.AwayFromStart);
@@ -597,6 +639,7 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(_s.RequestSave());
             yield return BootPlayable(RunLaunchRequest.ContinueWorld());
             Assert.IsFalse(_s.AwayFromStart);
+            Assert.IsTrue(_s.HomeObjectivesComplete,"onboarding state survives the first-away round trip and Continue");
             foreach (string id in needed) Assert.IsTrue(_s.ShipSystemsManager.IsOperational(id), id + " survives Continue");
             Assert.AreEqual(earnedRepair, _s.PlayerProgression.GetSkillLevel("repair"), "earned training survives Continue");
             Assert.AreEqual(1, _s.InventoryState.GetQuantity("portable_oxygen_pump"), "acquired pump survives Continue");
@@ -606,14 +649,14 @@ namespace SynapticSea.Tests.PlayMode
                 "normal death sweep removes the defeated encounter from the saved runtime");
             Assert.AreEqual("crowbar", _s.EquipmentState.GetEquipped("primary_hand"), "acquired combat tool survives Continue");
             bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
-            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            yield return WalkTo(bridge, 1.2f);
             Assert.IsTrue(_s.TravelToMarkerId(awayMarker).GetBool("success"), "revisit the saved wreck through guarded travel");
             for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
             Assert.IsFalse(_s.ThreatManager.Threats.Any(t => t.InstanceId == defeatedId), "defeated generated enemy does not respawn on actual saved-wreck restoration");
             bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
-            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            yield return WalkTo(bridge, 1.2f);
             Assert.IsTrue(_s.TravelHome());
-            Assert.IsFalse(_s.SliceComplete, "hub objective extraction remains available after returning");
+            Assert.IsFalse(_s.SliceComplete, "returning continues the existing life");
             // Scanner rows expose IDs and size, not the full saved marker seed. Resolve family
             // from the same in-range world markers, while requiring a selectable scanner row.
             var availableMarkers = _s.SynapticSeaWorld.MarkersInRange(_s.ScannerState.RangeRadius).ToDictionary(m=>m.MarkerId);
@@ -624,7 +667,7 @@ namespace SynapticSea.Tests.PlayMode
                     && PurposefulExpedition.CrossHull(candidate.SeedValue) == cargoFamily);
             Assert.IsNotNull(nextContact, "normal scanner exposes a new larger wreck after one onboarding round trip");
             bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
-            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            yield return WalkTo(bridge, 1.2f);
             string nextId = nextContact.GetString("marker_id");
             var nextTravel = _s.TravelToMarkerId(nextId);
             Assert.IsTrue(nextTravel.GetBool("success"), "normal subsequent scanner travel: " + GdJson.Stringify(nextTravel));
@@ -646,7 +689,7 @@ namespace SynapticSea.Tests.PlayMode
                 yield return ReviewPurposefulRooms();
             }
             bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
-            yield return WalkTo(bridge.GlobalPosition, 1.2f);
+            yield return WalkTo(bridge, 1.2f);
             Assert.IsTrue(_s.TravelHome(), "expanded expedition returns through existing travel checks");
             Debug.Log("[DepartureBeforeSave] "+GdJson.Stringify(_s.GetShipSystemsExpandedSummary()));
             Assert.IsTrue(_s.RequestSave()); yield return BootPlayable(RunLaunchRequest.ContinueWorld());
@@ -804,7 +847,7 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator WalkTheHubUseTheDeckConnectionLootSaveContinueAndExtract()
+        public IEnumerator WalkTheHubUseDeckLootSaveContinueAndKeepSurvivingAfterOnboarding()
         {
             yield return StartThroughTitle();
             _s.RefreshDeckTransitions();
@@ -840,7 +883,7 @@ namespace SynapticSea.Tests.PlayMode
             foreach (var id in openDoors)
                 Assert.IsTrue(_boot.Host.ShipHost.HomeLoader.View.GetAuthoredPortalNodes().First(p => p.portalId == id).isOpen, "Continue restores opened door " + id);
             Assert.IsTrue(_s.LootContainers.First(l => l.ContainerId == lootId).Searched, "loot state survives Continue");
-            for (int guard = 0; guard < 12 && !_s.SliceComplete; guard++)
+            for (int guard = 0; guard < 12 && !_s.HomeObjectivesComplete && !_s.SliceComplete; guard++)
             {
                 var objective = _s.Interactables.FirstOrDefault(o => o.Active && !o.Completed);
                 Assert.IsNotNull(objective, "an active objective remains");
@@ -848,12 +891,24 @@ namespace SynapticSea.Tests.PlayMode
                 _boot.Host.SceneState.Player.RequestInteract();
                 yield return null;
             }
-            Assert.IsTrue(_s.SliceComplete, "actual objective interactions end extraction");
-            Assert.AreEqual("extraction", _boot.Results.NormalizedOutcome());
-            using (var submit = NavigationSubmitEvent.GetPooled()) { submit.target = _boot.Results.ReturnButton; _boot.Results.ReturnButton.SendEvent(submit); }
-            yield return WaitForTitle(_ => { });
-            yield return StartThroughTitle();
-            Assert.AreEqual(0, _s.ObjectiveCompletionCount, "New Run starts fresh after extraction");
+            Assert.IsTrue(_s.HomeObjectivesComplete, "real walking/interactions complete onboarding");
+            Assert.IsFalse(_s.SliceComplete, "onboarding keeps the same life active");
+            Assert.IsNull(_boot.Results, "no terminal results or simulation pause");
+            double before = _s.WorldTime;
+            yield return FixedSteps(30);
+            Assert.Greater(_s.WorldTime,before,"survival continues after all home tasks");
+            Assert.IsTrue(_s.RequestSave());
+            yield return BootPlayable(RunLaunchRequest.ContinueWorld());
+            Assert.IsTrue(_s.HomeObjectivesComplete);
+            Assert.IsFalse(_s.SliceComplete);
+            Assert.IsNull(_boot.Results);
+            Assert.IsTrue(_s.LootContainers.First(l=>l.ContainerId==lootId).Searched,"persistent loot is retained after onboarding and Continue");
+            var restoredChip = _boot.HudDocument.GetComponent<HudRoot>().Objective;
+            StringAssert.Contains("survive", restoredChip.ChipText);
+            Assert.AreEqual("4/4", restoredChip.ProgressText, "Continue restores completed onboarding HUD history");
+            Assert.IsTrue(_s.Interactables.All(o => o.Completed && !o.Active), "completed markers stay completed after Continue");
+            yield return CaptureHud("persistent-home-onboarding-continue.png");
+
         }
 
         [UnityTest]
