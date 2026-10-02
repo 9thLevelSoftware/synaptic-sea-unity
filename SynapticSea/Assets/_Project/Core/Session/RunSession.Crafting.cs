@@ -222,6 +222,10 @@ namespace SynapticSea.Core.Session
                 st.RecipePickerRequested += OnRecipePickerRequested;
                 st.Parent = HomeShip.SceneRoot;
                 CraftingStations.Add(Spawn(st));
+                // Establish the real registered service's model before the paid owner captures it.
+                // GetOrCreate preserves an existing model; later reads never recreate a missing service.
+                if (PaidCraftingEnabled && st.IsValid && RootValid(HomeShip.SceneRoot) && ReferenceEquals(st.Parent, HomeShip.SceneRoot))
+                    CraftingState.GetOrCreateStation(kind);
             }
         }
 
@@ -465,7 +469,7 @@ namespace SynapticSea.Core.Session
         {
             if (FieldCraftingState == null || InventoryState == null)
                 return;
-            if (FieldCraftingState.IsCrafting())
+            if (FieldCraftingState.IsCrafting() && !PaidCraftingEnabled)
             {
                 OnCraftBlocked("field_crafting", "busy");
                 Log.Info("FIELD CRAFT BLOCKED reason=busy");
@@ -492,6 +496,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Explicit field craft for a chosen recipe (picker confirm + tests).</summary>
         public bool BeginFieldCraftRecipe(string recipeId)
         {
+            if (PaidCraftingEnabled) return RequestPaidCraft("field_crafting", recipeId).GetBool("ok");
             if (string.IsNullOrEmpty(recipeId) || FieldCraftingState == null || InventoryState == null)
                 return false;
             string componentReason = FieldCraftingState.RecipeBlockedReason(recipeId);
@@ -590,6 +595,7 @@ namespace SynapticSea.Core.Session
         /// <summary>REQ-CS-016/017/018: the picker confirm handler.</summary>
         public GdDict BeginCraftFromPicker(string stationKind, string recipeId)
         {
+            if (PaidCraftingEnabled && stationKind != "salvage" && stationKind != "hydroponics") return RequestPaidCraft(stationKind, recipeId);
             GdDict Result(bool ok, string reason) => new GdDict { { "ok", ok }, { "reason", reason }, { "recipe_id", recipeId } };
             if (string.IsNullOrEmpty(recipeId) || string.IsNullOrEmpty(stationKind))
             {
@@ -717,6 +723,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Advance the active station craft (+ field craft) by delta, depositing outputs (was <c>advance_crafting_for_validation</c>).</summary>
         public void AdvanceCrafting(double delta)
         {
+            if (PaidCraftingEnabled) { AdvancePaidCrafting(delta, "station"); AdvancePaidCrafting(delta, "field"); return; }
             if (CraftingState != null)
             {
                 string activeKind = CraftingState.GetActiveStationKind();

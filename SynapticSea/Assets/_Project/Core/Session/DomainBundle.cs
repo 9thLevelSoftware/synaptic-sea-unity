@@ -19,11 +19,21 @@ namespace SynapticSea.Core.Session
         }
         public GdDict GetSummary() => _summary.DeepCopy();
         public GdDict GetProjections() => _projections.DeepCopy();
+        internal long SchemaVersion => _summary.GetInt("schema_version");
+        // Read only the immutable published owner; never expose a mutable paid-state reference.
+        internal bool HasExecutablePaidChannel(string channel)
+        {
+            if (SchemaVersion != 3) return false;
+            foreach (object value in PaidCraftingState.State(_summary).GetDictOrEmpty("jobs").Values)
+                if (value is GdDict job && job.GetString("channel") == channel && job.GetString("input_state") == "paid" &&
+                    !PaidCraftingState.Terminal(job) && !job.GetBool("resume_required")) return true;
+            return false;
+        }
 
         // Preparation validates with a private prospective receipt. Published/imported bundles never use this seam.
         internal static bool TryCreatePreparation(GdDict summary, GdDict command, out DomainBundle bundle, out string reason)
         {
-            if (summary.GetInt("schema_version") != 2) return TryCreate(summary, out bundle, out reason);
+            if (summary.GetInt("schema_version") < 2) return TryCreate(summary, out bundle, out reason);
             GdDict validation = summary.DeepCopy();
             string id = "component_transfer:" + command.GetString("command_id");
             var effect = new GdDict { { "operation", command.Get("operation") }, { "instance_id", command.Get("instance_id") },
@@ -43,8 +53,9 @@ namespace SynapticSea.Core.Session
             bundle = null; reason = "invalid_summary";
             if (summary == null || !ItemInstanceState.IsSafeSnapshot(summary)) return false;
             GdDict owned = summary.DeepCopy();
-            if (!Integer(owned.Get("schema_version"), out long schema) || (schema != 1 && schema != 2) ||
+            if (!Integer(owned.Get("schema_version"), out long schema) || (schema != 1 && schema != 2 && schema != 3) ||
                 !Keys(owned, schema == 1 ? new[] { "schema_version", "revision", "registry", "holders", "machinery", "receipts" }
+                    : schema == 3 ? new[] { "schema_version", "revision", "registry", "holders", "machinery", "receipts", "physical_slots", "component_work", "participating_state", "command_sequence", "registered_owners", "domain_mode" }
                     : new[] { "schema_version", "revision", "registry", "holders", "machinery", "receipts", "physical_slots", "component_work", "participating_state", "command_sequence", "registered_owners" }) ||
                 !Integer(owned.Get("revision"), out long revision) ||
                 !(owned.Get("registry") is GdDict registry) || !(owned.Get("holders") is GdDict holders) ||
@@ -121,6 +132,11 @@ namespace SynapticSea.Core.Session
             foreach (object key in receipts.Keys)
             {
                 reason = "invalid_receipt";
+                if (schema == 3 && receipts[key] is GdDict craftReceipt && PaidCraftingState.IsOperation(craftReceipt.GetDictOrEmpty("result").GetString("operation")))
+                {
+                    if (!PaidCraftingState.ValidReceipt(craftReceipt, V.Str(key), revision) || !commands.Add(craftReceipt.GetString("command_id"))) return false;
+                    continue;
+                }
                 if (!Text(key) || !(receipts[key] is GdDict receipt) ||
                     !Keys(receipt, schema == 1 ? new[] { "schema_version", "transaction_id", "command_id", "revision", "result" }
                         : new[] { "schema_version", "transaction_id", "command_id", "commit_id", "revision", "result" }) ||
@@ -129,7 +145,7 @@ namespace SynapticSea.Core.Session
                     (string)key != "component_transfer:" + (string)receipt.Get("command_id") ||
                     !commands.Add((string)receipt.Get("command_id")) ||
                     !Integer(receipt.Get("revision"), out long committedRevision) || committedRevision == 0 || committedRevision > revision ||
-                    (schema == 2 && (!(receipt.Get("commit_id") is string commitId) || commitId != (string)key)) ||
+                    (schema >= 2 && (!(receipt.Get("commit_id") is string commitId) || commitId != (string)key)) ||
                     !(receipt.Get("result") is GdDict result) || !ValidResult(result)) return false;
             }
             var holderProjection = new GdDict();
@@ -148,7 +164,7 @@ namespace SynapticSea.Core.Session
                 machineProjection[machineId] = new GdDict { { "component_available", true },
                     { "effective_health", Math.Min(machinery.GetDictOrEmpty(machineId).GetFloat("health"), row.GetFloat("condition")) } };
             }
-            if (schema == 2)
+            if (schema >= 2)
             {
                 if (!(owned.Get("physical_slots") is GdDict slots) || !(owned.Get("component_work") is GdDict work) ||
                     !(owned.Get("participating_state") is GdDict participants) || !(owned.Get("registered_owners") is GdArray owners) ||
@@ -201,6 +217,11 @@ namespace SynapticSea.Core.Session
                     GdDict receipt = receipts.Get(commitId) as GdDict;
                     if (receipt == null || !seenTrainingReceipts.Add(commitId)) { reason = "invalid_component_training_receipt"; return false; }
                     GdDict effect = receipt.GetDictOrEmpty("result");
+                    if (schema == 3 && effect.GetString("operation") == "craft_complete")
+                    {
+                        if (!V.VariantEquals(record, effect.Get("training_record"))) { reason = "invalid_craft_training_receipt"; return false; }
+                        continue;
+                    }
                     string sourceKind = holders.GetDictOrEmpty(effect.GetString("source_holder_id")).GetString("kind");
                     string destinationKind = holders.GetDictOrEmpty(effect.GetString("destination_holder_id")).GetString("kind");
                     string action = sourceKind == "slot" ? "dismount_component" : destinationKind == "slot" ? "mount_component" : "";
@@ -209,6 +230,7 @@ namespace SynapticSea.Core.Session
                     { reason = "invalid_component_training_receipt"; return false; }
                 }
             }
+            if (schema == 3 && !PaidCraftingState.Validate(owned, out reason)) return false;
             bundle = new DomainBundle(owned, revision, new GdDict { { "holders", holderProjection }, { "machinery", machineProjection } });
             reason = "ok"; return true;
         }

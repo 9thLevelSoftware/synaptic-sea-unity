@@ -101,7 +101,7 @@ namespace SynapticSea.Core.Session
             if (!IsPlayerInDirectRangeStrict(playerPosition))
                 return false;
             // Single active craft: if one is already running, block with feedback and consume interact.
-            if (CraftingState.IsCrafting())
+            if (CraftingState.IsCrafting() && !CraftingState.HasPaidOwner)
             {
                 CraftBlocked?.Invoke(StationKind, "busy");
                 return true;

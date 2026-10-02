@@ -519,6 +519,7 @@ namespace SynapticSea.Core.Session
             Log.Info("PLAYABLE SHIP READY player_spawned=" + (HasPlayer ? "true" : "false") + " camera_spawned=" + (HasPlayer ? "true" : "false")
                      + " objectives=" + Interactables.Count + " collision_shapes=" + Loader.CountCollisionShapes());
             if (ComponentIntegrationEnabled && !ComponentGenerationRestoreInProgress) InitializeComponentIntegration();
+            if (PaidCraftingEnabled && !ComponentGenerationRestoreInProgress) InitializePaidCrafting();
             PlayableReady?.Invoke(GetPlayableSummary());
         }
 

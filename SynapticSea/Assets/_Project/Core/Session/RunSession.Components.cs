@@ -79,7 +79,7 @@ namespace SynapticSea.Core.Session
         {
             reason = "invalid_component_physical_layout";
             if (domain == null || layout == null || string.IsNullOrWhiteSpace(owner) ||
-                !(domain.Get("schema_version") is long schema) || schema != 2 ||
+                !(domain.Get("schema_version") is long schema) || (schema != 2 && schema != 3) ||
                 !domain.GetArrayOrEmpty("registered_owners").Contains(owner)) return false;
             var catalog = new ComponentCatalog();
             if (!catalog.LoadDefault()) { reason = "component_content_missing"; return false; }
@@ -234,6 +234,7 @@ namespace SynapticSea.Core.Session
 
         void RegisterNewComponentOwners()
         {
+            if (!ComponentIntegrationEnabled) return;
             if (_componentDomain == null || _componentMutating) return;
             GdDict before = _componentDomain.GetSummary(), candidate = before.DeepCopy();
             foreach (ShipInstance ship in AllKnownShips()) RegisterComponentShip(candidate, ship);
@@ -242,7 +243,7 @@ namespace SynapticSea.Core.Session
             if (!_componentDomain.ApplySummary(candidate)) throw new InvalidOperationException("component_owner_registration_failed");
         }
 
-        GdDict ReadComponentParticipants()
+        GdDict ReadComponentParticipants(GdDict detachedPaidState = null)
         {
             var stacks = new GdDict();
             foreach (ShipInstance ship in AllKnownShips())
@@ -250,10 +251,11 @@ namespace SynapticSea.Core.Session
                 stacks[CargoHolder(ship.ShipId)] = ship.GetInventory().GetSummary();
                 foreach (CartState cart in ship.GetCarts()) stacks[CartHolder(ship.ShipId, cart.CartId)] = cart.GetHold().GetSummary();
             }
-            return new GdDict { { "inventory", InventoryState?.GetSummary() ?? new GdDict() },
+            var participants = new GdDict { { "inventory", InventoryState?.GetSummary() ?? new GdDict() },
                 { "progression", PlayerProgression?.GetSummary() ?? new GdDict() }, { "training", TrainingEventBus?.ToDict() ?? new GdDict() },
                 { "crafting", CraftingState?.GetSummary() ?? new GdDict() }, { "field_crafting", FieldCraftingState?.GetSummary() ?? new GdDict() },
                 { "stacks", stacks } };
+            return PaidCraftingEnabled ? ReadPaidParticipants(participants, detachedPaidState) : participants;
         }
 
         void RefreshComponentParticipants()
@@ -261,7 +263,7 @@ namespace SynapticSea.Core.Session
             if (_componentMutating || _componentPublishing || _componentDomain == null) return;
             RegisterNewComponentOwners();
             GdDict before = _componentDomain.GetSummary(), candidate = before.DeepCopy();
-            candidate["participating_state"] = ReadComponentParticipants();
+            candidate["participating_state"] = ReadComponentParticipants(PaidCraftingEnabled ? PaidState(candidate) : null);
             foreach (ShipInstance ship in AllKnownShips())
             {
                 RefreshComponentCapacity(candidate, CargoHolder(ship.ShipId), ship.GetInventory().MaxWeight);
@@ -275,6 +277,7 @@ namespace SynapticSea.Core.Session
             if (V.VariantEquals(before, candidate)) return;
             candidate["revision"] = checked(before.GetInt("revision") + 1);
             if (!_componentDomain.ApplySummary(candidate)) throw new InvalidOperationException("component_capture_invalid");
+            if (PaidCraftingEnabled && RecipeKnowledge != null) RecipeKnowledge.ApplySummary(PaidState(candidate).GetDictOrEmpty("knowledge"));
         }
 
         public GdDict CaptureComponentDomain()
@@ -301,7 +304,7 @@ namespace SynapticSea.Core.Session
         {
             reason = "component_integration_inactive";
             if (!ComponentIntegrationEnabled) return false;
-            if (!DomainBundle.TryCreate(summary, out _, out reason) || summary.GetInt("schema_version") != 2) return false;
+            if (!DomainBundle.TryCreate(summary, out _, out reason) || (summary.GetInt("schema_version") != 2 && !(PaidCraftingEnabled && summary.GetInt("schema_version") == 3 && summary.GetString("domain_mode") == "components_and_craft"))) return false;
             foreach (GdDict row in Instances(summary).Values.OfType<GdDict>())
             {
                 if (row.GetString("condition_state") != "known") { reason = "legacy_resolution_required"; return false; }
@@ -334,6 +337,7 @@ namespace SynapticSea.Core.Session
 
         public bool RestoreComponentDomain(GdDict summary)
         {
+            if (PaidCraftingEnabled && summary?.GetInt("schema_version") == 3) return RestorePaidCraftingDomain(summary);
             if (_componentMutating || _componentPublishing || !ValidateComponentDomainRestore(summary, out _)) return false;
             GdDict candidate = summary.DeepCopy();
             GdDict work = candidate.GetDictOrEmpty("component_work");
@@ -356,7 +360,7 @@ namespace SynapticSea.Core.Session
 
         void BindComponentReadViews()
         {
-            if (_componentDomain == null) return;
+            if (_componentDomain == null || !ComponentIntegrationEnabled) return;
             if (CraftingState != null) CraftingState.RecipePreflight = ComponentRecipePreflight;
             if (FieldCraftingState != null) FieldCraftingState.RecipePreflight = ComponentRecipePreflight;
             if (InventoryState != null)
@@ -385,6 +389,7 @@ namespace SynapticSea.Core.Session
                 string machineId = machine.GetString("machinery_id");
                 sub.ComponentConditionCap = () => ComponentMachineCap(machineId);
             }
+            if (PaidCraftingEnabled && _componentDomain.GetSummary().GetInt("schema_version") == 3) BindPaidCraftingModels();
         }
 
         double ComponentMassFor(string holderId)
@@ -760,6 +765,7 @@ namespace SynapticSea.Core.Session
             string gate = ComponentWorkGate(job, domain);
             if (gate != "ok") { PauseComponentWork(gate); return; }
             GdDict command = TransferCommand(domain, job.GetString("instance_id"), job.GetString("destination_holder_id"), job.GetString("command_id"));
+            command["xp_multipliers"] = PlayerProgression.XpMultipliers.DeepCopy();
             GdDict result = ExecuteComponentCommand(command, candidate => {
                 candidate.GetDictOrEmpty("component_work")["status"] = "committed";
                 candidate.GetDictOrEmpty("component_work")["resume_required"] = false;
@@ -785,7 +791,11 @@ namespace SynapticSea.Core.Session
             var progression = new PlayerProgressionState();
             var classes = ClassDefinition.LoadAll(); classes.TryGetValue(PlayerProgression.ClassId, out ClassDefinition definition);
             progression.Configure(definition, PlayerProgressionState.LoadSkillsCatalog(), PlayerProgression.GetBooksCatalog());
-            progression.ApplySummary(participants.GetDictOrEmpty("progression"));
+            if (candidate.GetInt("schema_version") == 3)
+            {
+                if (!PaidCraftRewardProof.CopyProgressionExact(progression, participants.GetDictOrEmpty("progression"))) throw new ArgumentException("invalid_paid_progression");
+            }
+            else progression.ApplySummary(participants.GetDictOrEmpty("progression"));
             progression.XpMultipliers.Clear(); foreach (var entry in PlayerProgression.XpMultipliers) progression.XpMultipliers[entry.Key] = entry.Value;
             var emitter = new TrainingEventBus(); emitter.Configure(); emitter.ApplySummary(participants.GetDictOrEmpty("training"));
             emitter.SkillGate = TrainingEventBus.SkillGate; emitter.EventFilter = TrainingEventBus.EventFilter;
@@ -794,6 +804,7 @@ namespace SynapticSea.Core.Session
             if (record != null) recorded.RecordApplied(record, "component_transfer:" + job.GetString("command_id"));
             GdDict training = recorded.ToDict(); training["xp_total"] = emitter.GetTotalXpDelivered(); training["dropped"] = emitter.GetDroppedCount();
             participants["progression"] = progression.GetSummary(); participants["training"] = training;
+            if (PaidCraftingEnabled) PaidCraftRewardProof.RefreshCurrent(participants.GetDictOrEmpty("paid_crafting"), training);
         }
 
         GdDict ExecuteComponentCommand(GdDict command, Func<GdDict, GdDict> effects)
@@ -822,6 +833,10 @@ namespace SynapticSea.Core.Session
         {
             GdDict before = _componentDomain?.GetSummary();
             GdDict beforeParticipants = ReadComponentParticipants();
+            // Canonical capture intentionally ignores mutable legacy projections; rollback must retain their actual before-images.
+            GdDict rawCrafting = PaidCraftingEnabled ? CraftingState.GetSummary().DeepCopy() : null;
+            GdDict rawField = PaidCraftingEnabled ? FieldCraftingState.GetSummary().DeepCopy() : null;
+            GdDict rawKnowledge = RecipeKnowledge?.GetSummary().DeepCopy();
             GdDict beforeMultipliers = PlayerProgression?.XpMultipliers.DeepCopy() ?? new GdDict();
             GdDict nextMultipliers = beforeMultipliers.DeepCopy();
             string nextClass = candidate.GetDictOrEmpty("participating_state").GetDictOrEmpty("progression").GetString("class_id");
@@ -847,7 +862,8 @@ namespace SynapticSea.Core.Session
                 ComponentStageHook?.Invoke("live_inventory");
                 ComponentStageHook?.Invoke("live_machinery");
                 ComponentStageHook?.Invoke("live_placement");
-                if (_componentMutating) ValidateFinalComponentPublication(before, candidate);
+                if (_componentMutating && _paidPublicationContext != null) ValidateFinalPaidPublication(before);
+                else if (_componentMutating) ValidateFinalComponentPublication(before, candidate);
                 else if (!V.VariantEquals(beforeParticipants, ReadComponentParticipants())) throw new InvalidOperationException("stale_context");
                 foreach (var pair in beforeMachines) if (pair.Key.Health != pair.Value) throw new InvalidOperationException("stale_context");
                 // No hooks, notifications, gate/filter or resource calls between these assignments and coordinator publication.
@@ -861,6 +877,11 @@ namespace SynapticSea.Core.Session
                 if (writing)
                 {
                     ApplyComponentParticipants(beforeParticipants, beforeMultipliers);
+                    if (PaidCraftingEnabled)
+                    {
+                        CraftingState.ApplyOwnedSummary(rawCrafting); FieldCraftingState.ApplyOwnedSummary(rawField);
+                        if (rawKnowledge != null) RecipeKnowledge.ApplySummary(rawKnowledge);
+                    }
                     foreach (var item in beforeMachines) item.Key.Health = item.Value;
                     if (before != null) ProjectComponentPlacement(before);
                 }
@@ -917,6 +938,7 @@ namespace SynapticSea.Core.Session
                 PlayerProgression.XpMultipliers.Clear(); foreach (var entry in multipliers) PlayerProgression.XpMultipliers[entry.Key] = entry.Value;
             }
             if (TrainingEventBus != null) { TrainingEventBus.Reset(); if (!TrainingEventBus.ApplySummary(participants.GetDictOrEmpty("training"))) throw new InvalidOperationException("invalid_component_training"); }
+            if (PaidCraftingEnabled && participants.Has("paid_crafting")) ApplyPaidProjections(participants);
             foreach (var pair in participants.GetDictOrEmpty("stacks"))
             {
                 string holderId = V.Str(pair.Key);
@@ -930,6 +952,7 @@ namespace SynapticSea.Core.Session
 
         void ProjectComponentPlacement(GdDict domain)
         {
+            if (!ComponentIntegrationEnabled) return;
             foreach (ShipInstance ship in AllKnownShips())
             {
                 if (!domain.GetArrayOrEmpty("registered_owners").Contains(ship.ShipId)) continue;
@@ -963,6 +986,13 @@ namespace SynapticSea.Core.Session
         void NotifyComponentPublication(GdDict result)
         {
             BindComponentReadViews();
+            if (PaidCraftingState.IsOperation(result.GetDictOrEmpty("result").GetString("operation")))
+            {
+                // Core effects, including spoilage, are already applied before any fallible presentation callback.
+                NotifyPaidCraft(result);
+                ComponentDomainChanged?.Invoke(result.DeepCopy());
+                return;
+            }
             ComponentDomainChanged?.Invoke(result.DeepCopy());
             RebuildComponentMarkers(); RefreshStationTiersFromShipMod(); RecomputePlayerEncumbrance(); RefreshInventoryHud();
         }

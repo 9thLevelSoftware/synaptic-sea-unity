@@ -89,6 +89,8 @@ namespace SynapticSea.Core.Session
         public IRunUiState UiState;
         /// <summary>Explicit diagnostic admission; ordinary runs keep legacy crafting and save behavior.</summary>
         public bool EnableComponentIntegration = false;
+        /// <summary>Explicit paid-craft/full-generation composition, independent of equipment activation.</summary>
+        public bool EnablePaidCrafting = false;
         public GdDict SelectedSaveGeneration;
 
         // ---- the @export vars
