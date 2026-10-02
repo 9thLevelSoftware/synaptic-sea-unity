@@ -1,0 +1,1130 @@
+{
+  "scope": "Actual spatial station-tier listing/precheck/start and specific feedback; separate synthetic empty-anchor diagnostic",
+  "baseline": "a52a347b30c406e5beedd120f0ed7d46b49a5e97",
+  "bee_failure": {
+    "permissions_broadened": false,
+    "pre_discovery_attempt_is_not_test_pass": true,
+    "diagnosis_path": "artifacts/station-tier-2026-10-02/bee-diagnosis.json",
+    "preservation_path": "artifacts/station-tier-2026-10-02/cache-preservation.json",
+    "current_blocker": false,
+    "root_cause": "undetermined",
+    "overlapping_lane_Unity_launches": false
+  },
+  "not_run": [
+    "Full PlayMode suite",
+    "Standalone player build",
+    "Native OS input witness",
+    "Earned class/first-ship/book progression",
+    "Future authored production kit row and occupancy",
+    "Book/paid-input persistence or full generation/schema fault matrix",
+    "Long-term survival"
+  ],
+  "recorded_utc": "2026-10-02T08:17:07.1290621Z",
+  "review": {
+    "sha256": "368c0ee21a4819b2c0a164b14d72617c5e08b8ba193f1c198462566d05b44e46",
+    "package_sha256": "673af264a6b362688307b1c5c7b860ac07358b22b8c644aea90cf5f495f92c88",
+    "path": "artifacts/station-tier-2026-10-02/review.md",
+    "actual_diff_package": "artifacts/station-tier-2026-10-02/tier-final-review-package.md",
+    "approval": "No open P1/P2 or narrow commit blocker"
+  },
+  "final_scoped_source_matches_all_applicable_run_inventories": true,
+  "branch": "codex/foundation-bounded-2026-10-02",
+  "compatibility": {
+    "save_schema_changed": false,
+    "content_costs_tiers_skills_unchanged": true,
+    "migration_added": false
+  },
+  "executions": [
+    {
+      "arguments": null,
+      "assemblies": null,
+      "manifest_sha256": "6cabf94a814faa32512faa5dc87625981a81e1c1f85fd81c3d799a644a6f0254",
+      "skips": null,
+      "counts": {
+        "notExecuted": "0",
+        "passed": "0",
+        "total": "18",
+        "failed": "18"
+      },
+      "started_utc": "2026-10-02T07:30:03.6019628Z",
+      "failures": [
+        {
+          "name": "DuplicatePickerConfirmConsumesExactlyOneActualRecipe",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.DuplicatePickerConfirmConsumesExactlyOneActualRecipe() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 193\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.DuplicatePickerConfirmConsumesExactlyOneActualRecipe() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 193\r\n\n",
+          "message": "  Expected: True\r\n  But was:  False\r\n"
+        },
+        {
+          "name": "SufficientTierKeepsOtherExistingGatesVisible(\"output_full\")",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(String gate) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 124\r\n   at InvokeStub_StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(Object, Span`1)\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(String gate) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 124\r\n   at InvokeStub_StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(Object, Span`1)\r\n\n",
+          "message": "  Expected string length 11 but was 17. Strings differ at index 0.\r\n  Expected: \"output_full\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "ActualTierUpgradeAfterBlockedPreviewCanStartWithoutStaleRejection",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.ActualTierUpgradeAfterBlockedPreviewCanStartWithoutStaleRejection() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 183\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.ActualTierUpgradeAfterBlockedPreviewCanStartWithoutStaleRejection() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 183\r\n\n",
+          "message": "  begin_failed\r\n  Expected: True\r\n  But was:  False\r\n"
+        },
+        {
+          "name": "PreviewThenChangedGateRevalidatesBeforeAnyPayment(\"tier\",\"insufficient_tier\")",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\r\n  Expected: \"ready\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "BelowActualTierPreservesExactGateFeedbackWithoutPayment(\"craft_sensor_module\",0L)",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.BelowActualTierPreservesExactGateFeedbackWithoutPayment(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 101\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.BelowActualTierPreservesExactGateFeedbackWithoutPayment(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 101\r\n\n",
+          "message": "  Spatial precheck feedback\r\n  Expected string length 17 but was 19. Strings differ at index 0.\r\n  Expected: \"insufficient_tier\"\r\n  But was:  \"missing_ingredients\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "ActualStationFirstReadySelectionUsesItsTier",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.ActualStationFirstReadySelectionUsesItsTier() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 143\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.ActualStationFirstReadySelectionUsesItsTier() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 143\r\n\n",
+          "message": "  Expected string length 19 but was 0. Strings differ at index 0.\r\n  Expected: \"craft_sensor_module\"\r\n  But was:  <string.Empty>\r\n  -----------^\r\n"
+        },
+        {
+          "name": "ListingAndPrecheckShareExistingSkillBeforeTierBeforeInputsPriority",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.ListingAndPrecheckShareExistingSkillBeforeTierBeforeInputsPriority() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 136\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.ListingAndPrecheckShareExistingSkillBeforeTierBeforeInputsPriority() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 136\r\n\n",
+          "message": "  Spatial precheck feedback\r\n  Expected string length 18 but was 19. Strings differ at index 0.\r\n  Expected: \"insufficient_skill\"\r\n  But was:  \"missing_ingredients\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "ListingAndPrecheckUseEffectiveTierIncludingExistingLevel",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.ListingAndPrecheckUseEffectiveTierIncludingExistingLevel() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 110\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.ListingAndPrecheckUseEffectiveTierIncludingExistingLevel() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 110\r\n\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\r\n  Expected: \"ready\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "BusyListingAndBothStartPathsDoNotChargeAgain",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.BusyListingAndBothStartPathsDoNotChargeAgain() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 153\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.BusyListingAndBothStartPathsDoNotChargeAgain() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 153\r\n\n",
+          "message": "  Expected string length 4 but was 17. Strings differ at index 0.\r\n  Expected: \"busy\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "SufficientTierKeepsOtherExistingGatesVisible(\"insufficient_skill\")",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(String gate) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 126\r\n   at InvokeStub_StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(Object, Span`1)\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(String gate) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 126\r\n   at InvokeStub_StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(Object, Span`1)\r\n\n",
+          "message": "  Spatial precheck feedback\r\n  Expected string length 18 but was 19. Strings differ at index 0.\r\n  Expected: \"insufficient_skill\"\r\n  But was:  \"missing_ingredients\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "BelowActualTierPreservesExactGateFeedbackWithoutPayment(\"craft_thruster_nozzle\",1L)",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.BelowActualTierPreservesExactGateFeedbackWithoutPayment(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 101\r\n   at InvokeStub_StationTierCraftingTests.BelowActualTierPreservesExactGateFeedbackWithoutPayment(Object, Span`1)\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.AssertBlocked(RunSession session, String recipeId, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 72\r\n   at SynapticSea.Tests.Session.StationTierCraftingTests.BelowActualTierPreservesExactGateFeedbackWithoutPayment(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 101\r\n   at InvokeStub_StationTierCraftingTests.BelowActualTierPreservesExactGateFeedbackWithoutPayment(Object, Span`1)\r\n\n",
+          "message": "  Spatial precheck feedback\r\n  Expected string length 17 but was 19. Strings differ at index 0.\r\n  Expected: \"insufficient_tier\"\r\n  But was:  \"missing_ingredients\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "PreviewThenChangedGateRevalidatesBeforeAnyPayment(\"material\",\"missing_ingredients\")",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n   at InvokeStub_StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(Object, Span`1)\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n   at InvokeStub_StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(Object, Span`1)\r\n\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\r\n  Expected: \"ready\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "PreviewThenChangedGateRevalidatesBeforeAnyPayment(\"output\",\"output_full\")",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n   at InvokeStub_StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(Object, Span`1)\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n   at InvokeStub_StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(Object, Span`1)\r\n\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\r\n  Expected: \"ready\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "ActualTierListsAndStartsMatchingRecipe(\"craft_sensor_module\",1L)",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.ActualTierListsAndStartsMatchingRecipe(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 85\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.ActualTierListsAndStartsMatchingRecipe(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 85\r\n\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\r\n  Expected: \"ready\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "ActualRegistrationReportsTheTierForwardedToPrecheck",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.ActualRegistrationReportsTheTierForwardedToPrecheck() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 208\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.ActualRegistrationReportsTheTierForwardedToPrecheck() in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 208\r\n\n",
+          "message": "  Expected: 2\r\n  But was:  0\r\n"
+        },
+        {
+          "name": "SufficientTierKeepsOtherExistingGatesVisible(\"missing_ingredients\")",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(String gate) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 124\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.SufficientTierKeepsOtherExistingGatesVisible(String gate) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 124\r\n\n",
+          "message": "  Expected string length 19 but was 17. Strings differ at index 0.\r\n  Expected: \"missing_ingredients\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "PreviewThenChangedGateRevalidatesBeforeAnyPayment(\"skill\",\"insufficient_skill\")",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n   at InvokeStub_StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(Object, Span`1)\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(String change, String reason) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 166\r\n   at InvokeStub_StationTierCraftingTests.PreviewThenChangedGateRevalidatesBeforeAnyPayment(Object, Span`1)\r\n\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\r\n  Expected: \"ready\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        },
+        {
+          "name": "ActualTierListsAndStartsMatchingRecipe(\"craft_thruster_nozzle\",2L)",
+          "stack": "   at SynapticSea.Tests.Session.StationTierCraftingTests.ActualTierListsAndStartsMatchingRecipe(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 85\r\n   at InvokeStub_StationTierCraftingTests.ActualTierListsAndStartsMatchingRecipe(Object, Span`1)\r\n\n1)    at SynapticSea.Tests.Session.StationTierCraftingTests.ActualTierListsAndStartsMatchingRecipe(String recipeId, Int64 tier) in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditMode\\Session\\StationTierCraftingTests.cs:line 85\r\n   at InvokeStub_StationTierCraftingTests.ActualTierListsAndStartsMatchingRecipe(Object, Span`1)\r\n\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\r\n  Expected: \"ready\"\r\n  But was:  \"insufficient_tier\"\r\n  -----------^\r\n"
+        }
+      ],
+      "assembly_sha256": "387ff8dc77440e72a118d9e33b03b09d02e7cebab7e058b8d26e1c9bc972a58f",
+      "exit_code": 1,
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=tier-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-red",
+        "--filter",
+        "FullyQualifiedName~SynapticSea.Tests.Session.StationTierCraftingTests"
+      ],
+      "mode": null,
+      "phase": "tier-red",
+      "source_inventory_sha256": "8a6daa6201d59c839952aa309d8e8acde48a118709bf27d359d182b9f922b1bf",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-red/manifest.json",
+      "finished_utc": "2026-10-02T07:30:08.3667472Z",
+      "filter": "FullyQualifiedName~SynapticSea.Tests.Session.StationTierCraftingTests"
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-red\\tier-ui-red.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-red\\tier-ui-red.log",
+        "-testFilter",
+        "SynapticSea.Tests.Unity.StationTierRecipePickerTests"
+      ],
+      "assemblies": [
+        {
+          "sha256": "b0da9f3e7d532992249727cc7e619fee526118b1ac633ba9e1b81a82e21a1a64",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "11ebd384d729c8c5d8325b6288621155f4b481b1457130f30cd5828a82ff8932",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "ce4c11772f31ba1adf610f5c25fc079b3ddd73ef5558fcb20c642cdbd2fd506a",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "88eb7a5ab1c1eb178b421bcdfb905e4e54f867629ce1aa573915b8f36ed77196",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "cfafc098aff1951a6262619831068f71da45162b219124aa0919df72e4a7199b",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "61d0c0b9fb128dda46b89d876d3b4d8b9a4fe346b9076064ec65085e28b3ef0c",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "5fc36a6dc4a505395c0e5685a193d824011350d24db466ad4af998976c665bba",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "d7eab18b68a3478e65d116f26d7bfaff9a4b89d4893bb2f6a773f482093458fa",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "257342af2927e2efb6928a532dcfbd488259c8b9c17e57b51d6ed82f687ba236",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "9dcc688b38f530f496db70c315d0bfaea92229118514de4047a8efef781c0131",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "manifest_sha256": "2daaef3cadb6fd9a1ec51d6939abb1e1d760269b0347ea1adff80a3736042790",
+      "skips": [],
+      "counts": {
+        "total": "7",
+        "failed": "6",
+        "skipped": "0",
+        "passed": "1",
+        "inconclusive": "0"
+      },
+      "started_utc": "2026-10-02T07:30:09.7638986Z",
+      "failures": [
+        {
+          "stack": "at NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual, System.String message, System.Object[] args) [0x00008] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual) [0x00001] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce (System.String recipeId, System.Int64 tier) [0x00017] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:36\n",
+          "message": "  Expected: String containing \"Status: Ready\"\n  But was:  \"Calibrate Sensor Module\nStatus: Station tier too low\nSkill required 3\nInputs:\n  sensor_array ×1\n  optical_lens ×1\n  circuit_board ×1\nOutput: sensor_module ×1\nTime 45 s\"\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce(\"craft_sensor_module\",1L)"
+        },
+        {
+          "stack": "at NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual, System.String message, System.Object[] args) [0x00008] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual) [0x00001] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce (System.String recipeId, System.Int64 tier) [0x00017] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:36\n",
+          "message": "  Expected: String containing \"Status: Ready\"\n  But was:  \"Machine Thruster Nozzle\nStatus: Station tier too low\nSkill required 4\nInputs:\n  titanium_ingot ×2\n  ceramic_plate ×2\n  coolant_fluid ×1\nOutput: thruster_nozzle ×1\nTime 60 s\"\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce(\"craft_thruster_nozzle\",2L)"
+        },
+        {
+          "stack": "at NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual, System.String message, System.Object[] args) [0x00008] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual) [0x00001] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerShowsBusyWithoutOfferingAnotherPayment () [0x0003d] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:103\n",
+          "message": "  Expected: String containing \"Status: busy\"\n  But was:  \"Machine Thruster Nozzle\nStatus: Station tier too low\nSkill required 4\nInputs:\n  titanium_ingot ×2\n  ceramic_plate ×2\n  coolant_fluid ×1\nOutput: thruster_nozzle ×1\nTime 60 s\"\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerShowsBusyWithoutOfferingAnotherPayment"
+        },
+        {
+          "stack": "at NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual, System.String message, System.Object[] args) [0x00008] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual) [0x00001] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerShowsChangedGateAtConfirm (System.String change, System.String reason, System.String visibleReason) [0x0001e] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:52\n",
+          "message": "  Expected: String containing \"Status: Ready\"\n  But was:  \"Machine Thruster Nozzle\nStatus: Station tier too low\nSkill required 4\nInputs:\n  titanium_ingot ×2\n  ceramic_plate ×2\n  coolant_fluid ×1\nOutput: thruster_nozzle ×1\nTime 60 s\"\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerShowsChangedGateAtConfirm(\"tier\",\"insufficient_tier\",\"Station tier too low\")"
+        },
+        {
+          "stack": "at NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual, System.String message, System.Object[] args) [0x00008] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat NUnit.Framework.StringAssert.Contains (System.String expected, System.String actual) [0x00001] in <8b63e8ac0a4746599ed207982825ae6c>:0\nat SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerShowsChangedGateAtConfirm (System.String change, System.String reason, System.String visibleReason) [0x0001e] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:52\n",
+          "message": "  Expected: String containing \"Status: Ready\"\n  But was:  \"Machine Thruster Nozzle\nStatus: Station tier too low\nSkill required 4\nInputs:\n  titanium_ingot ×2\n  ceramic_plate ×2\n  coolant_fluid ×1\nOutput: thruster_nozzle ×1\nTime 60 s\"\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerShowsChangedGateAtConfirm(\"material\",\"missing_ingredients\",\"Missing ingredients\")"
+        },
+        {
+          "stack": "at SynapticSea.Tests.Unity.StationTierRecipePickerTests.FallbackPickerHostUsesActualTierAndRevalidatesAChangedTier () [0x0004d] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:87\n",
+          "message": "  Expected string length 5 but was 17. Strings differ at index 0.\n  Expected: \"ready\"\n  But was:  \"insufficient_tier\"\n  -----------^\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.FallbackPickerHostUsesActualTierAndRevalidatesAChangedTier"
+        }
+      ],
+      "assembly_sha256": null,
+      "exit_code": 2,
+      "command": null,
+      "mode": "EditMode",
+      "phase": "tier-ui-red",
+      "source_inventory_sha256": "7e3ec368c2ff9262b827e29b2a03bd823ca78eb043ab8468575d21fe619de8b6",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-ui-red/manifest.json",
+      "finished_utc": "2026-10-02T07:31:14.6371306Z",
+      "filter": "SynapticSea.Tests.Unity.StationTierRecipePickerTests"
+    },
+    {
+      "arguments": null,
+      "assemblies": null,
+      "manifest_sha256": "6237ea8bf746c095991ca03b7699b9437165235d412092ce20136d95ce36f6d4",
+      "skips": null,
+      "counts": {
+        "failed": "0",
+        "total": "94",
+        "passed": "94",
+        "notExecuted": "0"
+      },
+      "started_utc": "2026-10-02T07:37:40.9022923Z",
+      "failures": [],
+      "assembly_sha256": "e027d49ef6f98193bf51299e84d3fbe1826f4f9f39d14b76f2d8260fe49f7b06",
+      "exit_code": 0,
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=tier-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-green",
+        "--filter",
+        "FullyQualifiedName~SynapticSea.Tests.Session.StationTierCraftingTests|FullyQualifiedName~SynapticSea.Tests.Systems.CraftingStateTests|FullyQualifiedName~SynapticSea.Tests.Systems.CatalogSourceValidatorTests|FullyQualifiedName~SynapticSea.Tests.Systems.FieldCraftingStateTests|FullyQualifiedName~SynapticSea.Tests.Session.InteractablesTests|FullyQualifiedName~SynapticSea.Tests.Session.StationPlacerTests"
+      ],
+      "mode": null,
+      "phase": "tier-green",
+      "source_inventory_sha256": "04fd8e782772a26998992dfd00dd95ba155dd27529ed040491af92ccbb49b832",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-green/manifest.json",
+      "finished_utc": "2026-10-02T07:37:46.25941Z",
+      "filter": "FullyQualifiedName~SynapticSea.Tests.Session.StationTierCraftingTests|FullyQualifiedName~SynapticSea.Tests.Systems.CraftingStateTests|FullyQualifiedName~SynapticSea.Tests.Systems.CatalogSourceValidatorTests|FullyQualifiedName~SynapticSea.Tests.Systems.FieldCraftingStateTests|FullyQualifiedName~SynapticSea.Tests.Session.InteractablesTests|FullyQualifiedName~SynapticSea.Tests.Session.StationPlacerTests"
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-green\\tier-ui-green.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-green\\tier-ui-green.log",
+        "-testFilter",
+        "SynapticSea.Tests.Unity.StationTierRecipePickerTests;SynapticSea.Tests.Unity.InspectionPanelTests"
+      ],
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "773278e95378bfcc7300791a6c2a2e27838398851b53fed5ad532367313928fe"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "7849fda85a3847b393b2eeb7b69756e24deb12829b69dc9ee2c5eb071df17d45"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "0b5751c55d36ef444a74e74534fbbc4db2188e43e3636d19874427075c47fa36"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "2c51624ade33ba6bded9efcda251c3cb16b806033b3bdfdf669471ff88864456"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "58e6dcd2fdafca00eeb3ef46eb83cf0f2ba572e286c40b5fdf3c54096d7c8083"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "10464743903ae0dcbf8913368625b540bff75252a706df360b4a74715e4283a4"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "6ff8f4d65a3b9339b8a6d4e0abc79adf3bf59ac324f8059f020ec1fb9118f56a"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "7951c3e74f1ce2c8fb82936dff2f876c4a5cfcba033f886902dbcd8bc361f772"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "fed3a0a30312abdc2fad0aac5be057952d2950abee3a7a0b190004804318a9a3"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "773cde8b32a6d6f55faff33307b19bfbce11eb5a17e48ec3be9f614667842882"
+        }
+      ],
+      "manifest_sha256": "2b90184dbad0dfdba2ac6b2d0b96fd54e3a4c2431b70ab28a98638b0d23196c4",
+      "skips": null,
+      "counts": null,
+      "started_utc": "2026-10-02T07:37:46.7106801Z",
+      "failures": null,
+      "assembly_sha256": null,
+      "exit_code": 1,
+      "command": null,
+      "mode": "EditMode",
+      "phase": "tier-ui-green",
+      "source_inventory_sha256": "6168864f92796eb02fc871b63759b6407ae108785cdedce6b7f608316e6f2fb8",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-ui-green/manifest.json",
+      "finished_utc": "2026-10-02T07:37:58.9330892Z",
+      "filter": "SynapticSea.Tests.Unity.StationTierRecipePickerTests;SynapticSea.Tests.Unity.InspectionPanelTests"
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-green-2\\tier-ui-green-2.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-green-2\\tier-ui-green-2.log",
+        "-testFilter",
+        "SynapticSea.Tests.Unity.StationTierRecipePickerTests;SynapticSea.Tests.Unity.InspectionPanelTests"
+      ],
+      "assemblies": [
+        {
+          "sha256": "773278e95378bfcc7300791a6c2a2e27838398851b53fed5ad532367313928fe",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "7849fda85a3847b393b2eeb7b69756e24deb12829b69dc9ee2c5eb071df17d45",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "0b5751c55d36ef444a74e74534fbbc4db2188e43e3636d19874427075c47fa36",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "2c51624ade33ba6bded9efcda251c3cb16b806033b3bdfdf669471ff88864456",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "58e6dcd2fdafca00eeb3ef46eb83cf0f2ba572e286c40b5fdf3c54096d7c8083",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "10464743903ae0dcbf8913368625b540bff75252a706df360b4a74715e4283a4",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "6ff8f4d65a3b9339b8a6d4e0abc79adf3bf59ac324f8059f020ec1fb9118f56a",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "7951c3e74f1ce2c8fb82936dff2f876c4a5cfcba033f886902dbcd8bc361f772",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "fed3a0a30312abdc2fad0aac5be057952d2950abee3a7a0b190004804318a9a3",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "773cde8b32a6d6f55faff33307b19bfbce11eb5a17e48ec3be9f614667842882",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "manifest_sha256": "bef832a6538ff6e78e7fdfda3ecd58a4aedd663426cd63f57e362ff68c3f64e5",
+      "skips": [],
+      "counts": {
+        "failed": "2",
+        "skipped": "0",
+        "total": "16",
+        "inconclusive": "0",
+        "passed": "14"
+      },
+      "started_utc": "2026-10-02T07:47:26.9239631Z",
+      "failures": [
+        {
+          "stack": "at SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce (System.String recipeId, System.Int64 tier) [0x00060] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:41\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce(\"craft_sensor_module\",1L)",
+          "message": "  Expected string length 4 but was 8. Strings differ at index 1.\n  Expected: \"busy\"\n  But was:  \"bad_args\"\n  ------------^\n"
+        },
+        {
+          "stack": "at SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce (System.String recipeId, System.Int64 tier) [0x00060] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\EditModeUnity\\StationTierRecipePickerTests.cs:41\n",
+          "name": "SynapticSea.Tests.Unity.StationTierRecipePickerTests.ActualSessionPickerDisplaysTierReadyAndDuplicateConfirmChargesOnce(\"craft_thruster_nozzle\",2L)",
+          "message": "  Expected string length 4 but was 8. Strings differ at index 1.\n  Expected: \"busy\"\n  But was:  \"bad_args\"\n  ------------^\n"
+        }
+      ],
+      "assembly_sha256": null,
+      "exit_code": 2,
+      "command": null,
+      "mode": "EditMode",
+      "phase": "tier-ui-green-2",
+      "source_inventory_sha256": "6168864f92796eb02fc871b63759b6407ae108785cdedce6b7f608316e6f2fb8",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-ui-green-2/manifest.json",
+      "finished_utc": "2026-10-02T07:47:51.4769318Z",
+      "filter": "SynapticSea.Tests.Unity.StationTierRecipePickerTests;SynapticSea.Tests.Unity.InspectionPanelTests"
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-green-3\\tier-ui-green-3.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-ui-green-3\\tier-ui-green-3.log",
+        "-testFilter",
+        "SynapticSea.Tests.Unity.StationTierRecipePickerTests;SynapticSea.Tests.Unity.InspectionPanelTests"
+      ],
+      "assemblies": [
+        {
+          "sha256": "773278e95378bfcc7300791a6c2a2e27838398851b53fed5ad532367313928fe",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "7849fda85a3847b393b2eeb7b69756e24deb12829b69dc9ee2c5eb071df17d45",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "0b5751c55d36ef444a74e74534fbbc4db2188e43e3636d19874427075c47fa36",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "2c51624ade33ba6bded9efcda251c3cb16b806033b3bdfdf669471ff88864456",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "58e6dcd2fdafca00eeb3ef46eb83cf0f2ba572e286c40b5fdf3c54096d7c8083",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "10464743903ae0dcbf8913368625b540bff75252a706df360b4a74715e4283a4",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "1bf1f11004a006a5de590f4f5d3a21aa8324fb79360ac52146c228131a9f7830",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "7951c3e74f1ce2c8fb82936dff2f876c4a5cfcba033f886902dbcd8bc361f772",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "fed3a0a30312abdc2fad0aac5be057952d2950abee3a7a0b190004804318a9a3",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "773cde8b32a6d6f55faff33307b19bfbce11eb5a17e48ec3be9f614667842882",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "manifest_sha256": "d925b5600e0ae8d12845fe10132993b38a8e62454f00802e29610dca5e9257b0",
+      "skips": [],
+      "counts": {
+        "total": "16",
+        "passed": "16",
+        "failed": "0",
+        "skipped": "0",
+        "inconclusive": "0"
+      },
+      "started_utc": "2026-10-02T07:49:58.9897707Z",
+      "failures": [],
+      "assembly_sha256": null,
+      "exit_code": 0,
+      "command": null,
+      "mode": "EditMode",
+      "phase": "tier-ui-green-3",
+      "source_inventory_sha256": "be8c006d699a8126694e21e9eb1641f0a94350c626ef75121de636aa998be218",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-ui-green-3/manifest.json",
+      "finished_utc": "2026-10-02T07:50:14.0925404Z",
+      "filter": "SynapticSea.Tests.Unity.StationTierRecipePickerTests;SynapticSea.Tests.Unity.InspectionPanelTests"
+    },
+    {
+      "arguments": null,
+      "assemblies": null,
+      "manifest_sha256": "b77e2797f9683d497820636b1d78167addb2b3ebe1500e9748058f9fcd7a5c01",
+      "skips": null,
+      "counts": {
+        "total": "937",
+        "notExecuted": "0",
+        "passed": "937",
+        "failed": "0"
+      },
+      "started_utc": "2026-10-02T07:53:18.1480301Z",
+      "failures": [],
+      "assembly_sha256": "e027d49ef6f98193bf51299e84d3fbe1826f4f9f39d14b76f2d8260fe49f7b06",
+      "exit_code": 0,
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=tier-core-final.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-core-final"
+      ],
+      "mode": null,
+      "phase": "tier-core-final",
+      "source_inventory_sha256": "2519e64e5a403045911de70a228825a07f9a02b7b5d56f3f794d1ce4e7862020",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-core-final/manifest.json",
+      "finished_utc": "2026-10-02T07:54:29.4336254Z",
+      "filter": ""
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-edit-final\\tier-edit-final.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-edit-final\\tier-edit-final.log"
+      ],
+      "assemblies": [
+        {
+          "sha256": "773278e95378bfcc7300791a6c2a2e27838398851b53fed5ad532367313928fe",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "7849fda85a3847b393b2eeb7b69756e24deb12829b69dc9ee2c5eb071df17d45",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "0b5751c55d36ef444a74e74534fbbc4db2188e43e3636d19874427075c47fa36",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "2c51624ade33ba6bded9efcda251c3cb16b806033b3bdfdf669471ff88864456",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "58e6dcd2fdafca00eeb3ef46eb83cf0f2ba572e286c40b5fdf3c54096d7c8083",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "10464743903ae0dcbf8913368625b540bff75252a706df360b4a74715e4283a4",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "1bf1f11004a006a5de590f4f5d3a21aa8324fb79360ac52146c228131a9f7830",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "ba57d41aa26eb3cd1c0522500b850af0174f78ded729b2e03faa00c59d921921",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "fed3a0a30312abdc2fad0aac5be057952d2950abee3a7a0b190004804318a9a3",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "773cde8b32a6d6f55faff33307b19bfbce11eb5a17e48ec3be9f614667842882",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "manifest_sha256": "ccdba3df2492cfc1cffa603c613693bd6d54f340a6f0bd4997c2a312793cdefa",
+      "skips": [
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.AllSkeletonBindAndMotionImportsReportNoProblems"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.AnimatorDrivesBonesFromController"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.BindPosePlacesEveryMeshOnItsSnapFrame"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.ClipsHaveNoHorizontalRootMotion"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.CollisionUsesNeutralPoseAndAnimationBoundsCoverBindAndNeutral"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.ConnectorBendsWithTheChildBranch"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.CreaturesRunAtTheirOwnRunSpeed"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.DraftCandidateLibraryIsRejectedByRuntimeDefault"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.DraggerHandsHoldThroughInstantTurns"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.EveryPartAndConnectorKeepsOneRendererAndAtMostTwoMaterials"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.EveryPoolAssemblesHundredSeedsWithinBudget"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.FrameProbeSnapsCoincideWithBranchRootBones"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.GaitPhaseDrivesTheLocomotionOverlayClock"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.ImportReportsNoProblems"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.RuntimeLegsPlantFeetAtGameSpeed"
+        },
+        {
+          "reason": "binding connector fixture is not available",
+          "name": "CritterCrafter.Tests.PrototypeImportTests.AsymmetricConnectorImportsAsOneNormalizedTwoBoneTwoMaterialRenderer"
+        },
+        {
+          "reason": "Set CRITTER_PROTOTYPE_FBX and CRITTER_PROTOTYPE_CATALOG to run the export probe.",
+          "name": "CritterCrafter.Tests.PrototypeImportTests.ExportedSkeletonMatchesCatalogBindAndSocketFrames"
+        }
+      ],
+      "counts": {
+        "skipped": "17",
+        "total": "1246",
+        "inconclusive": "0",
+        "failed": "0",
+        "passed": "1229"
+      },
+      "started_utc": "2026-10-02T07:53:41.6359457Z",
+      "failures": [],
+      "assembly_sha256": null,
+      "exit_code": 0,
+      "command": null,
+      "mode": "EditMode",
+      "phase": "tier-edit-final",
+      "source_inventory_sha256": "be8c006d699a8126694e21e9eb1641f0a94350c626ef75121de636aa998be218",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-edit-final/manifest.json",
+      "finished_utc": "2026-10-02T07:55:46.0607267Z",
+      "filter": ""
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\anchor-probe-1\\anchor-probe-1.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\anchor-probe-1\\anchor-probe-1.log",
+        "-testFilter",
+        "SynapticSea.Tests.PlayMode.HomeServiceAnchorDiagnosticPlayModeTests.ProposedMaintenanceAnchorHasUnforcedNewRunRouteAndNormalFocus"
+      ],
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "773278e95378bfcc7300791a6c2a2e27838398851b53fed5ad532367313928fe"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "7849fda85a3847b393b2eeb7b69756e24deb12829b69dc9ee2c5eb071df17d45"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "0b5751c55d36ef444a74e74534fbbc4db2188e43e3636d19874427075c47fa36"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "2c51624ade33ba6bded9efcda251c3cb16b806033b3bdfdf669471ff88864456"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "58e6dcd2fdafca00eeb3ef46eb83cf0f2ba572e286c40b5fdf3c54096d7c8083"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "10464743903ae0dcbf8913368625b540bff75252a706df360b4a74715e4283a4"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "1bf1f11004a006a5de590f4f5d3a21aa8324fb79360ac52146c228131a9f7830"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "8ce18ed6851cbd49023242c0f18c18863c8a58afd1c14c7be118868f0431dd74"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "fed3a0a30312abdc2fad0aac5be057952d2950abee3a7a0b190004804318a9a3"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "773cde8b32a6d6f55faff33307b19bfbce11eb5a17e48ec3be9f614667842882"
+        }
+      ],
+      "manifest_sha256": "2f66c3b5ca03c10a8ccaeef194349a37e35b052a7304aa279351c192dfd9dada",
+      "skips": [],
+      "counts": {
+        "failed": "1",
+        "total": "1",
+        "passed": "0",
+        "skipped": "0",
+        "inconclusive": "0"
+      },
+      "started_utc": "2026-10-02T07:50:52.5679641Z",
+      "failures": [
+        {
+          "name": "SynapticSea.Tests.PlayMode.HomeServiceAnchorDiagnosticPlayModeTests.ProposedMaintenanceAnchorHasUnforcedNewRunRouteAndNormalFocus",
+          "message": "  lower_deck_to_normal_up_landing exact bounded target sample\n  Expected: True\n  But was:  False\n",
+          "stack": "at SynapticSea.Tests.PlayMode.HomeServiceAnchorDiagnosticPlayModeTests+<ProbeSegmentThenTeleport>d__31.MoveNext () [0x000c7] in F:\\tmp\\synaptic-sea-playable\\SynapticSea\\Assets\\_Project\\Tests\\PlayMode\\HomeServiceAnchorDiagnosticPlayModeTests.cs:271\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in .\\Library\\PackageCache\\com.unity.test-framework@7a3849e09bd0\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:52\n"
+        }
+      ],
+      "assembly_sha256": null,
+      "exit_code": 2,
+      "command": null,
+      "mode": "PlayMode",
+      "phase": "anchor-probe-1",
+      "source_inventory_sha256": "970fc72268f1c6830263e5d03300d3fe5ca6326cd327b6414fdbf00120b7283b",
+      "manifest_path": "artifacts/station-tier-2026-10-02/anchor-probe-1/manifest.json",
+      "finished_utc": "2026-10-02T07:51:17.8107234Z",
+      "filter": "SynapticSea.Tests.PlayMode.HomeServiceAnchorDiagnosticPlayModeTests.ProposedMaintenanceAnchorHasUnforcedNewRunRouteAndNormalFocus"
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\anchor-probe-2\\anchor-probe-2.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\anchor-probe-2\\anchor-probe-2.log",
+        "-testFilter",
+        "SynapticSea.Tests.PlayMode.HomeServiceAnchorDiagnosticPlayModeTests.ProposedMaintenanceAnchorHasUnforcedNewRunRouteAndNormalFocus"
+      ],
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "773278e95378bfcc7300791a6c2a2e27838398851b53fed5ad532367313928fe"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "7849fda85a3847b393b2eeb7b69756e24deb12829b69dc9ee2c5eb071df17d45"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "0b5751c55d36ef444a74e74534fbbc4db2188e43e3636d19874427075c47fa36"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "2c51624ade33ba6bded9efcda251c3cb16b806033b3bdfdf669471ff88864456"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "58e6dcd2fdafca00eeb3ef46eb83cf0f2ba572e286c40b5fdf3c54096d7c8083"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "10464743903ae0dcbf8913368625b540bff75252a706df360b4a74715e4283a4"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "1bf1f11004a006a5de590f4f5d3a21aa8324fb79360ac52146c228131a9f7830"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "c7a805b6cbec77d13ba5ae111a36493a8b2c53f8bc9350a5408a69ca52257c09"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "fed3a0a30312abdc2fad0aac5be057952d2950abee3a7a0b190004804318a9a3"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "773cde8b32a6d6f55faff33307b19bfbce11eb5a17e48ec3be9f614667842882"
+        }
+      ],
+      "manifest_sha256": "05d40e8440742dd31f7c6405b400fc3ae9c935d6554f99c0237404582b9bc855",
+      "skips": [],
+      "counts": {
+        "inconclusive": "0",
+        "total": "1",
+        "failed": "0",
+        "skipped": "0",
+        "passed": "1"
+      },
+      "started_utc": "2026-10-02T08:00:08.9420311Z",
+      "failures": [],
+      "assembly_sha256": null,
+      "exit_code": 0,
+      "command": null,
+      "mode": "PlayMode",
+      "phase": "anchor-probe-2",
+      "source_inventory_sha256": "f4f71f8f5d32f5ac6592b37d644d794c128b20007339ce43393e0fe4c6703be7",
+      "manifest_path": "artifacts/station-tier-2026-10-02/anchor-probe-2/manifest.json",
+      "finished_utc": "2026-10-02T08:00:36.3240175Z",
+      "filter": "SynapticSea.Tests.PlayMode.HomeServiceAnchorDiagnosticPlayModeTests.ProposedMaintenanceAnchorHasUnforcedNewRunRouteAndNormalFocus"
+    },
+    {
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-play-final\\tier-play-final.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\station-tier-2026-10-02\\tier-play-final\\tier-play-final.log",
+        "-testFilter",
+        "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests|SynapticSea.Tests.PlayMode.RunLifecyclePlayModeTests\\.(NewRunBootsTheMilestoneAHubAndDocksTheLifeboat|NonSliceNewRunFailsClosedAndReturnsToTitle|ContinueReloadsTheHubRun|ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub|DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun|ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun|BootFailureReturnsToTitleWithTheError|FailedContinueReturnsToTitleInsteadOfAFreshRun|FailedSlotLoadReturnsToTitleWithTheError)$|SynapticSea.Tests.PlayMode.FrontEndPlayModeTests\\.(BootLoadsTitleWithoutErrors|ContinueIsDisabledWithoutASave|ContinueIsEnabledWithAWorldSaveAndLaunchesContinue)$"
+      ],
+      "assemblies": [
+        {
+          "sha256": "773278e95378bfcc7300791a6c2a2e27838398851b53fed5ad532367313928fe",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "7849fda85a3847b393b2eeb7b69756e24deb12829b69dc9ee2c5eb071df17d45",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "0b5751c55d36ef444a74e74534fbbc4db2188e43e3636d19874427075c47fa36",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "2c51624ade33ba6bded9efcda251c3cb16b806033b3bdfdf669471ff88864456",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "58e6dcd2fdafca00eeb3ef46eb83cf0f2ba572e286c40b5fdf3c54096d7c8083",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "10464743903ae0dcbf8913368625b540bff75252a706df360b4a74715e4283a4",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "1bf1f11004a006a5de590f4f5d3a21aa8324fb79360ac52146c228131a9f7830",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "ba57d41aa26eb3cd1c0522500b850af0174f78ded729b2e03faa00c59d921921",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "fed3a0a30312abdc2fad0aac5be057952d2950abee3a7a0b190004804318a9a3",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "773cde8b32a6d6f55faff33307b19bfbce11eb5a17e48ec3be9f614667842882",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "manifest_sha256": "3ae2e6663e9a9eba847052d3e025e0913886f04aec818545ec96ec1270d48611",
+      "skips": [],
+      "counts": {
+        "skipped": "0",
+        "total": "14",
+        "passed": "14",
+        "inconclusive": "0",
+        "failed": "0"
+      },
+      "started_utc": "2026-10-02T08:01:56.2733759Z",
+      "failures": [],
+      "assembly_sha256": null,
+      "exit_code": 0,
+      "command": null,
+      "mode": "PlayMode",
+      "phase": "tier-play-final",
+      "source_inventory_sha256": "be8c006d699a8126694e21e9eb1641f0a94350c626ef75121de636aa998be218",
+      "manifest_path": "artifacts/station-tier-2026-10-02/tier-play-final/manifest.json",
+      "finished_utc": "2026-10-02T08:02:21.9229461Z",
+      "filter": "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests|SynapticSea.Tests.PlayMode.RunLifecyclePlayModeTests\\.(NewRunBootsTheMilestoneAHubAndDocksTheLifeboat|NonSliceNewRunFailsClosedAndReturnsToTitle|ContinueReloadsTheHubRun|ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub|DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun|ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun|BootFailureReturnsToTitleWithTheError|FailedContinueReturnsToTitleInsteadOfAFreshRun|FailedSlotLoadReturnsToTitleWithTheError)$|SynapticSea.Tests.PlayMode.FrontEndPlayModeTests\\.(BootLoadsTitleWithoutErrors|ContinueIsDisabledWithoutASave|ContinueIsEnabledWithAWorldSaveAndLaunchesContinue)$"
+    }
+  ],
+  "new_discovery": {
+    "Unity_UI": 7,
+    "all_passed": true,
+    "Core": 18
+  },
+  "anchor": {
+    "slice": "res://data/procgen/golden/coherent_ship_001/gameplay_slice.json",
+    "release_placement_qualified": false,
+    "actual_standing_godot_world": [
+      20.4,
+      4.145,
+      4
+    ],
+    "report_sha256": "d5a2c36873bed34d720490ae9406b6894165e3efc47d8ca9e005eba9380f9dfb",
+    "layout": "res://data/procgen/golden/coherent_ship_001/layout.json",
+    "blockers": [
+      "Descriptor does not retain proposed offsets",
+      "Root versus box and grounded-Y contract",
+      "Future authored-row component/station occupancy verification"
+    ],
+    "runtime_key": "floor/1|5|1",
+    "descriptor_projection": [
+      20,
+      4.12,
+      4
+    ],
+    "interpreted_candidate_root_ship_local": [
+      19.2,
+      4.4,
+      4
+    ],
+    "floor_cell": "maintenance_01/floor_cell_d1_x5_z1",
+    "deliberate_fixture_teleports": true,
+    "earlier_proposal_sha256": "11281e0cc720708bc7b057e549b8173b8267ee039e7a49d24f29af00599b78f8",
+    "report_path": "artifacts/station-tier-2026-10-02/anchor/anchor-report.md",
+    "earned_walk": false,
+    "current_pending_amendment_sha256": "5abe1419969c9d1c56b0bbaff82db65683a6d65494dbc734392317b51981ac76",
+    "native_input": false
+  },
+  "catalog": {
+    "sha256": "f6b53c65f73abf91af7a7385efe0bf487fcd0fa52edc3a75b29900a7e3a0495c",
+    "path": "artifacts/station-tier-2026-10-02/tier-core-final/catalog-validation.json",
+    "prior_foundation_catalog_sha256_preserved": "f6b53c65f73abf91af7a7385efe0bf487fcd0fa52edc3a75b29900a7e3a0495c",
+    "error_rows_by_code": [
+      {
+        "code": "missing_book_mapping",
+        "rows": 1
+      },
+      {
+        "code": "missing_definition",
+        "rows": 45
+      },
+      {
+        "code": "missing_source",
+        "rows": 116
+      },
+      {
+        "code": "missing_tier_source",
+        "rows": 2
+      },
+      {
+        "code": "tier_not_forwarded",
+        "rows": 2
+      }
+    ],
+    "ok": false,
+    "retained_tier_classification_limit": "Tier0/precheck0 ordinary rows compare precheck to recipe minimum, not model tier; not evidence of remaining propagation bug",
+    "denominators": {
+      "books": 12,
+      "components": 11,
+      "consumer_references": 351,
+      "items": 115,
+      "potential_items": 24,
+      "recipes": 62,
+      "skills": 22,
+      "source_edges": 107
+    }
+  },
+  "preservation": {
+    "remote_actions": false,
+    "temporary_fixture_and_meta_removed": true,
+    "original_checkout_saves_assets_untouched": true,
+    "author_planning_files_not_staged": true,
+    "unrelated_Unity_process_retained": true
+  },
+  "product_files": [
+    {
+      "applicable_run_matches": [
+        "tier-core-final",
+        "tier-edit-final",
+        "tier-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Session/Interactables/CraftingStation.cs",
+      "sha256": "c86b686fd8e706b7cbe7163f307623c5b0b54eca1130232e61fdca0e673e42f8"
+    },
+    {
+      "applicable_run_matches": [
+        "tier-core-final",
+        "tier-edit-final",
+        "tier-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+      "sha256": "52256c140cb0ee33de03d8eae498cf8a025933a8f7b99ff41b420661dae13371"
+    },
+    {
+      "applicable_run_matches": [
+        "tier-core-final",
+        "tier-edit-final",
+        "tier-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.Build.cs",
+      "sha256": "28e5b40e5091d4347bb6ef74ddfb39f48f0f3de6df81e62b0d6377a8be91b5b3"
+    },
+    {
+      "applicable_run_matches": [
+        "tier-edit-final",
+        "tier-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/UI/Panels/RecipePickerPanel.cs",
+      "sha256": "2c757345f32b5826775f30d83b37539877c8a4ec9ce77061880a435b2430579d"
+    },
+    {
+      "applicable_run_matches": [
+        "tier-core-final",
+        "tier-edit-final",
+        "tier-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/StationTierCraftingTests.cs",
+      "sha256": "9c2a5cb0aad595da062d0425831467facae6adbc69f6c80f3d9d9b126e31b03c"
+    },
+    {
+      "applicable_run_matches": [],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/StationTierCraftingTests.cs.meta",
+      "sha256": "293033e915ac18f3334b85439a0dd2f75fca0a38ccff277a7e13aba483f7088b"
+    },
+    {
+      "applicable_run_matches": [
+        "tier-edit-final",
+        "tier-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/StationTierRecipePickerTests.cs",
+      "sha256": "2abd1cf10a07c90c466722912bb7a2ca397dae715d431181a2fd31e15aaff6bd"
+    },
+    {
+      "applicable_run_matches": [],
+      "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/StationTierRecipePickerTests.cs.meta",
+      "sha256": "07e46a5f7e7c9b3feae3416b81cab7b46b49863006af912b6b54806d82f60886"
+    },
+    {
+      "applicable_run_matches": [
+        "tier-core-final",
+        "tier-edit-final",
+        "tier-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Infra/CatalogSourceValidatorTests.cs",
+      "sha256": "5fa1397bc4837f0ebca00108870eaa9886843b0595b40509cacb1c874ddbdb08"
+    }
+  ],
+  "settings_restoration": {
+    "sha256": "b43c55025ddf281e5568e0fac77c712fa0a6771ba3dbca7039b53ac21bfedfaf",
+    "path": "artifacts/station-tier-2026-10-02/settings-restoration.json",
+    "only_exact_incidental_edits_restored": true
+  },
+  "product_commit": "15b09d778763c5725c16d56df3244a0ab317d0c0"
+}
