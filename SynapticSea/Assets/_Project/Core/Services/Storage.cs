@@ -195,11 +195,16 @@ namespace SynapticSea.Core.Services
         {
             string full = Globalize(path);
             Directory.CreateDirectory(Path.GetDirectoryName(full));
-            // Write-then-rename so a crash mid-write never leaves a truncated save.
+            // Stage in the same directory/volume, and flush before publishing. This requests a data flush;
+            // it is not a guarantee about directory metadata or hardware behavior on power loss.
             string tmp = full + ".tmp";
-            File.WriteAllText(tmp, text ?? string.Empty, Utf8NoBom);
-            if (File.Exists(full)) File.Delete(full);
-            File.Move(tmp, full);
+            byte[] bytes = Utf8NoBom.GetBytes(text ?? string.Empty);
+            using (var stream = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.Read))
+            {
+                stream.Write(bytes, 0, bytes.Length);
+                stream.Flush(true);
+            }
+            PublishFile(tmp, full);
         }
 
         public bool Delete(string path)
@@ -215,9 +220,38 @@ namespace SynapticSea.Core.Services
             string f = Globalize(from), t = Globalize(to);
             if (!File.Exists(f)) return false;
             Directory.CreateDirectory(Path.GetDirectoryName(t));
-            if (File.Exists(t)) File.Delete(t);
-            File.Move(f, t);
+            PublishFile(f, t);
             return true;
+        }
+
+        static void PublishFile(string source, string destination)
+        {
+            if (!File.Exists(destination))
+            {
+                // Do not overwrite a destination that appeared after the existence check.
+                File.Move(source, destination);
+                return;
+            }
+            // Windows ReplaceFile can lose the old name on a late failure when no backup is supplied.
+            // Keep the old file through replacement; never fall back to delete-then-move.
+            string backup = destination + ".replace.bak";
+            try
+            {
+                File.Replace(source, destination, backup);
+            }
+            catch
+            {
+                if (!File.Exists(destination) && File.Exists(backup))
+                {
+                    try { File.Move(backup, destination); }
+                    catch { /* Retain the backup when the filesystem also prevents restoring its name. */ }
+                }
+                throw;
+            }
+            // Publication succeeded. Cleanup cannot turn a confirmed write into a false save failure.
+            try { File.Delete(backup); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
         }
 
         public void MakeDirRecursive(string path) => Directory.CreateDirectory(Globalize(path));

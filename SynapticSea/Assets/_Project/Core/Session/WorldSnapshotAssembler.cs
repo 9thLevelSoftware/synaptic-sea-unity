@@ -271,7 +271,7 @@ namespace SynapticSea.Core.Session
             return true;
         }
 
-        static bool OwnedInstallation(string shipId, GdDict spec) => spec.GetString("engine_id").Length == 0
+        public static bool OwnedInstallation(string shipId, GdDict spec) => spec.GetString("engine_id").Length == 0
             || spec.GetString("engine_id") == "propulsion:" + shipId;
         static bool ValidScenePosition(GdArray position)
         {
@@ -370,10 +370,14 @@ namespace SynapticSea.Core.Session
         }
 
         public static bool ValidateConnectionSnapshot(RunSession s, WorldSnapshot ws, out GdArray ordered, out string reason)
+            => ValidateConnectionSnapshot(ws, s.HomeShip?.ShipId ?? "ship_start", s.LifeboatShip?.ShipId ?? "lifeboat", out ordered, out reason);
+
+        /// <summary>Validates saved graph records without constructing or mutating a live session.</summary>
+        public static bool ValidateConnectionSnapshot(WorldSnapshot ws, string homeShipId, string lifeboatShipId, out GdArray ordered, out string reason)
         {
             ordered = new GdArray(); reason = "ok";
-            var ids = new HashSet<string>(StringComparer.Ordinal) { s.HomeShip?.ShipId ?? "ship_start", s.LifeboatShip?.ShipId ?? "lifeboat" };
-            var markers = new Dictionary<string, string>(StringComparer.Ordinal) { { "", s.HomeShip?.ShipId ?? "ship_start" } };
+            var ids = new HashSet<string>(StringComparer.Ordinal) { homeShipId, lifeboatShipId };
+            var markers = new Dictionary<string, string>(StringComparer.Ordinal) { { "", homeShipId } };
             foreach (object marker in ws.VisitedShips.Keys)
             {
                 if (!(ws.VisitedShips[marker] is GdDict ship)) continue;
