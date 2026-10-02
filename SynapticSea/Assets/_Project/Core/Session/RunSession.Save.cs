@@ -521,16 +521,7 @@ namespace SynapticSea.Core.Session
                     CurrentShip.ComponentPlacementSummary = snapshot.ComponentPlacementSummary.DeepCopy();
                 RebuildComponentMarkers();
             }
-            if (WorkActionDriver != null && !snapshot.WorkActionSummary.IsEmpty)
-            {
-                GdDict waPack = snapshot.WorkActionSummary;
-                if (waPack.GetBool("active") && waPack.Get("summary", null) is GdDict waSummary)
-                {
-                    WorkActionDriver.Work = new WorkActionState();
-                    WorkActionDriver.Work.ApplySummary(waSummary);
-                    _workRequiresHold = false;
-                }
-            }
+            RestoreWorkAction(snapshot.WorkActionSummary, snapshot.CurrentLocation);
             if (ShipModificationState != null && !snapshot.ShipModificationSummary.IsEmpty)
             {
                 ShipModificationState.ApplySummary(snapshot.ShipModificationSummary);
