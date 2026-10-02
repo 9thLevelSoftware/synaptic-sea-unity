@@ -13,6 +13,74 @@ namespace SynapticSea.Core.Session
 {
     public sealed partial class RunSession
     {
+        /// <summary>Read-only snapshot of registered content producers for diagnostics.</summary>
+        public GdDict GetCatalogSourceRegistrations()
+        {
+            var pickups = new GdArray();
+            if (ToolPickup != null && ToolPickup.IsValid)
+                pickups.Add(new GdDict { { "item_id", ToolPickup.ToolId }, { "producer_id", "tool_pickup" }, { "acquired", ToolPickup.Acquired }, { "registration_path", "Core/Session/RunSession.Objectives.cs:BuildToolPickup" } });
+            if (JunctionCalibratorPickup != null && JunctionCalibratorPickup.IsValid)
+                pickups.Add(new GdDict { { "item_id", JunctionCalibratorPickup.ToolId }, { "producer_id", "junction_calibrator_pickup" }, { "acquired", JunctionCalibratorPickup.Acquired }, { "registration_path", "Core/Session/RunSession.Objectives.cs:BuildJunctionCalibratorPickup" } });
+            var containers = new GdArray();
+            foreach (LootContainer container in LootContainers)
+            {
+                if (container == null || !container.IsValid) continue;
+                GdDict row = container.LootContext.DeepCopy();
+                row["id"] = container.ContainerId;
+                row["loot_table"] = container.LootTable;
+                row["searched"] = container.Searched;
+                row["registration_path"] = "Core/Session/RunSession.Loot.cs:BuildLootContainers";
+                row["source_path"] = GameplaySlicePath + ":loot_containers." + container.ContainerId;
+                containers.Add(row);
+            }
+            var stations = new GdDict();
+            var crops = new GdArray();
+            var recycler = new GdDict();
+            foreach (CraftingStation station in CraftingStations)
+            {
+                if (station == null || !station.IsValid) continue;
+                stations[station.StationKind] = new GdDict
+                {
+                    { "registration_path", "Core/Session/RunSession.Crafting.cs:BuildCraftingStations" },
+                    { "tier", CraftingState?.GetStation(station.StationKind)?.EffectiveTier() ?? 0L },
+                    { "precheck_tier", 0L }, { "skill_id", "fabrication" },
+                };
+            }
+            if (FieldCraftingState != null)
+                stations["field_crafting"] = new GdDict { { "registration_path", "Core/Session/RunSession.Crafting.cs:RequestFieldCraft" }, { "tier", 0L } };
+            foreach (ProductionStation station in ProductionStations)
+            {
+                if (station == null || !station.IsValid) continue;
+                stations[station.StationKind] = new GdDict { { "registration_path", "Core/Session/RunSession.Crafting.cs:BuildProductionStations" }, { "tier", 0L } };
+                if (station.StationKind == "hydroponics") crops = station.Config.GetArrayOrEmpty("crops").DeepCopy();
+                if (station.StationKind == "water_recycler" && station.Model is WaterRecyclerState recyclerModel)
+                    recycler = new GdDict
+                    {
+                        { "output_item_id", recyclerModel.OutputItemId }, { "conversion_ratio", recyclerModel.ConversionRatio }, { "power_cost", recyclerModel.PowerCost },
+                        { "registration_path", "Core/Session/RunSession.Crafting.cs:BuildProductionStations -> ProductionStation.InteractRecycler" },
+                    };
+            }
+            return new GdDict
+            {
+                { "pickups", pickups }, { "containers", containers }, { "stations", stations }, { "crops", crops }, { "recycler", recycler },
+                { "placed_components", ComponentPlacementState?.Placed.DeepCopy() ?? new GdArray() },
+                { "work_registered", WorkActionDriver?.Catalog != null },
+                { "scope", "current active session registrations; finite sources, traversal and class routes are unproved" },
+            };
+        }
+
+        /// <summary>Diagnostics are independent of the ordinary boot success contract.</summary>
+        public GdDict GetCatalogValidationReport()
+        {
+            GdDict catalog = CatalogSourceValidator.LoadProductionCatalog();
+            GdDict sources = CatalogSourceValidator.NormalizeSources(catalog, GetCatalogSourceRegistrations());
+            GdDict report = new DependencyValidator().VerifyCatalogSources(catalog, sources, new GdDict());
+            report["registration_scope"] = "current active session";
+            report["source_graph"] = sources;
+            report["definition_origins"] = catalog.GetDictOrEmpty("origins");
+            return report;
+        }
+
         /// <summary><c>_build_runtime_nodes()</c>: construct and configure every model, in the Godot order (RNG/catalog order matters).</summary>
         void BuildRuntimeNodes()
         {

@@ -114,6 +114,10 @@ namespace SynapticSea.Core.Systems
 
         public GdDict GetSummary() => new GdDict { { "entry_count", _entries.Count } };
 
+        /// <summary>Content diagnostics use the catalog authority; this result is not a launch gate.</summary>
+        public GdDict VerifyCatalogSources(GdDict catalog, GdDict sourceGraph, GdDict exposureManifest) =>
+            new CatalogSourceValidator().Validate(catalog, sourceGraph, exposureManifest);
+
         bool FileExistsAt(string rootPath, string path)
         {
             if (path.StartsWith("res://", StringComparison.Ordinal)) return Exists(path);
