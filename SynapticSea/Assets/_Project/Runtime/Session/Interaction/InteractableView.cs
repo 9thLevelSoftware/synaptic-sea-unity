@@ -115,7 +115,9 @@ namespace SynapticSea.Runtime.Session
         {
             if (Focused == focused) return;
             Focused = focused;
-            if (_marker != null) _marker.transform.localScale = focused ? _markerScale * 1.15f : _markerScale;
+            // The existing HUD/world label identifies focused loot without moving its grounded mesh.
+            if (_marker != null && !(Model is LootContainer))
+                _marker.transform.localScale = focused ? _markerScale * 1.15f : _markerScale;
         }
 
         /// <summary>The prompt the HUD shows while this view has focus.</summary>

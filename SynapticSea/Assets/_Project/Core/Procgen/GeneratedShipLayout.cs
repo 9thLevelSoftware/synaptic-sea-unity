@@ -323,6 +323,25 @@ namespace SynapticSea.Core.Procgen
                 if (!(c.Get("approach_cell", new GdArray()) is GdArray approach) || approach.Count < 3) continue;
                 Vec3 pos = RoomCellWorld(LayoutDoc, room, approach);
                 if (pos == Vec3.Inf) continue;
+                if (c.Has("position_offset"))
+                {
+                    if (!(c.Get("position_offset") is GdArray offset) || offset.Count != 3
+                        || !V.IsNumber(offset[0]) || !V.IsNumber(offset[1]) || !V.IsNumber(offset[2]))
+                    {
+                        Log.Error("loot container invalid position_offset: " + cid);
+                        continue;
+                    }
+                    // Offset is a ship-local Godot-frame displacement of the interaction root,
+                    // applied after the existing floor projection. Never coerce malformed values.
+                    var displacement = new Vec3(V.F64(offset[0]), V.F64(offset[1]), V.F64(offset[2]));
+                    Vec3 resolved = pos + displacement;
+                    if (!IsFiniteLootPosition(displacement) || !IsFiniteLootPosition(resolved))
+                    {
+                        Log.Error("loot container invalid position_offset: " + cid);
+                        continue;
+                    }
+                    pos = resolved;
+                }
                 var lootSpec = new GdDict
                 {
                     { "id", cid },
@@ -343,6 +362,11 @@ namespace SynapticSea.Core.Procgen
             }
             return output;
         }
+
+        static bool IsFiniteLootPosition(Vec3 position) =>
+            !float.IsNaN(position.X) && !float.IsInfinity(position.X)
+            && !float.IsNaN(position.Y) && !float.IsInfinity(position.Y)
+            && !float.IsNaN(position.Z) && !float.IsInfinity(position.Z);
 
         // ------------------------------------------------------------------ rooms / cells
 
