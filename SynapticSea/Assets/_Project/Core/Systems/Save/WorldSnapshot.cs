@@ -10,6 +10,10 @@ namespace SynapticSea.Core.Systems
     public class WorldSnapshot
     {
         public const string WorldSliceVersion = "world-4";
+        public const string ComponentIntegrationVersion = "world-5";
+        public GdDict ComponentDomain = new GdDict();
+        public string GenerationId = "";
+        public string CaptureRevision = "";
 
         public GdDict WorldSummary = new GdDict();
         public GdDict HomeShip = new GdDict();                 // a RunSnapshot.ToDict()
@@ -64,6 +68,8 @@ namespace SynapticSea.Core.Systems
                 { "saved_at", SavedAt },
             };
             if (!MobileHomeState.IsEmpty) result["mobile_home_state"] = MobileHomeState.DeepCopy();
+            if (SliceVersion == ComponentIntegrationVersion)
+            { result["component_domain"] = ComponentDomain.DeepCopy(); result["generation_id"] = GenerationId; result["capture_revision"] = CaptureRevision; }
             return result;
         }
 
@@ -78,6 +84,8 @@ namespace SynapticSea.Core.Systems
             if (V.Str(dict.Get("slice_version", "")) != expectedWorldVersion) return null;
             if (V.Str(dict.Get("godot_version", "")) != expectedGodotVersion) return null;
             var ws = new WorldSnapshot();
+            if (expectedWorldVersion == ComponentIntegrationVersion)
+            { ws.ComponentDomain = DeepCopyDict(dict.Get("component_domain")); ws.GenerationId = dict.GetString("generation_id"); ws.CaptureRevision = dict.GetString("capture_revision"); }
             ws.MobileHomeState = DeepCopyDict(dict.Get("mobile_home_state"));
             ws.WorldSummary = DeepCopyDict(dict.Get("world_summary", new GdDict()));
             ws.HomeShip = DeepCopyDict(dict.Get("home_ship", new GdDict()));

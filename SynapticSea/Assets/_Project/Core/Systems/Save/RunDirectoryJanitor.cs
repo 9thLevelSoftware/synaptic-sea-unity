@@ -61,6 +61,9 @@ namespace SynapticSea.Core.Systems
         public GdArray Sweep(string activeLayoutPath = "")
         {
             var deleted = new GdArray();
+            // Diagnostic immutable/selected/frozen generation leases are retained. Cleanup is deferred rather than
+            // letting the legacy top-level-file scanner discard referenced source directories.
+            if (_storage.DirExists(SaveLoadService.ComponentGenerationRoot)) return deleted;
             if (!_storage.DirExists(RunsDir))
                 return deleted;
             HashSet<string> keep = ReferencedRunDirectories(activeLayoutPath);

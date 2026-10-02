@@ -2,6 +2,7 @@
 // (3770-3848, 4149-4880), ship modification (3988-4105), module-integrity scene consequences (4917-4963, 7466-7479).
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -54,6 +55,8 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public GdDict RunWorkAction(string actionId, string targetId, GdDict inventoryOverride = null)
         {
+            if (ComponentIntegrationEnabled && (actionId == "mount_component" || actionId == "dismount_component" || actionId == "unbolt_component"))
+                return ComponentFailure("named_component_work_required");
             if (WorkActionDriver == null)
             {
                 WorkActionDriver = new WorkActionDriver();
@@ -176,7 +179,9 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public bool BeginWorkHold()
         {
+            if (ComponentIntegrationEnabled && ComponentTerminalPending) { _workHoldInput = false; return false; }
             _workHoldInput = true;
+            if (ComponentIntegrationEnabled && ResumeComponentWork()) return true;
             if (_workAwaitingResume && WorkActionDriver?.Work != null)
             {
                 ResumeRestoredWork();
@@ -198,6 +203,8 @@ namespace SynapticSea.Core.Session
         /// <summary>Cancels the in-progress work action (interrupt; progress is lost). False when nothing was in progress.</summary>
         public bool CancelWorkAction()
         {
+            if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
+            { PauseComponentWork("cancelled"); RefreshWorkActionHud(); return true; }
             if (WorkActionDriver?.Work == null || (!WorkActionDriver.IsWorking() && !_workAwaitingResume))
                 return false;
             WorkActionDriver.Work?.Interrupt();
@@ -214,6 +221,17 @@ namespace SynapticSea.Core.Session
         {
             if (!HasPlayer || WorkActionDriver == null)
                 return false;
+            if (ComponentIntegrationEnabled)
+            {
+                GdDict candidate = ListInstallTargets("").OfType<GdDict>()
+                    .Where(row => row.GetBool("occupied") && row.GetDictOrEmpty("requirements").GetBool("in_range") && row.GetDictOrEmpty("requirements").GetBool("has_los"))
+                    .OrderBy(row => row.Get("world_position") is Vec3 position ? position.DistanceSquaredTo(playerPos) : double.MaxValue).FirstOrDefault();
+                if (candidate != null)
+                {
+                    GdDict result = RequestComponentRemoval(candidate.GetString("instance_id"));
+                    return result.GetBool("ok");
+                }
+            }
             if (WorkActionDriver.IsWorking())
             {
                 WorkActionDriver.Work?.Interrupt();
@@ -230,7 +248,7 @@ namespace SynapticSea.Core.Session
             string targetId = "";
             string workRoomCenterId = "";
             bool hasWrench = V.I64(inv.Get("wrench", 0L)) > 0 || V.I64(inv.Get("tool_wrench", 0L)) > 0;
-            if (hasWrench && ComponentPlacementState != null)
+            if (!ComponentIntegrationEnabled && hasWrench && ComponentPlacementState != null)
             {
                 GdDict remount = NearestRemountTarget(layout, playerPos, inv, WORK_ACTION_INTERACT_RANGE);
                 if (!remount.IsEmpty)
@@ -981,6 +999,8 @@ namespace SynapticSea.Core.Session
         /// <summary>PKG-B2.2b: advance in-progress work (both branches; hold-to-work freezes progress on release).</summary>
         void TickWorkAction(double delta)
         {
+            if (ComponentIntegrationEnabled && ComponentTerminalPending) return;
+            if (TickComponentWork(delta)) return;
             if (WorkActionDriver == null || delta <= 0.0)
                 return;
             if (!WorkActionDriver.IsWorking())
@@ -1201,6 +1221,8 @@ namespace SynapticSea.Core.Session
 
         void InterruptWorkOnDamage(string reason="damage")
         {
+            if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
+            { PauseComponentWork(reason); PlaySfx(AudioEventSeam.UI_PANEL_CLOSE); RefreshWorkActionHud(); return; }
             if (WorkActionDriver == null || !WorkActionDriver.IsWorking())
                 return;
             WorkActionDriver.Work?.Interrupt();
@@ -1279,6 +1301,7 @@ namespace SynapticSea.Core.Session
         /// <summary>A ship-mod install: mirror the panel bag into InventoryState, restore the linked sub, tiers, plating.</summary>
         public void OnShipModInstalled(string componentId, string itemForm)
         {
+            if (ComponentIntegrationEnabled) return;
             if (InventoryState != null && !string.IsNullOrEmpty(itemForm) && InventoryState.GetQuantity(itemForm) > 0)
                 InventoryState.RemoveItem(itemForm, 1);
             ApplyShipModSystemLink(componentId, true);
@@ -1291,6 +1314,7 @@ namespace SynapticSea.Core.Session
         /// <summary>A ship-mod uninstall: add back returned items (panel bag minus live inventory), strip the linked sub.</summary>
         public void OnShipModUninstalled(string componentId, GdDict panelBag)
         {
+            if (ComponentIntegrationEnabled) return;
             if (InventoryState != null && panelBag != null)
             {
                 foreach (object itemId in panelBag.Keys)
@@ -1309,6 +1333,7 @@ namespace SynapticSea.Core.Session
 
         void ApplyShipModSystemLink(string componentId, bool installing)
         {
+            if (ComponentIntegrationEnabled) return;
             if (string.IsNullOrEmpty(componentId) || ComponentCatalog == null || ShipSystemsManager == null)
                 return;
             GdDict def = ComponentCatalog.GetComponent(componentId);
@@ -1355,6 +1380,7 @@ namespace SynapticSea.Core.Session
         /// <summary>After save/load: restore linked hub subs + station tiers from the ship-mod manifest.</summary>
         void ReapplyShipModRuntimeEffects()
         {
+            if (ComponentIntegrationEnabled) { RefreshStationTiersFromShipMod(); return; }
             if (ShipModificationState == null)
                 return;
             foreach (object e in ShipModificationState.Installed)

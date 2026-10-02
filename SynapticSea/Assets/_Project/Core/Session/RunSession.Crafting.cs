@@ -494,6 +494,12 @@ namespace SynapticSea.Core.Session
         {
             if (string.IsNullOrEmpty(recipeId) || FieldCraftingState == null || InventoryState == null)
                 return false;
+            string componentReason = FieldCraftingState.RecipeBlockedReason(recipeId);
+            if (componentReason.Length > 0)
+            {
+                OnCraftBlocked("field_crafting", componentReason);
+                return false;
+            }
             if (FieldCraftingState.IsCrafting())
             {
                 OnCraftBlocked("field_crafting", "busy");
@@ -589,6 +595,14 @@ namespace SynapticSea.Core.Session
             {
                 OnCraftBlocked(!string.IsNullOrEmpty(stationKind) ? stationKind : "unknown", "bad_args");
                 return Result(false, "bad_args");
+            }
+            string componentReason = stationKind == "field_crafting"
+                ? FieldCraftingState?.RecipeBlockedReason(recipeId) ?? ""
+                : CraftingState?.RecipeBlockedReason(recipeId) ?? "";
+            if (componentReason.Length > 0)
+            {
+                OnCraftBlocked(stationKind, componentReason);
+                return Result(false, componentReason);
             }
             if (stationKind == "field_crafting")
             {

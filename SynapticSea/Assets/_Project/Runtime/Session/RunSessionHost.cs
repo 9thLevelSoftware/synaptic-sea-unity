@@ -54,6 +54,10 @@ namespace SynapticSea.Runtime.Session
 
         /// <summary>Raised when the interact focus changes (prompt text, or "" when nothing is in reach).</summary>
         public event Action<string> FocusPromptChanged;
+        public event Action<string, string> ComponentPickerRequested;
+        GdDict _focusedComponentTarget = new GdDict();
+        bool _componentMarkersDirty = true;
+        public GdDict FocusedComponentTarget => _focusedComponentTarget.DeepCopy();
 
         /// <summary>Raised after the session booted (views bound, first sync done).</summary>
         public event Action<RunSession> SessionBooted;
@@ -156,6 +160,7 @@ namespace SynapticSea.Runtime.Session
                 s.Events.BlockedAffordancesCleared += OnBlockedAffordancesCleared;
                 s.Events.BreachUnsafeMarkerVisible += OnBreachUnsafeMarkerVisible;
                 s.Events.ComponentMarkersRebuilt += OnComponentMarkersRebuilt;
+                if (s.ComponentIntegrationEnabled) s.ComponentDomainChanged += _ => _componentMarkersDirty = true;
                 beforeReady?.Invoke(s);
             });
             // The music stems / ambient beds follow the session's audio models (explicit, instead of a host lookup).
@@ -264,6 +269,7 @@ namespace SynapticSea.Runtime.Session
                 Affordances.SetBreachMarkerVisible(Session, _breachMarkerVisible);
             }
             Affordances.SyncArcLabels(Session.ArcZoneNodes);
+            RefreshDiagnosticComponentMarkers();
             UpdateFocus();
         }
 
@@ -299,7 +305,33 @@ namespace SynapticSea.Runtime.Session
             _breachMarkerDirty = true;
         }
 
-        void OnComponentMarkersRebuilt(IReadOnlyList<GdDict> records) => ComponentMarkers?.Rebuild(records);
+        void OnComponentMarkersRebuilt(IReadOnlyList<GdDict> records)
+        {
+            _componentMarkersDirty = true;
+            if (Session?.ComponentIntegrationEnabled != true) ComponentMarkers?.Rebuild(records);
+        }
+
+        void RefreshDiagnosticComponentMarkers()
+        {
+            if (Session?.ComponentIntegrationEnabled != true || !_componentMarkersDirty) return;
+            _componentMarkersDirty = false;
+            var records = new List<GdDict>();
+            foreach (object item in Session.ListInstallTargets(""))
+            {
+                if (!(item is GdDict target)) continue;
+                GdDict row = target.DeepCopy();
+                bool occupied = target.GetBool("occupied");
+                row["empty_anchor"] = !occupied;
+                row["component_instance_id"] = occupied ? target.GetString("instance_id")
+                    : "anchor:" + target.GetString("ship_id") + ":" + target.GetString("slot_id");
+                if (occupied)
+                    foreach (object value in Session.ListComponentInstances(target.GetString("holder_id")))
+                        if (value is GdDict instance && instance.GetString("instance_id") == target.GetString("instance_id"))
+                        { row["component_id"] = instance.GetString("definition_id"); row["condition_state"] = instance.GetString("condition_state"); row["condition"] = instance.Get("condition"); break; }
+                records.Add(row);
+            }
+            ComponentMarkers?.Rebuild(records);
+        }
 
         // ------------------------------------------------------------------ gameplay input (A1, B3, A5)
 
@@ -382,6 +414,12 @@ namespace SynapticSea.Runtime.Session
             if (Paused || (GameplayInputBlocked != null && GameplayInputBlocked())) return "";
             SceneState.Sensor?.Refresh();
             foreach (InteractableView v in _interactables.Values) v.Sync();
+            UpdateFocus();
+            if (!_focusedComponentTarget.IsEmpty && ComponentPickerRequested != null)
+            {
+                ComponentPickerRequested.Invoke(_focusedComponentTarget.GetString("ship_id"), _focusedComponentTarget.GetString("slot_id"));
+                return "component_picker";
+            }
             string handler = Session.RequestInteract();
             ApplyViews();
             return handler;
@@ -503,12 +541,16 @@ namespace SynapticSea.Runtime.Session
                 FocusedView = next;
                 if (FocusedView != null) FocusedView.SetFocused(true);
             }
+            _focusedComponentTarget = next == null && portal == null && p != null && !Paused
+                ? FindComponentFocus(Frame.ToGodot(p.transform.position)) : new GdDict();
             string prompt = portal != null ? (portal.IsOpen ? "Close door" : portal.PortalKind == "LOCKED" ? "Unlock door" : "Open door")
-                : FocusedView != null ? FocusedView.PromptText : "";
+                : FocusedView != null ? FocusedView.PromptText : !_focusedComponentTarget.IsEmpty
+                    ? (_focusedComponentTarget.GetBool("occupied") ? "Remove component" : "Install component") : "";
             // A screen-space label identifies the same authoritative focus as dispatch, even when a foreground wall
             // covers the small marker. Capture this frame's selected anchor rather than another nearest target.
             Vector3? focusAnchor = portal != null ? Frame.ToUnity(portal.GlobalPosition) :
-                FocusedView != null ? FocusedView.transform.position : (Vector3?)null;
+                FocusedView != null ? FocusedView.transform.position : _focusedComponentTarget.Get("world_position") is Vec3 componentAnchor
+                    ? Frame.ToUnity(componentAnchor) : (Vector3?)null;
             if (SceneState?.CameraRig != null) SceneState.CameraRig.FocusAnchor = focusAnchor;
             WorldLabels.Set("focused_interaction", string.IsNullOrEmpty(prompt) ? "" : "E · " + prompt,
                 () => focusAnchor.HasValue ? focusAnchor.Value + Vector3.up * 1.2f : (Vector3?)null,
@@ -521,6 +563,24 @@ namespace SynapticSea.Runtime.Session
         }
 
         // ------------------------------------------------------------------ player
+
+        GdDict FindComponentFocus(Vec3 playerPosition)
+        {
+            if (Session?.ComponentIntegrationEnabled != true || Session.WorkActionDriver?.IsWorking() == true) return new GdDict();
+            GdDict work = Session.GetComponentWorkState();
+            if (work.GetBool("resume_required") || (work.GetString("job_id").Length != 0 && work.GetString("status") != "idle" && work.GetString("status") != "committed")) return new GdDict();
+            GdDict best = new GdDict();
+            double distance = 3.5;
+            foreach (object item in Session.ListInstallTargets(""))
+            {
+                if (!(item is GdDict target) || !(target.Get("world_position") is Vec3 anchor)) continue;
+                GdDict requirements = target.GetDictOrEmpty("requirements");
+                double d = anchor.DistanceTo(playerPosition);
+                if (d > distance || !requirements.GetBool("in_range", d <= 3.5) || !requirements.GetBool("has_los", true) || !requirements.GetBool("access", true)) continue;
+                distance = d; best = target.DeepCopy();
+            }
+            return best;
+        }
 
         void OnPlayerSpawned(PlayerController player)
         {

@@ -184,9 +184,14 @@ namespace SynapticSea.Core.Session
             DeconstructionResolver = new DeconstructionResolver();
             _loot_tables = LootRoller.LoadTables();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
-            SaveLoadService = new SaveLoadService(Storage, Clock);
-            _runId = GenerateRunId();
+            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled);
+            _runId = ComponentIntegrationEnabled && Deps.SelectedSaveGeneration != null ? Deps.SelectedSaveGeneration.GetString("run_id") : GenerateRunId();
             SaveLoadService.SetActiveRunId(_runId);
+            if (ComponentIntegrationEnabled)
+            {
+                SaveLoadService.BindComponentSave(RequestSaveToSlot);
+                if (Deps.SelectedSaveGeneration == null) SaveLoadService.AuthorizeDiagnosticNewRun(_runId);
+            }
             AutosavePolicy = new AutosavePolicy(Clock);
             LocalizationCatalog = new LocalizationCatalog();
             LocalizationCatalog.Configure(LoadJsonDict("res://data/release/localization_catalog.json"));
@@ -447,6 +452,7 @@ namespace SynapticSea.Core.Session
                 return;
             }
             RecordKitPath(view, kitPath);
+            RememberHomeGenerationDocuments(view, layoutPath, kitPath, gameplaySlicePath);
             Loader = view;
             OnShipLoaded(new GdDict());
         }
@@ -466,6 +472,7 @@ namespace SynapticSea.Core.Session
                 CurrentShip = ShipInstance.Create("ship_start", "", LoadBlueprintForSystems(), ShipSystemsManager, Loader);
                 HomeShip = CurrentShip;
                 HomeShip.BuiltLayout = Loader.GetLayoutCopy();
+                RememberShipGenerationDocuments(HomeShip);
                 HomeShip.Mobility = AssemblyMobility.CreateSpecification(HomeShip, false);
                 HomeShip.GetAccess().Claim(PLAYER_LOCAL_ID);
                 SpawnHangarControl(HomeShip);
@@ -511,6 +518,7 @@ namespace SynapticSea.Core.Session
             ReadySummary["playable_interactable_count"] = (long)Interactables.Count;
             Log.Info("PLAYABLE SHIP READY player_spawned=" + (HasPlayer ? "true" : "false") + " camera_spawned=" + (HasPlayer ? "true" : "false")
                      + " objectives=" + Interactables.Count + " collision_shapes=" + Loader.CountCollisionShapes());
+            if (ComponentIntegrationEnabled && !ComponentGenerationRestoreInProgress) InitializeComponentIntegration();
             PlayableReady?.Invoke(GetPlayableSummary());
         }
 
@@ -558,20 +566,33 @@ namespace SynapticSea.Core.Session
                 LifeboatShip = null;
             }
             // Skin the lifeboat's modules by the run's deterministic biome; the floorplan is fixed.
-            LifeBoatBuilder.BuildResult built = LifeBoatBuilder.Build(ResolveCurrentLootBiomeId());
-            IShipSceneRoot lbRoot = built != null ? ShipHost?.BuildLifeboatScene(built) : null;
+            LifeBoatBuilder.BuildResult built = null;
+            IShipSceneRoot lbRoot;
+            if (ComponentIntegrationEnabled && _generationShipDocuments.TryGetValue("lifeboat", out GdDict retainedBoat))
+            {
+                GdDict layout = GdJson.ParseString(retainedBoat.GetString("layout_text")) as GdDict;
+                built = RetainedLifeboatBuild(layout, retainedBoat.GetString("kit_path"));
+                lbRoot = built == null ? null : TakeStagedGenerationRoot("lifeboat") ?? ShipHost?.BuildLifeboatScene(built);
+            }
+            else
+            {
+                built = LifeBoatBuilder.Build(ResolveCurrentLootBiomeId());
+                lbRoot = built != null ? ShipHost?.BuildLifeboatScene(built) : null;
+            }
             if (lbRoot == null)
             {
                 Log.Error("PlayableGeneratedShip: LifeBoatBuilder.build() returned null; lifeboat not created");
                 return;
             }
             RecordKitPath(lbRoot, built.KitPath);
+            RememberLifeboatGenerationDocuments(lbRoot, built);
             var boatSystems = new ShipSystemsManager();
             boatSystems.Configure(boatSystems.LoadDefinitions(), 0, 0);
             boatSystems.ApplySummary(ShipSystemsManager.GetSummary());
             LifeboatCommissioned = false;
             LifeboatShip = ShipInstance.Create("lifeboat", "", null, boatSystems, lbRoot);
-            LifeboatShip.BuiltLayout = LifeBoatBuilder.BuildLayout();
+            LifeboatShip.BuiltLayout = ComponentIntegrationEnabled ? built.Layout.DeepCopy() : LifeBoatBuilder.BuildLayout();
+            RememberShipGenerationDocuments(LifeboatShip);
             LifeboatShip.Mobility = AssemblyMobility.CreateSpecification(LifeboatShip, true);
             LifeboatShip.GetAccess().Claim(PLAYER_LOCAL_ID);
             ShipHost.AttachShipRoot(lbRoot);

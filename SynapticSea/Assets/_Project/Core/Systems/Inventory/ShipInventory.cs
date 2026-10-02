@@ -18,6 +18,9 @@ namespace SynapticSea.Core.Systems
         /// <summary>item_id: String -> quantity: int</summary>
         public GdDict Items = new GdDict();
         public double MaxWeight = MAX_WEIGHT_DEFAULT;
+        /// <summary>Owner-controlled unique equipment mass, separate from ordinary quantity storage.</summary>
+        public Func<double> ComponentMass;
+        public Func<string, bool> RejectAnonymousComponent;
         GdDict _defs = new GdDict();
 
         public ShipInventory()
@@ -40,7 +43,7 @@ namespace SynapticSea.Core.Systems
             double total = 0.0;
             foreach (var kv in Items)
                 total += ItemDefs.WeightEach(_defs, V.Str(kv.Key)) * V.F64(kv.Value);
-            return total;
+            return total + (ComponentMass?.Invoke() ?? 0.0);
         }
 
         public long GetQuantity(string itemId) => V.I64(Items.Get(itemId, 0L));
@@ -51,6 +54,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public long AddItem(string itemId, long qty)
         {
+            if (RejectAnonymousComponent?.Invoke(itemId) == true) return 0;
             if (string.IsNullOrEmpty(itemId) || qty <= 0)
                 return 0;
             long current = GetQuantity(itemId);
@@ -73,6 +77,7 @@ namespace SynapticSea.Core.Systems
 
         public long RemoveItem(string itemId, long qty)
         {
+            if (RejectAnonymousComponent?.Invoke(itemId) == true) return 0;
             if (qty <= 0)
                 return 0;
             long current = GetQuantity(itemId);

@@ -712,6 +712,7 @@ namespace SynapticSea.Core.Session
             if (inst == null)
                 return;
             inst.GetInventory();
+            if (ComponentIntegrationEnabled) _componentOpenHolder = CargoHolder(shipId);
             Events.RaisePanelRequested("transfer", new GdDict { { "ship_id", shipId }, { "label", "HOLD" } });
             PlaySfx(AudioEventSeam.UI_PANEL_OPEN);
             FreezePlayerForPanel();
@@ -724,6 +725,7 @@ namespace SynapticSea.Core.Session
             (CartState cart, ShipInstance _) = FindCartById(cartId);
             if (cart == null)
                 return;
+            if (ComponentIntegrationEnabled) _componentOpenHolder = CartHolder(cart.ParkedShipId, cart.CartId);
             Events.RaisePanelRequested("transfer", new GdDict { { "cart_id", cartId }, { "label", "CART" } });
             PlaySfx(AudioEventSeam.UI_PANEL_OPEN);
             FreezePlayerForPanel();

@@ -24,6 +24,14 @@ namespace SynapticSea.UI.Presenters
 
         /// <summary>Builds the RunSnapshot for a Save verb (Godot's <c>_snapshot_builder</c> Callable).</summary>
         public Func<RunSnapshot> SnapshotBuilder;
+        /// <summary>Explicit diagnostic bindings; absence retains ordinary legacy behavior.</summary>
+        public Func<string, string, string, bool> FullSave;
+        public Func<string> SaveFailureReason;
+        public Func<string, GdDict> SelectGeneration;
+        GdDict _lastLoadedSelection;
+        public GdDict LastLoadedSelection { get => _lastLoadedSelection?.DeepCopy(); private set => _lastLoadedSelection = value?.DeepCopy(); }
+        public void ClearSelectedGeneration() => _lastLoadedSelection = null;
+        public string OriginalSaveSlotId { get; private set; } = "";
         /// <summary>The playable's demo play-time refusal predicate (Godot's <c>_demo_save_refused_cb</c>).</summary>
         public Func<bool> DemoSaveRefused;
 
@@ -79,7 +87,7 @@ namespace SynapticSea.UI.Presenters
             // Review fix (Finding 2): death is derived at read time from the resolver, never persisted to the index.
             foreach (SaveSlotState row in rows)
             {
-                if (row != null) row.Frozen = _deaths.HasDiedIn(row.SlotId);
+                if (row != null && SelectGeneration == null) row.Frozen = _deaths.HasDiedIn(row.SlotId);
             }
             return rows;
         }
@@ -146,7 +154,8 @@ namespace SynapticSea.UI.Presenters
                 + " | " + FormatPlayTime(row.PlayTimeSeconds) + " | seed=" + GdString.FormatInt(row.SynapticSeaSeed) + verbText;
         }
 
-        public string Epitaph(string slotId) => V.Str(_deaths.LoadEpitaph(slotId).Get("epitaph", "unknown"));
+        public string Epitaph(string slotId) => SelectGeneration != null ? _menu.ComponentEpitaph(slotId)
+            : V.Str(_deaths.LoadEpitaph(slotId).Get("epitaph", "unknown"));
 
         /// <summary>Display lines: "SAVE / LOAD", then one per row with a "> " cursor prefix.</summary>
         public List<string> Lines()
@@ -271,7 +280,8 @@ namespace SynapticSea.UI.Presenters
                 }
                 string displayName = row.DisplayName.Length != 0 ? row.DisplayName : slotId;
                 bool ok = false;
-                if (SnapshotBuilder != null)
+                if (FullSave != null) ok = FullSave(slotId, "manual", displayName);
+                else if (SnapshotBuilder != null)
                 {
                     RunSnapshot snap = SnapshotBuilder();
                     if (snap != null) ok = _menu.ConfirmSaveToSlot(slotId, snap, "manual", displayName);
@@ -279,10 +289,27 @@ namespace SynapticSea.UI.Presenters
                 PendingVerb = "";
                 if (ok) ReanchorRowIndex(slotId);
                 Changed?.Invoke();
-                return Result("save", ok, slotId);
+                GdDict saved = Result("save", ok, slotId);
+                if (!ok && FullSave != null) saved["reason"] = SaveFailureReason?.Invoke() ?? "Save refused";
+                return saved;
             }
             if (verb == VerbLoad)
             {
+                LastLoadedSelection = null;
+                LastLoadedSnapshot = null;
+                OriginalSaveSlotId = "";
+                if (SelectGeneration != null)
+                {
+                    GdDict selection = SelectGeneration(slotId)?.DeepCopy() ?? new GdDict { { "ok", false }, { "reason", "Load returned no selection" } };
+                    bool ok = selection.GetBool("ok");
+                    if (ok) LastLoadedSelection = selection.DeepCopy();
+                    else if (IsOriginalSaveRefusal(selection.GetString("reason"))) OriginalSaveSlotId = slotId;
+                    PendingVerb = "";
+                    Changed?.Invoke();
+                    GdDict loaded = Result("load_generation", ok, slotId);
+                    loaded["reason"] = selection.GetString("reason");
+                    return loaded;
+                }
                 if (row.IsWorld())
                 {
                     PendingVerb = "";
@@ -316,5 +343,19 @@ namespace SynapticSea.UI.Presenters
 
         static GdDict Result(string action, bool ok, string detail) =>
             new GdDict { { "screen", "save_load" }, { "action", action }, { "ok", ok }, { "detail", detail } };
+
+        public static bool IsOriginalSaveRefusal(string reason) => reason != null &&
+            (reason.Contains("legacy") || reason.Contains("unknown") || reason.Contains("ambiguous") || reason.Contains("unverified"));
+
+        public static string FailureMessage(string reason, bool saving = false)
+        {
+            reason = reason ?? "";
+            if (reason == "slot_deletion_reconciliation_needed") return "The save was written, but this slot is still hidden. Retry saving to make it visible.";
+            if (reason.Contains("craft") && saving) return "Finish or cancel active and queued crafting before saving in the component diagnostic. Your earlier save is preserved.";
+            if (reason.Contains("craft")) return "Crafting payment cannot be verified in this original save. Keep it and open the original save with its existing rules.";
+            if (reason.Contains("unknown") || reason.Contains("resolution")) return "Equipment condition cannot be verified in this original save. Keep it and open the original save with its existing rules.";
+            if (IsOriginalSaveRefusal(reason)) return "Conversion of this original save is unavailable in the component diagnostic. Keep it and open the original save with its existing rules.";
+            return reason.Length == 0 ? "The operation was refused. Your earlier save is preserved." : reason.Replace('_', ' ');
+        }
     }
 }

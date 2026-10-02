@@ -1,4 +1,5 @@
 // Ported from scripts/systems/field_crafting_state.gd @ 96ecb2b0
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Contracts;
 using SynapticSea.Core.Variant;
@@ -17,6 +18,8 @@ namespace SynapticSea.Core.Systems
     public sealed class FieldCraftingState : IStatusLineProvider
     {
         readonly CraftingState _craftingState = new CraftingState();
+        public Func<GdDict, string> RecipePreflight { get => _craftingState.RecipePreflight; set => _craftingState.RecipePreflight = value; }
+        public string RecipeBlockedReason(string recipeId) => _craftingState.RecipeBlockedReason(recipeId);
 
         /// <summary>Returns field-craftable recipes (station_kind == "field_crafting").</summary>
         public GdArray GetFieldRecipes() => _craftingState.GetRecipesForStation("field_crafting");

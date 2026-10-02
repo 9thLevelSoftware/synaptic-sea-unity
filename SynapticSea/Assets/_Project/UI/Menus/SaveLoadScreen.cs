@@ -25,6 +25,7 @@ namespace SynapticSea.UI
         /// <summary>Every confirm result ({screen, action, ok, detail[, snapshot]}).</summary>
         public event Action<GdDict> Confirmed;
         public event Action BackRequested;
+        public event Action<string> OpenOriginalSaveRequested;
 
         public SaveLoadScreen(SaveSlotScreenModel model) : base("SAVE / LOAD", SurfaceTime.Paused)
         {
@@ -117,7 +118,12 @@ namespace SynapticSea.UI
                     break;
                 case "save":
                     if (detail == "demo_blocked") StatusText.Set("Saving is not available past the demo limit", Severity.Caution);
-                    else StatusText.Set(ok ? "Saved to " + detail : "Save failed — " + detail + " was not written", ok ? Severity.Success : Severity.Danger);
+                    else if (!ok && result.Has("reason")) StatusText.Set(SaveSlotScreenModel.FailureMessage(result.GetString("reason"), true), Severity.Caution);
+                    else StatusText.Set(ok ? "Saved to " + detail : "Save failed - " + detail + " was not written", ok ? Severity.Success : Severity.Danger);
+                    break;
+                case "load_generation":
+                    StatusText.Set(ok ? "Loading the selected diagnostic save" : SaveSlotScreenModel.FailureMessage(result.GetString("reason")), ok ? Severity.Success : Severity.Caution);
+                    Render();
                     break;
                 case "load":
                     StatusText.Set(ok ? "Loading " + detail : "Could not load " + detail, ok ? Severity.Success : Severity.Caution);
@@ -182,6 +188,11 @@ namespace SynapticSea.UI
                 b.EnableInClassList("ss-button--armed", armed);
                 if (v == SaveSlotScreenModel.VerbDelete) b.AddToClassList("ss-button--danger");
                 _verbs.Add(b);
+            }
+            if (_model.OriginalSaveSlotId.Length != 0)
+            {
+                string originalSlot = _model.OriginalSaveSlotId;
+                _verbs.Add(UiFactory.Button("Open original save", () => OpenOriginalSaveRequested?.Invoke(originalSlot), "verb:open_original"));
             }
             if (row.Frozen) _hint.text = "This run ended. The slot is frozen.";
             else if (verbs.Count == 0) _hint.text = row.IsAuto() || row.IsQuick() ? "Automatic saves are read-only here." : "";

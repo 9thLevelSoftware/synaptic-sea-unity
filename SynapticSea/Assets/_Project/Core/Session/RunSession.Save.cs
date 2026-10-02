@@ -21,8 +21,15 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public long EndRun(string reason = "extraction")
         {
+            if (ComponentIntegrationEnabled && ComponentTerminalPending && reason != "death") return 0;
             if (SliceComplete || reason == "complete" || reason == "completion")
                 return 0;
+            if (ComponentIntegrationEnabled && reason == "death" && SaveLoadService != null)
+            {
+                LastSaveResult = SaveLoadService.FreezeComponentRun(_runId, "death", BuildEpitaphText());
+                ComponentTerminalPending = !LastSaveResult.GetBool("ok");
+                if (ComponentTerminalPending) return 0;
+            }
             SliceComplete = true;
             Events.RaiseTrackerRunComplete();
             TriggerTutorial("run_ended", reason);
@@ -34,7 +41,7 @@ namespace SynapticSea.Core.Session
             {
                 if (reason == "death")
                 {
-                    FreezeRunOnDeath();
+                    if (!ComponentIntegrationEnabled) FreezeRunOnDeath();
                 }
                 else
                 {
@@ -118,6 +125,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         bool AutoSaveCurrentRun()
         {
+            if (ComponentIntegrationEnabled) return RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World checkpoint");
             if (SaveLoadService == null || SliceComplete)
                 return false;
             if (DemoSaveRefused())
@@ -212,6 +220,13 @@ namespace SynapticSea.Core.Session
         /// <summary>F5 / pause-menu save: the whole world (save-anywhere, ADR-0012). Refused before start / after completion.</summary>
         public bool RequestSave()
         {
+            if (ComponentIntegrationEnabled)
+            {
+                bool saved = RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World");
+                if (saved) { PlaySfx(AudioEventSeam.UI_SAVE); TriggerTutorial("run_saved", "any"); }
+                else PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
+                return saved;
+            }
             if (!PlayableStarted || SliceComplete)
             {
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
@@ -281,6 +296,14 @@ namespace SynapticSea.Core.Session
         /// <summary>F9 / Continue: load the whole world and apply it; adopts the loaded run_id.</summary>
         public bool RequestLoad()
         {
+            if (ComponentIntegrationEnabled)
+            {
+                if (ComponentTerminalPending) return false;
+                GdDict selected = SaveLoadService?.SelectGeneration("world");
+                bool applied = selected != null && ApplySelectedGeneration(selected);
+                if (!applied && selected != null && !selected.GetBool("ok")) LastSaveResult = selected.DeepCopy();
+                PlaySfx(applied ? AudioEventSeam.UI_LOAD : AudioEventSeam.UI_PANEL_CLOSE); return applied;
+            }
             if (SaveLoadService == null)
                 return false;
             WorldSnapshot ws = SaveLoadService.LoadWorld();
@@ -308,6 +331,7 @@ namespace SynapticSea.Core.Session
         /// <summary>ADR-0031/0043 slot screen: apply a manual-slot RunSnapshot onto the booted ship only.</summary>
         public bool ApplyManualSlot(RunSnapshot snapshot)
         {
+            if (ComponentIntegrationEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "exact_generation_required" } }; return false; }
             if (snapshot == null)
                 return false;
             if (SliceComplete)
@@ -525,7 +549,7 @@ namespace SynapticSea.Core.Session
             if (ShipModificationState != null && !snapshot.ShipModificationSummary.IsEmpty)
             {
                 ShipModificationState.ApplySummary(snapshot.ShipModificationSummary);
-                ReapplyShipModRuntimeEffects();
+                if (!ComponentIntegrationEnabled) ReapplyShipModRuntimeEffects();
             }
             ApplyPortSnapshotExtensions(snapshot);
             EnsureConsumableHotbarAssignments();

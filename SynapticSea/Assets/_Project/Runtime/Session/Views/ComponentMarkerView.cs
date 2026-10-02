@@ -87,7 +87,14 @@ namespace SynapticSea.Runtime.Session
                 GdDict record = e.DeepCopy();
                 PropVisualBindingCatalog bindings = Bindings;
                 GdDict binding = bindings != null ? bindings.GetComponentBinding(V.Str(e.Get("component_id", ""))) : new GdDict();
-                if (RuntimePropVisualBinder.MountComponentVisual(marker.transform, binding, _props))
+                if (e.GetBool("empty_anchor"))
+                {
+                    record["visual_source"] = "physical_mount_anchor";
+                    RuntimeVisualCatalog.AddMesh(marker.transform, "EmptyMountAnchor", RuntimeVisualCatalog.Cube,
+                        RuntimeVisualCatalog.Material(new Color(0.3f, 0.8f, 1f, 0.7f), unshaded: true, transparent: true), new Vector3(0f, 0.1f, 0f),
+                        Quaternion.identity, new Vector3(0.7f, 0.2f, 0.7f), PhysicsLayers.Prop, castShadows: false);
+                }
+                else if (RuntimePropVisualBinder.MountComponentVisual(marker.transform, binding, _props))
                 {
                     record["visual_source"] = VisualSourceImported;
                 }
@@ -99,6 +106,8 @@ namespace SynapticSea.Runtime.Session
                         Quaternion.identity, Frame.SizeToUnity(BoxSize), PhysicsLayers.Prop, castShadows: false);
                 }
                 _records[marker] = record;
+                if (e.Has("ship_id"))
+                    foreach (Collider collider in marker.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
                 _markers.Add(marker);
             }
         }

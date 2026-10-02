@@ -32,7 +32,7 @@ namespace SynapticSea.Core.Systems
     /// (the saved key stays <c>godot_version</c>). Godot's <c>_safe_new</c> headless class-registry workaround has no
     /// C# equivalent and is dropped.
     /// </remarks>
-    public class SaveLoadService : ITitleSaveService
+    public partial class SaveLoadService : ITitleSaveService
     {
         public const string SAVE_PATH = "user://saves/current_run.json";
         public const string CURRENT_SLICE_VERSION = "gate2-current-run-6";
@@ -51,10 +51,11 @@ namespace SynapticSea.Core.Systems
         IStorage _storage;
         IClock _clock;
 
-        public SaveLoadService(IStorage storage = null, IClock clock = null)
+        public SaveLoadService(IStorage storage = null, IClock clock = null, bool enableComponentIntegration = false)
         {
             _storage = storage;
             _clock = clock;
+            ComponentIntegrationEnabled = enableComponentIntegration;
         }
 
         /// <summary><c>user://</c> backing store; defaults to <see cref="CoreServices.UserStorage"/>.</summary>
@@ -101,6 +102,7 @@ namespace SynapticSea.Core.Systems
 
         public bool SaveCurrentRun(RunSnapshot snapshot)
         {
+            if (ComponentIntegrationEnabled) return _componentSave != null && _componentSave(ACTIVE_AUTOSAVE_SLOT_ID, SaveSlotState.SlotKindAuto, "Current run");
             // Legacy REQ-012 alias: the active autosave slot is the current_run.json path.
             // Preserves the smoke contracts that depend on SAVE_PATH.
             return SaveToSlot(ACTIVE_AUTOSAVE_SLOT_ID, snapshot, SaveSlotState.SlotKindAuto, false, "current_run_alias");
@@ -114,6 +116,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public bool SaveWorld(WorldSnapshot worldSnapshot)
         {
+            if (ComponentIntegrationEnabled) return _componentSave != null && _componentSave("world", SaveSlotState.SlotKindWorld, "World");
             if (worldSnapshot == null)
             {
                 CoreServices.Log.Warning("SaveLoadService: cannot save null world snapshot");
@@ -148,6 +151,8 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public WorldSnapshot LoadWorld()
         {
+            if (ComponentIntegrationEnabled)
+            { GdDict selected = SelectGeneration("world"); return selected.GetBool("ok") ? WorldSnapshot.FromDict(GdJson.ParseString(selected.GetDictOrEmpty("payloads").GetString("world_text")), WorldSnapshot.ComponentIntegrationVersion, EngineVersionString) : null; }
             string path = WORLD_SLOT_FILE;
             RecoverLegacyTemporary(path, "world", SaveSlotState.SlotKindWorld);
             if (!Storage.FileExists(path))
@@ -200,6 +205,7 @@ namespace SynapticSea.Core.Systems
 
         public bool DeleteCurrentRun()
         {
+            if (ComponentIntegrationEnabled) return DeleteSlot("world") && DeleteSlot(ACTIVE_AUTOSAVE_SLOT_ID);
             // Legacy REQ-012 contract: delete the current_run autosave file. Also remove the world slot and index
             // entries so a stale world save cannot survive a finished run.
             bool ok = true;
@@ -237,6 +243,7 @@ namespace SynapticSea.Core.Systems
 
         public bool HasSave()
         {
+            if (ComponentIntegrationEnabled) return HasSlot("world");
             // Legacy REQ-012 contract: true when EITHER the current_run autosave exists OR a world save exists.
             return HasSlot(ACTIVE_AUTOSAVE_SLOT_ID) || HasSlot("world");
         }
@@ -272,6 +279,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public bool SaveToSlot(string slotId, RunSnapshot snapshot, string slotKind, bool isQuicksave, string displayName)
         {
+            if (ComponentIntegrationEnabled) return _componentSave != null && _componentSave(slotId, slotKind, displayName);
             if (string.IsNullOrEmpty(slotId))
             {
                 CoreServices.Log.Warning("SaveLoadService: save_to_slot called with empty slot_id");
@@ -324,6 +332,8 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public RunSnapshot LoadFromSlot(string slotId)
         {
+            if (ComponentIntegrationEnabled)
+            { GdDict selected = SelectGeneration(slotId); return selected.GetBool("ok") ? RunSnapshot.FromDict(GdJson.ParseString(selected.GetDictOrEmpty("payloads").GetString("run_text")), RunSnapshot.ComponentIntegrationVersion, EngineVersionString) : null; }
             if (string.IsNullOrEmpty(slotId))
             {
                 CoreServices.Log.Warning("SaveLoadService: load_from_slot called with empty slot_id");
@@ -408,6 +418,7 @@ namespace SynapticSea.Core.Systems
 
         public bool DeleteSlot(string slotId)
         {
+            if (ComponentIntegrationEnabled) return ComponentCoordinator().DeleteDiagnosticSlot(slotId).GetBool("ok");
             string kind = IndexedKindFor(slotId);
             string path = SlotPath(slotId, kind);
             bool ok = true;
@@ -439,6 +450,7 @@ namespace SynapticSea.Core.Systems
 
         public bool HasSlot(string slotId)
         {
+            if (ComponentIntegrationEnabled) return SelectGeneration(slotId).GetBool("ok");
             if (string.IsNullOrEmpty(slotId))
                 return false;
             string kind = IndexedKindFor(slotId);
@@ -454,6 +466,8 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public GdArray SlotIdsForRun(string runId)
         {
+            if (ComponentIntegrationEnabled)
+            { var ids = new GdArray(); foreach (SaveSlotState row in ComponentSlots()) if (row.RunId == runId) ids.Add(row.SlotId); return ids; }
             if (string.IsNullOrEmpty(runId))
                 return new GdArray();
             var result = new GdArray();
@@ -505,6 +519,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public void FreezeRun(string runId, string cause, string epitaph, double runTime, long finalSeq)
         {
+            if (ComponentIntegrationEnabled) { FreezeComponentRun(runId, cause, epitaph); return; }
             PermadeathResolver resolver = NewResolver();
             foreach (object slotId in SlotIdsForRun(runId))
                 resolver.RecordDeath(V.Str(slotId), cause, epitaph, runTime, finalSeq);
@@ -516,6 +531,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public List<SaveSlotState> ListSlots()
         {
+            if (ComponentIntegrationEnabled) return ComponentSlots();
             SaveIndexState idx = LoadIndex();
             // The slot menu lists before loading. Validate/promote interrupted payloads before marking their
             // missing canonical names corrupt, because corruption itself is a recovery rejection witness.

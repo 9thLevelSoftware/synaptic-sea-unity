@@ -343,8 +343,13 @@ namespace SynapticSea.Core.Session
         {
             var session = new RunSession(deps);
             beforeReady?.Invoke(session);
-            session.BuildRuntimeNodes();
-            session.LoadFromPaths(session.LayoutPath, session.KitPath, session.GameplaySlicePath);
+            if (!session.PrepareGenerationBoot()) return session;
+            session.WithSelectedArtifactReader(() =>
+            {
+                session.BuildRuntimeNodes();
+                session.LoadFromPaths(session.LayoutPath, session.KitPath, session.GameplaySlicePath);
+                return true;
+            });
             return session;
         }
 

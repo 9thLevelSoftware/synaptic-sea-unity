@@ -82,7 +82,7 @@ namespace SynapticSea.Core.Systems
             if (gate != "ok") return Failure(gate);
             gate = CapacityReason(sourceId, source, instances);
             if (gate != "ok") return Failure(gate);
-            if (!DomainBundle.TryCreate(candidate, out DomainBundle validated, out detail))
+            if (!DomainBundle.TryCreatePreparation(candidate, request, out DomainBundle validated, out detail))
                 return Failure("invalid_domain", detail);
 
             var effect = new GdDict
@@ -94,6 +94,7 @@ namespace SynapticSea.Core.Systems
             return new GdDict
             {
                 { "ok", true }, { "reason", "ok" }, { "transaction_id", "component_transfer:" + commandId },
+                { "command_id", commandId },
                 { "expected_revision", original.Revision }, { "candidate", validated.GetSummary() }, { "result", effect },
             };
         }

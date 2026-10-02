@@ -47,6 +47,8 @@ namespace SynapticSea.Core.Procgen
 
         /// <summary>Generated derelicts are the away branch (atmosphere hook).</summary>
         public bool IsAway;
+        /// <summary>Witness that GameplaySliceBuilder produced this document; diagnostic archival preserves its separate contract.</summary>
+        public bool RuntimeGeneratedGameplay;
 
         /// <summary>
         /// Pipeline path: the exact layout.json text Godot wrote (<c>JSON.stringify(layout, "  ")</c>); null for the
@@ -438,6 +440,7 @@ namespace SynapticSea.Core.Procgen
             // Generated derelicts are the away branch.
             return new ShipDocuments
             {
+                RuntimeGeneratedGameplay = true,
                 Layout = layoutDoc, Kit = kit, GameplaySlice = gameplayDoc, IsAway = true, KitPath = kitPath,
                 LayoutJson = layoutJson, GameplaySliceJson = gameplayJson, SourceLayout = layout,
             };

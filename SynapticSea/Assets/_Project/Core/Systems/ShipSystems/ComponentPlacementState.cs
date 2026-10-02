@@ -19,6 +19,7 @@ namespace SynapticSea.Core.Systems
 
         public GdArray Placed = new GdArray();
         public long SeedValue = 0;
+        public bool RequireInstanceOwner;
 
         public void Clear() => Placed.Clear();
 
@@ -123,6 +124,38 @@ namespace SynapticSea.Core.Systems
             }
             // Golden/hub layouts often only stamp floor structural_placements — synthesize slots from floor cells.
             return SynthesizeSlotsFromStructure(room, slotKey);
+        }
+
+        /// <summary>Actual physical slot metadata, including vacancies; no fabricated hub slots or acquired components.</summary>
+        public GdArray DescribePhysicalSlots(GdDict layout, ComponentCatalog catalog)
+        {
+            var result = new GdArray();
+            foreach (object value in layout.GetArrayOrEmpty("rooms"))
+            {
+                if (!(value is GdDict room)) continue;
+                string roomId = room.GetString("id"), role = room.GetString("room_role", room.GetString("role", "default"));
+                foreach (string kind in new[] { "wall", "center" })
+                {
+                    GdArray slots = ExtractSlots(room, kind + "_slots");
+                    var forms = new GdArray();
+                    foreach (object choice in catalog.RoleSet(role, kind))
+                        if (choice is GdDict option)
+                        {
+                            GdDict definition = catalog.GetComponent(option.GetString("component_id"));
+                            string form = definition.GetString("item_form");
+                            if (form.Length > 0 && !forms.Contains(form)) forms.Add(form);
+                        }
+                    for (int index = 0; index < slots.Count; index++)
+                    {
+                        GdDict slot = slots[index] is GdDict metadata ? metadata.DeepCopy() : new GdDict();
+                        slot["room_id"] = roomId; slot["role"] = role; slot["slot_kind"] = kind; slot["slot_index"] = (long)index;
+                        slot["slot_id"] = roomId + "|" + kind + "|" + index;
+                        slot["accepted_forms"] = forms.DeepCopy();
+                        result.Add(slot);
+                    }
+                }
+            }
+            return result;
         }
 
         static bool InteriorZonesHaveSlots(GdDict interior)
@@ -388,6 +421,7 @@ namespace SynapticSea.Core.Systems
         /// <summary>Dismounts a placed component (mounted=false) and returns the yield payload; inventory is untouched.</summary>
         public GdDict Dismount(string instanceId)
         {
+            if (RequireInstanceOwner) return new GdDict { { "ok", false }, { "reason", "named_component_work_required" } };
             var output = new GdDict
             {
                 { "ok", false },
@@ -433,6 +467,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public GdDict Mount(string itemForm, string roomId, string slotKind, long slotIndex, GdDict inventory, ComponentCatalog catalog = null)
         {
+            if (RequireInstanceOwner) return new GdDict { { "ok", false }, { "reason", "named_component_work_required" } };
             var output = new GdDict
             {
                 { "ok", false },

@@ -12,6 +12,10 @@ namespace SynapticSea.Core.Systems
     /// </summary>
     public class RunSnapshot
     {
+        public const string ComponentIntegrationVersion = "gate2-current-run-7";
+        public GdDict ComponentDomain = new GdDict();
+        public string GenerationId = "";
+        public string CaptureRevision = "";
         public string LayoutPath = "";
         public string KitPath = "";
         public string GameplaySlicePath = "";
@@ -215,6 +219,10 @@ namespace SynapticSea.Core.Systems
                 { "saved_at_epoch", SavedAtEpoch },
             };
             if (!HomePortalState.IsEmpty) result["home_portal_state"] = HomePortalState.DeepCopy();
+            if (SliceVersion == ComponentIntegrationVersion)
+            {
+                result["component_domain"] = ComponentDomain.DeepCopy(); result["generation_id"] = GenerationId; result["capture_revision"] = CaptureRevision;
+            }
             return result;
         }
 
@@ -239,6 +247,8 @@ namespace SynapticSea.Core.Systems
             if (V.Str(dict.Get("slice_version", "")) != expectedSliceVersion) return null;
             if (V.Str(dict.Get("godot_version", "")) != expectedGodotVersion) return null;
             var snapshot = new RunSnapshot();
+            if (expectedSliceVersion == ComponentIntegrationVersion)
+            { snapshot.ComponentDomain = DeepCopyDict(dict.Get("component_domain")); snapshot.GenerationId = dict.GetString("generation_id"); snapshot.CaptureRevision = dict.GetString("capture_revision"); }
             snapshot.LayoutPath = V.Str(dict.Get("layout_path", ""));
             snapshot.KitPath = V.Str(dict.Get("kit_path", ""));
             snapshot.GameplaySlicePath = V.Str(dict.Get("gameplay_slice_path", ""));

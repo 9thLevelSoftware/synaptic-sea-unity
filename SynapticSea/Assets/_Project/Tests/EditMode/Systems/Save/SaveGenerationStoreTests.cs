@@ -900,6 +900,7 @@ namespace SynapticSea.Tests.Systems
         public int Calls, Writes;
         public Action<string, string> BeforeWrite, AfterWrite, AfterRead;
         public Func<string, string, string> Rewrite;
+        public Func<string, bool?> DeleteResult;
         public Func<string, string> GlobalizeOverride;
         public readonly HashSet<string> Unreadable = new HashSet<string>(StringComparer.Ordinal);
         public readonly List<string> WrittenPaths = new List<string>(), ReadPaths = new List<string>(), DirectoryPaths = new List<string>();
@@ -908,7 +909,7 @@ namespace SynapticSea.Tests.Systems
         public bool DirExists(string path) { Calls++; return _inner.DirExists(path); }
         public string ReadText(string path) { Calls++; ReadPaths.Add(path); if (Unreadable.Contains(path)) throw new IOException("read denied"); string text = _inner.ReadText(path); AfterRead?.Invoke(path, text); return text; }
         public void WriteText(string path, string text) { Calls++; Writes++; WrittenPaths.Add(path); BeforeWrite?.Invoke(path, text); _inner.WriteText(path, Rewrite == null ? text : Rewrite(path, text)); AfterWrite?.Invoke(path, text); }
-        public bool Delete(string path) { Calls++; return _inner.Delete(path); }
+        public bool Delete(string path) { Calls++; return DeleteResult?.Invoke(path) ?? _inner.Delete(path); }
         public bool Rename(string from, string to) { Calls++; return _inner.Rename(from, to); }
         public void MakeDirRecursive(string path) { Calls++; DirectoryPaths.Add(path); _inner.MakeDirRecursive(path); }
         public IReadOnlyList<string> ListFiles(string dir) { Calls++; return _inner.ListFiles(dir); }

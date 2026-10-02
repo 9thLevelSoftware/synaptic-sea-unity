@@ -1,6 +1,7 @@
 // Ported from scripts/ui/save_load_menu.gd @ 96ecb2b0
 using System.Collections.Generic;
 using SynapticSea.Core.Systems;
+using SynapticSea.Core.Variant;
 
 namespace SynapticSea.UI.Presenters
 {
@@ -34,10 +35,16 @@ namespace SynapticSea.UI.Presenters
         }
 
         ISaveSlotService _service;
+        SaveLoadService _generationService;
 
-        public void Bind(ISaveSlotService service) => _service = service;
+        public void Bind(ISaveSlotService service) { _service = service; _generationService = null; }
 
-        public void Bind(SaveLoadService service) => _service = service == null ? null : new ServiceAdapter(service);
+        public void Bind(SaveLoadService service) { _service = service == null ? null : new ServiceAdapter(service); _generationService = service; }
+
+        public GdDict SelectGeneration(string slotId) => _generationService?.SelectGeneration(slotId)?.DeepCopy()
+            ?? new GdDict { { "ok", false }, { "reason", "Generation selection is unavailable" } };
+        public string ComponentEpitaph(string slotId) => _generationService?.ComponentIntegrationEnabled == true
+            ? _generationService.GetComponentEpitaph(slotId) : "";
 
         public bool IsBound => _service != null;
 

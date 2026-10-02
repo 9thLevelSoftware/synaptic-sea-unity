@@ -87,6 +87,9 @@ namespace SynapticSea.Core.Session
         public Func<Vec3, IShipSceneRoot, Vec3?> ResolveDeckLanding;
         public IThreatNavigation ThreatNavigation;
         public IRunUiState UiState;
+        /// <summary>Explicit diagnostic admission; ordinary runs keep legacy crafting and save behavior.</summary>
+        public bool EnableComponentIntegration = false;
+        public GdDict SelectedSaveGeneration;
 
         // ---- the @export vars
         public string LayoutPath = RunSession.DEFAULT_LAYOUT_PATH;

@@ -58,7 +58,7 @@ namespace SynapticSea.Core.Session
                 Vec3 p = s.Scene.PlayerPosition;
                 ws.PlayerPositionInShip = GdArray.Of((double)p.X, (double)p.Y, (double)p.Z);
             }
-            if (!s.LifeboatCommissioned && s.LifeboatShip?.SystemsManager != null && s.ShipSystemsManager != null)
+            if (!s.ComponentIntegrationEnabled && !s.LifeboatCommissioned && s.LifeboatShip?.SystemsManager != null && s.ShipSystemsManager != null)
                 s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
             ws.MobileHomeState = new GdDict { { "version", 1L }, { "lifeboat_commissioned", s.LifeboatCommissioned },
                 { "lifeboat", s.LifeboatShip?.GetSummary() ?? new GdDict() }, { "home_mobility", s.HomeShip?.Mobility.DeepCopy() ?? new GdDict() } };
@@ -170,7 +170,7 @@ namespace SynapticSea.Core.Session
                 s.Log.Warning("World load rejected connection graph before changing live state: " + graphFailure);
                 return false;
             }
-            RunSnapshot homeSnap = RunSnapshot.FromDict(ws.HomeShip, SaveLoadService.CURRENT_SLICE_VERSION, s.Deps.Engine.VersionString);
+            RunSnapshot homeSnap = RunSnapshot.FromDict(ws.HomeShip, s.ComponentIntegrationEnabled ? RunSnapshot.ComponentIntegrationVersion : SaveLoadService.CURRENT_SLICE_VERSION, s.Deps.Engine.VersionString);
             if (homeSnap == null)
             {
                 s.Log.Warning("PlayableGeneratedShip: world load rejected — embedded home slice incompatible");
@@ -233,8 +233,8 @@ namespace SynapticSea.Core.Session
                 ShipInstance active = s.VisitedShips.GetOrDefault(ws.CurrentLocation);
                 if (active == null)
                 {
-                    s.Log.Warning("PlayableGeneratedShip: world load — current_location '" + ws.CurrentLocation + "' missing from visited_ships");
-                    return true;
+                    s.Log.Warning("PlayableGeneratedShip: world load - current_location '" + ws.CurrentLocation + "' missing from visited_ships");
+                    return !s.ComponentIntegrationEnabled;
                 }
                 s.RestoringConnections=true;
                 s.RestoredActiveScenePosition=ws.MobileHomeState.Has("active_scene_position")
@@ -244,8 +244,8 @@ namespace SynapticSea.Core.Session
                 finally { s.RestoringConnections=false;s.RestoredActiveScenePosition=null; }
                 if (!activated)
                 {
-                    s.Log.Warning("PlayableGeneratedShip: world load — failed to re-activate derelict '" + ws.CurrentLocation + "'");
-                    return true;
+                    s.Log.Warning("PlayableGeneratedShip: world load - failed to re-activate derelict '" + ws.CurrentLocation + "'");
+                    return !s.ComponentIntegrationEnabled;
                 }
             }
             foreach (DockPortBarrier b in s.DockBarriers)
@@ -257,17 +257,27 @@ namespace SynapticSea.Core.Session
             {
                 if (!(edgeV is GdDict edge))
                     continue;
-                s.EnsureDerelictGeometryInternal(s.FindShipByIdInternal(V.Str(edge.Get("mobile", ""))));
-                s.EnsureDerelictGeometryInternal(edge.Has("host_ship_id")
+                ShipInstance mobileEndpoint = s.FindShipByIdInternal(V.Str(edge.Get("mobile", "")));
+                ShipInstance hostEndpoint = edge.Has("host_ship_id")
                     ? s.FindShipByIdInternal(edge.GetString("host_ship_id"))
-                    : s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", ""))));
+                    : s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", "")));
+                s.EnsureDerelictGeometryInternal(mobileEndpoint); s.EnsureDerelictGeometryInternal(hostEndpoint);
+                if (s.ComponentIntegrationEnabled && (mobileEndpoint?.SceneRoot?.IsValid != true || hostEndpoint?.SceneRoot?.IsValid != true)) return false;
             }
             ApplyDockingSnapshot(s, ws);
+            if (s.ComponentIntegrationEnabled)
+            {
+                ComponentRawShipSystems.ApplyExactHealth(s.HomeShip?.SystemsManager, homeSnap.ShipSystemsSummary);
+                ComponentRawShipSystems.ApplyExactHealth(s.LifeboatShip?.SystemsManager, ws.MobileHomeState.GetDictOrEmpty("lifeboat").Get("systems"));
+                foreach (var pair in ws.VisitedShips)
+                    ComponentRawShipSystems.ApplyExactHealth(s.VisitedShips.GetOrDefault(V.Str(pair.Key))?.SystemsManager, ((GdDict)pair.Value).Get("systems"));
+            }
             if(s.PilotedShip!=null && s.IsHomeMember(s.PilotedShip))s.SetPilotedShip(s.PilotedShip);
             s.RefreshThreatsAfterConnectionRestore();
             s.SpawnHomeBridge();
             s.RebuildHomeJoinControls();
             s.RecomputeOccupancy();
+            if (s.ComponentIntegrationEnabled) s.RestoreGenerationPlayerPose(ws);
             return true;
         }
 
@@ -429,7 +439,7 @@ namespace SynapticSea.Core.Session
         public static void ApplyDockingSnapshot(RunSession s, WorldSnapshot ws)
         {
             if (!ValidateConnectionSnapshot(s, ws, out GdArray restoreEdges, out string failure))
-            { s.Log.Warning("Rejected docking restore: " + failure); return; }
+            { s.Log.Warning("Rejected docking restore: " + failure); if (s.ComponentIntegrationEnabled) throw new InvalidOperationException("required_connection_failed"); return; }
             if (ws.PilotedShipId != "")
             {
                 ShipInstance p = s.FindShipByIdInternal(ws.PilotedShipId);
@@ -445,7 +455,7 @@ namespace SynapticSea.Core.Session
                     ? s.FindShipByIdInternal(edge.GetString("host_ship_id"))
                     : s.FindShipByIdOrMarkerInternal(V.Str(edge.Get("host", "")));
                 if (mobile == null || host == null)
-                    continue;
+                { if (s.ComponentIntegrationEnabled) throw new InvalidOperationException("required_connection_member_missing"); continue; }
                 if (V.Str(edge.Get("port_type", "airlock")) == "hangar")
                 {
                     s.RedockBayedInternal(mobile, host, V.I64(edge.Get("slot_index", -1L)));
@@ -454,23 +464,25 @@ namespace SynapticSea.Core.Session
                 {
                     string hostId = edge.GetString("host_ship_id");
                     if (hostId.Length == 0 || host.ShipId != hostId)
-                    { s.Log.Warning("World load rejected inconsistent connection host identity"); continue; }
+                    { s.Log.Warning("World load rejected inconsistent connection host identity"); if (s.ComponentIntegrationEnabled) throw new InvalidOperationException("required_connection_host_mismatch"); continue; }
                     GdDict restored = DockingManager.RestoreConnection(host, mobile, edge);
-                    if (!restored.GetBool("success")) s.Log.Warning("World load rejected connection: " + restored.GetString("reason"));
+                    if (!restored.GetBool("success")) { s.Log.Warning("World load rejected connection: " + restored.GetString("reason")); if (s.ComponentIntegrationEnabled) throw new InvalidOperationException("required_connection_failed"); }
                 }
                 else if (mobile.ParentShip != host)
                 {
                     ShipInstance savedPiloted = s.PilotedShip;
                     s.PilotedShip = mobile;
-                    s.DockPilotedToInternal(host);
-                    s.PilotedShip = savedPiloted;
+                    try { GdDict docked = s.DockPilotedToInternal(host); if (s.ComponentIntegrationEnabled && !docked.GetBool("success")) throw new InvalidOperationException("required_connection_failed"); }
+                    finally { s.PilotedShip = savedPiloted; }
                 }
+                if (s.ComponentIntegrationEnabled && (mobile.ParentShip != host || mobile.SceneRoot?.IsValid != true || host.SceneRoot?.IsValid != true)) throw new InvalidOperationException("required_connection_failed");
             }
             if (ws.AboardShipId != "")
             {
                 ShipInstance a = s.FindShipByIdInternal(ws.AboardShipId);
                 if (a != null)
                     s.CurrentOccupancy = a;
+                else if (s.ComponentIntegrationEnabled) throw new InvalidOperationException("player_pose_owner_missing");
             }
         }
     }

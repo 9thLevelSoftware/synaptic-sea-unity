@@ -21,7 +21,7 @@ namespace SynapticSea.Core.Systems
     /// Unused supplied-payload F05 prerequisite. Exact supplied document bytes are immutable; a verified
     /// shared slot pointer selects one complete generation. Live capture, migration and reclaim are external.
     /// </summary>
-    public sealed class SaveCommitCoordinator
+    public sealed partial class SaveCommitCoordinator
     {
         public const string PayloadVersion = "save-payload-bundle-1";
         public const string CommitVersion = "save-commit-1";
@@ -39,17 +39,20 @@ namespace SynapticSea.Core.Systems
         readonly Action<string> _fault;
         readonly object _gate = new object();
         bool _mutating;
+        readonly bool _allowComponentIntegration;
+        bool _explicitReclaim;
 
         public SaveCommitCoordinator(IStorage storage, string root,
             ISaveGenerationTerminalAuthority terminalAuthority, GdDict compatibility,
-            Action<string> fault = null)
+            Action<string> fault = null, bool allowComponentIntegration = false)
         {
             _storage = storage;
             _root = root;
-            _validRoot = ValidRoot(root) && storage != null;
+            _validRoot = (ValidRoot(root) || allowComponentIntegration && ValidComponentRoot(root)) && storage != null;
             _authority = terminalAuthority;
             _compatibility = SafeGraph(compatibility) && ValidCompatibility(compatibility) ? compatibility.DeepCopy() : null;
             _fault = fault;
+            _allowComponentIntegration = allowComponentIntegration;
         }
 
         public GdDict Commit(GdDict payloads, string runId, string slotId)
@@ -70,6 +73,7 @@ namespace SynapticSea.Core.Systems
                     if (current != null && current.Id == candidate.Id)
                     {
                         if (!Equivalent(candidate.Request, current.Request)) throw new Refusal("generation_conflict");
+                        GdDict visibility = ReconcileDeletedVisibility(current); if (visibility != null) return visibility;
                         GdDict repeated = Success(current, "already_committed");
                         // Exact replay performs no publication, but its verified disk commit still
                         // needs current playability after rereading the immutable payload closure.
@@ -83,7 +87,7 @@ namespace SynapticSea.Core.Systems
                         return repeated;
                     }
                     CheckParent(candidate, current, oldPointer);
-                    candidate.ParentPointer = oldPointer ?? "";
+                    candidate.ParentPointer = _explicitReclaim && candidate.Parent.Length == 0 ? "" : oldPointer ?? "";
                     candidate.Manifest = MakeManifest(candidate, terminalWitness);
                     candidate.ManifestText = Encode(candidate.Manifest);
                     string directory = Generation(runId, slotId, candidate.Id);
@@ -129,6 +133,7 @@ namespace SynapticSea.Core.Systems
                     string pointer = PointerText(candidate);
                     _storage.WriteText(Active(slotId), pointer);
                     VerifySelected(candidate, pointer);
+                    GdDict marker = ReconcileDeletedVisibility(candidate); if (marker != null) return marker;
                     Hook("after_pointer");
                     return Finish(candidate, "committed", false);
                 }
@@ -153,6 +158,7 @@ namespace SynapticSea.Core.Systems
                 try
                 {
                     Guard(runId, slotId);
+                    if (_allowComponentIntegration && _storage.FileExists(Deleted(slotId))) throw new Refusal("slot_deleted");
                     CheckOperationPaths(runId, slotId);
                     RequireLive(runId, slotId);
                     if (_storage.FileExists(Active(slotId)))
@@ -323,6 +329,7 @@ namespace SynapticSea.Core.Systems
                 Candidate actual = TrySelected(_storage.ReadText(Active(candidate.Slot)), candidate.Run, candidate.Slot);
                 if (actual != null && actual.Id == candidate.Id && Hash(actual.ManifestText) == Hash(candidate.ManifestText))
                 {
+                    GdDict visibility = ReconcileDeletedVisibility(actual); if (visibility != null) return visibility;
                     GdDict committed = Success(actual, "index_reconciliation_needed", recovered);
                     committed["index_reconciliation_needed"] = true;
                     committed["detail"] = Description(error);
@@ -389,7 +396,12 @@ namespace SynapticSea.Core.Systems
             if (!_storage.FileExists(Active(slotId))) { CheckPreviousOwner(runId, slotId); return null; }
             pointer = _storage.ReadText(Active(slotId));
             GdDict header = TryPointer(pointer, slotId);
-            if (header != null && header.GetString("run_id") != runId) throw new Refusal("slot_owner_conflict");
+            if (header != null && header.GetString("run_id") != runId)
+            {
+                if (_allowComponentIntegration && _explicitReclaim)
+                { if (TrySelected(pointer, header.GetString("run_id"), slotId) == null) throw new Refusal("corrupt_generation"); return null; }
+                throw new Refusal("slot_owner_conflict");
+            }
             Candidate current = TrySelected(pointer, runId, slotId);
             if (current == null) throw new Refusal("corrupt_generation");
             return current;
@@ -399,6 +411,11 @@ namespace SynapticSea.Core.Systems
         {
             if (current == null)
             {
+                if (_allowComponentIntegration && _explicitReclaim && pointer != null)
+                {
+                    if (candidate.Parent.Length != 0 || candidate.Request.GetString("expected_pointer_sha256").Length != 0) throw new Refusal("stale_parent");
+                    return;
+                }
                 if (candidate.Parent.Length != 0 || candidate.Request.GetString("expected_pointer_sha256").Length != 0) throw new Refusal("stale_parent");
                 var known = new Dictionary<string, Candidate>(StringComparer.Ordinal);
                 var diagnostics = new GdArray();
@@ -416,7 +433,7 @@ namespace SynapticSea.Core.Systems
             if (originalPointer == null && !present) { CheckPreviousOwner(candidate.Run, candidate.Slot); return; }
             string current = present ? _storage.ReadText(Active(candidate.Slot)) : null;
             GdDict header = TryPointer(current, candidate.Slot);
-            if (header != null && header.GetString("run_id") != candidate.Run) throw new Refusal("slot_owner_conflict");
+            if (header != null && header.GetString("run_id") != candidate.Run && !(_allowComponentIntegration && _explicitReclaim)) throw new Refusal("slot_owner_conflict");
             if (current != originalPointer) throw new Refusal("stale_parent");
         }
 
@@ -652,8 +669,10 @@ namespace SynapticSea.Core.Systems
             return copy;
         }
 
-        Candidate ValidateRequest(GdDict supplied, string run, string slot)
+        Candidate ValidateRequest(GdDict supplied, string run, string slot, bool componentAdapter = false)
         {
+            if (_allowComponentIntegration && supplied != null && ParseObject(supplied.GetString("run_text"))?.GetString("slice_version") == RunSnapshot.ComponentIntegrationVersion)
+                return ValidateIntegrationRequest(supplied, run, slot);
             if (supplied == null || !SafeGraph(supplied) || supplied.Count != 13) throw new Refusal("invalid_request");
             GdDict request = supplied.DeepCopy();
             if (!StringFields(request, "schema_version", "generation_id", "parent_generation_id", "expected_pointer_sha256", "run_id", "slot_id", "slot_kind") ||
@@ -707,7 +726,8 @@ namespace SynapticSea.Core.Systems
                 !(binding.Get("owner_revisions") is GdDict) || !(binding.Get("ship_references") is GdDict)) throw new Refusal("binding_mismatch");
             string location = world.GetString("current_location");
             if (location != binding.GetString("current_location") || location != active.GetString("current_location") ||
-                !V.VariantEquals(active.Get("player_position"), binding.Get("player_local_pose")) || !V.VariantEquals(world.Get("player_position_in_ship"), binding.Get("player_local_pose"))) throw new Refusal("binding_mismatch");
+                !(componentAdapter ? SamePoseWire(active.Get("player_position"), binding.Get("player_local_pose")) : V.VariantEquals(active.Get("player_position"), binding.Get("player_local_pose"))) ||
+                !(componentAdapter ? SamePoseWire(world.Get("player_position_in_ship"), binding.Get("player_local_pose")) : V.VariantEquals(world.Get("player_position_in_ship"), binding.Get("player_local_pose")))) throw new Refusal("binding_mismatch");
             var owners = new HashSet<string>(StringComparer.Ordinal) { "ship_start", "lifeboat" };
             var used = new HashSet<string>(StringComparer.Ordinal);
             GdDict refs = binding.GetDictOrEmpty("ship_references");
@@ -844,6 +864,7 @@ namespace SynapticSea.Core.Systems
         GdDict RequireLive(string run, string slot)
         {
             if (_authority == null) throw new Refusal("terminal_unbound");
+            if (_allowComponentIntegration && _storage.FileExists(TerminalIntent(run))) throw new Refusal("run_terminal");
             GdDict status;
             try { status = _authority.Query(run, slot); }
             catch (Exception) { throw new Refusal("terminal_authority_error"); }
@@ -855,6 +876,7 @@ namespace SynapticSea.Core.Systems
             if (state == "terminal" || state == "frozen") throw new Refusal("run_terminal");
             if (state != "live") throw new Refusal("terminal_ambiguous");
             if (ReadTerminal(run) != null) throw new Refusal("run_terminal");
+            if (_allowComponentIntegration) return status.DeepCopy(); // Diagnostic lifecycle never consults or changes ordinary slot authority.
             if (_storage.FileExists(Death(slot))) throw new Refusal("legacy_death");
             foreach (object value in status.GetArrayOrEmpty("legacy_witnesses"))
             {
@@ -1030,6 +1052,11 @@ namespace SynapticSea.Core.Systems
             const string prefix = "user://saves/.generations";
             return root != null && (root == prefix || root.StartsWith(prefix + "/", StringComparison.Ordinal)) && LogicalPath(root);
         }
+        static bool ValidComponentRoot(string root)
+        {
+            const string prefix = SaveLoadService.ComponentGenerationRoot;
+            return root != null && (root == prefix || root.StartsWith(prefix + "/", StringComparison.Ordinal)) && LogicalPath(root);
+        }
         static bool LogicalPath(string path)
         {
             if (path == null) return false;
@@ -1073,6 +1100,7 @@ namespace SynapticSea.Core.Systems
             number = (long)n; return true;
         }
         static bool Position(object value) => value is GdArray array && array.Count == 3 && array.All(v => Number(v, out _));
+        static bool SamePoseWire(object left, object right) => Position(left) && Position(right) && GdJson.Stringify(left) == GdJson.Stringify(right);
         static bool Shape(GdDict actual, GdDict template)
         {
             foreach (var field in template)

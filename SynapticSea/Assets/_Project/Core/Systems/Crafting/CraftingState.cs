@@ -1,4 +1,5 @@
 // Ported from scripts/systems/crafting_state.gd @ 96ecb2b0
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Contracts;
 using SynapticSea.Core.Services;
@@ -25,6 +26,9 @@ namespace SynapticSea.Core.Systems
         readonly Dictionary<string, StationState> _stationStates = new Dictionary<string, StationState>(); // station_kind -> StationState
         readonly List<string> _stationOrder = new List<string>();                     // insertion order of _stationStates
         GdDict _activeCraft = new GdDict();                                           // recipe_id, station_kind, progress tracking
+        /// <summary>Transient optional session preflight; absent in ordinary crafting and never persisted.</summary>
+        public Func<GdDict, string> RecipePreflight;
+        public string RecipeBlockedReason(string recipeId) => RecipePreflight?.Invoke(GetRecipe(recipeId).DeepCopy()) ?? "";
 
         public CraftingState()
         {
@@ -106,6 +110,8 @@ namespace SynapticSea.Core.Systems
             GdDict recipe = GetRecipe(recipeId);
             if (recipe.IsEmpty)
                 return false;
+            if (RecipeBlockedReason(recipeId).Length > 0)
+                return false;
             if (knowledge != null && !knowledge.IsKnown(recipeId))
                 return false;
             long needTier = V.I64(recipe.Get("station_tier_min", 0L));
@@ -128,6 +134,8 @@ namespace SynapticSea.Core.Systems
         {
             GdDict recipe = GetRecipe(recipeId);
             if (recipe.IsEmpty)
+                return false;
+            if (RecipeBlockedReason(recipeId).Length > 0)
                 return false;
             object ingredients = recipe.Get("ingredients", new GdDict());
             if (!(ingredients is GdDict ingredientsDict))
@@ -237,7 +245,12 @@ namespace SynapticSea.Core.Systems
                 if (recipe.Get("ingredients", new GdDict()) is GdDict ingredientsRaw)
                     ingredients = ingredientsRaw.ShallowCopy();
                 string status = "ready";
-                if (playerSkillLevel < requiredSkill)
+                string preflight = RecipeBlockedReason(rid);
+                if (preflight.Length > 0)
+                {
+                    status = preflight;
+                }
+                else if (playerSkillLevel < requiredSkill)
                 {
                     status = "insufficient_skill";
                 }
@@ -324,6 +337,8 @@ namespace SynapticSea.Core.Systems
         {
             GdDict recipe = GetRecipe(recipeId);
             if (recipe.IsEmpty)
+                return false;
+            if (RecipeBlockedReason(recipeId).Length > 0)
                 return false;
             string stationKind = V.Str(recipe.Get("station_kind", ""));
             if (stationKind.Length == 0)

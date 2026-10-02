@@ -19,6 +19,9 @@ namespace SynapticSea.Core.Systems
         public List<string> RequiredTools = new List<string>();
         public long MinSkill = 0;
         public double RepairSeconds = 5.0;
+        /// <summary>Transient diagnostic installation gate. Saved raw machinery damage remains Health.</summary>
+        public Func<double> ComponentConditionCap;
+        public double EffectiveHealth => ComponentConditionCap == null ? Health : Math.Min(Health, ComponentConditionCap());
 
         public ShipSubcomponent(
             string pId = "",
@@ -37,6 +40,7 @@ namespace SynapticSea.Core.Systems
         }
 
         public bool IsFunctional() => Health >= OperationalThreshold;
+        public bool IsOperationallyFunctional() => EffectiveHealth >= OperationalThreshold;
 
         /// <summary>
         /// Parameterized repair. Deterministic: success is fully determined by the requirements being met.

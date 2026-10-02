@@ -11,6 +11,7 @@ namespace SynapticSea.Core.Session
         DomainBundle _current;
         readonly Action<string> _stageHook;
         readonly Action<GdDict> _notification;
+        readonly Action<GdDict> _publishViews;
         readonly Dictionary<string, Pending> _pending = new Dictionary<string, Pending>(StringComparer.Ordinal);
         readonly HashSet<string> _pendingCommands = new HashSet<string>(StringComparer.Ordinal);
         // Presentation details are transient; canonical domain outcomes live only in the bundle's receipts.
@@ -27,13 +28,37 @@ namespace SynapticSea.Core.Session
             }
         }
 
-        public DomainTransactionCoordinator(GdDict initialSummary, Action<string> stageHook = null, Action<GdDict> notification = null)
+        public DomainTransactionCoordinator(GdDict initialSummary, Action<string> stageHook = null, Action<GdDict> notification = null, Action<GdDict> publishViews = null)
         {
             if (!DomainBundle.TryCreate(initialSummary, out _current, out string reason)) throw new ArgumentException(reason, nameof(initialSummary));
-            _stageHook = stageHook; _notification = notification;
+            _stageHook = stageHook; _notification = notification; _publishViews = publishViews;
         }
 
         public GdDict GetSummary() => _current.GetSummary();
+        public GdDict GetProjections() => _current.GetProjections();
+
+        internal GdDict PrepareLive(GdDict command, Func<GdDict, GdDict> stageEffects)
+        {
+            GdDict prepared = Prepare(command);
+            if (!prepared.GetBool("ok")) return prepared;
+            string id = prepared.GetString("transaction_id");
+            Pending pending = _pending[id];
+            try
+            {
+                GdDict candidate = stageEffects(pending.Candidate.DeepCopy());
+                if (candidate.GetInt("schema_version") != 2 || !DomainBundle.TryCreatePreparation(candidate, command, out _, out string reason) ||
+                    !ConservedTransition(_current.GetSummary(), candidate, command))
+                    throw new InvalidOperationException("Invalid staged live component effect.");
+                _pending[id] = new Pending(command, candidate, pending.Result, pending.ExpectedRevision);
+                prepared["candidate"] = candidate.DeepCopy();
+                return prepared;
+            }
+            catch
+            {
+                _pending.Remove(id); _pendingCommands.Remove(command.GetString("command_id"));
+                throw;
+            }
+        }
 
         public GdDict Prepare(GdDict command)
         {
@@ -50,7 +75,7 @@ namespace SynapticSea.Core.Session
                 if (!prepared.GetBool("ok")) return prepared.DeepCopy();
                 if (prepared.GetString("transaction_id") != transactionId || prepared.GetInt("expected_revision", -1) != _current.Revision ||
                     !(prepared.Get("candidate") is GdDict candidate) || !(prepared.Get("result") is GdDict result) ||
-                    !DomainBundle.TryCreate(candidate, out _, out _) || !ConservedTransition(before, candidate, ownedCommand) || !MatchesEffect(result, ownedCommand))
+                    !DomainBundle.TryCreatePreparation(candidate, ownedCommand, out _, out _) || !ConservedTransition(before, candidate, ownedCommand) || !MatchesEffect(result, ownedCommand))
                     return Failure("invalid_preparation", transactionId, commandId);
                 _pending[transactionId] = new Pending(ownedCommand, candidate, result, _current.Revision);
                 _pendingCommands.Add(commandId);
@@ -75,23 +100,33 @@ namespace SynapticSea.Core.Session
             try
             {
                 if (_current.Revision != pending.ExpectedRevision) return Failure("stale_domain", transactionId, commandId);
-                if (!DomainBundle.TryCreate(pending.Candidate, out _, out _) || !ConservedTransition(current, pending.Candidate, pending.Command) || !MatchesEffect(pending.Result, pending.Command))
+                if (!DomainBundle.TryCreatePreparation(pending.Candidate, pending.Command, out _, out _) || !ConservedTransition(current, pending.Candidate, pending.Command) || !MatchesEffect(pending.Result, pending.Command))
                     return Failure("invalid_preparation", transactionId, commandId);
 
                 // Staging remains private. Readers at every hook see _current, never any per-field candidate.
-                GdDict staged = new GdDict { { "schema_version", 1L }, { "revision", pending.Candidate.Get("revision") },
+                GdDict staged = new GdDict { { "schema_version", pending.Candidate.Get("schema_version") }, { "revision", pending.Candidate.Get("revision") },
                     { "registry", pending.Candidate.GetDictOrEmpty("registry").DeepCopy() } };
                 _stageHook?.Invoke("registry");
                 staged["holders"] = pending.Candidate.GetDictOrEmpty("holders").DeepCopy(); _stageHook?.Invoke("holders");
                 staged["machinery"] = pending.Candidate.GetDictOrEmpty("machinery").DeepCopy(); _stageHook?.Invoke("machinery");
+                if (pending.Candidate.GetInt("schema_version") == 2)
+                {
+                    staged["physical_slots"] = pending.Candidate.GetDictOrEmpty("physical_slots").DeepCopy(); _stageHook?.Invoke("placement");
+                    staged["participating_state"] = pending.Candidate.GetDictOrEmpty("participating_state").DeepCopy(); _stageHook?.Invoke("inventory");
+                    staged["component_work"] = pending.Candidate.GetDictOrEmpty("component_work").DeepCopy(); _stageHook?.Invoke("job");
+                    staged["command_sequence"] = pending.Candidate.Get("command_sequence");
+                    staged["registered_owners"] = pending.Candidate.GetArrayOrEmpty("registered_owners").DeepCopy(); _stageHook?.Invoke("progression");
+                }
                 GdDict receipts = pending.Candidate.GetDictOrEmpty("receipts").DeepCopy();
                 GdDict receipt = new GdDict { { "schema_version", 1L }, { "transaction_id", transactionId }, { "command_id", commandId },
                     { "revision", pending.Candidate.Get("revision") }, { "result", pending.Result.DeepCopy() } };
+                if (pending.Candidate.GetInt("schema_version") == 2) receipt["commit_id"] = transactionId;
                 receipts[transactionId] = receipt; staged["receipts"] = receipts; _stageHook?.Invoke("receipt");
                 _stageHook?.Invoke("validation");
                 if (!DomainBundle.TryCreate(staged, out DomainBundle complete, out string reason)) return Failure("invalid_candidate:" + reason, transactionId, commandId);
                 publishedResult = CommittedResult(receipt);
                 _stageHook?.Invoke("publication");
+                _publishViews?.Invoke(complete.GetSummary());
                 _current = complete; // The sole publication assignment: all participating state and its receipt.
                 published = true;
 
@@ -146,7 +181,7 @@ namespace SynapticSea.Core.Session
         static GdDict CommittedResult(GdDict receipt)
             => new GdDict { { "ok", true }, { "committed", true }, { "reason", "committed" },
                 { "transaction_id", receipt.Get("transaction_id") }, { "command_id", receipt.Get("command_id") },
-                { "revision", receipt.Get("revision") }, { "result", receipt.GetDictOrEmpty("result").DeepCopy() },
+                { "revision", receipt.Get("revision") }, { "commit_id", receipt.Get("commit_id", receipt.Get("transaction_id")) }, { "result", receipt.GetDictOrEmpty("result").DeepCopy() },
                 { "presentation_failed", false }, { "presentation_error", "" } };
 
         static string Describe(Exception exception)

@@ -24,6 +24,7 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>Integrity repair buffer from plating installs.</summary>
         public double HullPlatingBonus = 0.0;
+        public bool RequireInstanceOwner;
 
         public void Configure(GdDict config)
         {
@@ -113,6 +114,7 @@ namespace SynapticSea.Core.Systems
             string sourceShip = "",
             bool plating = false)
         {
+            if (RequireInstanceOwner) return new GdDict { { "ok", false }, { "reason", "named_component_work_required" } };
             var output = new GdDict { { "ok", false }, { "reason", "" }, { "slot_id", slotId } };
             if (string.IsNullOrEmpty(slotId) || string.IsNullOrEmpty(componentId) || string.IsNullOrEmpty(itemForm))
             {
@@ -160,6 +162,7 @@ namespace SynapticSea.Core.Systems
         /// <summary>Uninstall slot back into inventory.</summary>
         public GdDict Uninstall(string slotId, GdDict inventory)
         {
+            if (RequireInstanceOwner) return new GdDict { { "ok", false }, { "reason", "named_component_work_required" } };
             var output = new GdDict { { "ok", false }, { "reason", "" }, { "item_form", "" } };
             for (int i = 0; i < Installed.Count; i++)
             {

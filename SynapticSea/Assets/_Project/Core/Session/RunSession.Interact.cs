@@ -17,6 +17,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Eligibility shared by the HUD focus and ordinary interaction dispatch.</summary>
         public bool CanFocusInteractable(SessionInteractable item)
         {
+            if (ComponentIntegrationEnabled && ComponentTerminalPending) return false;
             if (item == null || !item.IsValid || !item.IsInsideTree) return false;
             if (item is BridgeTerminal terminal && PilotedShip != null && PilotedShip.ShipId == terminal.ShipId) return false;
             if (item is LootContainer loot && loot.Searched) return false;
@@ -63,6 +64,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public string RequestInteract()
         {
+            if (ComponentIntegrationEnabled && ComponentTerminalPending) return "terminal_pending";
             TriggerTutorial("player_interacted", "any");
             SessionLocation location = AwayFromStart ? SessionLocation.Away : SessionLocation.Home;
             Vec3 playerPosition = PlayerPos;

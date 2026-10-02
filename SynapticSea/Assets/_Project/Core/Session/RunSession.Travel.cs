@@ -56,6 +56,7 @@ namespace SynapticSea.Core.Session
         {
             CatchUpShip(inst);
             inst.SceneRoot = newRoot;
+            RememberShipGenerationDocuments(inst);
             ShipHost?.AttachShipRoot(newRoot);
             ShipHost?.SetShipRootPosition(newRoot, DerelictScenePosition(newRoot));
             if (inst.BuiltLayout.IsEmpty && newRoot != null)
@@ -438,6 +439,7 @@ namespace SynapticSea.Core.Session
             if (CurrentShip != null && !CurrentShip.ComponentPlacementSummary.IsEmpty)
             {
                 ComponentPlacementState.ApplySummary(CurrentShip.ComponentPlacementSummary);
+                if (ComponentIntegrationEnabled) BindComponentIntegrationForCurrentShip();
                 RebuildComponentMarkers();
                 return;
             }
@@ -454,6 +456,7 @@ namespace SynapticSea.Core.Session
                 ComponentPlacementState.LinkShipSystems(systemsDoc, ComponentCatalog);
             if (CurrentShip != null && ComponentPlacementState.Placed.Count > 0)
                 CurrentShip.ComponentPlacementSummary = ComponentPlacementState.GetSummary();
+            if (ComponentIntegrationEnabled) BindComponentIntegrationForCurrentShip();
             RebuildComponentMarkers();
         }
 
@@ -539,7 +542,7 @@ namespace SynapticSea.Core.Session
             if (inst == null || ShipGenerator == null)
                 return false;
             ApplyRunContextFromBlueprint(inst.Blueprint);
-            IShipLoaderView newRoot = GenerateShipScene(inst.Blueprint);
+            IShipLoaderView newRoot = ComponentIntegrationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
             if (newRoot == null)
                 return false;
             AttachDerelictActive(inst, newRoot);
@@ -565,10 +568,11 @@ namespace SynapticSea.Core.Session
             if (inst.MarkerId == "" || RootValid(inst.SceneRoot))
                 return;
             ApplyRunContextFromBlueprint(inst.Blueprint);
-            IShipLoaderView newRoot = GenerateShipScene(inst.Blueprint);
+            IShipLoaderView newRoot = ComponentIntegrationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
             if (newRoot == null)
                 return;
             inst.SceneRoot = newRoot;
+            RememberShipGenerationDocuments(inst);
             ShipHost?.AttachShipRoot(newRoot);
             ShipHost?.SetShipRootPosition(newRoot, DERELICT_DOCK_OFFSET);
             if (inst.BuiltLayout.IsEmpty)

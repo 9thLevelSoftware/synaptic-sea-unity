@@ -49,6 +49,8 @@ namespace SynapticSea.UI
         public event Action<GdDict> MetaScreenConfirmed;
         /// <summary>A slot-screen Load succeeded: the session applies the snapshot (Godot: apply_manual_slot).</summary>
         public event Action<string, RunSnapshot> SlotSnapshotLoaded;
+        public event Action<string, GdDict> SlotGenerationSelected;
+        public event Action<string> OpenOriginalSaveRequested;
         /// <summary>A slot-screen Load on the world row: the session runs its world load (Godot: request_load()).</summary>
         public event Action WorldLoadRequested;
         public event Action<string> LanguageChanged;
@@ -252,6 +254,7 @@ namespace SynapticSea.UI
             SaveLoadScreen = new SaveLoadScreen(SaveSlots);
             SaveLoadScreen.BackRequested += CloseMetaScreen;
             SaveLoadScreen.Confirmed += RecordConfirm;
+            SaveLoadScreen.OpenOriginalSaveRequested += slotId => OpenOriginalSaveRequested?.Invoke(slotId);
 
             _metaPanels["achievements"] = AchievementsPanel;
             _metaPanels["skill_tree"] = SkillTreePanel;
@@ -855,7 +858,9 @@ namespace SynapticSea.UI
             MetaScreenConfirmed?.Invoke(result);
             if (V.Str(result.Get("screen", "")) != "save_load" || !result.GetBool("ok", false)) return;
             string action = V.Str(result.Get("action", ""));
-            if (action == "load" && SaveSlots.LastLoadedSnapshot != null)
+            if (action == "load_generation" && SaveSlots.LastLoadedSelection != null)
+                SlotGenerationSelected?.Invoke(V.Str(result.Get("detail", "")), SaveSlots.LastLoadedSelection.DeepCopy());
+            else if (action == "load" && SaveSlots.LastLoadedSnapshot != null)
                 SlotSnapshotLoaded?.Invoke(V.Str(result.Get("detail", "")), SaveSlots.LastLoadedSnapshot);
             else if (action == "load_world")
                 WorldLoadRequested?.Invoke();
