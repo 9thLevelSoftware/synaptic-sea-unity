@@ -1,0 +1,1648 @@
+{
+  "final_review": {
+    "path": "artifacts/foundation-bounded/final-review.md",
+    "package_path": "artifacts/foundation-bounded/integrated-approved-review-package.md",
+    "sha256": "7530b4ac34f9aa687ed82badfedcd03fec443eb8be5e6847a9c336815649d6c1",
+    "package_sha256": "1b6b74338f6b5f094c6b1d641ddaf6b9579001f4cb1517c7686a1a2e392af34d"
+  },
+  "infrastructure_attempts": [
+    "Baseline first attempt MSB3491 cached obj permission failure; no tests executed; authorized retry succeeded.",
+    "Storage expanded initial fixture CS1674 compile failure; no tests executed; corrected fixture disposal.",
+    "First integrated Unity Edit exit1 before discovery/XML: Unity NUnit lacks NonParallelizable; conditionalized only for SYNAPTIC_DOTNET_TESTS.",
+    "Transient platform disconnect reported; local execution remained available; authoritative in-flight completion preserved; no interrupted write/test observed."
+  ],
+  "product_commits": {
+    "A": "c68c3fe80c322c213b076ffdd1f588596097d1cf",
+    "B": "e062f00386c4ce789dc2a481a5a33568902ff85a",
+    "C": "52027d3e8cf31a699c4a4f2b94ea0b7cb571462c"
+  },
+  "final_scoped_source_matches_every_applicable_final_run_inventory": true,
+  "branch": "codex/foundation-bounded-2026-10-02",
+  "not_run": [
+    "Full PlayMode suite",
+    "Standalone player build",
+    "Native OS input witness",
+    "Earned class/first-ship journeys",
+    "Killed-process or power-cut faults",
+    "Complete multi-file generation/index/cloud/migration fault matrix"
+  ],
+  "product_files": [
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Infra/CatalogSourceValidator.cs",
+      "sha256": "721d6c6980b8da4fbbf6ded86ab4e56229545b6598770de1bba4dd5ab9d4ab26"
+    },
+    {
+      "verified_run_inventories": [],
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Infra/CatalogSourceValidator.cs.meta",
+      "sha256": "accc26d01bd4fb99c6ce705260701fa9e43824c2c6a5b160d583ff9c1df8926a"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Infra/DependencyValidator.cs",
+      "sha256": "8d6b54ce58ac50a3393914a0652fdc843228ec363b69b130663125ab34f46ff4"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.Build.cs",
+      "sha256": "3b30c8f8b3c58fd2d764ecf74a7f5e5b025f2a787c4b0b460e6aca9cecbc54c7"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Infra/CatalogSourceValidatorTests.cs",
+      "sha256": "e26609d667f88e35160ef9fc05cf6aa3eff954ed001d1b19b18f12b61f15361d"
+    },
+    {
+      "verified_run_inventories": [],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Infra/CatalogSourceValidatorTests.cs.meta",
+      "sha256": "4f770455f1ec9706de2a15bdc3067a2a5d2d372897c0bfec095d77824e261cb2"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+      "sha256": "626dcf75dcf418606f46eb1749eeb0386ebf3e5113cd7b4d3a198bf51df326e5"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.Save.cs",
+      "sha256": "3c4008bf90c3102c78fcead0e5a72114e16f01a2276c9c4e0ebed795a16af097"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkLocalityTests.cs",
+      "sha256": "5e08b3de24eb898deb0e6538e7107b2bc8c125f4c35ff732647da1b5a1005295"
+    },
+    {
+      "verified_run_inventories": [],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkLocalityTests.cs.meta",
+      "sha256": "b36dc88174d24e7d8996364c31b749843250fb1810080f87285c4a3af8c725be"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkRestoreTests.cs",
+      "sha256": "a779ec92cbec1ca4506fd8b605d223d96f026cccdce77c9fce1b970d24ce76ce"
+    },
+    {
+      "verified_run_inventories": [],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkRestoreTests.cs.meta",
+      "sha256": "f7bfca2c74872365c3815273311aa95317fcc3a0b56b38079054d74508cba895"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/WorkUiIntegrationTests.cs",
+      "sha256": "12041d6797a3c5e1798ca1dee14058d562adb602c3cd1db06ee7610a0bc33c42"
+    },
+    {
+      "verified_run_inventories": [],
+      "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/WorkUiIntegrationTests.cs.meta",
+      "sha256": "fb4a1d64d04690ef39d4738a116c2cf8d33e5051f91a563b97d8cc7a3b50cf23"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/PlayMode/WorkSessionPlayModeTests.cs",
+      "sha256": "c0d80608510405a970ed2566064294a4c2b1dc245a7ccb9b12762b8254672346"
+    },
+    {
+      "verified_run_inventories": [],
+      "path": "SynapticSea/Assets/_Project/Tests/PlayMode/WorkSessionPlayModeTests.cs.meta",
+      "sha256": "29aae10ab1069a080026dd6e16ccb2105d47e5ef414014eeceb7857a5fd72b70"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Services/Storage.cs",
+      "sha256": "661ca7c1b9535158cb1ab96c42817c0e362e54de0bc4494ee7ee9ee86e401876"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Save/SaveLoadService.cs",
+      "sha256": "88862b2c13946fc13c2db4f8c2805c36238eb9694d437c0997fdaec44e7a56ee"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Core/Session/WorldSnapshotAssembler.cs",
+      "sha256": "1375d766b5bf39dedb1b5d96c353f3a183dd1d921c5acc8b6af9c6ac9569b19d"
+    },
+    {
+      "verified_run_inventories": [
+        "integrated-unity-play-final",
+        "integrated-unity-edit-final",
+        "integrated-core-final"
+      ],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Save/SaveCommitRecoveryTests.cs",
+      "sha256": "48b5b4375dfc41e20426e2e518b1c1c71d86b8b973a14d9dbdf095d75e64d170"
+    },
+    {
+      "verified_run_inventories": [],
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Save/SaveCommitRecoveryTests.cs.meta",
+      "sha256": "5594fd9cc5bd454fbe6ee4e74baf7aa504a70a90312d1ec3755ad4cc24c9cb0c"
+    }
+  ],
+  "scope": "A/F01 diagnostics; B/F04 existing generic work; C/F05 single-file replacement and conservative legacy temp recovery",
+  "generated_utc": "2026-10-02T07:09:39.1331231Z",
+  "final_review_verdict": "Approved for bounded A/B/C; no remaining significant P1/P2 findings or scoped review blockers.",
+  "catalog_diagnostic": {
+    "path": "artifacts/foundation-bounded/catalog-validation.json",
+    "sha256": "f6b53c65f73abf91af7a7385efe0bf487fcd0fa52edc3a75b29900a7e3a0495c",
+    "natural_traversal_witness": false
+  },
+  "baseline": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "phases": [
+    {
+      "counts": {
+        "passed": 796,
+        "total": 796,
+        "failed": 0,
+        "skipped": 0
+      },
+      "command": "F:/Tools/dotnet/dotnet.exe test tools/dotnet/SynapticSea.Core.Tests --no-restore --nologo --logger trx;LogFileName=foundation-baseline.trx --results-directory artifacts/foundation-bounded/baseline",
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": null,
+      "assembly_sha256": "67e98dc36e999ea7ef6be5a0e5a38895f7e69a2f31f6df147433558fb87f1249",
+      "skips": null,
+      "phase": "baseline",
+      "assemblies": null,
+      "source_manifest_sha256": null,
+      "raw_evidence_directory": "artifacts/foundation-bounded/baseline",
+      "arguments": null,
+      "started_utc": null,
+      "finished_utc": null,
+      "exit_code": 0,
+      "failed_case_names": [
+        null
+      ]
+    },
+    {
+      "counts": {
+        "failed": "0",
+        "total": "24",
+        "passed": "24",
+        "notExecuted": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-final-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-final-green",
+        "--filter",
+        "FullyQualifiedName~CatalogSourceValidatorTests|FullyQualifiedName~ItemDefsTests|FullyQualifiedName~ComponentCatalogTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~CatalogSourceValidatorTests|FullyQualifiedName~ItemDefsTests|FullyQualifiedName~ComponentCatalogTests",
+      "assembly_sha256": "a7a211081be336f060322aa6a7d6504485e1330197eb7ca085b4a8819ae32ce3",
+      "skips": null,
+      "phase": "catalog-final-green",
+      "assemblies": null,
+      "source_manifest_sha256": "c3095ab462386dd7a12d0b84b05ce1ad90ef46c3f9a410571b15ecd814118038",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-final-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:23:11.1719649Z",
+      "finished_utc": "2026-10-02T06:23:15.756473Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "failed": "2",
+        "passed": "0",
+        "total": "2"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-gates-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-gates-red",
+        "--filter",
+        "FullyQualifiedName~CatalogSourceValidatorTests.LiveSpatialPrecheckStillDiagnosesTierThatTheModelCanSupply|FullyQualifiedName~CatalogSourceValidatorTests.ActualRecyclerRegistrationRetainsItsConsumedInputAndModelOutput"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~CatalogSourceValidatorTests.LiveSpatialPrecheckStillDiagnosesTierThatTheModelCanSupply|FullyQualifiedName~CatalogSourceValidatorTests.ActualRecyclerRegistrationRetainsItsConsumedInputAndModelOutput",
+      "assembly_sha256": "738054c6ba3180ab0cdaf7b5c441ccad1d684f23bfe8664cd201a9b5fbcd305b",
+      "skips": null,
+      "phase": "catalog-gates-red",
+      "assemblies": null,
+      "source_manifest_sha256": "83ff3f788e90918f6e98e98b0e45dd39920d57d07069d7c02e1b85c4cf790c13",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-gates-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:20:38.8050412Z",
+      "finished_utc": "2026-10-02T06:20:41.7092343Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "ActualRecyclerRegistrationRetainsItsConsumedInputAndModelOutput",
+        "LiveSpatialPrecheckStillDiagnosesTierThatTheModelCanSupply"
+      ]
+    },
+    {
+      "counts": {
+        "total": "20",
+        "passed": "20",
+        "failed": "0",
+        "notExecuted": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-green",
+        "--filter",
+        "FullyQualifiedName~CatalogSourceValidatorTests|FullyQualifiedName~ItemDefsTests|FullyQualifiedName~ShipSystemsCatalogTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~CatalogSourceValidatorTests|FullyQualifiedName~ItemDefsTests|FullyQualifiedName~ShipSystemsCatalogTests",
+      "assembly_sha256": "8b05d006af2350dbde9c0a03ee3a51f501ac7377c81e3f54ce73d47db381ed24",
+      "skips": null,
+      "phase": "catalog-green",
+      "assemblies": null,
+      "source_manifest_sha256": "58990d52551c523b462c24d3703d60e935a9fa88b4b6b6f2f7126cc2b85471ad",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:19:07.2383511Z",
+      "finished_utc": "2026-10-02T06:19:10.5925587Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "total": "13",
+        "passed": "0",
+        "failed": "13"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-red",
+        "--filter",
+        "FullyQualifiedName~CatalogSourceValidatorTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~CatalogSourceValidatorTests",
+      "assembly_sha256": "63e486734e226b085e5d623d29ba55a7263c7230dbbc6ac3e25d92b3a95adefb",
+      "skips": null,
+      "phase": "catalog-red",
+      "assemblies": null,
+      "source_manifest_sha256": "57bedf7c31ac68c12a3ea23c36f2e79ad1dffdf711dd4d8c31af63038e04fffc",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:02:43.9795824Z",
+      "finished_utc": "2026-10-02T06:02:47.6606884Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "ValidationDoesNotMutateInputs",
+        "ProductionReferencesRequireDefinitionsWithExactCallerPath",
+        "ProductionReferencesRequireRegisteredProducer",
+        "RealProductionCatalogRetainsExactKnownInvalidReferences",
+        "MissingRecipeStationTierBookAndSkillProduceExactDiagnostics",
+        "DiagnosticEdgesDoNotSatisfyProduction",
+        "RealGeneratedAuthoredContentsOverrideRandomTableSources",
+        "SeededReagentSpendingCycleIsPotentialSourceWithFiniteCaveat",
+        "SeedlessAndInputCycleRejects",
+        "DeferredRecipeRequiresAnExplicitReasonAndOwner",
+        "RealCatalogNormalizationPreservesLiveMergeAndEveryRecipeOrigin",
+        "MissingToolSourceDoesNotEnableSalvage",
+        "InvalidQuantitiesRejectBeforeClosure"
+      ]
+    },
+    {
+      "counts": {
+        "failed": "28",
+        "passed": "1",
+        "notExecuted": "0",
+        "total": "29"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-review-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-review-red",
+        "--filter",
+        "FullyQualifiedName~CatalogSourceValidatorTests.Review"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~CatalogSourceValidatorTests.Review",
+      "assembly_sha256": "d10efcb9cc2d4e77a959fc930078491ea720b986c9af54a0e59b2e1537cc73c7",
+      "skips": null,
+      "phase": "catalog-review-red",
+      "assemblies": null,
+      "source_manifest_sha256": "5d9eb471889cfadd193c2f2c1e8662c4e92b94ff0d0d5ca3507790f264bcbbc5",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-review-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:39:30.42716Z",
+      "finished_utc": "2026-10-02T06:39:33.3233949Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/player/skills.json\")",
+        "ReviewMalformedNonRecipeResourceRetainsExactMemberOrigin(\"res://data/work_actions/work_action_catalog.json\",\"{\\\"actions\\\":\\\"bad\\\"}\",\"actions\",\"invalid_catalog_shape\")",
+        "ReviewMalformedPresentToolListCannotBecomeAnUngatedSeed(\"string\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/items/loot_tables.json\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/components/component_catalog.json\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/ship_systems/systems.json\")",
+        "ReviewMalformedNonRecipeResourceRetainsExactMemberOrigin(\"res://data/components/component_catalog.json\",\"{\\\"components\\\":{\\\"broken\\\":\\\"bad\\\"},\\\"role_sets\\\":{}}\",\"components.broken\",\"invalid_catalog_row\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/work_actions/work_action_catalog.json\")",
+        "ReviewMalformedPresentToolListCannotBecomeAnUngatedSeed(\"dictionary\")",
+        "ReviewMalformedNonRecipeResourceRetainsExactMemberOrigin(\"res://data/player/skill_tree.json\",\"{\\\"skill_prerequisites\\\":\\\"bad\\\"}\",\"skill_prerequisites\",\"invalid_catalog_shape\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/recipes/recipe_definitions.json\")",
+        "ReviewMalformedPresentToolListCannotBecomeAnUngatedSeed(\"null\")",
+        "ReviewActualDeconstructionRecipeUsesItsLiveSalvageCaller(\"salvage\",True)",
+        "ReviewMalformedRecipeResourceRetainsShapeOrRowOrigin(\"{\",\"malformed_catalog\",\"\",\"\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/crops/hydroponics_crops.json\")",
+        "ReviewMalformedNonRecipeResourceRetainsExactMemberOrigin(\"res://data/ship_systems/systems.json\",\"{\\\"systems\\\":[\\\"bad\\\"]}\",\"systems[0]\",\"invalid_catalog_row\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/player/skill_books.json\")",
+        "ReviewMalformedRecipeResourceRetainsShapeOrRowOrigin(\"{\\\"recipes\\\":\\\"broken\\\"}\",\"invalid_catalog_shape\",\"recipes\",\":recipes\")",
+        "ReviewMalformedNonRecipeResourceRetainsExactMemberOrigin(\"res://data/ship_systems/systems.json\",\"{\\\"systems\\\":\\\"bad\\\"}\",\"systems\",\"invalid_catalog_shape\")",
+        "ReviewActualDeconstructionRecipeUsesItsLiveSalvageCaller(\"workbench\",False)",
+        "ReviewMalformedRecipeResourceRetainsShapeOrRowOrigin(\"{\\\"recipes\\\":[\\\"bad\\\"]}\",\"invalid_catalog_row\",\"recipes[0]\",\":recipes[0]\")",
+        "ReviewMalformedNonRecipeResourceRetainsExactMemberOrigin(\"res://data/components/component_catalog.json\",\"{\\\"components\\\":\\\"bad\\\",\\\"role_sets\\\":{}}\",\"components\",\"invalid_catalog_shape\")",
+        "ReviewMissingProductionResourceRetainsExactDiagnosticPath(\"res://data/player/skill_tree.json\")",
+        "ReviewProducerDispositionCannotSupplyAnotherProductionConsumer(\"diagnostic\")",
+        "ReviewProducerDispositionCannotSupplyAnotherProductionConsumer(\"deferred\")",
+        "ReviewMalformedRecipeResourceRetainsShapeOrRowOrigin(\"[]\",\"malformed_catalog\",\"\",\"\")",
+        "ReviewMalformedProducerDeferralReportsRequiredOwnerAndReason",
+        "ReviewMalformedNonRecipeResourceRetainsExactMemberOrigin(\"res://data/crops/hydroponics_crops.json\",\"{\\\"crops\\\":\\\"bad\\\"}\",\"crops\",\"invalid_catalog_shape\")"
+      ]
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "failed": "0",
+        "total": "53",
+        "passed": "53"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-reviewed-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-reviewed-green",
+        "--filter",
+        "FullyQualifiedName~CatalogSourceValidatorTests|FullyQualifiedName~ItemDefsTests|FullyQualifiedName~ComponentCatalogTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~CatalogSourceValidatorTests|FullyQualifiedName~ItemDefsTests|FullyQualifiedName~ComponentCatalogTests",
+      "assembly_sha256": "368ae6bcb417316c190409c4d0a8f644731983d8d6cb7451f55e8eb20241c6e6",
+      "skips": null,
+      "phase": "catalog-reviewed-green",
+      "assemblies": null,
+      "source_manifest_sha256": "ef6c73dd409e8fac09a994d9e504c3240815fbbbba458ecd76026a0011a99c63",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-reviewed-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:45:20.7916778Z",
+      "finished_utc": "2026-10-02T06:45:24.1740912Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "passed": "0",
+        "failed": "2",
+        "notExecuted": "0",
+        "total": "2"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-session-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-session-red",
+        "--filter",
+        "FullyQualifiedName~OrdinaryGoldenBootExposesActualLiveRegistrationsAndRetainsInvalidDiagnostics|FullyQualifiedName~DeletingActualOxygenPumpPickupRemovesItsOnlyLiveSource"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~OrdinaryGoldenBootExposesActualLiveRegistrationsAndRetainsInvalidDiagnostics|FullyQualifiedName~DeletingActualOxygenPumpPickupRemovesItsOnlyLiveSource",
+      "assembly_sha256": "f9aeda728e8778610552d31b8de9e9159bffb1341505aeb02d6372f8460d3052",
+      "skips": null,
+      "phase": "catalog-session-red",
+      "assemblies": null,
+      "source_manifest_sha256": "2b067f193ad93ccf8ddc6f2fe6d485415a545ecde44b5ad6d2c7f3fcd0751412",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-session-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:05:20.72003Z",
+      "finished_utc": "2026-10-02T06:05:23.0212131Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "OrdinaryGoldenBootExposesActualLiveRegistrationsAndRetainsInvalidDiagnostics",
+        "DeletingActualOxygenPumpPickupRemovesItsOnlyLiveSource"
+      ]
+    },
+    {
+      "counts": {
+        "failed": "3",
+        "passed": "0",
+        "notExecuted": "0",
+        "total": "3"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=catalog-strictness-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\catalog-strictness-red",
+        "--filter",
+        "FullyQualifiedName~CatalogSourceValidatorTests.MalformedSourceGraphRejectsInsteadOfSilentlyPassing|FullyQualifiedName~CatalogSourceValidatorTests.RecipeQuantityRejectsEvenWithoutItsProducerEdge|FullyQualifiedName~CatalogSourceValidatorTests.EmptyStationRegistrationCannotSatisfyRecipeGate"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~CatalogSourceValidatorTests.MalformedSourceGraphRejectsInsteadOfSilentlyPassing|FullyQualifiedName~CatalogSourceValidatorTests.RecipeQuantityRejectsEvenWithoutItsProducerEdge|FullyQualifiedName~CatalogSourceValidatorTests.EmptyStationRegistrationCannotSatisfyRecipeGate",
+      "assembly_sha256": "23457412c815dfc9996600eadd1a7f749d81d0995c22c351a6a4c37d4dc7dfe2",
+      "skips": null,
+      "phase": "catalog-strictness-red",
+      "assemblies": null,
+      "source_manifest_sha256": "ac0638abac142e968f908185e852fbd1f08b980724f10a0d4b0128320ea91841",
+      "raw_evidence_directory": "artifacts/foundation-bounded/catalog-strictness-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:15:02.3718038Z",
+      "finished_utc": "2026-10-02T06:15:05.4124352Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "MalformedSourceGraphRejectsInsteadOfSilentlyPassing",
+        "RecipeQuantityRejectsEvenWithoutItsProducerEdge",
+        "EmptyStationRegistrationCannotSatisfyRecipeGate"
+      ]
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "total": "919",
+        "failed": "0",
+        "passed": "919"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=integrated-core.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-core"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "",
+      "assembly_sha256": "368ae6bcb417316c190409c4d0a8f644731983d8d6cb7451f55e8eb20241c6e6",
+      "skips": null,
+      "phase": "integrated-core",
+      "assemblies": null,
+      "source_manifest_sha256": "45ccba007fef7c6bf225f5609ec16ef72f3165c24bee7fba95476c5e518fe34a",
+      "raw_evidence_directory": "artifacts/foundation-bounded/integrated-core",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:47:11.9437633Z",
+      "finished_utc": "2026-10-02T06:48:36.7091921Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "failed": "0",
+        "total": "919",
+        "passed": "919",
+        "notExecuted": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=integrated-core-final.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-core-final"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "",
+      "assembly_sha256": "327d5199eca66a84bbb1c9ebfebfe247fe15246ac325607013c0b6f01ae8af76",
+      "skips": null,
+      "phase": "integrated-core-final",
+      "assemblies": null,
+      "source_manifest_sha256": "2b2bb2f7a85de5ea57ab7d88b72e5df7b2e1dd7713f6635bd89be672e8f6abd7",
+      "raw_evidence_directory": "artifacts/foundation-bounded/integrated-core-final",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:50:26.0132659Z",
+      "finished_utc": "2026-10-02T06:51:58.2839602Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": null,
+      "command": null,
+      "assembly_identity_status": "No test discovery; any recorded DLLs may be stale cached or partial build outputs.",
+      "filter": "",
+      "assembly_sha256": null,
+      "skips": null,
+      "phase": "integrated-unity-edit",
+      "assemblies": [
+        {
+          "sha256": "643d37b5ea3764fcb344d5989f75354f4df420361f4923622ba4d27db8f20ec0",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "dfa9676700f1d76bfa963cc67ba2961299bae972d33716cdc0f44971773ea5fd",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "ea23af282b8862b73e8c2116e89eb184cf7f383aa7da58a722f5fca233718acb",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "6592a80422f21cd3f9e0dd338d8b5598adc1a5f304591e7dea3780520ddc1d25",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "17aeed2ea23bb1a7d72d81c2de470132c89f983be04b9ec6dba181ddad289c86",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "75e3af5d6b9ca99a1e26054523bb395dd8c6cab9bef0ab277db3e0510de759f6",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "c601f3f38476b605b1de3beabc07bf4636aa41b79d6f3414136ebf51115f07c2",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "c0f97d4c21dda986df84bdaf5df59989cd2f159b09512e9d8bde59f038db2335",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "3322af1cfd5c6a75e47a5157faedbc5fd57954d72ff0ae84e33997816a57c62b",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "18aaf6d8e427e214934900e3e7adeb1309b92b02e31baf4c698a5f14e439bde6",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "source_manifest_sha256": "98070849af081435255b9a2f0a4e4cb23468c77f74a3b9623881c94b7d147c44",
+      "raw_evidence_directory": "artifacts/foundation-bounded/integrated-unity-edit",
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-edit\\integrated-unity-edit.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-edit\\integrated-unity-edit.log"
+      ],
+      "started_utc": "2026-10-02T06:47:21.8501666Z",
+      "finished_utc": "2026-10-02T06:47:48.7864716Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        null
+      ]
+    },
+    {
+      "counts": {
+        "inconclusive": "0",
+        "failed": "0",
+        "passed": "1204",
+        "skipped": "17",
+        "total": "1221"
+      },
+      "command": null,
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "",
+      "assembly_sha256": null,
+      "skips": [
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.AllSkeletonBindAndMotionImportsReportNoProblems"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.AnimatorDrivesBonesFromController"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.BindPosePlacesEveryMeshOnItsSnapFrame"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.ClipsHaveNoHorizontalRootMotion"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.CollisionUsesNeutralPoseAndAnimationBoundsCoverBindAndNeutral"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.ConnectorBendsWithTheChildBranch"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.CreaturesRunAtTheirOwnRunSpeed"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.DraftCandidateLibraryIsRejectedByRuntimeDefault"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.DraggerHandsHoldThroughInstantTurns"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.EveryPartAndConnectorKeepsOneRendererAndAtMostTwoMaterials"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.EveryPoolAssemblesHundredSeedsWithinBudget"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.FrameProbeSnapsCoincideWithBranchRootBones"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.GaitPhaseDrivesTheLocomotionOverlayClock"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.ImportReportsNoProblems"
+        },
+        {
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)",
+          "name": "CritterCrafter.Tests.LibraryTests.RuntimeLegsPlantFeetAtGameSpeed"
+        },
+        {
+          "reason": "binding connector fixture is not available",
+          "name": "CritterCrafter.Tests.PrototypeImportTests.AsymmetricConnectorImportsAsOneNormalizedTwoBoneTwoMaterialRenderer"
+        },
+        {
+          "reason": "Set CRITTER_PROTOTYPE_FBX and CRITTER_PROTOTYPE_CATALOG to run the export probe.",
+          "name": "CritterCrafter.Tests.PrototypeImportTests.ExportedSkeletonMatchesCatalogBindAndSocketFrames"
+        }
+      ],
+      "phase": "integrated-unity-edit-final",
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "0e1063604cc0ee965e90db351456e61ea7ad6b040fc52993b06b7b88e6928d41"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "abb80f34d06dda8f08c37644d8f8deb5db0408e864069ec689072e27958d1c47"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "4d97b4cd02847094a955f0b00496f64cc368f9ce44cfbfa1f5e766264b7c08b3"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "696b75cbfa204778d21580dee96221d002abb5cd39faed25e5c70d867142bacf"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "36e79855de13ec403cb6c6b419036966c773712b6df47a09fb109baba4dd7fb2"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "5c05b1e605a3819796ebd4402b0930cda17a8f0f08e32e2e736df56236232446"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "4e9a43de714d36705cb470bf82f8b5851ca6608811cd1eaf3940e9329aca989c"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "97fae1fdc762edc054f9ac16cb602b9363f10caedd18039a904d1440ebc51552"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "535f3b6ca2887506dc45491064c1f14430b980e0c3e1818b5c619ca6a18c864d"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "cda558582ce81ca6dccb586863edd739df12913d3fb1fb15677486906744c2df"
+        }
+      ],
+      "source_manifest_sha256": "83fbb041cca0cc006043936cf1554a89698adbb523ca4cf860b49e5e0e256858",
+      "raw_evidence_directory": "artifacts/foundation-bounded/integrated-unity-edit-final",
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-edit-final\\integrated-unity-edit-final.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-edit-final\\integrated-unity-edit-final.log"
+      ],
+      "started_utc": "2026-10-02T06:50:21.9009798Z",
+      "finished_utc": "2026-10-02T06:53:25.5205867Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "skipped": "0",
+        "failed": "1",
+        "total": "14",
+        "passed": "13",
+        "inconclusive": "0"
+      },
+      "command": null,
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests|SynapticSea.Tests.PlayMode.RunLifecyclePlayModeTests\\.(NewRunBootsTheMilestoneAHubAndDocksTheLifeboat|NonSliceNewRunFailsClosedAndReturnsToTitle|ContinueReloadsTheHubRun|ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub|DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun|ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun|BootFailureReturnsToTitleWithTheError|FailedContinueReturnsToTitleInsteadOfAFreshRun|FailedSlotLoadReturnsToTitleWithTheError)$|SynapticSea.Tests.PlayMode.FrontEndPlayModeTests\\.(BootLoadsTitleWithoutErrors|ContinueIsDisabledWithoutASave|ContinueIsEnabledWithAWorldSaveAndLaunchesContinue)$",
+      "assembly_sha256": null,
+      "skips": [],
+      "phase": "integrated-unity-play",
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "0e1063604cc0ee965e90db351456e61ea7ad6b040fc52993b06b7b88e6928d41"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "abb80f34d06dda8f08c37644d8f8deb5db0408e864069ec689072e27958d1c47"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "4d97b4cd02847094a955f0b00496f64cc368f9ce44cfbfa1f5e766264b7c08b3"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "696b75cbfa204778d21580dee96221d002abb5cd39faed25e5c70d867142bacf"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "36e79855de13ec403cb6c6b419036966c773712b6df47a09fb109baba4dd7fb2"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "5c05b1e605a3819796ebd4402b0930cda17a8f0f08e32e2e736df56236232446"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "4e9a43de714d36705cb470bf82f8b5851ca6608811cd1eaf3940e9329aca989c"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "97fae1fdc762edc054f9ac16cb602b9363f10caedd18039a904d1440ebc51552"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "535f3b6ca2887506dc45491064c1f14430b980e0c3e1818b5c619ca6a18c864d"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "cda558582ce81ca6dccb586863edd739df12913d3fb1fb15677486906744c2df"
+        }
+      ],
+      "source_manifest_sha256": "0a461e056bbe32957e1724611e08c1ab077d2651d2b7f022464dfcdb71e661d5",
+      "raw_evidence_directory": "artifacts/foundation-bounded/integrated-unity-play",
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-play\\integrated-unity-play.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-play\\integrated-unity-play.log",
+        "-testFilter",
+        "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests|SynapticSea.Tests.PlayMode.RunLifecyclePlayModeTests\\.(NewRunBootsTheMilestoneAHubAndDocksTheLifeboat|NonSliceNewRunFailsClosedAndReturnsToTitle|ContinueReloadsTheHubRun|ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub|DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun|ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun|BootFailureReturnsToTitleWithTheError|FailedContinueReturnsToTitleInsteadOfAFreshRun|FailedSlotLoadReturnsToTitleWithTheError)$|SynapticSea.Tests.PlayMode.FrontEndPlayModeTests\\.(BootLoadsTitleWithoutErrors|ContinueIsDisabledWithoutASave|ContinueIsEnabledWithAWorldSaveAndLaunchesContinue)$"
+      ],
+      "started_utc": "2026-10-02T06:55:14.7076014Z",
+      "finished_utc": "2026-10-02T06:55:39.9566486Z",
+      "exit_code": 2,
+      "failed_case_names": [
+        "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests.HostPressAfterToggleRestore_ExplicitlyResumesOriginalSceneTarget"
+      ]
+    },
+    {
+      "counts": {
+        "inconclusive": "0",
+        "failed": "0",
+        "passed": "14",
+        "total": "14",
+        "skipped": "0"
+      },
+      "command": null,
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests|SynapticSea.Tests.PlayMode.RunLifecyclePlayModeTests\\.(NewRunBootsTheMilestoneAHubAndDocksTheLifeboat|NonSliceNewRunFailsClosedAndReturnsToTitle|ContinueReloadsTheHubRun|ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub|DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun|ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun|BootFailureReturnsToTitleWithTheError|FailedContinueReturnsToTitleInsteadOfAFreshRun|FailedSlotLoadReturnsToTitleWithTheError)$|SynapticSea.Tests.PlayMode.FrontEndPlayModeTests\\.(BootLoadsTitleWithoutErrors|ContinueIsDisabledWithoutASave|ContinueIsEnabledWithAWorldSaveAndLaunchesContinue)$",
+      "assembly_sha256": null,
+      "skips": [],
+      "phase": "integrated-unity-play-final",
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "0e1063604cc0ee965e90db351456e61ea7ad6b040fc52993b06b7b88e6928d41"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "abb80f34d06dda8f08c37644d8f8deb5db0408e864069ec689072e27958d1c47"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "4d97b4cd02847094a955f0b00496f64cc368f9ce44cfbfa1f5e766264b7c08b3"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "696b75cbfa204778d21580dee96221d002abb5cd39faed25e5c70d867142bacf"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "36e79855de13ec403cb6c6b419036966c773712b6df47a09fb109baba4dd7fb2"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "5c05b1e605a3819796ebd4402b0930cda17a8f0f08e32e2e736df56236232446"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "4e9a43de714d36705cb470bf82f8b5851ca6608811cd1eaf3940e9329aca989c"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "2a40dcc28d470285ec0dd0eda26448bd2c04a5f5ec98934ca70753ffd9b8bf9e"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "535f3b6ca2887506dc45491064c1f14430b980e0c3e1818b5c619ca6a18c864d"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "cda558582ce81ca6dccb586863edd739df12913d3fb1fb15677486906744c2df"
+        }
+      ],
+      "source_manifest_sha256": "554a066ac25c882865350bd854abd00d40f39e532e347a916796ae43916ffce7",
+      "raw_evidence_directory": "artifacts/foundation-bounded/integrated-unity-play-final",
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-play-final\\integrated-unity-play-final.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\integrated-unity-play-final\\integrated-unity-play-final.log",
+        "-testFilter",
+        "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests|SynapticSea.Tests.PlayMode.RunLifecyclePlayModeTests\\.(NewRunBootsTheMilestoneAHubAndDocksTheLifeboat|NonSliceNewRunFailsClosedAndReturnsToTitle|ContinueReloadsTheHubRun|ContinueReloadsTheSavedHomeLayoutNotTheMilestoneAHub|DeathShowsResultsAndConfirmReturnsToTitleWithTheLastRun|ExtractShowsResultsAndConfirmReturnsToTitleWithTheLastRun|BootFailureReturnsToTitleWithTheError|FailedContinueReturnsToTitleInsteadOfAFreshRun|FailedSlotLoadReturnsToTitleWithTheError)$|SynapticSea.Tests.PlayMode.FrontEndPlayModeTests\\.(BootLoadsTitleWithoutErrors|ContinueIsDisabledWithoutASave|ContinueIsEnabledWithAWorldSaveAndLaunchesContinue)$"
+      ],
+      "started_utc": "2026-10-02T07:02:53.8285756Z",
+      "finished_utc": "2026-10-02T07:03:12.5422962Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": null,
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-expanded.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-expanded",
+        "--filter",
+        "FullyQualifiedName~SaveCommitRecoveryTests"
+      ],
+      "assembly_identity_status": "No test discovery; any recorded DLLs may be stale cached or partial build outputs.",
+      "filter": "FullyQualifiedName~SaveCommitRecoveryTests",
+      "assembly_sha256": "e7884d14fccf87e59bd4517c526b25c3f5fab898b432c1529013667338427426",
+      "skips": null,
+      "phase": "storage-expanded",
+      "assemblies": null,
+      "source_manifest_sha256": "461bff5709bc123f188e2f156ce7733b985ff946156793a46ded0b66d5b8f86b",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-expanded",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:12:43.9182757Z",
+      "finished_utc": "2026-10-02T06:12:44.9863464Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        null
+      ]
+    },
+    {
+      "counts": {
+        "total": "47",
+        "failed": "2",
+        "passed": "45",
+        "notExecuted": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-expanded-2.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-expanded-2",
+        "--filter",
+        "FullyQualifiedName~SaveCommitRecoveryTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~SaveCommitRecoveryTests",
+      "assembly_sha256": "ecee6fcf43a21b228d47da49a3b56cb361cc44acd3b37f51d6a5aa1a4fc281ea",
+      "skips": null,
+      "phase": "storage-expanded-2",
+      "assemblies": null,
+      "source_manifest_sha256": "7bd1bd53e02cb5edec1443d8cb799772d7528106c30ac3cc8ea9073652c6adea",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-expanded-2",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:14:11.6460305Z",
+      "finished_utc": "2026-10-02T06:14:15.9381474Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "ActualSessionAssemblerSnapshot_RecoversThroughRealFilesystemAndContinue(False)",
+        "InvalidWorldTemp_IsRetainedAndNeverPromoted(\"future_mobile_home\")"
+      ]
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "passed": "54",
+        "total": "54",
+        "failed": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-expanded-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-expanded-green",
+        "--filter",
+        "FullyQualifiedName~SaveCommitRecoveryTests|FullyQualifiedName~SaveLoadServiceTests|FullyQualifiedName~TitleSaveQueryTests|FullyQualifiedName~PermadeathResolverTests|FullyQualifiedName~SaveSlot|FullyQualifiedName~SlotOwnership"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~SaveCommitRecoveryTests|FullyQualifiedName~SaveLoadServiceTests|FullyQualifiedName~TitleSaveQueryTests|FullyQualifiedName~PermadeathResolverTests|FullyQualifiedName~SaveSlot|FullyQualifiedName~SlotOwnership",
+      "assembly_sha256": "8b05d006af2350dbde9c0a03ee3a51f501ac7377c81e3f54ce73d47db381ed24",
+      "skips": null,
+      "phase": "storage-expanded-green",
+      "assemblies": null,
+      "source_manifest_sha256": "fe206f220c6f9df7acb50fda1e3de4357dc299942413bdc9918443773b820164",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-expanded-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:19:51.7218045Z",
+      "finished_utc": "2026-10-02T06:19:54.0466735Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "passed": "38",
+        "total": "38",
+        "failed": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-green",
+        "--filter",
+        "FullyQualifiedName~SaveCommitRecoveryTests|FullyQualifiedName~SaveLoadServiceTests|FullyQualifiedName~TitleSaveQueryTests|FullyQualifiedName~PermadeathResolverTests|FullyQualifiedName~SaveSlot|FullyQualifiedName~SlotOwnership"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~SaveCommitRecoveryTests|FullyQualifiedName~SaveLoadServiceTests|FullyQualifiedName~TitleSaveQueryTests|FullyQualifiedName~PermadeathResolverTests|FullyQualifiedName~SaveSlot|FullyQualifiedName~SlotOwnership",
+      "assembly_sha256": "d6197a2ce3563b0ff79cd698fb5dbc0b0dba10b1854afbc44df2d6ce7aef7f64",
+      "skips": null,
+      "phase": "storage-green",
+      "assemblies": null,
+      "source_manifest_sha256": "410f6f87a3d707a64cad0eea0082417e3aa8d1a49d5b9d2ff3891aec50596bd7",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:08:52.8977544Z",
+      "finished_utc": "2026-10-02T06:08:55.8131315Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "failed": "3",
+        "passed": "0",
+        "notExecuted": "0",
+        "total": "3"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-menu-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-menu-red",
+        "--filter",
+        "FullyQualifiedName~SlotMenuListsBeforeLoad_ValidTemporaryPayloadStillRecovers"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~SlotMenuListsBeforeLoad_ValidTemporaryPayloadStillRecovers",
+      "assembly_sha256": "234c97846a203c001c4cfeeb5e6f077ee07f204b60f267089c1d17e5c751644c",
+      "skips": null,
+      "phase": "storage-menu-red",
+      "assemblies": null,
+      "source_manifest_sha256": "eb596e80b26013c531365e69410dc4cab2e4cc15564a5f5bbebfc17b797fa764",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-menu-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:25:19.5804275Z",
+      "finished_utc": "2026-10-02T06:25:21.9416948Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "SlotMenuListsBeforeLoad_ValidTemporaryPayloadStillRecovers(\"slot_02\",\"manual\")",
+        "SlotMenuListsBeforeLoad_ValidTemporaryPayloadStillRecovers(\"quicksave\",\"quick\")",
+        "SlotMenuListsBeforeLoad_ValidTemporaryPayloadStillRecovers(\"autosave_b\",\"auto\")"
+      ]
+    },
+    {
+      "counts": {
+        "passed": "22",
+        "failed": "9",
+        "notExecuted": "0",
+        "total": "31"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-red",
+        "--filter",
+        "FullyQualifiedName~SaveCommitRecoveryTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~SaveCommitRecoveryTests",
+      "assembly_sha256": "d449894510dbc46e2aa14e8c3c23db984aa0661960fe9d64fbec97330afd3939",
+      "skips": null,
+      "phase": "storage-red",
+      "assemblies": null,
+      "source_manifest_sha256": "c2fa6c6dec1ba6dc44861d7ec74ae5826b8a3b60988f2348636d4aa5dd97ea3c",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:03:10.4760106Z",
+      "finished_utc": "2026-10-02T06:03:14.4242062Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "RenameLockedSource_KeepsDestinationAndSource",
+        "MissingWorld_ValidTemp_IsAvailableThroughTitleQuery",
+        "MissingDestination_ValidTemp_RestartsThroughRealLoader(\"quicksave\",\"quick\")",
+        "MissingDestination_ValidTemp_RestartsThroughRealLoader(\"slot_02\",\"manual\")",
+        "MissingDestination_ValidTemp_RestartsThroughRealLoader(\"autosave_active\",\"auto\")",
+        "MissingDestination_ValidTemp_RestartsThroughRealLoader(\"autosave_b\",\"auto\")",
+        "LockedSourceDuringPublication_KeepsOnlyGoodDestination",
+        "FreezeRun_FindsStagedOwnedPayload_WhenIndexIsMissing",
+        "ExplicitDeletion_RemovesStagedRunAndWorld_WithoutResurrection"
+      ]
+    },
+    {
+      "counts": {
+        "total": "82",
+        "notExecuted": "0",
+        "passed": "82",
+        "failed": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-reviewed-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-reviewed-green",
+        "--filter",
+        "FullyQualifiedName~SaveCommitRecoveryTests|FullyQualifiedName~SaveLoadServiceTests|FullyQualifiedName~TitleSaveQueryTests|FullyQualifiedName~PermadeathResolverTests|FullyQualifiedName~SaveSlot|FullyQualifiedName~SlotOwnership|FullyQualifiedName~SessionSaveParityTests|FullyQualifiedName~WorldSnapshot|FullyQualifiedName~Docking"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~SaveCommitRecoveryTests|FullyQualifiedName~SaveLoadServiceTests|FullyQualifiedName~TitleSaveQueryTests|FullyQualifiedName~PermadeathResolverTests|FullyQualifiedName~SaveSlot|FullyQualifiedName~SlotOwnership|FullyQualifiedName~SessionSaveParityTests|FullyQualifiedName~WorldSnapshot|FullyQualifiedName~Docking",
+      "assembly_sha256": "44b0c7f4ac794669e5868b6ea9f30d44a91638dff6343f59a3ab89ca12d19a4e",
+      "skips": null,
+      "phase": "storage-reviewed-green",
+      "assemblies": null,
+      "source_manifest_sha256": "d2fd3d25e43b250eae6d5101720ea909efb555ac8f789df8e1df11e1cac561f1",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-reviewed-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:31:40.8326488Z",
+      "finished_utc": "2026-10-02T06:31:46.7616713Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "failed": "2",
+        "passed": "0",
+        "total": "2"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=storage-world-guards-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\storage-world-guards-red",
+        "--filter",
+        "FullyQualifiedName~ActualWorldTemp_RejectedByExistingApplicationGuards_IsNeverPromoted"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~ActualWorldTemp_RejectedByExistingApplicationGuards_IsNeverPromoted",
+      "assembly_sha256": "815f2e7f5f83160fcd2742c30599c01549b510968e5b9064793e3541c44cc34c",
+      "skips": null,
+      "phase": "storage-world-guards-red",
+      "assemblies": null,
+      "source_manifest_sha256": "d92fce7ff50bd613c60f693acc9f479d944e34b5008730c35c43acf06ffdf738",
+      "raw_evidence_directory": "artifacts/foundation-bounded/storage-world-guards-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:28:32.9942993Z",
+      "finished_utc": "2026-10-02T06:28:34.6235787Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "ActualWorldTemp_RejectedByExistingApplicationGuards_IsNeverPromoted(\"malformed_dock_edge\")",
+        "ActualWorldTemp_RejectedByExistingApplicationGuards_IsNeverPromoted(\"wrong_propulsion_owner\")"
+      ]
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "failed": "1",
+        "passed": "0",
+        "total": "1"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-cancel-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-cancel-red",
+        "--filter",
+        "FullyQualifiedName~WorkRestoreTests.RestoredPendingWork_CanBeExplicitlyCancelled"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkRestoreTests.RestoredPendingWork_CanBeExplicitlyCancelled",
+      "assembly_sha256": "b026d2b275993d3d58c7bae1732f356a6ce3a7cea7f70a417280c8dde5e91cd2",
+      "skips": null,
+      "phase": "work-cancel-red",
+      "assemblies": null,
+      "source_manifest_sha256": "14309749fd293c6b90993f34581dccaa16735b87853cd1587033e92e67b95d18",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-cancel-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:26:42.2593281Z",
+      "finished_utc": "2026-10-02T06:26:45.2446748Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "RestoredPendingWork_CanBeExplicitlyCancelled"
+      ]
+    },
+    {
+      "counts": {
+        "failed": "0",
+        "total": "94",
+        "notExecuted": "0",
+        "passed": "94"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-final-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-final-green",
+        "--filter",
+        "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests|FullyQualifiedName~WorkActionResolverTests|FullyQualifiedName~InteractablesTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests|FullyQualifiedName~WorkActionResolverTests|FullyQualifiedName~InteractablesTests",
+      "assembly_sha256": "234c97846a203c001c4cfeeb5e6f077ee07f204b60f267089c1d17e5c751644c",
+      "skips": null,
+      "phase": "work-final-green",
+      "assemblies": null,
+      "source_manifest_sha256": "eb596e80b26013c531365e69410dc4cab2e4cc15564a5f5bbebfc17b797fa764",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-final-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:24:07.4788382Z",
+      "finished_utc": "2026-10-02T06:24:22.0491414Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "passed": "66",
+        "total": "70",
+        "failed": "4"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-green",
+        "--filter",
+        "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests",
+      "assembly_sha256": "ead8c1f1e6a4888ca7baefaf04171ff8effce3d9d9e3897553387ee90743a14a",
+      "skips": null,
+      "phase": "work-green",
+      "assemblies": null,
+      "source_manifest_sha256": "2ad9d4dc04d768a1ac3e844b80f162cd2499cfc9d3df81867c20e2118118b2fc",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:07:15.9030745Z",
+      "finished_utc": "2026-10-02T06:07:23.2360771Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "SwitchingRestoredWorkToTap_DoesNotBypassExplicitResume",
+        "RestoredWork_WaitsForExplicitPress_ThenResumesInCurrentInputMode(False)",
+        "RestoredResume_MissingTool_RejectsUntilRequirementsAreSupplied",
+        "RestoredWork_WaitsForExplicitPress_ThenResumesInCurrentInputMode(True)"
+      ]
+    },
+    {
+      "counts": {
+        "failed": "0",
+        "total": "70",
+        "passed": "70",
+        "notExecuted": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-green-2.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-green-2",
+        "--filter",
+        "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests",
+      "assembly_sha256": "e7884d14fccf87e59bd4517c526b25c3f5fab898b432c1529013667338427426",
+      "skips": null,
+      "phase": "work-green-2",
+      "assemblies": null,
+      "source_manifest_sha256": "4acf4b32dbaf0605f106ec279fbadb0c1eeda0a94751654493668b46ed6f4649",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-green-2",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:11:03.0717622Z",
+      "finished_utc": "2026-10-02T06:11:09.6098749Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "total": "93",
+        "passed": "93",
+        "failed": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-green-3.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-green-3",
+        "--filter",
+        "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests|FullyQualifiedName~WorkActionResolverTests|FullyQualifiedName~InteractablesTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests|FullyQualifiedName~WorkActionResolverTests|FullyQualifiedName~InteractablesTests",
+      "assembly_sha256": "5fbba5725a2dc67c1b609ca388f03246db1629c44a2ecf786beecac5fb3e5e11",
+      "skips": null,
+      "phase": "work-green-3",
+      "assemblies": null,
+      "source_manifest_sha256": "baf2e3a49c190d93e6c7720e4acfbb0844fbc8f23976f49385790d2298c0d389",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-green-3",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:16:45.8042376Z",
+      "finished_utc": "2026-10-02T06:16:53.8680458Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "passed": "3",
+        "notExecuted": "0",
+        "total": "16",
+        "failed": "13"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-red",
+        "--filter",
+        "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests",
+      "assembly_sha256": "d449894510dbc46e2aa14e8c3c23db984aa0661960fe9d64fbec97330afd3939",
+      "skips": null,
+      "phase": "work-red",
+      "assemblies": null,
+      "source_manifest_sha256": "c2fa6c6dec1ba6dc44861d7ec74ae5826b8a3b60988f2348636d4aa5dd97ea3c",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:03:54.2756377Z",
+      "finished_utc": "2026-10-02T06:03:56.2443885Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "RestoredResume_MissingTool_RejectsUntilRequirementsAreSupplied",
+        "SwitchingRestoredWorkToTap_DoesNotBypassExplicitResume",
+        "MissingOriginalTarget_DoesNotRetargetToNearbyStructure",
+        "RemoteCut_InterruptsBeforeProgressStaminaOrEffects(False)",
+        "OriginalGenericRangeBoundary_RemainsInclusive",
+        "ChangedOwner_WithEqualTargetId_DoesNotCompleteAgainstAnotherShip",
+        "RestoredResume_RemoteSite_RejectsWithoutProgressOrEffects(True)",
+        "RemoteCut_InterruptsBeforeProgressStaminaOrEffects(True)",
+        "RestoredResume_RemoteSite_RejectsWithoutProgressOrEffects(False)",
+        "RestoredWork_WaitsForExplicitPress_ThenResumesInCurrentInputMode(False)",
+        "ChangedModuleContext_WithEqualTargetId_DoesNotMutateReplacementMap",
+        "RestoredWork_WaitsForExplicitPress_ThenResumesInCurrentInputMode(True)",
+        "Restore_ClearsAnAlreadyLatchedHold_AndReplacingWithNoWorkClearsOldJob"
+      ]
+    },
+    {
+      "counts": {
+        "failed": "0",
+        "total": "94",
+        "passed": "94",
+        "notExecuted": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-reviewed-green.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-reviewed-green",
+        "--filter",
+        "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests|FullyQualifiedName~WorkActionResolverTests|FullyQualifiedName~InteractablesTests"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkLocalityTests|FullyQualifiedName~WorkRestoreTests|FullyQualifiedName~SessionIntegrationTests|FullyQualifiedName~HeadlessSessionTests|FullyQualifiedName~WorkActionChannelTests|FullyQualifiedName~WorkActionDriverTests|FullyQualifiedName~WorkActionStateTests|FullyQualifiedName~WorkActionResolverTests|FullyQualifiedName~InteractablesTests",
+      "assembly_sha256": "815f2e7f5f83160fcd2742c30599c01549b510968e5b9064793e3541c44cc34c",
+      "skips": null,
+      "phase": "work-reviewed-green",
+      "assemblies": null,
+      "source_manifest_sha256": "f600820e379c768c1e75ef649dbfe7b5ab500bdf652a7cef5d04cce89a3a0e44",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-reviewed-green",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:28:05.8196385Z",
+      "finished_utc": "2026-10-02T06:28:15.0745292Z",
+      "exit_code": 0,
+      "failed_case_names": []
+    },
+    {
+      "counts": {
+        "failed": "1",
+        "skipped": "0",
+        "inconclusive": "0",
+        "total": "1",
+        "passed": "0"
+      },
+      "command": null,
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests.HostPressAfterToggleRestore_ExplicitlyResumesOriginalSceneTarget",
+      "assembly_sha256": null,
+      "skips": [],
+      "phase": "work-ui-mode-red",
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "0e1063604cc0ee965e90db351456e61ea7ad6b040fc52993b06b7b88e6928d41"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "abb80f34d06dda8f08c37644d8f8deb5db0408e864069ec689072e27958d1c47"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "4d97b4cd02847094a955f0b00496f64cc368f9ce44cfbfa1f5e766264b7c08b3"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "696b75cbfa204778d21580dee96221d002abb5cd39faed25e5c70d867142bacf"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "36e79855de13ec403cb6c6b419036966c773712b6df47a09fb109baba4dd7fb2"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "5c05b1e605a3819796ebd4402b0930cda17a8f0f08e32e2e736df56236232446"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "4e9a43de714d36705cb470bf82f8b5851ca6608811cd1eaf3940e9329aca989c"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "534c6d6d9fb0d434802508984fab87e1a96724546f214c80eae1d5cb3e6b8367"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "535f3b6ca2887506dc45491064c1f14430b980e0c3e1818b5c619ca6a18c864d"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "cda558582ce81ca6dccb586863edd739df12913d3fb1fb15677486906744c2df"
+        }
+      ],
+      "source_manifest_sha256": "38cca944ec1436ad4fca686eedac0b108f2462d70bb454c633828a055548ba4b",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-ui-mode-red",
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-ui-mode-red\\work-ui-mode-red.xml",
+        "-logFile",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-ui-mode-red\\work-ui-mode-red.log",
+        "-testFilter",
+        "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests.HostPressAfterToggleRestore_ExplicitlyResumesOriginalSceneTarget"
+      ],
+      "started_utc": "2026-10-02T07:00:42.028581Z",
+      "finished_utc": "2026-10-02T07:00:58.699763Z",
+      "exit_code": 2,
+      "failed_case_names": [
+        "SynapticSea.Tests.PlayMode.WorkSessionPlayModeTests.HostPressAfterToggleRestore_ExplicitlyResumesOriginalSceneTarget"
+      ]
+    },
+    {
+      "counts": {
+        "passed": "0",
+        "total": "1",
+        "failed": "1",
+        "notExecuted": "0"
+      },
+      "command": [
+        "F:/Tools/dotnet/dotnet.exe",
+        "test",
+        "tools/dotnet/SynapticSea.Core.Tests",
+        "--no-restore",
+        "--nologo",
+        "--logger",
+        "trx;LogFileName=work-weld-red.trx",
+        "--results-directory",
+        "F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-bounded\\work-weld-red",
+        "--filter",
+        "FullyQualifiedName~WorkLocalityTests.LegacyWeldFallback_RetainsSelectedRoomCenterAnchorDuringWork"
+      ],
+      "assembly_identity_status": "Observed build used by executed tests.",
+      "filter": "FullyQualifiedName~WorkLocalityTests.LegacyWeldFallback_RetainsSelectedRoomCenterAnchorDuringWork",
+      "assembly_sha256": "738054c6ba3180ab0cdaf7b5c441ccad1d684f23bfe8664cd201a9b5fbcd305b",
+      "skips": null,
+      "phase": "work-weld-red",
+      "assemblies": null,
+      "source_manifest_sha256": "afe55ff219edfb1a64229db960f79c73976ce5f5b673dd42afab1708bb6fa789",
+      "raw_evidence_directory": "artifacts/foundation-bounded/work-weld-red",
+      "arguments": null,
+      "started_utc": "2026-10-02T06:21:34.7502237Z",
+      "finished_utc": "2026-10-02T06:21:36.9145581Z",
+      "exit_code": 1,
+      "failed_case_names": [
+        "LegacyWeldFallback_RetainsSelectedRoomCenterAnchorDuringWork"
+      ]
+    }
+  ],
+  "evidence_limit": "Provisioned diagnostic model/scene state proves invariants; not earned natural gameplay or a finished game."
+}
