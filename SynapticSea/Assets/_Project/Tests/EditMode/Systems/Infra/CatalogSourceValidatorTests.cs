@@ -233,7 +233,8 @@ namespace SynapticSea.Tests.Systems
             Assert.IsFalse(report.GetBool("ok"));
             Find(report, "missing_definition", "unbolt_component", "wrench");
             Find(report, "missing_source", "medbay_surgery", "medical_gauze");
-            string directory = Path.Combine(Fixtures.RepoRoot, "artifacts", "foundation-bounded");
+            string directory = System.Environment.GetEnvironmentVariable("SYNAPTIC_CATALOG_EVIDENCE_DIR");
+            if (string.IsNullOrEmpty(directory)) directory = Path.Combine(Fixtures.RepoRoot, "artifacts", "foundation-bounded");
             Directory.CreateDirectory(directory);
             File.WriteAllText(Path.Combine(directory, "catalog-validation.json"), GdJson.Stringify(report, "  "));
         }
@@ -292,13 +293,21 @@ namespace SynapticSea.Tests.Systems
         }
 
         [Test]
-        public void LiveSpatialPrecheckStillDiagnosesTierThatTheModelCanSupply()
+        public void LiveSpatialPrecheckForwardsTierAndDeliberateOmissionIsStillDiagnosed()
         {
             SessionHarness.Rig rig = SessionHarness.CreateGolden();
             rig.Session.CraftingState.GetOrCreateStation("fabricator").ApplyComponentTier(2);
             GdDict report = rig.Session.GetCatalogValidationReport();
-            Find(report, "tier_not_forwarded", "craft_sensor_module", "fabricator");
-            Find(report, "tier_not_forwarded", "craft_thruster_nozzle", "fabricator");
+            foreach (object value in report.GetArrayOrEmpty("errors"))
+                if (value is GdDict row)
+                    Assert.IsFalse(row.GetString("code") == "tier_not_forwarded" && row.GetString("item_id") == "fabricator", "Actual bound station now forwards its model tier.");
+
+            GdDict catalog = CatalogSourceValidator.LoadProductionCatalog();
+            GdDict sources = CatalogSourceValidator.NormalizeSources(catalog, rig.Session.GetCatalogSourceRegistrations());
+            sources.GetDictOrEmpty("stations").GetDictOrEmpty("fabricator")["precheck_tier"] = 0L;
+            GdDict deliberateFailure = new CatalogSourceValidator().Validate(catalog, sources, new GdDict());
+            Find(deliberateFailure, "tier_not_forwarded", "craft_sensor_module", "fabricator");
+            Find(deliberateFailure, "tier_not_forwarded", "craft_thruster_nozzle", "fabricator");
         }
 
         [Test]

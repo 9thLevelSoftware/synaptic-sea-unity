@@ -576,8 +576,9 @@ namespace SynapticSea.Core.Session
             }
             if (CraftingState == null)
                 return new GdArray();
-            long skill = PlayerProgression != null ? PlayerProgression.GetSkillLevel("fabrication") : 0;
-            return CraftingState.ListRecipeEntries(stationKind, InventoryState, skill);
+            foreach (CraftingStation st in CraftingStations)
+                if (st.IsValid && st.StationKind == stationKind) return st.ListRecipeEntries();
+            return new GdArray();
         }
 
         /// <summary>REQ-CS-016/017/018: the picker confirm handler.</summary>
@@ -639,10 +640,9 @@ namespace SynapticSea.Core.Session
             {
                 if (st.IsValid && st.StationKind == stationKind)
                 {
-                    if (st.TryCraftRecipe(recipeId))
+                    if (st.TryCraftRecipe(recipeId, out string reason))
                         return Result(true, "started");
-                    OnCraftBlocked(stationKind, "begin_failed");
-                    return Result(false, "begin_failed");
+                    return Result(false, reason);
                 }
             }
             OnCraftBlocked(stationKind, "station_missing");

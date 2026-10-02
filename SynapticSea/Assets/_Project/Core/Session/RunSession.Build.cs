@@ -43,7 +43,7 @@ namespace SynapticSea.Core.Session
                 {
                     { "registration_path", "Core/Session/RunSession.Crafting.cs:BuildCraftingStations" },
                     { "tier", CraftingState?.GetStation(station.StationKind)?.EffectiveTier() ?? 0L },
-                    { "precheck_tier", 0L }, { "skill_id", "fabrication" },
+                    { "precheck_tier", station.EffectiveTier }, { "skill_id", "fabrication" },
                 };
             }
             if (FieldCraftingState != null)

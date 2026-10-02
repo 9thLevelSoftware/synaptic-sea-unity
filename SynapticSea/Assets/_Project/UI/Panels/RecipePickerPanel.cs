@@ -44,14 +44,29 @@ namespace SynapticSea.UI
         public GdArray ListStationRecipeEntries(string stationKind)
         {
             if (_inventory == null || _crafting == null) return new GdArray();
-            return _crafting.ListRecipeEntries(stationKind, _inventory, _fabricationSkill?.Invoke() ?? 0);
+            long tier = _crafting.GetStation(stationKind)?.EffectiveTier() ?? 0L;
+            GdArray entries = _crafting.ListRecipeEntries(stationKind, _inventory, _fabricationSkill?.Invoke() ?? 0, tier);
+            if (_crafting.IsCrafting())
+                foreach (object entry in entries)
+                    if (entry is GdDict row)
+                    {
+                        row["status"] = "busy";
+                        row["craftable"] = false;
+                    }
+            return entries;
         }
 
         public GdDict BeginCraftFromPicker(string stationKind, string recipeId)
         {
-            if (recipeId.Length == 0 || stationKind.Length == 0) return Result(false, "bad_args", recipeId);
-            if (_crafting == null) return Result(false, "not_ready", recipeId);
+            if (string.IsNullOrEmpty(recipeId) || string.IsNullOrEmpty(stationKind)) return Result(false, "bad_args", recipeId);
+            if (_crafting == null || _inventory == null) return Result(false, "not_ready", recipeId);
             if (_crafting.IsCrafting()) return Result(false, "busy", recipeId);
+            if (_crafting.GetRecipe(recipeId).IsEmpty) return Result(false, "no_craftable_recipe", recipeId);
+            if (_crafting.GetStationKind(recipeId) != stationKind) return Result(false, "wrong_station", recipeId);
+            if (_crafting.GetRecipe(recipeId).GetString("category") == "deconstruction") return Result(false, "deconstruction_not_here", recipeId);
+            foreach (object entry in ListStationRecipeEntries(stationKind))
+                if (entry is GdDict row && row.GetString("recipe_id") == recipeId && !row.GetBool("craftable"))
+                    return Result(false, row.GetString("status", "begin_failed"), recipeId);
             bool ok = _crafting.BeginCraft(recipeId, _inventory, _materials, _fabricationSkill?.Invoke() ?? 0);
             return Result(ok, ok ? "started" : "begin_failed", recipeId);
         }
