@@ -1,0 +1,513 @@
+{
+  "status": "Reviewed inactive Core checkpoint; live save/UI incomplete and Q2 production activation blocked",
+  "baseline": "b15543204d84b50ee2fc14dd1f0a66acc0ada1c8",
+  "product_commit": "ba3601b24d15162b7de1c71bc8b042ce3088b310",
+  "product_paths": [
+    "SynapticSea/Assets/_Project/Core/Session/DomainBundle.cs",
+    "SynapticSea/Assets/_Project/Core/Session/DomainTransactionCoordinator.cs",
+    "SynapticSea/Assets/_Project/Core/Session/Interactables/CraftingStation.cs",
+    "SynapticSea/Assets/_Project/Core/Session/RunSession.Build.cs",
+    "SynapticSea/Assets/_Project/Core/Session/RunSession.Components.cs",
+    "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+    "SynapticSea/Assets/_Project/Core/Session/RunSession.PaidCrafting.cs",
+    "SynapticSea/Assets/_Project/Core/Session/RunSession.PaidCrafting.cs.meta",
+    "SynapticSea/Assets/_Project/Core/Session/RunSessionDeps.cs",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/CraftingState.cs",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/FieldCraftingState.cs",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/PaidCraftingState.cs",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/PaidCraftingState.cs.meta",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/PaidCraftRewardProof.cs",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/PaidCraftRewardProof.cs.meta",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/RecipeGateService.cs",
+    "SynapticSea/Assets/_Project/Core/Systems/Crafting/RecipeGateService.cs.meta",
+    "SynapticSea/Assets/_Project/Core/Systems/Food/StationState.cs",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/LegacyCraftReconciliationTests.cs",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/LegacyCraftReconciliationTests.cs.meta",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftAdmissionTests.cs",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftAdmissionTests.cs.meta",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftRewardIntegrityTests.cs",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftRewardIntegrityTests.cs.meta",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftStateTests.cs",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftStateTests.cs.meta",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftCurrentParticipantTests.cs",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftCurrentParticipantTests.cs.meta",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftHistoryValidationTests.cs",
+    "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftHistoryValidationTests.cs.meta"
+  ],
+  "phases": [
+    {
+      "phase": "core-green-8",
+      "manifest_path": "artifacts/paid-crafting-2026-10-02/core-green-8/manifest.json",
+      "manifest_sha256": "31c54cf5ad2436f5c436b95d38640c8b63e0e6cccecd13793858e93fafd0812e",
+      "results_path": "artifacts/paid-crafting-2026-10-02/core-green-8/core-green-8.trx",
+      "results_sha256": "7f80e2ee90fa0d720a272460602392645abed297afe83ee8673de8686a13adca",
+      "manifest": {
+        "command": [
+          "F:/Tools/dotnet/dotnet.exe",
+          "test",
+          "tools/dotnet/SynapticSea.Core.Tests",
+          "--no-restore",
+          "--nologo",
+          "--logger",
+          "trx;LogFileName=core-green-8.trx",
+          "--results-directory",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\core-green-8",
+          "--filter",
+          "FullyQualifiedName~PaidCraftStateTests|FullyQualifiedName~PaidCraftParityTests|FullyQualifiedName~LegacyCraftReconciliationTests|FullyQualifiedName~PaidCraftAdmissionTests|FullyQualifiedName~PaidCraftRewardIntegrityTests|FullyQualifiedName~PaidCraftCurrentParticipantTests|FullyQualifiedName~PaidCraftHistoryValidationTests"
+        ],
+        "started_utc": "2026-10-02T22:12:01.6092065Z",
+        "filter": "FullyQualifiedName~PaidCraftStateTests|FullyQualifiedName~PaidCraftParityTests|FullyQualifiedName~LegacyCraftReconciliationTests|FullyQualifiedName~PaidCraftAdmissionTests|FullyQualifiedName~PaidCraftRewardIntegrityTests|FullyQualifiedName~PaidCraftCurrentParticipantTests|FullyQualifiedName~PaidCraftHistoryValidationTests",
+        "finished_utc": "2026-10-02T22:14:50.1985278Z",
+        "failures": [],
+        "head": "b15543204d84b50ee2fc14dd1f0a66acc0ada1c8",
+        "assembly_sha256": "bf35a138aa39954f080df12f55fd461589dc7cb3e6716352aadfd64a30ac6cc2",
+        "counts": {
+          "total": "343",
+          "passed": "343",
+          "notExecuted": "0",
+          "failed": "0"
+        },
+        "phase": "core-green-8",
+        "catalog_evidence_directory": "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\core-green-8",
+        "source_manifest_sha256": "1f47de7c08ccea13c6f50076bd970e7f9d54305bfa8672b1da678bb6effd8e40",
+        "exit_code": 0
+      },
+      "frozen_inputs_sha256": "d054d26e21bc5507970e3993391ff8ba1348b3a78e7292ec6b5c0c90856a836b"
+    },
+    {
+      "phase": "core-regression-5",
+      "manifest_path": "artifacts/paid-crafting-2026-10-02/core-regression-5/manifest.json",
+      "manifest_sha256": "3420406672136d6059cdb3e6fed5c4240eaec28ce56af720e6c15d774765f5a1",
+      "results_path": "artifacts/paid-crafting-2026-10-02/core-regression-5/core-regression-5.trx",
+      "results_sha256": "963488df79e274a1547b80498f6ddf3007281c64bc311954cf8f157d250df731",
+      "manifest": {
+        "phase": "core-regression-5",
+        "failures": [],
+        "source_manifest_sha256": "1f47de7c08ccea13c6f50076bd970e7f9d54305bfa8672b1da678bb6effd8e40",
+        "counts": {
+          "total": "2143",
+          "failed": "0",
+          "notExecuted": "0",
+          "passed": "2143"
+        },
+        "exit_code": 0,
+        "head": "b15543204d84b50ee2fc14dd1f0a66acc0ada1c8",
+        "filter": "",
+        "catalog_evidence_directory": "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\core-regression-5",
+        "command": [
+          "F:/Tools/dotnet/dotnet.exe",
+          "test",
+          "tools/dotnet/SynapticSea.Core.Tests",
+          "--no-restore",
+          "--nologo",
+          "--logger",
+          "trx;LogFileName=core-regression-5.trx",
+          "--results-directory",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\core-regression-5"
+        ],
+        "started_utc": "2026-10-02T22:22:52.3093615Z",
+        "finished_utc": "2026-10-02T22:29:22.2303457Z",
+        "assembly_sha256": "bf35a138aa39954f080df12f55fd461589dc7cb3e6716352aadfd64a30ac6cc2"
+      },
+      "frozen_inputs_sha256": "d054d26e21bc5507970e3993391ff8ba1348b3a78e7292ec6b5c0c90856a836b"
+    },
+    {
+      "phase": "core-checkpoint-edit-3",
+      "manifest_path": "artifacts/paid-crafting-2026-10-02/core-checkpoint-edit-3/manifest.json",
+      "manifest_sha256": "3863b6ac03023f5f7f86b9467a37b50dcece59716c0df744561daa100c62d5b6",
+      "results_path": "artifacts/paid-crafting-2026-10-02/core-checkpoint-edit-3/core-checkpoint-edit-3.xml",
+      "results_sha256": "1fbfddc84ad76d5a0d8302c8d44753f198e83bb168d0b70ed18c7f0cde6ec7fb",
+      "manifest": {
+        "phase": "core-checkpoint-edit-3",
+        "skips": [],
+        "failures": [],
+        "assemblies": [
+          {
+            "sha256": "c34917be94835eea30cf3bc7fecfc9e100367d8f06ca9a4bfa59195c58d243ce",
+            "name": "SynapticSea.App.dll"
+          },
+          {
+            "sha256": "a72eadedbe6b30b12622472dd5c1e7b61c6d06ae81df1ee40967734c9d2ca94b",
+            "name": "SynapticSea.Core.dll"
+          },
+          {
+            "sha256": "ba378a3efd7d3a739b7e22d1d355f366e933975bf63627a1620a84c019c5ec11",
+            "name": "SynapticSea.Editor.dll"
+          },
+          {
+            "sha256": "82356d36da12892888134d8fa3a0758e88fbf95b426565bd67300e4cae555852",
+            "name": "SynapticSea.Game.dll"
+          },
+          {
+            "sha256": "f8750d42c1c4659819b7df6a4e55fb59fa406a965ff17e7e8179a13a84de1733",
+            "name": "SynapticSea.Runtime.dll"
+          },
+          {
+            "sha256": "f5bfc4a2a540ed6f6c0847d8b591c23096762a7f4e0a80f6fe7f056cba1d2301",
+            "name": "SynapticSea.Tests.EditMode.dll"
+          },
+          {
+            "sha256": "c305f75152ceea8c8b56949fbd92c7456b51f522215561ad5740c879b8186c4b",
+            "name": "SynapticSea.Tests.EditModeUnity.dll"
+          },
+          {
+            "sha256": "560a0c44d5fadaf48cd2c024d97a60e63621324b99e61204df52ebd083987005",
+            "name": "SynapticSea.Tests.PlayMode.dll"
+          },
+          {
+            "sha256": "1a0934aaa96f324a25e1c5db574ffd17f483ab06dbf38f56ca6c21ffd68e1bd0",
+            "name": "SynapticSea.UI.dll"
+          },
+          {
+            "sha256": "3954176ce18a9068f970890fcc4e9a810f62d966920e3ce1f0e420def5e478a2",
+            "name": "SynapticSea.UI.Presenters.dll"
+          }
+        ],
+        "started_utc": "2026-10-02T22:15:44.0429948Z",
+        "pid": 51396,
+        "mode": "EditMode",
+        "exit_code": 0,
+        "head": "b15543204d84b50ee2fc14dd1f0a66acc0ada1c8",
+        "source_manifest_sha256": "14142fcbcb659f07646f93d6eb0543f0f51009c212c93645e50a43e221063b7c",
+        "counts": {
+          "failed": "0",
+          "inconclusive": "0",
+          "skipped": "0",
+          "total": "343",
+          "passed": "343"
+        },
+        "finished_utc": "2026-10-02T22:22:27.7291611Z",
+        "editor": "F:/Unity/6000.6.0f1/Editor/Unity.exe",
+        "scope": "GPU batch Unity fixtures, isolated MemoryStorage/disposable filesystem. Tools/targets may be provisioned; no earned journey or native OS input claim.",
+        "arguments": [
+          "-batchmode",
+          "-projectPath",
+          "F:\\tmp\\synaptic-sea-playable\\SynapticSea",
+          "-runTests",
+          "-testPlatform",
+          "EditMode",
+          "-testResults",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\core-checkpoint-edit-3\\core-checkpoint-edit-3.xml",
+          "-logFile",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\core-checkpoint-edit-3\\core-checkpoint-edit-3.log",
+          "-testFilter",
+          "PaidCraftStateTests;PaidCraftParityTests;LegacyCraftReconciliationTests;PaidCraftAdmissionTests;PaidCraftRewardIntegrityTests;PaidCraftCurrentParticipantTests;PaidCraftHistoryValidationTests"
+        ],
+        "filter": "PaidCraftStateTests;PaidCraftParityTests;LegacyCraftReconciliationTests;PaidCraftAdmissionTests;PaidCraftRewardIntegrityTests;PaidCraftCurrentParticipantTests;PaidCraftHistoryValidationTests"
+      },
+      "frozen_inputs_sha256": "d054d26e21bc5507970e3993391ff8ba1348b3a78e7292ec6b5c0c90856a836b"
+    }
+  ],
+  "reviews": [
+    {
+      "path": "artifacts/paid-crafting-2026-10-02/core-spec-review-v5.md",
+      "sha256": "7e8f26426bddc490cfc33edb8cd4ece17f1acbf700b9098e567711580477cb91"
+    },
+    {
+      "path": "artifacts/paid-crafting-2026-10-02/core-quality-review-v5.md",
+      "sha256": "5e4b00454205723900748e16de74bc53015b7c2e0cac70bba86a1cca02e56666"
+    },
+    {
+      "path": "artifacts/paid-crafting-2026-10-02/core-import-review-v6.md",
+      "sha256": "a3998802fcd15bfd0d30eabd49933a72e84efa451ea3d7db6c14257e600b1e96"
+    },
+    {
+      "path": "artifacts/paid-crafting-2026-10-02/core-assert-compatibility-review-v7.md",
+      "sha256": "6a61fd42455a9448b77ba0541be943b505a693ee85ebd7b0b3e9c3a8a62a8ea5"
+    },
+    {
+      "path": "artifacts/paid-crafting-2026-10-02/core-performance-residual-v5.md",
+      "sha256": "9b58af9941a75f013ff223bbcb3adf4f412f2526cb98e3730be7dd89452f2e7d"
+    }
+  ],
+  "performance": [
+    {
+      "measurements_path": "artifacts/paid-crafting-2026-10-02/performance-v5/measurements.json",
+      "measurements_sha256": "3782f1901340df55e34691a84c780eba2ac4bfbecf9e65bb9f34d47c2eb5ea8b",
+      "manifest_sha256": "aba2662df116d27910a728d309ad27f285df6290050a4e6f26f66e4d532e523b",
+      "phase": "performance-v5",
+      "manifest_path": "artifacts/paid-crafting-2026-10-02/performance-v5/manifest.json",
+      "manifest": {
+        "source_phase_manifest_sha256": "C17EFBE04701A180727FEE75618B0979FD54A0960546708A6A70B5ADC56CCBC9",
+        "source_manifest_sha256": "f9827b4198f83e1c45876ab1888da37532eccc250c1ecc230bdc78d61cbe11a1",
+        "inputs": [
+          {
+            "sha256": "3A46D3478671306998D10D00FAD1D7DFE35F2397649BEE3C64EA7EB49D19F945",
+            "path": "SynapticSea.Core.Tests.dll"
+          },
+          {
+            "sha256": "D0332E30BA73E560288EADBEFDF0F494ECE6731E07CD85367585291A6837D834",
+            "path": "nunit.framework.dll"
+          }
+        ],
+        "layout": "linear",
+        "exit_code": 0,
+        "program_sha256": "A8875E2A22135C6C2E63C7F696CA3C51375E62084D36222E69DE698C410F1E9A",
+        "build_exit_code": 0,
+        "started_utc": "2026-10-02T21:37:34.2686153Z",
+        "command": [
+          "F:/Tools/dotnet/dotnet.exe",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\performance-v5\\bin\\Debug\\net8.0\\Probe.dll",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\performance-v5\\measurements.json"
+        ],
+        "host": "Windows 11 Pro 10.0.26200; i9-14900HX;24cores32threads;33161204KiB RAM",
+        "finished_utc": "2026-10-02T21:39:54.1725469Z",
+        "source_phase": "core-green-7",
+        "head": "b15543204d84b50ee2fc14dd1f0a66acc0ada1c8"
+      }
+    },
+    {
+      "measurements_path": "artifacts/paid-crafting-2026-10-02/performance-branch-v5/measurements.json",
+      "measurements_sha256": "de14172062b29107ff69b7b2b1de9eb772f2ce755d253792570a284f9ed4fe7e",
+      "manifest_sha256": "1dc7f0937d2da8d511dff88e0471e67380f5d780ef40503c97abb8a239fc86d5",
+      "phase": "performance-branch-v5",
+      "manifest_path": "artifacts/paid-crafting-2026-10-02/performance-branch-v5/manifest.json",
+      "manifest": {
+        "source_phase_manifest_sha256": "C17EFBE04701A180727FEE75618B0979FD54A0960546708A6A70B5ADC56CCBC9",
+        "program_sha256": "C7E6708B7FFC48331102FEFAFF717A582CE4BA6CB26446FCB3531170701CFF3A",
+        "layout": "branch",
+        "host": "Windows 11 Pro 10.0.26200; i9-14900HX;24cores32threads;33161204KiB RAM",
+        "inputs": [
+          {
+            "sha256": "3A46D3478671306998D10D00FAD1D7DFE35F2397649BEE3C64EA7EB49D19F945",
+            "path": "SynapticSea.Core.Tests.dll"
+          },
+          {
+            "sha256": "D0332E30BA73E560288EADBEFDF0F494ECE6731E07CD85367585291A6837D834",
+            "path": "nunit.framework.dll"
+          }
+        ],
+        "build_exit_code": 0,
+        "exit_code": 0,
+        "head": "b15543204d84b50ee2fc14dd1f0a66acc0ada1c8",
+        "started_utc": "2026-10-02T21:40:51.7997093Z",
+        "source_manifest_sha256": "f9827b4198f83e1c45876ab1888da37532eccc250c1ecc230bdc78d61cbe11a1",
+        "command": [
+          "F:/Tools/dotnet/dotnet.exe",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\performance-branch-v5\\bin\\Debug\\net8.0\\Probe.dll",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\performance-branch-v5\\measurements.json"
+        ],
+        "source_phase": "core-green-7",
+        "finished_utc": "2026-10-02T21:42:42.7656133Z"
+      }
+    },
+    {
+      "measurements_path": "artifacts/paid-crafting-2026-10-02/performance-attribution-v5/measurements.json",
+      "measurements_sha256": "e91d9c83f507de01d6549cdcb29e0ba076cab2a1f5f8847c5a3495be40a34170",
+      "manifest_sha256": "abb78cf5e046a2073ff4f572192846fe755e20920bb97b9025090a4c51539e0f",
+      "phase": "performance-attribution-v5",
+      "manifest_path": "artifacts/paid-crafting-2026-10-02/performance-attribution-v5/manifest.json",
+      "manifest": {
+        "frozen_assembly_sha256": "3A46D3478671306998D10D00FAD1D7DFE35F2397649BEE3C64EA7EB49D19F945",
+        "frozen_source_manifest_sha256": "7D3412050F335929793BDE1B9BA9C05CBB2E53407FD3D000061E24D798649451",
+        "phase": "performance-attribution-v5",
+        "program_sha256": "51E15A6687843C34A4EBCD67DA0A6E28F5861CA9497B2CCA79560870BA68B200",
+        "frozen_product_phase": "core-regression-4",
+        "build_command": [
+          "F:/Tools/dotnet/dotnet.exe",
+          "build",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\performance-attribution-v5\\Probe.csproj",
+          "--nologo"
+        ],
+        "finished_utc": "2026-10-02T22:35:27.1984438Z",
+        "copied_nunit_sha256": "D0332E30BA73E560288EADBEFDF0F494ECE6731E07CD85367585291A6837D834",
+        "head": "ba3601b24d15162b7de1c71bc8b042ce3088b310",
+        "host": {
+          "ram_kib": 33161204,
+          "processor": "i9-14900HX",
+          "logical_processors": 32,
+          "physical_cores": 24,
+          "os": "Windows11Pro10.0.26200"
+        },
+        "preimages": [
+          {
+            "sha256": "BB6B4258273AC0A2B66B97252549C01FF41CDC9E717499CD22E1412F86771780",
+            "name": "branch-owner-typed.json"
+          },
+          {
+            "sha256": "F4237F2754DF0773793AC14E7FF2C81DF6923785B3C13E82819337FFEB553D84",
+            "name": "branch-prefix-preimages-typed.jsonl"
+          },
+          {
+            "sha256": "EB0A2D60E186C72A9B6BB3AC2EB0E204E032A0603B1DFE7F64CF9A58260BBD28",
+            "name": "linear-owner-typed.json"
+          },
+          {
+            "sha256": "11500A98BF2B860BA00AFF254D3DAC68E1E10E3ABCD9A0C0B84F8A1883E6CD05",
+            "name": "linear-prefix-preimages-typed.jsonl"
+          }
+        ],
+        "started_utc": "2026-10-02T22:34:02.4311972Z",
+        "probe_assembly_sha256": "D0E00F5336A96420E9EADC59E3C322A429323A034109B82A9AFBC931C4637A78",
+        "build_exit": 0,
+        "exit_code": 0,
+        "command": [
+          "F:/Tools/dotnet/dotnet.exe",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\performance-attribution-v5\\bin\\Debug\\net8.0\\Probe.dll",
+          "F:\\tmp\\synaptic-sea-playable\\artifacts\\paid-crafting-2026-10-02\\performance-attribution-v5\\measurements.json"
+        ],
+        "measurements_sha256": "E91D9C83F507DE01D6549CDCB29E0BA076CAB2A1F5F8847C5A3495BE40A34170",
+        "scope": "Root-only isolated operation attribution on frozen v5 ordinary real-command80-history memory owners, linear and4branches. Provisioned; no rendered FPS/earned/acquisition/native storage claim. Pre-expanded prefix input timing excludes path construction. Full-admission rows include alltheirwork, not nested/exclusive attribution."
+      }
+    }
+  ],
+  "preservation_path": "artifacts/paid-crafting-2026-10-02/core-checkpoint-preservation.json",
+  "preservation_sha256": "68f655ab945871e8290bfeb48944fc0de31d4fadaa5a9b98dca1f56e79660e5b",
+  "preservation": {
+    "status": "Reviewed inactive Core checkpoint; Q2 active cost open; production activation blocked; save/UI integration continues",
+    "phases": [
+      {
+        "source_matches": true,
+        "manifest_sha256": "31C54CF5AD2436F5C436B95D38640C8B63E0E6CCCECD13793858E93FAFD0812E",
+        "phase": "core-green-8",
+        "counts": {
+          "total": "343",
+          "passed": "343",
+          "notExecuted": "0",
+          "failed": "0"
+        }
+      },
+      {
+        "source_matches": true,
+        "manifest_sha256": "3420406672136D6059CDB3E6FED5C4240EAEC28CE56AF720E6C15D774765F5A1",
+        "phase": "core-regression-5",
+        "counts": {
+          "total": "2143",
+          "failed": "0",
+          "notExecuted": "0",
+          "passed": "2143"
+        }
+      },
+      {
+        "source_matches": true,
+        "manifest_sha256": "3863B6AC03023F5F7F86B9467A37B50DCECE59716C0DF744561DAA100C62D5B6",
+        "phase": "core-checkpoint-edit-3",
+        "counts": {
+          "failed": "0",
+          "inconclusive": "0",
+          "skipped": "0",
+          "total": "343",
+          "passed": "343"
+        }
+      }
+    ],
+    "exact_settings_baseline": true,
+    "unchanged_nonproduct_source_data_meta": true,
+    "baseline": "b15543204d84b50ee2fc14dd1f0a66acc0ada1c8",
+    "metadata_and_test_wrapper_compatibility_corrections": {
+      "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftHistoryValidationTests.cs": "926F63EEBAEA8BAD3BE06B479719D4329AC8FE78B649E382D077A21E54A7C9A9",
+      "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftRewardIntegrityTests.cs": "32597FCB11808D28AB1F7483CBEC9D3221106D53685659A6DA4C1353953D3498",
+      "SynapticSea/Assets/_Project/Tests/EditMode/Session/LegacyCraftReconciliationTests.cs.meta": "74C7740E310219E72EF079EA1A9CFC764FC92F54E2AD197F041E25DE890CEF52",
+      "SynapticSea/Assets/_Project/Core/Systems/Crafting/RecipeGateService.cs.meta": "BE8A5751742166138BCE5DFDD6AEAE889FCF42E572CCA1D952F3AD241F83ECE7",
+      "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftCurrentParticipantTests.cs": "9F7A9FC2347AFF9569937FE3DD34A077A4185E8AA794194165789F47D1339DAD"
+    },
+    "prior_accepted_evidence": [
+      {
+        "sha256": "399d8661db33a3daf0c47071734297dd6b857add94e7b34117954f20f3456e75",
+        "path": "docs/implementation/component-live-integration-2026-10-02.md"
+      },
+      {
+        "sha256": "31c9bcf6b3c93e986509c355f4fcfb68887ff9bebcbe94872d92e6754905c34b",
+        "path": "docs/implementation/component-live-integration-2026-10-02-verification.json"
+      },
+      {
+        "sha256": "b03f7b945b2b61cc5ebdea5ddf4891a03c4a913490daf0f2cac7c0377daeac0a",
+        "path": "artifacts/component-live-integration-2026-10-02/final-review-package.md"
+      }
+    ],
+    "product_file_count": 30,
+    "index_empty": true,
+    "author_untracked_roots_preserved": [
+      "docs/audit-deep",
+      "docs/design/formal-build-2026-10-02",
+      "docs/superpowers",
+      "docs/whole-game-audit-2026-10-02.md"
+    ],
+    "checked_utc": "2026-10-02T22:30:29.6717469Z",
+    "metadata": [
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.PaidCrafting.cs.meta",
+        "unique_in_assets": true,
+        "guid": "e01a5a43f24f4ab79e61dc01c7702288",
+        "sha256": "F88ABAB1618104C982F996F4FD81C52DC56F0F0152C1E8C32C6EC75B3AA1E234"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Systems/Crafting/PaidCraftingState.cs.meta",
+        "unique_in_assets": true,
+        "guid": "96a3e86baf274a4c929836d626c70a42",
+        "sha256": "6D52CDF88BC985541F4EC24ECA773192B52C3C3A08F12721418523D3E4046F5C"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Systems/Crafting/PaidCraftRewardProof.cs.meta",
+        "unique_in_assets": true,
+        "guid": "9dc7b286930849b1848328d8c957a48d",
+        "sha256": "A89DC9E0B1A0ECCE346D0C27DE8E24BDF0B8B225AA660D0CEF016CAD0D3DE363"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Systems/Crafting/RecipeGateService.cs.meta",
+        "unique_in_assets": true,
+        "guid": "d493f7a0ce8b41d6a92f058c7e163bb4",
+        "sha256": "BE8A5751742166138BCE5DFDD6AEAE889FCF42E572CCA1D952F3AD241F83ECE7"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/LegacyCraftReconciliationTests.cs.meta",
+        "unique_in_assets": true,
+        "guid": "b651cf9a478240b6a3ce92d1850f7e64",
+        "sha256": "74C7740E310219E72EF079EA1A9CFC764FC92F54E2AD197F041E25DE890CEF52"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftAdmissionTests.cs.meta",
+        "unique_in_assets": true,
+        "guid": "71656b4a21e3449eaa676d163c68831b",
+        "sha256": "8623AF1CB4639DD9C517364C0221B5D073F3C48093EB58BC9BCE10772CB32EA9"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftRewardIntegrityTests.cs.meta",
+        "unique_in_assets": true,
+        "guid": "39d6419b27ec4cf0a3e1dfc4269f72b8",
+        "sha256": "B07A3C07CC777C95661CCA9BAA1A54499BA5752C0FFCDA32675B4773FD54FF19"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftStateTests.cs.meta",
+        "unique_in_assets": true,
+        "guid": "8fcf39f4f708448e82d129be5f30ca71",
+        "sha256": "E30BBC5D044B8B358499F1A95DD8D49FE57197EF511C35BA49696DB9929CDF12"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftCurrentParticipantTests.cs.meta",
+        "unique_in_assets": true,
+        "guid": "a2810c7e698a4a33b911af5e0d82f374",
+        "sha256": "2291E86BE9A80F105438F6760B77676772F07DA87397D16565089A1367EDFEE8"
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftHistoryValidationTests.cs.meta",
+        "unique_in_assets": true,
+        "guid": "df2189ac7930460d85ba72e613ac945b",
+        "sha256": "3C030CE203D5C14429ED9092FFE71B1DC2F3365FB9EA9C13EEA4CC394A137B58"
+      }
+    ],
+    "bootstrap_unchanged": true,
+    "original_checkout_saves": "No operation targeted original checkout/profile saves; not a full independent directory hash audit.",
+    "production_default_paid_false": true
+  },
+  "failed_unity_compiler_phases": [
+    "core-checkpoint-edit",
+    "core-checkpoint-edit-2"
+  ],
+  "red_phases": [
+    "core-red-1",
+    "core-red-2",
+    "core-red-3",
+    "core-red-4",
+    "core-red-5",
+    "core-red-6",
+    "core-red-7"
+  ],
+  "not_run_for_checkpoint": [
+    "PlayMode",
+    "actual save/Title/Continue/recovery UI",
+    "earned acquisition/class route",
+    "rendered FPS/native input"
+  ],
+  "no_remote_operations": true
+}
