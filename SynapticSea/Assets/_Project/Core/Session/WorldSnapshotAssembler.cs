@@ -58,7 +58,7 @@ namespace SynapticSea.Core.Session
                 Vec3 p = s.Scene.PlayerPosition;
                 ws.PlayerPositionInShip = GdArray.Of((double)p.X, (double)p.Y, (double)p.Z);
             }
-            if (!s.ComponentIntegrationEnabled && !s.LifeboatCommissioned && s.LifeboatShip?.SystemsManager != null && s.ShipSystemsManager != null)
+            if (!s.CompleteGenerationEnabled && !s.LifeboatCommissioned && s.LifeboatShip?.SystemsManager != null && s.ShipSystemsManager != null)
                 s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
             ws.MobileHomeState = new GdDict { { "version", 1L }, { "lifeboat_commissioned", s.LifeboatCommissioned },
                 { "lifeboat", s.LifeboatShip?.GetSummary() ?? new GdDict() }, { "home_mobility", s.HomeShip?.Mobility.DeepCopy() ?? new GdDict() } };
@@ -144,6 +144,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public static bool Apply(RunSession s, WorldSnapshot ws)
         {
+            if (s.PaidCraftingEnabled) return s.RefusePaidRestore();
             if (ws == null)
                 return false;
             var homeLocation=ws.MobileHomeState.GetDictOrEmpty("home_location");

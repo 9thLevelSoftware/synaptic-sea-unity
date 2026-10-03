@@ -13,10 +13,16 @@ namespace SynapticSea.Core.Systems
         public static string Hash(string text)
         { using (var sha = SHA256.Create()) { var b = sha.ComputeHash(new UTF8Encoding(false, true).GetBytes(text)); return BitConverter.ToString(b).Replace("-", "").ToLowerInvariant(); } }
         public static bool TryCreateReader(GdDict selection, IResourceReader fallback, out IResourceReader reader, out string reason)
+            => TryCreateReader(selection, fallback, out reader, out reason, false, "");
+        public static bool TryCreateReader(GdDict selection, IResourceReader fallback, out IResourceReader reader, out string reason,
+            bool paidSnapshot, string expectedSaveMode)
         {
             reader = null; reason = "invalid_selection";
             if (selection == null || !selection.GetBool("ok") || !(selection.Get("payloads") is GdDict payloads) ||
-                selection.GetString("payloads_sha256") != Hash(GdJson.Stringify(payloads))) return false;
+                paidSnapshot && (expectedSaveMode != PaidSnapshotCodec.OrdinaryMode && expectedSaveMode != PaidSnapshotCodec.DiagnosticMode ||
+                    selection.GetString("save_mode") != expectedSaveMode || payloads.GetDictOrEmpty("binding").GetString("save_mode") != expectedSaveMode)) return false;
+            try { if (selection.GetString("payloads_sha256") != Hash(paidSnapshot ? PaidSnapshotCodec.Stringify(payloads) : GdJson.Stringify(payloads))) return false; }
+            catch (ArgumentException) { return false; }
             var texts = new Dictionary<string, string>(StringComparer.Ordinal);
             var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (object value in payloads.GetArrayOrEmpty("artifacts"))

@@ -125,7 +125,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         bool AutoSaveCurrentRun()
         {
-            if (ComponentIntegrationEnabled) return RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World checkpoint");
+            if (CompleteGenerationEnabled) return RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World checkpoint");
             if (SaveLoadService == null || SliceComplete)
                 return false;
             if (DemoSaveRefused())
@@ -220,7 +220,7 @@ namespace SynapticSea.Core.Session
         /// <summary>F5 / pause-menu save: the whole world (save-anywhere, ADR-0012). Refused before start / after completion.</summary>
         public bool RequestSave()
         {
-            if (ComponentIntegrationEnabled)
+            if (CompleteGenerationEnabled)
             {
                 bool saved = RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World");
                 if (saved) { PlaySfx(AudioEventSeam.UI_SAVE); TriggerTutorial("run_saved", "any"); }
@@ -296,6 +296,7 @@ namespace SynapticSea.Core.Session
         /// <summary>F9 / Continue: load the whole world and apply it; adopts the loaded run_id.</summary>
         public bool RequestLoad()
         {
+            if (PaidCraftingEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "paid_restore_not_available" } }; return false; }
             if (ComponentIntegrationEnabled)
             {
                 if (ComponentTerminalPending) return false;
@@ -331,6 +332,7 @@ namespace SynapticSea.Core.Session
         /// <summary>ADR-0031/0043 slot screen: apply a manual-slot RunSnapshot onto the booted ship only.</summary>
         public bool ApplyManualSlot(RunSnapshot snapshot)
         {
+            if (PaidCraftingEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "paid_restore_not_available" } }; return false; }
             if (ComponentIntegrationEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "exact_generation_required" } }; return false; }
             if (snapshot == null)
                 return false;
@@ -404,6 +406,7 @@ namespace SynapticSea.Core.Session
         /// <summary>The body of <c>_apply_run_snapshot</c>.</summary>
         internal bool ApplyRunSnapshotInternal(RunSnapshot snapshot)
         {
+            if (PaidCraftingEnabled) return RefusePaidRestore();
             if (snapshot == null || !PlayableStarted)
                 return false;
             _isReloading = true;

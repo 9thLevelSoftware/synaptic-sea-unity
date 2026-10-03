@@ -542,7 +542,7 @@ namespace SynapticSea.Core.Session
             if (inst == null || ShipGenerator == null)
                 return false;
             ApplyRunContextFromBlueprint(inst.Blueprint);
-            IShipLoaderView newRoot = ComponentIntegrationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
+            IShipLoaderView newRoot = CompleteGenerationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
             if (newRoot == null)
                 return false;
             AttachDerelictActive(inst, newRoot);
@@ -568,7 +568,7 @@ namespace SynapticSea.Core.Session
             if (inst.MarkerId == "" || RootValid(inst.SceneRoot))
                 return;
             ApplyRunContextFromBlueprint(inst.Blueprint);
-            IShipLoaderView newRoot = ComponentIntegrationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
+            IShipLoaderView newRoot = CompleteGenerationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
             if (newRoot == null)
                 return;
             inst.SceneRoot = newRoot;

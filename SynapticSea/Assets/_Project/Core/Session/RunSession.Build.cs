@@ -184,10 +184,10 @@ namespace SynapticSea.Core.Session
             DeconstructionResolver = new DeconstructionResolver();
             _loot_tables = LootRoller.LoadTables();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
-            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled);
-            _runId = ComponentIntegrationEnabled && Deps.SelectedSaveGeneration != null ? Deps.SelectedSaveGeneration.GetString("run_id") : GenerateRunId();
+            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled);
+            _runId = CompleteGenerationEnabled && Deps.SelectedSaveGeneration != null ? Deps.SelectedSaveGeneration.GetString("run_id") : GenerateRunId();
             SaveLoadService.SetActiveRunId(_runId);
-            if (ComponentIntegrationEnabled)
+            if (CompleteGenerationEnabled)
             {
                 SaveLoadService.BindComponentSave(RequestSaveToSlot);
                 if (Deps.SelectedSaveGeneration == null) SaveLoadService.AuthorizeDiagnosticNewRun(_runId);
@@ -569,7 +569,7 @@ namespace SynapticSea.Core.Session
             // Skin the lifeboat's modules by the run's deterministic biome; the floorplan is fixed.
             LifeBoatBuilder.BuildResult built = null;
             IShipSceneRoot lbRoot;
-            if (ComponentIntegrationEnabled && _generationShipDocuments.TryGetValue("lifeboat", out GdDict retainedBoat))
+            if (CompleteGenerationEnabled && _generationShipDocuments.TryGetValue("lifeboat", out GdDict retainedBoat))
             {
                 GdDict layout = GdJson.ParseString(retainedBoat.GetString("layout_text")) as GdDict;
                 built = RetainedLifeboatBuild(layout, retainedBoat.GetString("kit_path"));
@@ -592,7 +592,7 @@ namespace SynapticSea.Core.Session
             boatSystems.ApplySummary(ShipSystemsManager.GetSummary());
             LifeboatCommissioned = false;
             LifeboatShip = ShipInstance.Create("lifeboat", "", null, boatSystems, lbRoot);
-            LifeboatShip.BuiltLayout = ComponentIntegrationEnabled ? built.Layout.DeepCopy() : LifeBoatBuilder.BuildLayout();
+            LifeboatShip.BuiltLayout = CompleteGenerationEnabled ? built.Layout.DeepCopy() : LifeBoatBuilder.BuildLayout();
             RememberShipGenerationDocuments(LifeboatShip);
             LifeboatShip.Mobility = AssemblyMobility.CreateSpecification(LifeboatShip, true);
             LifeboatShip.GetAccess().Claim(PLAYER_LOCAL_ID);

@@ -191,6 +191,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public static void ApplyManualSlotWorldState(RunSession s, RunSnapshot snapshot)
         {
+            if (s.PaidCraftingEnabled) { s.RefusePaidRestore(); return; }
             if (s.HomeShip != null)
             {
                 if (!snapshot.HomeBreachEnvironment.IsEmpty)
