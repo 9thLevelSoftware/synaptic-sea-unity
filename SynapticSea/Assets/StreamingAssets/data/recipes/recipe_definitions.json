@@ -111,6 +111,7 @@
       "station_kind": "fabricator",
       "station_tier_min": 2,
       "knowledge_source": "book",
+      "knowledge_book_id": "fabrication_schematic_basic",
       "work_verb": "craft",
       "power_cost": 15.0,
       "batch_size": 1

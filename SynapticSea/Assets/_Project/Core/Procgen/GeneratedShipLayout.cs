@@ -356,6 +356,7 @@ namespace SynapticSea.Core.Procgen
                     lootSpec["slot_kind"] = V.Str(c.Get("slot_kind", ""));
                     lootSpec["slot_index"] = V.I64(c.Get("slot_index", 0L));
                 }
+                if (c.Has("finite_source")) lootSpec["finite_source"] = c.Get("finite_source");
                 // Explicit authored stacks must survive into the coordinator.
                 if (c.Has("contents") && c.Get("contents") is GdArray contents) lootSpec["contents"] = contents.DeepCopy();
                 output.Add(lootSpec);

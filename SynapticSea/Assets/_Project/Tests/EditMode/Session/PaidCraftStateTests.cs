@@ -24,11 +24,12 @@ namespace SynapticSea.Tests.Session
             _sessions.Clear();
         }
 
-        protected RunSession Boot(bool components = false, bool paid = true)
+        protected RunSession Boot(bool components = false, bool paid = true, bool manualStudy = false)
         {
             RunSessionDeps deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
             SessionHarness.OverlayGamePlayability(deps);
             deps.EnableComponentIntegration = components;
+            deps.EnableManualStudy = manualStudy;
             // Deliberately optional in RED: reach the actual existing start before asserting missing authority.
             typeof(RunSessionDeps).GetField("EnablePaidCrafting")?.SetValue(deps, paid);
             rig.Session = RunSession.Create(deps);
@@ -331,13 +332,12 @@ namespace SynapticSea.Tests.Session
             RunSession s = Boot();
             GdDict recipe = s.CraftingState.GetRecipe("craft_thruster_nozzle");
             Assert.AreEqual("book", recipe.GetString("knowledge_source"));
-            Assert.IsEmpty(recipe.GetString("knowledge_book_id"), "Actual authored nozzle has no book mapping; do not invent one.");
-            string book = V.Str(s.PlayerProgression.GetBooksCatalog().Keys.First());
+            Assert.AreEqual("fabrication_schematic_basic", recipe.GetString("knowledge_book_id"), "Selected F02 manual maps only authored nozzle knowledge.");
+            string book = recipe.GetString("knowledge_book_id");
             Assert.AreEqual(1L, s.InventoryState.AddItem(book, 1));
             GdDict xp = s.PlayerProgression.GetSummary(); GdArray log = s.TrainingEventBus.GetLog();
             Assert.IsFalse(Paid(Capture(s)).GetDictOrEmpty("knowledge").GetDictOrEmpty("known").GetBool("craft_thruster_nozzle"));
-            // Controlled fixture mapping only, to distinguish exact read evidence from possession/skill.
-            recipe["knowledge_book_id"] = book;
+            // Authored mapping still distinguishes exact read evidence from possession/skill.
             Assert.IsFalse(Paid(Capture(s)).GetDictOrEmpty("knowledge").GetDictOrEmpty("known").GetBool("craft_thruster_nozzle"));
             s.PlayerProgression.BooksRead[book] = true;
             GdDict beforeReadCapture = s.PlayerProgression.GetSummary();

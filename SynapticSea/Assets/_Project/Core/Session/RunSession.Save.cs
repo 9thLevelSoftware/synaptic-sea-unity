@@ -429,6 +429,7 @@ namespace SynapticSea.Core.Session
         {
             if (snapshot == null || operation == null && !PlayableStarted)
                 return false;
+            if (!snapshot.HomeFiniteLoot.IsEmpty && (!Deps.EnableManualStudy || !FiniteLootState.Validate(snapshot.HomeFiniteLoot, "ship_start", out _))) return false;
             _isReloading = true;
             ResetRuntimeForReload();
             LayoutPath = snapshot.LayoutPath;
@@ -636,7 +637,8 @@ namespace SynapticSea.Core.Session
                 HomeShip.AuthoredOpenPortalIds = snapshot.HomePortalState.GetArrayOrEmpty("open").ShallowCopy();
                 HomeShip.AuthoredUnlockedPortalIds = snapshot.HomePortalState.GetArrayOrEmpty("unlocked").ShallowCopy();
                 if (CurrentShip == HomeShip) RestoreAuthoredPortalStates();
-                bool rebuildLoot = false;
+                HomeShip.FiniteLootSummary = snapshot.HomeFiniteLoot.DeepCopy();
+                bool rebuildLoot = !snapshot.HomeFiniteLoot.IsEmpty;
                 if (!snapshot.HomeLootedContainers.IsEmpty)
                 {
                     HomeShip.LootedContainerIds = snapshot.HomeLootedContainers.ShallowCopy();

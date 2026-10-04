@@ -12,6 +12,7 @@ namespace SynapticSea.Core.Systems
     {
         static readonly string[] Operations = { "craft_start", "craft_enqueue", "craft_progress", "craft_resume", "craft_block", "craft_complete", "craft_cancel", "craft_legacy_import", "craft_legacy_decision" };
         static readonly string[] PaymentFields = { "job_id", "recipe_id", "recipe_hash", "recipe_definition", "run_id", "actor_id", "inventory_owner_id", "station_owner_id", "station_id", "station_kind", "channel", "consumed", "start_skill", "start_tier", "start_level", "start_known", "start_powered", "material_quality", "quality_score", "quality_tier", "quality_multiplier", "required_seconds", "payment_commit_id", "completion_commit_id" };
+        internal static bool IsDomainVersion(long version) => version == 3 || version == 4;
         public static GdDict State(GdDict domain) => domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting");
         public static bool IsOperation(string operation) => Operations.Contains(operation);
         public const string InternalCommandPrefix = "$paid-internal:";
@@ -332,6 +333,7 @@ namespace SynapticSea.Core.Systems
             GdDict a = before.GetDictOrEmpty("participating_state"), b = after.GetDictOrEmpty("participating_state"), old = State(before), next = State(after);
             if (!Equal(old.Get("run_id"), next.Get("run_id")) || !Equal(old.Get("actor_id"), next.Get("actor_id")) ||
                 after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
+            if (!Equal(a.Get("manual_study"), b.Get("manual_study"))) return false;
             if (!Equal(a.Get("stacks"), b.Get("stacks")) || !Equal(old.Get("knowledge"), next.Get("knowledge"))) return false;
             GdDict job = next.GetDictOrEmpty("jobs").GetDictOrEmpty(id), prior = old.GetDictOrEmpty("jobs").GetDictOrEmpty(id);
             bool start = op == "craft_start" || op == "craft_legacy_decision" && effect.GetString("decision") == "start_fresh";

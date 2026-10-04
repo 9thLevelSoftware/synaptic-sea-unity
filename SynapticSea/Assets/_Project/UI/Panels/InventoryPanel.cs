@@ -30,6 +30,9 @@ namespace SynapticSea.UI
         /// <summary>Emitted after any state mutation so the coordinator recomputes (before the re-render).</summary>
         public event Action TransferCompleted;
         public event Action<string, bool> UseRequested;
+        public event Action<string> StudyRequested;
+        public event Action<string> ManualViewRequested;
+        public bool ManualStudyEnabled { get; set; }
         public event Action<string> ComponentInstallRequested;
 
         string _mode = "closed";
@@ -567,7 +570,15 @@ namespace SynapticSea.UI
             if (index < 0 || index >= ids.Count) return new List<string>();
             if (IsInstanceKey(ids[index])) return _mode == "transfer" ? new List<string> { "transfer", "transfer_all" }
                 : new List<string> { "install" };
-            return InventorySelectionModel.ContextActions(StackItemId(ids[index]), _defs, _mode == "transfer", pane == PaneContainer, false);
+            string item = StackItemId(ids[index]);
+            if (ManualStudyEnabled && ItemDefs.Category(_defs, item) == "book")
+            {
+                var actions = _mode == "transfer" ? new List<string> { "transfer", "transfer_all" } : new List<string>();
+                if (pane != PaneContainer) actions.Add("study");
+                actions.Add("view_manual");
+                return actions;
+            }
+            return InventorySelectionModel.ContextActions(item, _defs, _mode == "transfer", pane == PaneContainer, false);
         }
 
         /// <summary>Godot <c>_on_context_id</c>: runs one context action for a row.</summary>
@@ -602,6 +613,12 @@ namespace SynapticSea.UI
                         PushTooltipForSelection(pane);
                         EquipSelected();
                     }
+                    break;
+                case "study":
+                    if (ManualStudyEnabled && pane != PaneContainer && itemId.Length != 0) StudyRequested?.Invoke(StackItemId(itemId));
+                    break;
+                case "view_manual":
+                    if (ManualStudyEnabled && itemId.Length != 0) ManualViewRequested?.Invoke(StackItemId(itemId));
                     break;
                 case "use":
                 case "use_all":
@@ -791,6 +808,7 @@ namespace SynapticSea.UI
         public SelectableList ContainerList => _containerList;
         public SelectableList SlotList => _slotList;
         public string ActivePane => _activePane;
+        public void ShowManualText(string text) => _detailLines.text = text;
         public string DetailText => _detailName.text + "\n" + _detailLines.text;
         public IEnumerable<Button> ActionButtons => _actions.Query<Button>().ToList();
 
@@ -969,6 +987,8 @@ namespace SynapticSea.UI
                 case "split": return "Split…";
                 case "equip": return "Equip";
                 case "unequip": return "Unequip";
+                case "study": return "Study / pause / resume";
+                case "view_manual": return "View manual";
                 case "use": return "Use";
                 case "use_all": return "Use All";
                 default: return action;

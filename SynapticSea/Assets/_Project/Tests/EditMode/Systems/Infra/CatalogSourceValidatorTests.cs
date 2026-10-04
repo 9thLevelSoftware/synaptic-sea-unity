@@ -165,7 +165,8 @@ namespace SynapticSea.Tests.Systems
             Assert.AreEqual(11, catalog.GetDictOrEmpty("components").Count);
             foreach (object value in catalog.GetArrayOrEmpty("recipes"))
                 StringAssert.StartsWith(CraftingState.RECIPE_DEFINITIONS_PATH + ":recipes[", ((GdDict)value).GetString("source_path"));
-            Assert.IsFalse(items.Has("wrench"));
+            Assert.IsTrue(items.Has("wrench"), "The reviewed tool now has a production definition, independently of ordinary source access.");
+            Assert.IsTrue(items.Has("fabrication_schematic_basic"));
             Assert.IsFalse(items.Has("reactor_console"));
         }
 
@@ -199,10 +200,11 @@ namespace SynapticSea.Tests.Systems
         {
             GdDict catalog = CatalogSourceValidator.LoadProductionCatalog();
             GdDict result = new CatalogSourceValidator().Validate(catalog, CatalogSourceValidator.NormalizeSources(catalog, new GdDict()), new GdDict());
-            Find(result, "missing_definition", "unbolt_component", "wrench");
+            Find(result, "missing_source", "unbolt_component", "wrench");
             Find(result, "missing_definition", "reactor_console", "reactor_console");
             Find(result, "missing_source", "medbay_surgery", "medical_gauze");
-            Find(result, "missing_book_mapping", "craft_thruster_nozzle", "");
+            Find(result, "missing_source", "craft_thruster_nozzle", "fabrication_schematic_basic");
+            Find(result, "missing_learning_registration", "craft_thruster_nozzle", "fabrication_schematic_basic");
             Assert.AreEqual(62, result.GetDictOrEmpty("denominators").GetInt("recipes"));
         }
 
@@ -231,7 +233,7 @@ namespace SynapticSea.Tests.Systems
             Assert.IsTrue(registrations.GetDictOrEmpty("stations").Has("field_crafting"));
             GdDict report = rig.Session.GetCatalogValidationReport();
             Assert.IsFalse(report.GetBool("ok"));
-            Find(report, "missing_definition", "unbolt_component", "wrench");
+            Find(report, "missing_source", "unbolt_component", "wrench");
             Find(report, "missing_source", "medbay_surgery", "medical_gauze");
             string directory = System.Environment.GetEnvironmentVariable("SYNAPTIC_CATALOG_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) directory = Path.Combine(Fixtures.RepoRoot, "artifacts", "foundation-bounded");

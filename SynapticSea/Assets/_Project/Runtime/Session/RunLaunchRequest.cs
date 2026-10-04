@@ -49,6 +49,8 @@ namespace SynapticSea.Runtime.Session
 
         /// <summary>Explicit development/fixture opt-in. Ordinary launch/save/Continue remains on the legacy path.</summary>
         public bool EnableComponentIntegration;
+        /// <summary>Explicit diagnostic retained-study/finite-entry route; ordinary launch stays disabled.</summary>
+        public bool EnableManualStudy;
         GdDict _selectedSaveGeneration;
         /// <summary>Owned exact generation handle; never inferred from the presence of a generation on disk.</summary>
         public GdDict SelectedSaveGeneration

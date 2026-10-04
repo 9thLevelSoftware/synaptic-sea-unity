@@ -142,6 +142,10 @@ namespace SynapticSea.Core.Systems
                         GdDict effect = receipt.GetDictOrEmpty("result");
                         if (effect.GetString("operation") == "craft_complete")
                         { if (!ValidRow(row, count - 1) || !Equal(row, effect.Get("training_record"))) return false; }
+                        else if (domain.GetInt("schema_version") == 4 && effect.GetString("operation") == "study_complete")
+                        {
+                            if (!ManualStudyState.ValidReceipt(domain, receipt, row.GetString("commit_id")) || !Equal(row, effect.Get("training_record"))) return false;
+                        }
                         else
                         {
                             if (workCatalog == null) { workCatalog = new WorkActionCatalog(); workCatalog.LoadDefault(); }

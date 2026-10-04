@@ -47,6 +47,7 @@ namespace SynapticSea.Core.Session
                     }
                 }
                 ProcessInteractableNodes(delta);
+                if (run) TickManualStudy(delta);
             }
             finally
             {

@@ -137,6 +137,8 @@ namespace SynapticSea.Core.Systems
             return inst;
         }
 
+        public GdDict FiniteLootSummary = new GdDict();
+
         public GdDict GetSummary()
         {
             var bpDict = new GdDict();
@@ -152,6 +154,7 @@ namespace SynapticSea.Core.Systems
                 { "blueprint", bpDict },
                 { "systems", sysDict },
             };
+            if (!FiniteLootSummary.IsEmpty) result["finite_loot"] = FiniteLootSummary.DeepCopy();
             if (ObjectiveController != null)
                 result["objective"] = ObjectiveController.GetSummary();
             if (!LootedContainerIds.IsEmpty)
@@ -217,6 +220,8 @@ namespace SynapticSea.Core.Systems
         {
             if (!(summaryVariant is GdDict summary) || summary.IsEmpty)
                 return false;
+            if (summary.Has("finite_loot") && (!(summary.Get("finite_loot") is GdDict finite) || !FiniteLootState.Validate(finite, summary.GetString("ship_id"), out _))) return false;
+            FiniteLootSummary = summary.GetDictOrEmpty("finite_loot").DeepCopy();
             if(summary.Get("mobility") is GdDict mobility) Mobility = mobility.DeepCopy();
             ShipId = V.Str(summary.Get("ship_id", ShipId));
             MarkerId = V.Str(summary.Get("marker_id", MarkerId));

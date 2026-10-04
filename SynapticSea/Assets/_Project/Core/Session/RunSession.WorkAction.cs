@@ -181,6 +181,9 @@ namespace SynapticSea.Core.Session
         public bool BeginWorkHold()
         {
             if (ComponentGenerationRestoreInProgress) return false;
+            if (ManualStudyEnabled && GetManualStudyState().GetDictOrEmpty("job").GetString("status") == "paused")
+                return RequestManualStudy(GetManualStudyState().GetDictOrEmpty("job").GetString("book_id")).GetBool("committed");
+            if (ManualStudyRunning) return true;
             if (ComponentIntegrationEnabled && ComponentTerminalPending) { _workHoldInput = false; return false; }
             _workHoldInput = true;
             if (ComponentIntegrationEnabled && ResumeComponentWork()) return true;
@@ -200,6 +203,7 @@ namespace SynapticSea.Core.Session
         public void EndWorkHold()
         {
             if (ComponentGenerationRestoreInProgress) return;
+            if (ManualStudyRunning) PauseManualStudy("released");
             _workHoldInput = false;
         }
 
@@ -1225,6 +1229,7 @@ namespace SynapticSea.Core.Session
 
         void InterruptWorkOnDamage(string reason="damage")
         {
+            if (ManualStudyRunning) { PauseManualStudy(reason); return; }
             if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
             { PauseComponentWork(reason); PlaySfx(AudioEventSeam.UI_PANEL_CLOSE); RefreshWorkActionHud(); return; }
             if (WorkActionDriver == null || !WorkActionDriver.IsWorking())

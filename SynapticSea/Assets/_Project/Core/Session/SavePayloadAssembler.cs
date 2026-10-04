@@ -95,6 +95,9 @@ namespace SynapticSea.Core.Session
         {
             GdDict Fail(string why) => new GdDict { { "ok", false }, { "reason", why }, { "payloads", null } };
             if (session == null || !session.CompleteGenerationEnabled) return Fail("component_integration_not_enabled");
+            if (session.LootContainers.Any(loot => loot.FiniteTransactionInProgress)) return Fail("finite_acquisition_in_progress");
+            if (!session.Deps.EnableManualStudy && new[] { session.HomeShip, session.LifeboatShip, session.CurrentShip }
+                .Concat(session.VisitedShips.Values).Any(ship => ship != null && !ship.FiniteLootSummary.IsEmpty)) return Fail("finite_source_inactive");
             if (session.ComponentGenerationRestoreInProgress) return Fail("restore_in_progress");
             if (session.ComponentTerminalPending) return Fail("terminal_pending");
             if (!session.PlayableStarted || session.SliceComplete || session.SaveLoadService == null) return Fail("run_not_playable");

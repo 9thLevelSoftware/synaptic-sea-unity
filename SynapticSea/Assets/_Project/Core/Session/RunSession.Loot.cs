@@ -32,7 +32,38 @@ namespace SynapticSea.Core.Session
                 var lc = new LootContainer();
                 string seedSource = CurrentShip.MarkerId + ":" + cid;
                 lc.Configure(cid, V.Str(spec.Get("loot_table", "generic_crate")), seedSource, InventoryState, _loot_tables, pos, 1.8, BuildLootContext(spec), UniqueItemState);
-                if (looted.Contains(cid))
+                if (spec.Has("finite_source"))
+                {
+                    if (!(spec.Get("finite_source") is bool finiteFlag) || !finiteFlag || !Deps.EnableManualStudy
+                        || !FiniteLootState.TryBind(ref CurrentShip.FiniteLootSummary, CurrentShip.ShipId, cid, spec, out GdDict stock))
+                    { lc.Free(); continue; }
+                    lc.FiniteSource = stock;
+                    ShipInstance owner = CurrentShip;
+                    lc.FiniteRollbackSnapshot = () =>
+                    {
+                        GdDict progression = PlayerProgression?.GetSummary().DeepCopy();
+                        GdDict training = TrainingEventBus?.ToDict().DeepCopy();
+                        GdArray searchedIds = CurrentShip.LootedContainerIds.DeepCopy();
+                        GdDict equipment = EquipmentState?.GetSummary().DeepCopy();
+                        return () =>
+                        {
+                            if (progression != null && !PaidCraftRewardProof.CopyProgressionExact(PlayerProgression, progression))
+                                throw new System.InvalidOperationException("finite_progression_rollback_failed");
+                            if (training != null) TrainingEventBus.ApplySummary(training);
+                            owner.LootedContainerIds = searchedIds;
+                            if (equipment != null) EquipmentState.ApplySummary(equipment);
+                        };
+                    };
+                    lc.FiniteModelCommit = (id, granted) =>
+                    {
+                        if (lc.Searched && !owner.LootedContainerIds.Contains(id)) owner.LootedContainerIds.Add(id);
+                        if (lc.FiniteSearchTrainingPending) EmitTrainingEvent("scavenge_container", id);
+                    };
+                    lc.FiniteAccess = () => HasPlayer && ReferenceEquals(CurrentShip, owner) && LootContainers.Contains(lc)
+                        && RootValid(owner.SceneRoot) && HasInteractionSightAndReach(lc);
+                    lc.SetSearched(FiniteLootState.Depleted(stock));
+                }
+                else if (looted.Contains(cid))
                     lc.SetSearched(true);
                 LootContainer bound = lc;
                 lc.ContainerSearched += (id, granted) => OnLootContainerSearched(id, granted, bound);
@@ -53,11 +84,20 @@ namespace SynapticSea.Core.Session
         /// <summary>Records a searched container on the ship, trains scavenging, postprocesses grants, auto-equips.</summary>
         void OnLootContainerSearched(string containerId, GdArray granted, LootContainer source)
         {
-            if (CurrentShip != null && !CurrentShip.LootedContainerIds.Contains(containerId))
+            if (source?.FiniteSource != null)
+            {
+                // Model acceptance is already committed. These notifications cannot undo paid stock or XP.
+                TriggerTutorial("loot_searched", "any"); TryUnlockAchievement("loot_searched", containerId);
+                PlaySfx(AudioEventSeam.SFX_TOOL_USE, source.GlobalPosition);
+                RefreshInventoryHud(); RecomputePlayerEncumbrance();
+                _lastLootFeedbackLine = "Loot: " + containerId + " accepted " + granted.Count + " stacks";
+                return;
+            }
+            if (CurrentShip != null && (source?.FiniteSource == null || source.Searched) && !CurrentShip.LootedContainerIds.Contains(containerId))
                 CurrentShip.LootedContainerIds.Add(containerId);
             if (CurrentShip != null && GdString.BeginsWith(containerId, "corpse_"))
                 ClearPendingCorpseLoot(CurrentShip, containerId);
-            EmitTrainingEvent("scavenge_container", containerId);
+            if (source?.FiniteSource == null || source.FiniteSearchTrainingPending) EmitTrainingEvent("scavenge_container", containerId);
             TriggerTutorial("loot_searched", "any");
             TryUnlockAchievement("loot_searched", containerId);
             if (granted.IsEmpty)

@@ -62,6 +62,10 @@ namespace SynapticSea.Core.Session
         PaidRestoreContext PreparePaidRestoreContext(string run, IShipLoaderView loader, WorldSnapshot world,
             Dictionary<string, IShipSceneRoot> roots, GdDict domain, GdDict payload)
         {
+            GdDict finiteHome = world.HomeShip.GetDictOrEmpty("home_finite_loot");
+            if (world.HomeShip.Has("home_finite_loot") && !(world.HomeShip.Get("home_finite_loot") is GdDict) ||
+                !ManualStudyEnabled && !finiteHome.IsEmpty || !FiniteLootState.ValidateSources(finiteHome, "ship_start", loader.GetLootContainerSpecsCopy(), out _))
+                throw new InvalidOperationException("invalid_home_finite_loot");
             var crafting = new CraftingState();
             var materials = new MaterialState(); var inventory = new InventoryState();
             var deconstruction = new DeconstructionResolver(); var progression = new PlayerProgressionState();
@@ -91,15 +95,28 @@ namespace SynapticSea.Core.Session
                     throw new InvalidOperationException("invalid_retained_ship");
                 if (roots.TryGetValue(ship.ShipId, out IShipSceneRoot root)) ship.SceneRoot = root;
                 ship.BuiltLayout = ParseGenerationDocument(archive[references.GetDictOrEmpty(ship.ShipId).GetString("layout_path")]);
+                ValidatePaidFiniteStock(ship);
                 context.Ships[ship.ShipId] = ship;
             }
             var boatSystems = new ShipSystemsManager(); boatSystems.Configure(boatSystems.LoadDefinitions(), 0, 0);
             var boat = ShipInstance.Create("lifeboat", "", null, boatSystems, roots["lifeboat"]);
             if (!world.MobileHomeState.GetDictOrEmpty("lifeboat").IsEmpty) boat.ApplySummary(world.MobileHomeState.GetDictOrEmpty("lifeboat"));
             boat.BuiltLayout = ParseGenerationDocument(archive[references.GetDictOrEmpty("lifeboat").GetString("layout_path")]);
+            ValidatePaidFiniteStock(boat);
             context.Ships["lifeboat"] = boat;
             ValidatePaidRestoreTargets(context, domain);
             return context;
+        }
+
+        void ValidatePaidFiniteStock(ShipInstance ship)
+        {
+            GdDict stock = ship.FiniteLootSummary;
+            if (!ManualStudyEnabled && !stock.IsEmpty) throw new InvalidOperationException("finite_loot_inactive");
+            if (ship.SceneRoot is IShipLoaderView root)
+            {
+                if (!FiniteLootState.ValidateSources(stock, ship.ShipId, root.GetLootContainerSpecsCopy(), out _)) throw new InvalidOperationException("finite_loot_source_mismatch");
+            }
+            else if (!stock.IsEmpty) throw new InvalidOperationException("finite_loot_source_missing");
         }
 
         void ValidatePaidRestoreTargets(PaidRestoreContext context, GdDict domain)
@@ -236,7 +253,7 @@ namespace SynapticSea.Core.Session
         PaidRestoreBefore CapturePaidRestoreBefore(PaidRestoreOperation operation)
         {
             RequirePaidRestoreOperation(operation);
-            if (_componentDomain?.SchemaVersion != 3) throw new InvalidOperationException("paid_owner_missing");
+            if (_componentDomain == null || !PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion)) throw new InvalidOperationException("paid_owner_missing");
             var before = new PaidRestoreBefore
             {
                 Coordinator = _componentDomain, Owner = _componentDomain.GetSummary(),

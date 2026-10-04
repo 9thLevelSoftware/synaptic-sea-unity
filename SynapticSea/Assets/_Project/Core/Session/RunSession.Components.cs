@@ -80,7 +80,7 @@ namespace SynapticSea.Core.Session
         {
             reason = "invalid_component_physical_layout";
             if (domain == null || layout == null || string.IsNullOrWhiteSpace(owner) ||
-                !(domain.Get("schema_version") is long schema) || (schema != 2 && schema != 3) ||
+                !(domain.Get("schema_version") is long schema) || (schema != 2 && schema != 3 && schema != 4) ||
                 !domain.GetArrayOrEmpty("registered_owners").Contains(owner)) return false;
             var catalog = new ComponentCatalog();
             if (!catalog.LoadDefault()) { reason = "component_content_missing"; return false; }
@@ -305,8 +305,8 @@ namespace SynapticSea.Core.Session
         public bool ValidateComponentDomainRestore(GdDict summary, out string reason)
         {
             reason = "component_integration_inactive";
-            if (!ComponentIntegrationEnabled) return false;
-            if (!DomainBundle.TryCreate(summary, out _, out reason) || (summary.GetInt("schema_version") != 2 && !(PaidCraftingEnabled && summary.GetInt("schema_version") == 3 && summary.GetString("domain_mode") == "components_and_craft"))) return false;
+            if (!ComponentIntegrationEnabled || summary?.GetInt("schema_version") == 4 && !ManualStudyEnabled) return false;
+            if (!DomainBundle.TryCreate(summary, out _, out reason) || (summary.GetInt("schema_version") != 2 && !(PaidCraftingEnabled && PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")) && summary.GetString("domain_mode") == "components_and_craft"))) return false;
             foreach (GdDict row in Instances(summary).Values.OfType<GdDict>())
             {
                 if (row.GetString("condition_state") != "known") { reason = "legacy_resolution_required"; return false; }
@@ -346,7 +346,7 @@ namespace SynapticSea.Core.Session
         // Only the selected-generation publisher may restore while public mutation admission is closed.
         bool RestoreComponentDomainOwned(GdDict summary)
         {
-            if (PaidCraftingEnabled && summary?.GetInt("schema_version") == 3) return RestorePaidCraftingDomain(summary);
+            if (PaidCraftingEnabled && summary != null && PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version"))) return RestorePaidCraftingDomain(summary);
             if (_componentMutating || _componentPublishing || !ValidateComponentDomainRestore(summary, out _)) return false;
             GdDict candidate = summary.DeepCopy();
             GdDict work = candidate.GetDictOrEmpty("component_work");
@@ -398,7 +398,7 @@ namespace SynapticSea.Core.Session
                 string machineId = machine.GetString("machinery_id");
                 sub.ComponentConditionCap = () => ComponentMachineCap(machineId);
             }
-            if (PaidCraftingEnabled && _componentDomain.GetSummary().GetInt("schema_version") == 3) BindPaidCraftingModels();
+            if (PaidCraftingEnabled && PaidCraftingState.IsDomainVersion(_componentDomain.GetSummary().GetInt("schema_version"))) BindPaidCraftingModels();
         }
 
         double ComponentMassFor(string holderId)
@@ -600,7 +600,7 @@ namespace SynapticSea.Core.Session
         {
             if (ComponentTerminalPending) return ComponentFailure("terminal_pending");
             if (_componentMutating || _componentPublishing) return ComponentFailure("reentrant_mutation");
-            if (WorkActionDriver?.IsWorking() == true) return ComponentFailure("work_busy");
+            if (ManualStudyRunning || WorkActionDriver?.IsWorking() == true) return ComponentFailure("work_busy");
             GdDict domain = CaptureComponentDomain();
             if (ComponentCaptureFailed(domain)) return domain;
             long sequence = domain.GetInt("command_sequence");
@@ -803,7 +803,7 @@ namespace SynapticSea.Core.Session
             var progression = new PlayerProgressionState();
             var classes = ClassDefinition.LoadAll(); classes.TryGetValue(PlayerProgression.ClassId, out ClassDefinition definition);
             progression.Configure(definition, PlayerProgressionState.LoadSkillsCatalog(), PlayerProgression.GetBooksCatalog());
-            if (candidate.GetInt("schema_version") == 3)
+            if (PaidCraftingState.IsDomainVersion(candidate.GetInt("schema_version")))
             {
                 if (!PaidCraftRewardProof.CopyProgressionExact(progression, participants.GetDictOrEmpty("progression"))) throw new ArgumentException("invalid_paid_progression");
             }

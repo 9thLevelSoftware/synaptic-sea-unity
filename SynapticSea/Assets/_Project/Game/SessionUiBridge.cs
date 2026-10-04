@@ -263,6 +263,14 @@ namespace SynapticSea.Game
             Inventory.PanelClosed += () => OnInspectionClosed(Inventory);
             Inventory.TransferCompleted += session.OnInventoryTransferCompleted;
             Inventory.UseRequested += (itemId, useAll) => session.UseConsumableItem(itemId, useAll);
+            Inventory.ManualStudyEnabled = session.ManualStudyEnabled;
+            Inventory.ManualViewRequested += book => Inventory.ShowManualText(session.ViewManual(book));
+            Inventory.StudyRequested += book => {
+                bool pause = session.ManualStudyRunning && session.GetManualStudyState().GetDictOrEmpty("job").GetString("book_id") == book;
+                Inventory.Close();
+                GdDict result = pause ? session.PauseManualStudy("paused") : session.RequestManualStudy(book);
+                if (!result.GetBool("committed")) Deny("Study: " + result.GetString("reason"));
+            };
             Wounds.SetAudioManager(Audio);
             Wounds.Bind(new SessionWoundHost(session));
             Wounds.PanelClosed += () => OnInspectionClosed(Wounds);

@@ -1,4 +1,5 @@
 {
+  "fabrication_schematic_basic": { "display_name": "Fabrication Schematic (Basic)", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
   "power_cell":      { "display_name": "Power Cell",      "category": "part",   "weight": 1.0, "max_stack": 10, "rarity": "common",   "codex_entry_id": "power_cell" },
   "scrap_metal":     { "display_name": "Scrap Metal",     "category": "part",   "weight": 5.0, "max_stack": 20, "rarity": "common",   "junk_value": 1 },
   "wiring_spool":    { "display_name": "Wiring Spool",    "category": "part",   "weight": 2.0, "max_stack": 10, "rarity": "common" },

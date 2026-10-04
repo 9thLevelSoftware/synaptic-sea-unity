@@ -105,7 +105,7 @@ namespace SynapticSea.Core.Systems
                 if (!ValidOwnerWire(value, ancestors, 0, ref wireNodes) || !(value is GdDict envelope) ||
                     !ComponentDomainCodec.TryDecode(envelope, out GdDict owner, out _)) return false;
                 if (policy == Policy.TypedOwner) return true;
-                return owner.Get("schema_version") is long version && version == 3L &&
+                return owner.Get("schema_version") is long version && PaidCraftingState.IsDomainVersion(version) &&
                     owner.GetString("domain_mode") == (Diagnostic(policy) ? "components_and_craft" : "craft_only") &&
                     DomainBundle.TryCreate(owner, out _, out _);
             }

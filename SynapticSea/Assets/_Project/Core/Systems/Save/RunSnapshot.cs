@@ -68,6 +68,7 @@ namespace SynapticSea.Core.Systems
         public GdDict EquipmentSummary = new GdDict();
         public GdArray HomeLootedContainers = new GdArray();
         public GdDict HomeShipInventory = new GdDict();
+        public GdDict HomeFiniteLoot = new GdDict();
         public GdDict HomePortalState = new GdDict();
         public GdDict RunContext = new GdDict();
         // gate2-current-run-6: the rest of what only rode world.json (home carts, the home breach environment, meta
@@ -218,6 +219,7 @@ namespace SynapticSea.Core.Systems
                 { "saved_at", SavedAt },
                 { "saved_at_epoch", SavedAtEpoch },
             };
+            if (!HomeFiniteLoot.IsEmpty) result["home_finite_loot"] = HomeFiniteLoot.DeepCopy();
             if (!HomePortalState.IsEmpty) result["home_portal_state"] = HomePortalState.DeepCopy();
             if (SliceVersion == ComponentIntegrationVersion)
             {
@@ -246,7 +248,9 @@ namespace SynapticSea.Core.Systems
             if (dict.IsEmpty) return null;
             if (V.Str(dict.Get("slice_version", "")) != expectedSliceVersion) return null;
             if (V.Str(dict.Get("godot_version", "")) != expectedGodotVersion) return null;
+            if (dict.Has("home_finite_loot") && (!(dict.Get("home_finite_loot") is GdDict finite) || !FiniteLootState.Validate(finite, "ship_start", out _))) return null;
             var snapshot = new RunSnapshot();
+            snapshot.HomeFiniteLoot = dict.GetDictOrEmpty("home_finite_loot").DeepCopy();
             if (expectedSliceVersion == ComponentIntegrationVersion)
             { snapshot.ComponentDomain = DeepCopyDict(dict.Get("component_domain")); snapshot.GenerationId = dict.GetString("generation_id"); snapshot.CaptureRevision = dict.GetString("capture_revision"); }
             snapshot.LayoutPath = V.Str(dict.Get("layout_path", ""));

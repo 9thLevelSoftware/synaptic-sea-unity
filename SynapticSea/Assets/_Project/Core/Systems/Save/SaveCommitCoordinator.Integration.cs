@@ -191,7 +191,7 @@ namespace SynapticSea.Core.Systems
                 if (envelope.Count != 3 || !(envelope.Get("schema_version") is long version) || version != 1L ||
                     envelope.GetString("save_mode") != mode || !PaidSnapshotCodec.Same(envelope, home.GetDictOrEmpty("crafting_summary").Get("paid_craft")) ||
                     !ComponentDomainCodec.TryDecode(envelope.GetDictOrEmpty("domain"), out domain, out _) ||
-                    !DomainBundle.TryCreate(domain, out _, out _) || domain.GetInt("schema_version") != 3 ||
+                    !DomainBundle.TryCreate(domain, out _, out _) || (domain.GetInt("schema_version") != 3 && domain.GetInt("schema_version") != 4) ||
                     domain.GetString("domain_mode") != (_allowComponentIntegration ? "components_and_craft" : "craft_only") ||
                     !RunSession.ValidatePaidMirrors(domain.GetDictOrEmpty("participating_state"))) throw new Refusal("binding_mismatch");
                 GdDict paidState = domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting");

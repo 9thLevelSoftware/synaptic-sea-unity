@@ -656,6 +656,163 @@ namespace SynapticSea.Tests.PlayMode
             Debug.Log("[InstalledAssemblyFixture] passed real weld, install, transit, Continue and independent shuttle return; vitals and parts were fixture-supplied.");
         }
 
+        [UnityTest, Timeout(180000)]
+        public IEnumerator WalkToDiagnosticFiniteKitCandidateWithoutPositioningPlayer()
+        {
+            // Placement qualification only: an empty source, no materials or skill grants.
+            AppServices.Ensure();
+            string directory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "synaptic-entry-anchor-" + System.Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(directory);
+            try
+            {
+                var reader = new FileSystemResourceReader(Application.streamingAssetsPath);
+                string golden = "res://data/procgen/golden/coherent_ship_001/";
+                GdDict slice = GdJson.Parse(reader.ReadText(golden + "gameplay_slice.json"), true) as GdDict;
+                slice.GetArrayOrEmpty("loot_containers").Add(new GdDict {
+                    { "id", "home_service_kit_01" }, { "kind", "generic_crate" }, { "room_id", "maintenance_01" },
+                    { "approach_cell", GdArray.Of(5L, 1L, 1L) }, { "position_offset", GdArray.Of(0.8, 0.05, -0.8) },
+                    { "loot_table", "generic_crate" }, { "contents", new GdArray() } });
+                System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "layout.json"), reader.ReadText(golden + "layout.json"));
+                System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "gameplay_slice.json"), GdJson.Stringify(slice));
+                System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "blueprint.json"), reader.ReadText(golden + "blueprint.json"));
+                string resource = "res://" + System.IO.Path.GetRelativePath(Application.streamingAssetsPath, System.IO.Path.Combine(directory, "layout.json")).Replace('\\', '/');
+                yield return BootPlayable(new RunLaunchRequest { LayoutOverridePath = resource });
+                _s.RefreshDeckTransitions();
+                var up = _s.DeckTransitions.First(d => d.DestinationDeck == 1);
+                yield return WalkTo(up.GlobalPosition, 2.5f);
+                _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+                Assert.Greater(_boot.Host.SceneState.Player.GodotPosition.Y, 3.5f);
+                var kit = _s.LootContainers.Single(l => l.ContainerId == "home_service_kit_01");
+                yield return WalkTo(kit.GlobalPosition, 1.1f);
+                Assert.Less(_boot.Host.SceneState.Player.GodotPosition.DistanceTo(kit.GlobalPosition), 1.8);
+                _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(2);
+                Assert.IsTrue(kit.Searched, "actual normal input searches the source-qualified empty candidate");
+                Assert.IsFalse(_s.SliceComplete, "physical acquisition candidate is reached alive");
+                Debug.Log("[EarnedEntryAnchor] source=" + kit.ContainerId + " target=" + kit.GlobalPosition
+                    + " player=" + _boot.Host.SceneState.Player.GodotPosition + " vitals=" + GdJson.Stringify(_s.VitalsState.GetSummary()));
+            }
+            finally { System.IO.Directory.Delete(directory, true); }
+        }
+
+        [UnityTest, Timeout(240000)]
+        public IEnumerator CookWalksFiniteKitRetainedStudyAndPaidLockpick() => EarnedEntryHomeBranch("cook", 60);
+
+        [UnityTest, Timeout(240000)]
+        public IEnumerator MedicWalksFiniteKitRetainedStudyAndPaidLockpick() => EarnedEntryHomeBranch("medic", 40);
+
+        static bool _quietReceiverFailureExpected;
+        IEnumerator EarnedEntryHomeBranch(string classId, long expectedFabricationXp)
+        {
+            if (!Application.isEditor && System.Environment.GetCommandLineArgs().Contains("-quietTestResults") && !_quietReceiverFailureExpected)
+            {
+                // Independently launched evidence players have no Editor receiver; admit only this exact transport error.
+                LogAssert.Expect(LogType.Error, "Direct connection to host failed after retrying for 10 seconds. Switching to listen mode.");
+                _quietReceiverFailureExpected = true;
+            }
+            // Fresh diagnostic opt-in; same authored home geometry and real player, no grants/positioning.
+            // This branch uses legacy objective power and does not certify F08 paid solo-home or away entry.
+            _recordJourneyTelemetry = true;
+            yield return BootPlayable(new RunLaunchRequest { ClassId = classId, EnableManualStudy = true,
+                LayoutOverridePath = "res://data/diagnostics/earned-entry-home-v1/layout.json",
+                BiomeId = RunLaunchRequest.DefaultBiomeId });
+            Assert.AreEqual(classId, _s.PlayerProgression.ClassId);
+            Assert.AreEqual(0, _s.PlayerProgression.GetSkillLevel("fabrication"));
+            Assert.AreEqual(0, _s.InventoryState.GetQuantity("fabrication_schematic_basic"));
+            _s.RefreshDeckTransitions();
+            yield return WalkTo(_s.DeckTransitions.First(d => d.DestinationDeck == 1), 2.4f);
+            _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+            var kit = _s.LootContainers.Single(l => l.ContainerId == "home_service_kit_01");
+            yield return WalkTo(kit, 1.1f);
+            _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(2);
+            Assert.IsTrue(kit.Searched, "actual normal input acquires the authored finite kit");
+            Assert.AreEqual(4, _s.InventoryState.GetQuantity("scrap_metal"));
+            Assert.AreEqual(4, _s.InventoryState.GetQuantity("wiring_bundle"));
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("wrench"));
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("fabrication_schematic_basic"));
+            yield return CaptureHud(classId + "-finite-kit-acquired.png");
+            StudyThroughInventory();
+            Assert.IsTrue(_s.ManualStudyRunning, "real inventory action starts retained study");
+            Assert.IsFalse(_boot.Ui.Inventory.IsOpen(), "inspection closes and live simulation continues");
+            float deadline = Time.realtimeSinceStartup + 15;
+            while (_s.GetManualStudyState().GetDictOrEmpty("job").GetFloat("progress_seconds") < 2 && Time.realtimeSinceStartup < deadline)
+                yield return null;
+            Assert.GreaterOrEqual(_s.GetManualStudyState().GetDictOrEmpty("job").GetFloat("progress_seconds"), 2);
+            Assert.IsFalse(_s.PlayerProgression.HasReadBook("fabrication_schematic_basic"));
+            _boot.Host.SceneState.Player.SetScriptedMoveDirection(new Vec3(0.3f, 0, 0));
+            yield return FixedSteps(12); _boot.Host.SceneState.Player.ClearScriptedMoveDirection();
+            Assert.IsFalse(_s.ManualStudyRunning, "ordinary movement pauses study");
+            double paused = _s.GetManualStudyState().GetDictOrEmpty("job").GetFloat("progress_seconds");
+            Assert.IsTrue(_s.RequestSave(), "partial study and depleted finite source: " + GdJson.Stringify(_s.LastSaveResult));
+            Assert.IsTrue(_s.RequestLoad(), "partial study and exact source restore through production admission");
+            yield return FixedSteps(8);
+            Assert.IsFalse(_s.ManualStudyRunning, "Continue never restores held study input");
+            Assert.AreEqual(paused, _s.GetManualStudyState().GetDictOrEmpty("job").GetFloat("progress_seconds"));
+            Assert.IsFalse(_s.PlayerProgression.HasReadBook("fabrication_schematic_basic"));
+            Assert.IsTrue(_s.LootContainers.Single(l => l.ContainerId == "home_service_kit_01").Searched);
+            StudyThroughInventory(); deadline = Time.realtimeSinceStartup + 50;
+            while (!_s.PlayerProgression.HasReadBook("fabrication_schematic_basic") && !_s.SliceComplete && Time.realtimeSinceStartup < deadline)
+                yield return null;
+            Assert.IsFalse(_s.SliceComplete, "actual survival continues during study");
+            Assert.IsTrue(_s.PlayerProgression.HasReadBook("fabrication_schematic_basic"), GdJson.Stringify(_s.GetManualStudyState()));
+            Assert.AreEqual(1, _s.PlayerProgression.GetSkillLevel("fabrication"));
+            Assert.AreEqual(expectedFabricationXp, _s.PlayerProgression.GetSkillXp("fabrication"));
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("fabrication_schematic_basic"), "the manual is retained");
+            StudyThroughInventory(); yield return FixedSteps(2);
+            Assert.AreEqual(expectedFabricationXp, _s.PlayerProgression.GetSkillXp("fabrication"), "repeat UI study awards nothing");
+            yield return CaptureHud(classId + "-retained-study-complete.png");
+            for (int guard = 0; guard < 16 && !_s.HomeObjectivesComplete; guard++)
+            {
+                var objective = _s.Interactables.First(o => o.Active && !o.Completed);
+                int deck = objective.GlobalPosition.Y > 3 ? 1 : 0;
+                if ((_boot.Host.SceneState.Player.GodotPosition.Y > 3 ? 1 : 0) != deck)
+                {
+                    _s.RefreshDeckTransitions(); yield return WalkTo(_s.DeckTransitions.First(d => d.DestinationDeck == deck), 2.4f);
+                    _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+                }
+                yield return WalkTo(objective); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(2);
+            }
+            Assert.IsTrue(_s.HomeObjectivesComplete, "current legacy onboarding earns power, not F08 utility completion");
+            yield return FixedSteps(8);
+            Assert.AreEqual(1.0, _s.ShipSystemsManager.GetSystem("power").Health());
+            Assert.AreEqual(1.0, _s.PowerGridState.GetAllocationRatio("stations"));
+            var station = _s.CraftingStations.Single(c => c.StationKind == "workbench");
+            int stationDeck = station.GlobalPosition.Y > 3 ? 1 : 0;
+            if ((_boot.Host.SceneState.Player.GodotPosition.Y > 3 ? 1 : 0) != stationDeck)
+            {
+                _s.RefreshDeckTransitions(); yield return WalkTo(_s.DeckTransitions.First(d => d.DestinationDeck == stationDeck), 2.4f);
+                _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+            }
+            yield return WalkTo(station, 1.1f); _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(2);
+            Assert.IsTrue(_boot.Ui.RecipePicker.IsOpen());
+            for (int i = 0; i < 100 && _boot.Ui.RecipePicker.GetSelectedId() != "craft_lockpick_set"; i++) _boot.Ui.RecipePicker.MoveSelection(1);
+            Assert.AreEqual("craft_lockpick_set", _boot.Ui.RecipePicker.GetSelectedId());
+            GdDict result = _boot.Ui.RecipePicker.ConfirmSelection(); Assert.IsTrue(result.GetBool("ok"), GdJson.Stringify(result));
+            Assert.AreEqual(2, _s.InventoryState.GetQuantity("scrap_metal"), "exact finite inputs paid once");
+            deadline = Time.realtimeSinceStartup + 45;
+            while (_s.InventoryState.GetQuantity("lockpick_set") == 0 && !_s.SliceComplete && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("lockpick_set")); Assert.IsFalse(_s.SliceComplete);
+            Assert.AreEqual(4, _s.InventoryState.GetQuantity("wiring_bundle"));
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("fabrication_schematic_basic"));
+            Assert.IsTrue(_s.RequestSave()); Assert.IsTrue(_s.RequestLoad()); yield return FixedSteps(8);
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("lockpick_set")); Assert.AreEqual(2, _s.InventoryState.GetQuantity("scrap_metal"));
+            Assert.AreEqual(expectedFabricationXp, _s.PlayerProgression.GetSkillXp("fabrication"));
+            yield return CaptureHud(classId + "-paid-lockpick-restored.png");
+            Debug.Log("[EarnedEntryHome] class=" + classId + " source=home_service_kit_01 progression=" + GdJson.Stringify(_s.PlayerProgression.GetSummary())
+                + " inventory=" + GdJson.Stringify(_s.InventoryState.GetSummary()) + " vitals=" + GdJson.Stringify(_s.VitalsState.GetSummary())
+                + " time=" + _s.WorldTime + " debits=" + GdJson.Stringify(_journeyDebits) + " travel=" + GdJson.Stringify(_s.TravelCapability()));
+        }
+
+        void StudyThroughInventory()
+        {
+            _boot.Ui.Inventory.OpenSelf(_s.InventoryState, _s.EquipmentState);
+            var rows = _boot.Ui.Inventory.GetPaneIds(InventoryPanel.PaneSelf);
+            int index = rows.FindIndex(id => id == "fabrication_schematic_basic" || id == "stack:fabrication_schematic_basic");
+            Assert.GreaterOrEqual(index, 0);
+            _boot.Ui.Inventory.SelectRow(InventoryPanel.PaneSelf, index, false, false);
+            Assert.Contains("study", _boot.Ui.Inventory.ContextActionsFor(InventoryPanel.PaneSelf, index));
+            _boot.Ui.Inventory.InvokeContextAction("study", InventoryPanel.PaneSelf, index);
+        }
+
         IEnumerator NaturalExpeditionJourney(bool cargoFamily, bool reclaim = false)
         {
             _recordJourneyTelemetry=true;
@@ -1482,7 +1639,8 @@ namespace SynapticSea.Tests.PlayMode
         IEnumerator CaptureHud(string name)
         {
             if(Application.isEditor) yield break; // The Windows GPU player owns the visual evidence.
-            string folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../artifacts/ramp-review"));
+            string folder = System.Environment.GetEnvironmentVariable("SYNAPTIC_ENTRY_CAPTURE_DIR");
+            if (string.IsNullOrEmpty(folder)) folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../artifacts/ramp-review"));
             System.IO.Directory.CreateDirectory(folder); string path = System.IO.Path.Combine(folder,name);
             // Batch players have no screen framebuffer. Render the actual camera and HUD panel offscreen,
             // then composite their pixels; no UI is redrawn or invented by the capture helper.

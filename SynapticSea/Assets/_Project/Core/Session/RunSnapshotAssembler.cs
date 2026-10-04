@@ -160,6 +160,7 @@ namespace SynapticSea.Core.Session
             {
                 snapshot.HomeLootedContainers = s.HomeShip.LootedContainerIds.ShallowCopy();
                 snapshot.HomeShipInventory = s.HomeShip.GetInventory().GetSummary();
+                if (!s.HomeShip.FiniteLootSummary.IsEmpty) snapshot.HomeFiniteLoot = s.HomeShip.FiniteLootSummary.DeepCopy();
                 if (!s.HomeShip.AuthoredOpenPortalIds.IsEmpty || !s.HomeShip.AuthoredUnlockedPortalIds.IsEmpty)
                     snapshot.HomePortalState = new GdDict {
                         { "open", s.HomeShip.AuthoredOpenPortalIds.ShallowCopy() },
