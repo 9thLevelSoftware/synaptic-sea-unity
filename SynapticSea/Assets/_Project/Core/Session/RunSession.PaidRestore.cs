@@ -312,6 +312,17 @@ namespace SynapticSea.Core.Session
                 _workSiteRoot = _workSiteShip?.SceneRoot; _workSiteModules = ModuleIntegrityMap; _workSiteComponents = ComponentPlacementState;
                 _workSiteRoomCenterId = before.WorkRoom;
             }
+            // Reload rebuilds derived systems and may tick zero-time commissioning. Rollback restores
+            // the captured raw models as well as canonical participants; it is not a new simulation step.
+            GdDict systems = before.World.HomeShip.GetDictOrEmpty("ship_systems_summary");
+            PowerGridState?.ApplySummary(systems.GetDictOrEmpty("power_grid_summary"));
+            LifeSupportExpandedState?.ApplySummary(systems.GetDictOrEmpty("life_support_state_summary"));
+            HullIntegrityState?.ApplySummary(systems.GetDictOrEmpty("hull_integrity_summary"));
+            HullWebState?.ApplySummary(systems.GetDictOrEmpty("web_infestation_summary"));
+            FireSuppressionState?.ApplySummary(systems.GetDictOrEmpty("fire_suppression_summary"));
+            ExtinguisherState?.ApplySummary(systems.GetDictOrEmpty("extinguisher_summary"));
+            PropulsionExpandedState?.ApplySummary(systems.GetDictOrEmpty("propulsion_state_summary"));
+            SustenanceState?.ApplySummary(systems.GetDictOrEmpty("sustenance_state_summary"));
             SetPlayerPosition(before.PlayerPosition);
         }
 

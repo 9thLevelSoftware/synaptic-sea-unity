@@ -359,7 +359,10 @@ namespace SynapticSea.Tests.Systems
                         locked = new FileStream(native.Globalize(GenerationFixtures.Generation(child) + "/run.json"), FileMode.Open, FileAccess.Read, FileShare.None);
                 }).Commit(child, GenerationFixtures.Run, "slot_01");
                 if (locked != null) { locked.Dispose(); locked = null; }
-                bool published = mode == "after_pointer";
+                // Shared-open handles do not prevent POSIX truncation/rename. Exclusive source locks
+                // and injected truncation remain real prepublication failures on both platforms.
+                bool published = mode == "after_pointer" || Path.DirectorySeparatorChar != '\\' &&
+                    (mode == "pointer" || mode == "payload_temp");
                 Assert.AreEqual(published, result.GetBool("committed"));
                 recovered = GenerationFixtures.Coordinator(new FileSystemStorage(directory)).Recover(GenerationFixtures.Run, "slot_01");
                 GenerationFixtures.AssertBundle(published ? child : old, recovered);

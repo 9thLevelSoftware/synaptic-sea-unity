@@ -23,10 +23,14 @@ namespace SynapticSea.Core.Session
             return BuildCore(s, useHomeArcSummary, false);
         }
 
-        static RunSnapshot BuildCore(RunSession s, bool useHomeArcSummary, bool synchronize)
+        // Diagnostic observation only: no synchronization and no save admission for a terminal run.
+        internal static RunSnapshot ObserveTerminalHome(RunSession s, bool useHomeArcSummary = false)
+            => BuildCore(s, useHomeArcSummary, false, true);
+
+        static RunSnapshot BuildCore(RunSession s, bool useHomeArcSummary, bool synchronize, bool observeTerminal = false)
         {
             if (synchronize && s.ComponentGenerationRestoreInProgress) return null;
-            if (!s.PlayableStarted || s.SliceComplete)
+            if (!s.PlayableStarted || s.SliceComplete && !observeTerminal)
                 return null;
             if (s.SaveLoadService == null)
                 return null;

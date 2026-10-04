@@ -14,6 +14,13 @@ namespace SynapticSea.Tests.Systems
 #endif
     public class SaveCommitRecoveryTests
     {
+        static bool WindowsSharing => Path.DirectorySeparatorChar == '\\';
+        static string OpenText(FileStream stream)
+        {
+            stream.Position = 0;
+            using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true, 1024, true))
+                return reader.ReadToEnd();
+        }
         const string Godot = "4.7.test";
         const string RunId = "recovery-run-17";
         const string Layout = "user://runs/recovery-run-17/layout.json";
@@ -373,46 +380,64 @@ namespace SynapticSea.Tests.Systems
         }
 
         [Test]
-        public void LockedTempBeforeWrite_KeepsOldDestination()
+        public void SharedOpenTemp_UsesPlatformSharingAndPublishesWholeBytes()
         {
             const string path = "user://probe.json";
             _storage.WriteText(path, "old-good");
             File.WriteAllText(_storage.Globalize(path) + ".tmp", "locked");
-            using (new FileStream(_storage.Globalize(path) + ".tmp", FileMode.Open, FileAccess.Read, FileShare.Read))
-                Assert.Catch<IOException>(() => _storage.WriteText(path, "new-good"));
-            Assert.AreEqual("old-good", _storage.ReadText(path));
+            using (var open = new FileStream(_storage.Globalize(path) + ".tmp", FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                if (WindowsSharing) Assert.Catch<IOException>(() => _storage.WriteText(path, "new-good"));
+                else { _storage.WriteText(path, "new-good"); Assert.AreEqual("new-good", OpenText(open)); }
+            }
+            Assert.AreEqual(WindowsSharing ? "old-good" : "new-good", _storage.ReadText(path));
         }
 
         [Test]
-        public void LockedDestinationDuringReplacement_KeepsOldDestinationAndReportsSaveFailure()
+        public void SharedOpenDestination_UsesPlatformSharingAndRetainsOldHandleBytes()
         {
             Assert.IsTrue(_service.SaveCurrentRun(Snapshot()));
             string original = _storage.ReadText(SaveLoadService.SAVE_PATH);
-            using (new FileStream(_storage.Globalize(SaveLoadService.SAVE_PATH), FileMode.Open, FileAccess.Read, FileShare.Read))
-                Assert.IsFalse(_service.SaveCurrentRun(Snapshot()));
-            Assert.AreEqual(original, _storage.ReadText(SaveLoadService.SAVE_PATH));
-            Assert.IsNotNull(Restart().LoadCurrentRun());
+            RunSnapshot next = Snapshot(); next.PlayTimeSeconds = 43.0;
+            using (var open = new FileStream(_storage.Globalize(SaveLoadService.SAVE_PATH), FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                Assert.AreEqual(!WindowsSharing, _service.SaveCurrentRun(next));
+                Assert.AreEqual(original, OpenText(open), "Open destination handle retains its original complete bytes.");
+            }
+            if (WindowsSharing) Assert.AreEqual(original, _storage.ReadText(SaveLoadService.SAVE_PATH));
+            else Assert.AreNotEqual(original, _storage.ReadText(SaveLoadService.SAVE_PATH));
+            RunSnapshot recovered = Restart().LoadCurrentRun();
+            Assert.IsNotNull(recovered);
+            Assert.AreEqual(WindowsSharing ? 42.0 : 43.0, recovered.PlayTimeSeconds);
         }
 
         [Test]
-        public void LockedSourceDuringPublication_KeepsOnlyGoodDestination()
+        public void SharedOpenPublicationSource_UsesPlatformSharingAndPublishesWholeBytes()
         {
             const string path = "user://probe.json";
             _storage.WriteText(path, "old-good");
             File.WriteAllText(_storage.Globalize(path) + ".tmp", "staged");
-            using (new FileStream(_storage.Globalize(path) + ".tmp", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                Assert.Catch<IOException>(() => _storage.WriteText(path, "new-good"));
-            Assert.AreEqual("old-good", _storage.ReadText(path));
+            using (var open = new FileStream(_storage.Globalize(path) + ".tmp", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                if (WindowsSharing) Assert.Catch<IOException>(() => _storage.WriteText(path, "new-good"));
+                else { _storage.WriteText(path, "new-good"); Assert.AreEqual("new-good", OpenText(open)); }
+            }
+            Assert.AreEqual(WindowsSharing ? "old-good" : "new-good", _storage.ReadText(path));
         }
 
         [Test]
-        public void RenameLockedSource_KeepsDestinationAndSource()
+        public void RenameSharedOpenSource_UsesPlatformSharingAndRetainsHandleBytes()
         {
             _storage.WriteText("source.json", "new-good"); _storage.WriteText("destination.json", "old-good");
-            using (new FileStream(_storage.Globalize("source.json"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                Assert.Catch<IOException>(() => _storage.Rename("source.json", "destination.json"));
-            Assert.AreEqual("old-good", _storage.ReadText("destination.json"));
-            Assert.AreEqual("new-good", _storage.ReadText("source.json"));
+            using (var open = new FileStream(_storage.Globalize("source.json"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                if (WindowsSharing) Assert.Catch<IOException>(() => _storage.Rename("source.json", "destination.json"));
+                else Assert.IsTrue(_storage.Rename("source.json", "destination.json"));
+                Assert.AreEqual("new-good", OpenText(open));
+            }
+            Assert.AreEqual(WindowsSharing ? "old-good" : "new-good", _storage.ReadText("destination.json"));
+            Assert.AreEqual(WindowsSharing, _storage.FileExists("source.json"));
+            if (WindowsSharing) Assert.AreEqual("new-good", _storage.ReadText("source.json"));
         }
 
         [Test]

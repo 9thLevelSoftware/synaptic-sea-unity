@@ -203,7 +203,7 @@ namespace SynapticSea.Core.Session
                     _selectedGeneration = exact.DeepCopy();
                     if (!WorldSnapshotAssembler.Apply(this, world)) return false;
                     if (!SaveLoadService.ReadGeneration(exact.GetString("run_id"), exact.GetString("slot_id"), exact.GetString("generation_id"), exact.GetString("manifest_sha256")).GetBool("ok")) return false;
-                    return RestoreComponentDomain(domain) && SaveLoadService.ReadGeneration(exact.GetString("run_id"), exact.GetString("slot_id"), exact.GetString("generation_id"), exact.GetString("manifest_sha256")).GetBool("ok");
+                    return RestoreComponentDomainOwned(domain) && SaveLoadService.ReadGeneration(exact.GetString("run_id"), exact.GetString("slot_id"), exact.GetString("generation_id"), exact.GetString("manifest_sha256")).GetBool("ok");
                 });
                 if (!applied) throw new InvalidOperationException("generation_apply_failed");
                 _runId = world.RunId; SaveLoadService.SetActiveRunId(_runId); LastSaveResult = new GdDict { { "ok", true }, { "reason", "generation_loaded" } }; return true;
@@ -220,7 +220,7 @@ namespace SynapticSea.Core.Session
                             _generationShipDocuments.Clear(); foreach (var pair in beforeDocs) _generationShipDocuments[pair.Key] = pair.Value;
                             BlueprintPath = beforePayload.GetDictOrEmpty("binding").GetDictOrEmpty("ship_references").GetDictOrEmpty("ship_start").GetString("blueprint_path");
                             WorldSnapshot beforeWorld = WorldSnapshot.FromDict(beforeWorldDict, WorldSnapshot.ComponentIntegrationVersion, Deps.Engine.VersionString);
-                            return WorldSnapshotAssembler.Apply(this, beforeWorld) && RestoreComponentDomain(beforeDomain);
+                            return WorldSnapshotAssembler.Apply(this, beforeWorld) && RestoreComponentDomainOwned(beforeDomain);
                         });
                 }
                 catch (Exception) { }

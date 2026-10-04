@@ -462,6 +462,23 @@ namespace SynapticSea.Tests.Session
                 else storage.Rewrite = (path, text) => path == GenerationPath(child) + "/commit.json" ? text.Substring(0, text.Length / 2) : text;
                 result = Coordinator(storage, child).Commit(child, child.GetString("run_id"), "world");
                 if (locked != null) { locked.Dispose(); locked = null; }
+                bool permitsReplacement = fault == "replacement_temp_lock" && Path.DirectorySeparatorChar != '\\';
+                if (permitsReplacement)
+                {
+                    Assert.IsTrue(result.GetBool("ok"), ResultSummary(result)); Assert.IsTrue(result.GetBool("committed"), ResultSummary(result));
+                    var posixStorage = new FileSystemStorage(directory);
+                    var freshService = new SaveLoadService(posixStorage, new ManualClock(), true);
+                    GdDict rereadNew = freshService.SelectGeneration("world");
+                    GdDict recoveredNew = Coordinator(posixStorage, child).Recover(child.GetString("run_id"), "world");
+                    Assert.IsTrue(rereadNew.GetBool("ok"), ResultSummary(rereadNew)); Assert.IsTrue(recoveredNew.GetBool("ok"), ResultSummary(recoveredNew));
+                    Assert.IsTrue(V.VariantEquals(child.Get("world_text"), rereadNew.GetDictOrEmpty("payloads").Get("world_text")), "POSIX replacement must reopen the complete new world.");
+                    Assert.IsTrue(V.VariantEquals(rereadNew.Get("payloads"), recoveredNew.Get("payloads")), "Recovery must reopen that same complete new bundle.");
+                    var restartedNew = Create(posixStorage, rereadNew);
+                    Assert.IsTrue(restartedNew.Session.PlayableStarted, restartedNew.Session.LastFailureReason);
+                    Assert.IsTrue(restartedNew.Session.ApplySelectedGeneration(rereadNew), ResultSummary(restartedNew.Session.LastSaveResult));
+                    Assert.IsTrue(restartedNew.Session.HomeShip.LootedContainerIds.Contains("must-not-publish"));
+                    return;
+                }
                 Assert.IsFalse(result.GetBool("ok"), ResultSummary(result)); Assert.IsFalse(result.GetBool("committed"), ResultSummary(result));
                 foreach (var pair in oldBytes) CollectionAssert.AreEqual(new UTF8Encoding(false, true).GetBytes(pair.Value), File.ReadAllBytes(native.Globalize(pair.Key)), pair.Key);
                 var freshStorage = new FileSystemStorage(directory); var service = new SaveLoadService(freshStorage, new ManualClock(), true);
@@ -495,7 +512,16 @@ namespace SynapticSea.Tests.Session
             GdDict saved = s.CaptureComponentDomain(); double progress = saved.GetDictOrEmpty("component_work").GetFloat("progress"); Assert.Greater(progress, 0);
             Assert.AreEqual(row.GetString("holder"), saved.GetDictOrEmpty("registry").GetDictOrEmpty("instances").GetDictOrEmpty(id).GetString("holder"), "Fixture must be unfinished work.");
             Assert.IsTrue(s.RequestSaveToSlot("world", "world", "Partial held component work"), ResultSummary(s.LastSaveResult)); GdDict selected = s.SaveLoadService.SelectGeneration("world");
-            Assert.IsTrue(s.ApplySelectedGeneration(selected), ResultSummary(s.LastSaveResult));
+            int restoreCallbacks = 0;
+            Action<GdDict> restoreReentry = _ =>
+            {
+                restoreCallbacks++;
+                Assert.IsFalse(s.RestoreComponentDomain(saved), "Public callback restore must remain excluded during owned apply.");
+            };
+            s.PlayableReady += restoreReentry;
+            try { Assert.IsTrue(s.ApplySelectedGeneration(selected), ResultSummary(s.LastSaveResult)); }
+            finally { s.PlayableReady -= restoreReentry; }
+            Assert.Greater(restoreCallbacks, 0, "Exercise public mutation admission during actual restore callbacks.");
             for (int tick = 0; tick < 30; tick++) s.StageWorkAction(.1);
             Assert.AreEqual(progress, s.GetComponentWorkState().GetFloat("progress")); Assert.IsTrue(s.GetComponentWorkState().GetBool("resume_required"));
             Assert.IsTrue(V.VariantEquals(saved.Get("registry"), s.CaptureComponentDomain().Get("registry")), "Full Apply must not finish saved held work.");

@@ -21,7 +21,9 @@ namespace SynapticSea.Tests.Session
 #endif
     public class PaidCraftNativeUtf8Tests : InfraDataTestBase
     {
-        const string NativeParent = @"F:\tmp"; // ROOT-approved short disposable parent for this Windows run.
+        // Explicit evidence parent permits the same byte-preservation fixture on another host.
+        // Keep the original Windows parent when not configured; never fall back to a user save/profile.
+        static string NativeParent => Environment.GetEnvironmentVariable("SYNAPTIC_NATIVE_UTF8_EVIDENCE_DIR") ?? @"F:\tmp";
         const string WitnessPrefix = "native-utf8-opaque-before-";
         const string Witness = WitnessPrefix + "\uFFFD-after";
         static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
@@ -64,7 +66,7 @@ namespace SynapticSea.Tests.Session
 
         static FileSystemStorage FreshNative(out string root)
         {
-            Assert.IsTrue(Directory.Exists(NativeParent), "ROOT must provision the approved short parent; no profile fallback.");
+            Assert.IsTrue(Directory.Exists(NativeParent), "Provision SYNAPTIC_NATIVE_UTF8_EVIDENCE_DIR (or the original Windows parent); no profile fallback.");
             root = Path.GetFullPath(Path.Combine(NativeParent, "ss-native-" + Guid.NewGuid().ToString("N")));
             Assert.IsFalse(File.Exists(root)); Assert.IsFalse(Directory.Exists(root));
             AssertOwned(NativeParent, root);

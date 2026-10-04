@@ -226,7 +226,17 @@ namespace SynapticSea.Tests.Session
             // Observe raw before any public owner/world capture can synchronize its projections.
             Exact(before.Raw, Raw(c), "Exact raw/world/consent/held before-image after refusal");
             Exact(before.Owner, Valid(s), "Exact observable canonical owner/revision/receipts/history restored");
-            Exact(before.World, WorldSnapshotAssembler.Build(s).ToDict(), "Complete original world restored");
+            GdDict observedWorld = WorldSnapshotAssembler.Build(s).ToDict();
+            if (s.SliceComplete)
+            {
+                Assert.IsNull(RunSnapshotAssembler.Build(s), "Terminal observation must not open public save admission.");
+                Assert.IsTrue(observedWorld.GetDictOrEmpty("home_ship").IsEmpty, "Public world serialization must omit terminal home payload.");
+                GdDict rawBeforeObservation = Raw(c), ownerBeforeObservation = Valid(s);
+                observedWorld["home_ship"] = RunSnapshotAssembler.ObserveTerminalHome(s, s.AwayFromStart).ToDict();
+                Exact(rawBeforeObservation, Raw(c), "Terminal diagnostic observation does not mutate raw home state.");
+                Exact(ownerBeforeObservation, Valid(s), "Terminal diagnostic observation does not mutate canonical receipts.");
+            }
+            Exact(before.World, observedWorld, "Complete original world restored");
             Assert.AreSame(before.Loader, s.Loader); Assert.AreSame(before.Root, s.HomeShip.SceneRoot);
             Assert.IsTrue(before.Root.IsValid); Assert.AreEqual(before.Inside, before.Root.IsInsideTree);
             Assert.AreEqual(before.Transform, before.Root.GlobalTransform); Assert.IsTrue(c.Host.IsParentedToSession(before.Root));

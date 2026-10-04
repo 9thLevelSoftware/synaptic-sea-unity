@@ -340,6 +340,12 @@ namespace SynapticSea.Core.Session
         public bool RestoreComponentDomain(GdDict summary)
         {
             if (ComponentGenerationRestoreInProgress) return false;
+            return RestoreComponentDomainOwned(summary);
+        }
+
+        // Only the selected-generation publisher may restore while public mutation admission is closed.
+        bool RestoreComponentDomainOwned(GdDict summary)
+        {
             if (PaidCraftingEnabled && summary?.GetInt("schema_version") == 3) return RestorePaidCraftingDomain(summary);
             if (_componentMutating || _componentPublishing || !ValidateComponentDomainRestore(summary, out _)) return false;
             GdDict candidate = summary.DeepCopy();

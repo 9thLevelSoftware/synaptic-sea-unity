@@ -358,21 +358,33 @@ namespace SynapticSea.Tests.Systems
 
         [TestCase("commit")]
         [TestCase("terminal")]
-        public void CompactGenerationLongNativeRootRefusesBeforeOwnedWrites(string operation)
+        public void CompactGenerationLongNativeRootUsesPlatformPublicationBudget(string operation)
         {
             string parent = GenerationFixtures.NativeDirectory();
-            string directory = Path.GetFullPath(Path.Combine(parent, "budget-" + new string('p', 36)));
+            string directory = Path.GetFullPath(Path.Combine(parent, "budget-" + new string('p', Math.Max(36, 191 - parent.Length - 8))));
             Assert.IsTrue(directory.StartsWith(parent.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase));
             Directory.CreateDirectory(directory);
             Assert.IsFalse((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0);
             var storage = new GenerationStorage(new FileSystemStorage(directory));
             GdDict request = GenerationFixtures.Request(), result = null;
+            Assert.Greater(storage.Globalize(GenerationFixtures.Generation(request) + "/commit.json").Length + 12, 259,
+                "Fixture must exceed the Windows publication budget independent of the host temp root.");
             try
             {
                 var coordinator = GenerationFixtures.Coordinator(storage);
                 result = operation == "commit"
                     ? coordinator.Commit(request, GenerationFixtures.Run, "slot_01")
                     : coordinator.RecordTerminal(Terminal(), GenerationFixtures.Run);
+                if (Path.DirectorySeparatorChar != '\\')
+                {
+                    Assert.IsTrue(result.GetBool("ok"), result.GetString("reason") + ":" + result.GetString("detail"));
+                    Assert.IsTrue(result.GetBool("committed"));
+                    Assert.Greater(storage.Writes, 0);
+                    if (operation == "commit")
+                        GenerationFixtures.AssertBundle(request, GenerationFixtures.Coordinator(new FileSystemStorage(directory)).Recover(GenerationFixtures.Run, "slot_01"));
+                    else Assert.IsTrue(storage.FileExists(GenerationFixtures.Tombstone()));
+                    return;
+                }
                 Assert.IsFalse(result.GetBool("ok"));
                 Assert.AreEqual("path_budget_exceeded", result.GetString("reason"));
                 Assert.IsFalse(result.GetBool("committed"));
