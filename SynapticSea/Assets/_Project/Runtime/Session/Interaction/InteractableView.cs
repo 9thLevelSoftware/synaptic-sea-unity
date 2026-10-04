@@ -129,7 +129,7 @@ namespace SynapticSea.Runtime.Session
                 {
                     case ObjectiveInteractable o: return o.PromptText;
                     case HomeJoinControl c: return c.Prompt;
-                    case DeckTransition d: return "Change deck: " + d.DestinationDeck;
+                    case DeckTransition d: return d.Prompt;
                     case RepairPoint rp: return "Repair: " + rp.SubcomponentId;
                     case BreachSealPoint sp: return "Seal breach: " + sp.CompartmentId;
                     case FireSuppressionPoint fp: return "Extinguish: " + fp.CompartmentId;

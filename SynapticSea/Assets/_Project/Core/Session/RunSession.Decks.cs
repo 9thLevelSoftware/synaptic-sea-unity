@@ -33,7 +33,8 @@ namespace SynapticSea.Core.Session
                 void AddLanding(GdArray source, GdArray target, string direction)
                 {
                     var landing = new DeckTransition { Parent = root, LocalPosition = Position(source),
-                        DestinationLocal = Position(target), DestinationDeck = V.I64(target[2]), InteractionRadius = 2.8,
+                        DestinationLocal = Position(target), DestinationDeck = V.I64(target[2]), SourceDeck = V.I64(source[2]),
+                        ConnectionId = row.GetString("id"), ConnectionType = row.GetString("type"), InteractionRadius = 2.8,
                         NodeName = "DeckTransition_" + index + "_" + direction };
                     DeckTransitions.Add(landing);
                     Events.RaiseInteractableSpawned(landing);
