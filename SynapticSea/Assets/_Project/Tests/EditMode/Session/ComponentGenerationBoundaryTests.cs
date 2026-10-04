@@ -462,7 +462,9 @@ namespace SynapticSea.Tests.Session
                 else storage.Rewrite = (path, text) => path == GenerationPath(child) + "/commit.json" ? text.Substring(0, text.Length / 2) : text;
                 result = Coordinator(storage, child).Commit(child, child.GetString("run_id"), "world");
                 if (locked != null) { locked.Dispose(); locked = null; }
-                bool permitsReplacement = fault == "replacement_temp_lock" && Path.DirectorySeparatorChar != '\\';
+                // .NET on POSIX permits this replacement; Unity Mono enforces the open stream's sharing restriction.
+                bool permitsReplacement = fault == "replacement_temp_lock" && Path.DirectorySeparatorChar != '\\'
+                    && Type.GetType("Mono.Runtime") == null;
                 if (permitsReplacement)
                 {
                     Assert.IsTrue(result.GetBool("ok"), ResultSummary(result)); Assert.IsTrue(result.GetBool("committed"), ResultSummary(result));

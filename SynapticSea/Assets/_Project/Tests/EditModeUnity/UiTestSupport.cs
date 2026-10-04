@@ -111,6 +111,10 @@ namespace SynapticSea.Tests.Unity
             var asset = AssetDatabase.LoadAssetAtPath<PanelSettings>(panelSettingsPath);
             Assert.IsNotNull(asset, panelSettingsPath);
             _settings = Object.Instantiate(asset);
+            // This harness measures logical pixel viewports, independent of the host monitor DPI.
+            // Keep project themes/styles while making its offscreen dimensions deterministic.
+            _settings.scaleMode = PanelScaleMode.ConstantPixelSize;
+            _settings.scale = 1f;
             _texture = new RenderTexture(width, height, 0);
             _settings.targetTexture = _texture;
             _go = new GameObject("ui-harness");

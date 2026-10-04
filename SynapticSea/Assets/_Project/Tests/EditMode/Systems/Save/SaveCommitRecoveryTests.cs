@@ -15,6 +15,9 @@ namespace SynapticSea.Tests.Systems
     public class SaveCommitRecoveryTests
     {
         static bool WindowsSharing => Path.DirectorySeparatorChar == '\\';
+        // Unity Mono enforces the shared-open temporary-file write denial on macOS;
+        // the standalone .NET runtime permits it on POSIX. Rename remains platform-specific.
+        static bool SharedTempWriteDenied => WindowsSharing || Type.GetType("Mono.Runtime") != null;
         static string OpenText(FileStream stream)
         {
             stream.Position = 0;
@@ -387,10 +390,10 @@ namespace SynapticSea.Tests.Systems
             File.WriteAllText(_storage.Globalize(path) + ".tmp", "locked");
             using (var open = new FileStream(_storage.Globalize(path) + ".tmp", FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                if (WindowsSharing) Assert.Catch<IOException>(() => _storage.WriteText(path, "new-good"));
+                if (SharedTempWriteDenied) Assert.Catch<IOException>(() => _storage.WriteText(path, "new-good"));
                 else { _storage.WriteText(path, "new-good"); Assert.AreEqual("new-good", OpenText(open)); }
             }
-            Assert.AreEqual(WindowsSharing ? "old-good" : "new-good", _storage.ReadText(path));
+            Assert.AreEqual(SharedTempWriteDenied ? "old-good" : "new-good", _storage.ReadText(path));
         }
 
         [Test]
