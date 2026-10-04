@@ -105,6 +105,9 @@ namespace SynapticSea.Core.Procgen
         /// </summary>
         public IDerelictLayoutSource DerelictSource;
 
+        /// <summary>Offline reviewed Rust4 fixture admission only; never enabled by ordinary sessions.</summary>
+        public bool EnableReviewedFrozenVersion4;
+
         bool _worldgenKitLoaded;
         GdDict _worldgenKitDoc = new GdDict();
 
@@ -198,7 +201,8 @@ namespace SynapticSea.Core.Procgen
                 return null;
             }
             long generatorVersion = generator.GeneratorVersion();
-            if (generatorVersion != WORLDGEN_VERSION)
+            bool frozenV4 = EnableReviewedFrozenVersion4 && generator is FrozenDerelictLayoutSource && generatorVersion == 4;
+            if (generatorVersion != WORLDGEN_VERSION && !frozenV4)
             {
                 CoreServices.Log.Error("SHIP GENERATOR FAIL unsupported DerelictGenerator version: " + GdString.FormatInt(generatorVersion));
                 return null;
@@ -262,7 +266,14 @@ namespace SynapticSea.Core.Procgen
                 CoreServices.Log.Error("SHIP GENERATOR FAIL game loot registry is empty");
                 return null;
             }
-            if (!ResolveWorldgenLootContainers(gameplay, exportedGameplay, lootTables)) return null;
+            if (frozenV4)
+            {
+                if (!FrozenDerelictLayoutSource.ApplyAuthority(layout, gameplay, exportedGameplay, lootTables)) return null;
+                GdDict provenance = ((FrozenDerelictLayoutSource)generator).Provenance(seedValue, parameters);
+                layout["worldgen_fixture"] = provenance.DeepCopy();
+                gameplay["worldgen_fixture"] = provenance.DeepCopy();
+            }
+            else if (!ResolveWorldgenLootContainers(gameplay, exportedGameplay, lootTables)) return null;
 
             GdDict kit = LoadWorldgenKit();
             if (kit.IsEmpty) return null;
