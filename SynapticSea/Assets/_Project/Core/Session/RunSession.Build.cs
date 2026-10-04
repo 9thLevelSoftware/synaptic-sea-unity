@@ -185,12 +185,13 @@ namespace SynapticSea.Core.Session
             _loot_tables = LootRoller.LoadTables();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
             SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled);
-            _runId = CompleteGenerationEnabled && Deps.SelectedSaveGeneration != null ? Deps.SelectedSaveGeneration.GetString("run_id") : GenerateRunId();
+            GdDict bootSelection = _selectedGeneration ?? Deps.SelectedSaveGeneration;
+            _runId = CompleteGenerationEnabled && bootSelection != null ? bootSelection.GetString("run_id") : GenerateRunId();
             SaveLoadService.SetActiveRunId(_runId);
             if (CompleteGenerationEnabled)
             {
                 SaveLoadService.BindComponentSave(RequestSaveToSlot);
-                if (Deps.SelectedSaveGeneration == null) SaveLoadService.AuthorizeDiagnosticNewRun(_runId);
+                if (bootSelection == null) SaveLoadService.AuthorizeDiagnosticNewRun(_runId);
             }
             AutosavePolicy = new AutosavePolicy(Clock);
             LocalizationCatalog = new LocalizationCatalog();
@@ -520,7 +521,7 @@ namespace SynapticSea.Core.Session
                      + " objectives=" + Interactables.Count + " collision_shapes=" + Loader.CountCollisionShapes());
             if (ComponentIntegrationEnabled && !ComponentGenerationRestoreInProgress) InitializeComponentIntegration();
             if (PaidCraftingEnabled && !ComponentGenerationRestoreInProgress) InitializePaidCrafting();
-            PlayableReady?.Invoke(GetPlayableSummary());
+            if (!PaidCraftingEnabled || !ComponentGenerationRestoreInProgress) PlayableReady?.Invoke(GetPlayableSummary());
         }
 
         void OnLoaderFailed(string reason)
@@ -573,7 +574,7 @@ namespace SynapticSea.Core.Session
             {
                 GdDict layout = GdJson.ParseString(retainedBoat.GetString("layout_text")) as GdDict;
                 built = RetainedLifeboatBuild(layout, retainedBoat.GetString("kit_path"));
-                lbRoot = built == null ? null : TakeStagedGenerationRoot("lifeboat") ?? ShipHost?.BuildLifeboatScene(built);
+                lbRoot = built == null ? null : TakeStagedGenerationRoot("lifeboat") ?? (_paidRestoreOperation != null ? null : ShipHost?.BuildLifeboatScene(built));
             }
             else
             {

@@ -26,7 +26,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public void Tick(in TickContext ctx)
         {
-            if (ComponentIntegrationEnabled && ComponentTerminalPending) return;
+            if (ComponentGenerationRestoreInProgress || CompleteGenerationEnabled && ComponentTerminalPending) return;
             _frame = ctx;
             _inTick = true;
             try

@@ -15,7 +15,7 @@ namespace SynapticSea.Core.Session
         string _componentOpenHolder = "";
         double _componentNoiseAcc;
         public bool ComponentIntegrationEnabled => Deps.EnableComponentIntegration;
-        internal bool ComponentPublicationInProgress => _componentPublishing || _componentMutating;
+        internal bool ComponentPublicationInProgress => _componentPublishing || _componentMutating || ComponentGenerationRestoreInProgress;
         public event Action<GdDict> ComponentDomainChanged;
         /// <summary>Diagnostic fault seam; does not alter ordinary gameplay policy.</summary>
         public Action<string> ComponentStageHook;
@@ -58,6 +58,7 @@ namespace SynapticSea.Core.Session
 
         bool EnsureComponentOwner()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (!ComponentIntegrationEnabled) return false;
             if (_componentDomain == null) InitializeComponentIntegration();
             return _componentDomain != null;
@@ -260,7 +261,7 @@ namespace SynapticSea.Core.Session
 
         void RefreshComponentParticipants()
         {
-            if (_componentMutating || _componentPublishing || _componentDomain == null) return;
+            if (ComponentGenerationRestoreInProgress || _componentMutating || _componentPublishing || _componentDomain == null) return;
             RegisterNewComponentOwners();
             GdDict before = _componentDomain.GetSummary(), candidate = before.DeepCopy();
             candidate["participating_state"] = ReadComponentParticipants(PaidCraftingEnabled ? PaidState(candidate) : null);
@@ -282,6 +283,7 @@ namespace SynapticSea.Core.Session
 
         public GdDict CaptureComponentDomain()
         {
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
             try
             {
                 if (!EnsureComponentOwner()) return new GdDict();
@@ -337,6 +339,7 @@ namespace SynapticSea.Core.Session
 
         public bool RestoreComponentDomain(GdDict summary)
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (PaidCraftingEnabled && summary?.GetInt("schema_version") == 3) return RestorePaidCraftingDomain(summary);
             if (_componentMutating || _componentPublishing || !ValidateComponentDomainRestore(summary, out _)) return false;
             GdDict candidate = summary.DeepCopy();
@@ -511,7 +514,7 @@ namespace SynapticSea.Core.Session
                 { "cart", _componentOpenHolder.StartsWith("cart:", StringComparison.Ordinal) && HolderAccess(_componentOpenHolder) == "ok" ? _componentOpenHolder : "" } };
         }
 
-        public void CloseComponentStorage() => _componentOpenHolder = "";
+        public void CloseComponentStorage() { if (!ComponentGenerationRestoreInProgress) _componentOpenHolder = ""; }
 
         string HolderAccess(string holderId)
         {
@@ -634,6 +637,7 @@ namespace SynapticSea.Core.Session
 
         bool ResumeComponentWork()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (!ComponentIntegrationEnabled || _componentDomain == null) return false;
             if (ComponentTerminalPending) return true;
             GdDict domain = CaptureComponentDomain(), job = domain.GetDictOrEmpty("component_work");
@@ -651,6 +655,7 @@ namespace SynapticSea.Core.Session
 
         void PauseComponentWork(string reason)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (_componentDomain == null || ComponentTerminalPending) return;
             GdDict domain = _componentDomain.GetSummary(), job = domain.GetDictOrEmpty("component_work");
             if (domain.GetInt("revision") == long.MaxValue) return;
@@ -663,6 +668,7 @@ namespace SynapticSea.Core.Session
 
         bool TickComponentWork(double delta)
         {
+            if (ComponentGenerationRestoreInProgress) return true;
             if (!ComponentIntegrationEnabled || _componentDomain == null) return false;
             if (ComponentTerminalPending) return true;
             GdDict domain = CaptureComponentDomain(), job = domain.GetDictOrEmpty("component_work");
@@ -809,6 +815,7 @@ namespace SynapticSea.Core.Session
 
         GdDict ExecuteComponentCommand(GdDict command, Func<GdDict, GdDict> effects)
         {
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
             if (ComponentTerminalPending) return ComponentFailure("terminal_pending");
             if (_componentMutating || _componentPublishing) return ComponentFailure("reentrant_mutation");
             _componentMutating = true;
@@ -862,7 +869,8 @@ namespace SynapticSea.Core.Session
                 ComponentStageHook?.Invoke("live_inventory");
                 ComponentStageHook?.Invoke("live_machinery");
                 ComponentStageHook?.Invoke("live_placement");
-                if (_componentMutating && _paidPublicationContext != null) ValidateFinalPaidPublication(before);
+                if (_paidRestoreOperation != null) ValidateFinalPaidRestore(candidate);
+                else if (_componentMutating && _paidPublicationContext != null) ValidateFinalPaidPublication(before);
                 else if (_componentMutating) ValidateFinalComponentPublication(before, candidate);
                 else if (!V.VariantEquals(beforeParticipants, ReadComponentParticipants())) throw new InvalidOperationException("stale_context");
                 foreach (var pair in beforeMachines) if (pair.Key.Health != pair.Value) throw new InvalidOperationException("stale_context");

@@ -1,0 +1,799 @@
+{
+  "schema": "synaptic-acceptance-plan-1",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "tests": [
+    {
+      "id": "A01",
+      "title": "CatalogAndSourceContracts",
+      "status": "planned_not_run",
+      "test_class_or_record": "CatalogSourceValidatorTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Infra/CatalogSourceValidatorTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "catalog_static",
+      "scenario": "Remove a tool/form/book/repair input producer; include unknown IDs, duplicate mass and diagnostic-only grant edges",
+      "expected": "Exact errors include row/caller/source; all production required references resolve; deferred exposure explicit",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~CatalogSourceValidatorTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~CatalogSourceValidatorTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A02",
+      "title": "FiniteSeededAcquisitionRoutes",
+      "status": "planned_not_run",
+      "test_class_or_record": "AcquisitionSourceTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Infra/AcquisitionSourceTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "finite_model_diagnostic",
+      "scenario": "All62 AND recipes,17 missing input IDs,31 sourceless item rows,seedless coolant cycle and finite class scenarios",
+      "expected": "Required chains have external seed/live source and sufficient finite quantities; no cycle or grant assumed earned",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~AcquisitionSourceTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~AcquisitionSourceTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      },
+      "additional_target_paths": [
+        "SynapticSea/Assets/_Project/Tests/EditMode/Session/ClassBootstrapRouteTests.cs"
+      ],
+      "additional_discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~ClassBootstrapRouteTests",
+      "additional_execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~ClassBootstrapRouteTests --results-directory artifacts/foundation-v3-review/run-01"
+    },
+    {
+      "id": "A03",
+      "title": "DamagedComponentHolderRoundTrip",
+      "status": "planned_not_run",
+      "test_class_or_record": "ComponentTransferTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentTransferTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "package_model_unit_then_F06_saved_integration",
+      "scenario": "Actual reactor_console0.23 vs0.81; A->bag->cargo->B->A; equal local slots; F06 separately adds Continue",
+      "expected": "Same instance/condition/mass and one holder; reviewed operability; no0.55 heal; unit exit does not require F06",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~ComponentTransferTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~ComponentTransferTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A04",
+      "title": "OverflowAndRemainderConservation",
+      "status": "planned_not_run",
+      "test_class_or_record": "LootRemainderTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/LootRemainderTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "package_model_unit_then_F06_saved_integration",
+      "scenario": "Full/partial destination,component failure,serialize/apply remainder; F06 later actual Save/Continue",
+      "expected": "Accepted units only debited; remainder conserves; failed component stays original holder; no dependency on future class journey",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~LootRemainderTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~LootRemainderTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A05",
+      "title": "WorkLocalityHoldAndContext",
+      "status": "planned_not_run",
+      "test_class_or_record": "WorkLocalityTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkLocalityTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "model_and_normal_acquisition",
+      "scenario": "Held generic cut moves1414m; release; toggle; LOS loss; equal IDs on another ship; tool loss",
+      "expected": "Begin/advance/commit valid; release no progress/stamina/effects; invalid site interrupts; owner isolation",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~WorkLocalityTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~WorkLocalityTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A06",
+      "title": "WorkResumeAndCommitOnce",
+      "status": "planned_not_run",
+      "test_class_or_record": "WorkRestoreTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkRestoreTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "model_and_normal_acquisition",
+      "scenario": "Save held/toggle job; released input Continue; damage/exhaustion; duplicate completion",
+      "expected": "Paused restore and explicit resume; exact denial; no output/XP/material replay; actual receipt persisted",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~WorkRestoreTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~WorkRestoreTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A07",
+      "title": "FilesystemCommitFaultRecovery",
+      "status": "planned_not_run",
+      "test_class_or_record": "SaveCommitRecoveryTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Save/SaveCommitRecoveryTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "disposable_real_disk_diagnostic",
+      "scenario": "Locks/disk write failure at every payload/manifest/pointer/index boundary with restart",
+      "expected": "Old or new validated complete generation; no mixed state or lost only good save; visible error",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~SaveCommitRecoveryTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~SaveCommitRecoveryTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A08",
+      "title": "TempAndIndexRecovery",
+      "status": "planned_not_run",
+      "test_class_or_record": "SaveCommitRecoveryTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Save/SaveCommitRecoveryTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "disposable_real_disk_diagnostic",
+      "scenario": "Valid staged legacy temp absent destination; corrupt pointer,index/mismatched world-run",
+      "expected": "Complete consistent recovery or explicit ambiguity; index reconstructs from manifests; bytes retained",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~SaveCommitRecoveryTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~SaveCommitRecoveryTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A09",
+      "title": "LegacyVersionMigration",
+      "status": "planned_not_run",
+      "test_class_or_record": "LegacyInstanceMigrationTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Save/LegacyInstanceMigrationTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "model_and_disposable_disk_diagnostic",
+      "scenario": "All old run/world families; anonymous forms; duplicated owners; malformed/future versions; interruption",
+      "expected": "Pure idempotent clone; original bytes and known condition retained; no free engine; invalid live apply unchanged",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~LegacyInstanceMigrationTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~LegacyInstanceMigrationTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A10",
+      "title": "EveryClassSoloBootstrap",
+      "status": "planned_not_run",
+      "test_class_or_record": "ClassBootstrapPlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/ClassBootstrapPlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "normal_earned_journey",
+      "scenario": "Eight fresh Title classes plus three legitimately unlocked; no hub perk; ordinary objective orders; finite six hull_sealant",
+      "expected": "Each earns shelter and repaired powered controllable first craft departure/return; distinct tools/skills/costs; input witness",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.ClassBootstrapPlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.ClassBootstrapPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\ClassBootstrapPlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A11",
+      "title": "TierKnowledgeAndQueueParity",
+      "status": "planned_not_run",
+      "test_class_or_record": "RecipeGateParityTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/RecipeGateParityTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "package_model_then_F09_normal_learning",
+      "scenario": "Tier1 sensor/tier2 nozzle,preview/start/advance/complete phases; exact inputs consumed once; paid receipt,outage/Continue",
+      "expected": "Start requires actual tier/knowledge/materials; paid completion needs no second set; output once; start quality persists; unsafe queue rejects",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~RecipeGateParityTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~RecipeGateParityTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A12",
+      "title": "OfferedLaunchContract",
+      "status": "planned_not_run",
+      "test_class_or_record": "FrontEndPlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/FrontEndPlayModeTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "instantiated_real_scene_then_native",
+      "scenario": "Offer current seed17/breach_field/standard vs unsupported selectors; actual SceneLoader",
+      "expected": "Every enabled choice actually launches; actual run difficulty labeled; unsupported choices fail closed without misleading UI",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.FrontEndPlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.FrontEndPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\FrontEndPlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A13",
+      "title": "VisibleCaptionsCurrentWarnings",
+      "status": "planned_not_run",
+      "test_class_or_record": "HudLayoutTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/HudLayoutTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "instantiated_ui_then_native",
+      "scenario": "Registered threat/fire SFX with captions,simultaneous alerts,2x scale; recover oxygen100; inert control audit",
+      "expected": "Visible actual label text/duration; danger clears while history remains; controls accurately affect state or are disabled",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.EditModeUnity",
+        "mode": "EditMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.Unity.HudLayoutTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode EditMode --filter \"SynapticSea.Tests.Unity.HudLayoutTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\HudLayoutTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A14",
+      "title": "SecondaryHabitatServices",
+      "status": "planned_not_run",
+      "test_class_or_record": "VesselServicePlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/VesselServicePlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "normal_earned_journey",
+      "scenario": "Earn claimed repaired/equipped secondary hull; craft/produce,local power outage,save inside/revisit",
+      "expected": "Services belong to that vessel; no free stations/safety/crops; original home unaffected; one harvest/local collection",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.VesselServicePlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.VesselServicePlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\VesselServicePlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A15",
+      "title": "InternalExteriorCutReseal",
+      "status": "planned_not_run",
+      "test_class_or_record": "BoundaryTopologyPlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/BoundaryTopologyPlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "normal_work_instantiated_geometry",
+      "scenario": "v4 seed17 dock/cargo internal and crew/outside solid edge timed cuts,revisit/reseal",
+      "expected": "Internal passage distinct from outside breach; actual collider/NavMesh/LOS/fire state reconcile; stable boundary",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.BoundaryTopologyPlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.BoundaryTopologyPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\BoundaryTopologyPlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A16",
+      "title": "ConnectionServiceIsolation",
+      "status": "planned_not_run",
+      "test_class_or_record": "ServiceConnectionTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Travel/ServiceConnectionTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "model_then_instantiated",
+      "scenario": "Mechanical join closed door,no conduit,then deliberate service links/outage/save",
+      "expected": "Independent graphs and local power; chosen atmosphere conservation; closed air barrier; no automatic share",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~ServiceConnectionTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~ServiceConnectionTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A17",
+      "title": "EarnedAssemblyMobilityAndScout",
+      "status": "planned_not_run",
+      "test_class_or_record": "AssemblyMobilityPlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/AssemblyMobilityPlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "normal_earned_journey",
+      "scenario": "Earn engines/parts; A-B-C secured assembly,stowed craft,insufficient load,move/save/Continue,small craft outing",
+      "expected": "Mass/eligible thrust once; no stowed thrust; stable relative poses/doors; scout detach/return utility; no victory",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.AssemblyMobilityPlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.AssemblyMobilityPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\AssemblyMobilityPlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A18",
+      "title": "OccupiedNestedDetachRollback",
+      "status": "planned_not_run",
+      "test_class_or_record": "ConnectionDetachPlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/ConnectionDetachPlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "instantiated_then_normal",
+      "scenario": "Occupied detach,invalid landing/site/overlap/cycle,A-B-C detach/rejoin,save",
+      "expected": "Reject preserves graph/geometry/resources; valid subtree moves once and keeps exact endpoints/player-safe location",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.ConnectionDetachPlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.ConnectionDetachPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\ConnectionDetachPlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A19",
+      "title": "ActiveWorkingSetScaling",
+      "status": "planned_not_run",
+      "test_class_or_record": "ShipRegistryScaleTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Travel/ShipRegistryScaleTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "model_plus_loaded_performance",
+      "scenario": "0/10/100/1000 visits same active set; snapshot dirty revisions/root residency",
+      "expected": "Visited state conserved; per-frame active scan independent of history; measured CPU/GPU/memory/save separate; budget after OPEN11",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~ShipRegistryScaleTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~ShipRegistryScaleTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A20",
+      "title": "AbsentTimePolicyAndCursor",
+      "status": "planned_not_run",
+      "test_class_or_record": "ShipSimulationPolicyTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Travel/ShipSimulationPolicyTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "model_then_session",
+      "scenario": "300/1800/3600/86400 seconds single/segmented/active; same timestamp; save pending catchup",
+      "expected": "Chosen policy tolerance explicit; no silently stamped unprocessed time; no double tick; each subsystem cursor conserved; no offline claim",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~ShipSimulationPolicyTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~ShipSimulationPolicyTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A21",
+      "title": "RepeatedExpeditionRecovery",
+      "status": "planned_not_run",
+      "test_class_or_record": "LongHaulSurvivalPlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/LongHaulSurvivalPlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "normal_earned_then_native_campaign",
+      "scenario": "Three varied expeditions:care/supplies,reclaim/equip,new contact+depleted revisit; injury/outage/load/Continue",
+      "expected": "Actual resource ledger and recovery,finite depletion/resupply,scout return; campaign duration/balance chosen separately",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.LongHaulSurvivalPlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.LongHaulSurvivalPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\LongHaulSurvivalPlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A22",
+      "title": "TopologyPerceptionInvalidation",
+      "status": "planned_not_run",
+      "test_class_or_record": "ThreatNavMeshPlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/ThreatNavMeshPlayModeTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "instantiated_then_normal",
+      "scenario": "Door/internal cut/reseal enemy sensing,path,acoustics; occluded rendering",
+      "expected": "AI physics perception follows topology; render occlusion does not reveal through solid world; edit caches refresh",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.ThreatNavMeshPlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.ThreatNavMeshPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\ThreatNavMeshPlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A23",
+      "title": "BoundedColonyState",
+      "status": "planned_not_run",
+      "test_class_or_record": "BiomassColonyTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Combat/BiomassColonyTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "conditional_model_then_normal",
+      "scenario": "After OPEN10 choose finite colony budget,resource nodes,frontier and response; kill/revisit/load",
+      "expected": "Resource-funded bounded spawn/growth; persisted territory/response; no free respawn/ML assumption",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~BiomassColonyTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~BiomassColonyTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A24",
+      "title": "GeneratedOpportunityPhysicalCoverage",
+      "status": "planned_not_run",
+      "test_class_or_record": "ExpeditionScenePlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/ExpeditionScenePlayModeTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "catalog_model_and_instantiated",
+      "scenario": "Current profiles/fallbacks/selected seeds; furnished/damaged approaches,multideck scope,live camera after edits",
+      "expected": "Exact program_id/version; protected reachable producers and apertures; no invalid actual_seed metric; visual/HUD measured",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.ExpeditionScenePlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.ExpeditionScenePlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\ExpeditionScenePlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A25",
+      "title": "ApprovedLibraryNormalEncounter",
+      "status": "planned_not_run",
+      "test_class_or_record": "ThreatCreatureFactoryTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/ThreatCreatureFactoryTests.cs",
+      "target_status": "existing_anchor",
+      "evidence_scope": "normal_encounter_plus_instantiated",
+      "scenario": "Selected approved library actually registered; organic normal encounter/save/restore; unsupported/missing pool",
+      "expected": "Manifest matches package/build/decisions; actual view/controller; exact persisted identity,explicit fallback,no reroll",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.EditModeUnity",
+        "mode": "EditMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.Unity.ThreatCreatureFactoryTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode EditMode --filter \"SynapticSea.Tests.Unity.ThreatCreatureFactoryTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\ThreatCreatureFactoryTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A26",
+      "title": "CompanionDecisionFreshness",
+      "status": "planned_not_run",
+      "test_class_or_record": "CompanionDecisionFreshnessTests",
+      "target_path": "D:/critter-creator/tests/test_library_decision_freshness.py",
+      "target_status": "proposed",
+      "evidence_scope": "isolated_companion_diagnostic",
+      "scenario": "Disposable copied approved/rejected skeleton/part transitions then pack without rebuild; stale receipt",
+      "expected": "Decision mismatch refuses or reconciles per reviewed release policy; unchanged approved crawler not reapproved; geometry reusable",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "isolated companion fixture",
+        "execute": "Scoped runner or native input record after review",
+        "requirement": "No dotnet/Unity discovery claim for this target"
+      }
+    },
+    {
+      "id": "A27",
+      "title": "SceneAudioSettingsLifecycle",
+      "status": "planned_not_run",
+      "test_class_or_record": "AudioLifecyclePlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/AudioLifecyclePlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "real_scene_then_native_audio",
+      "scenario": "First Title->run->Title->new run/Continue; listeners,model binding/voices; settings NaN/infinity",
+      "expected": "One active listener; old session unbound/stopped; native audio verified separately; finite settings compatibility",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.AudioLifecyclePlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.AudioLifecyclePlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\AudioLifecyclePlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A28",
+      "title": "CargoAgeAndContamination",
+      "status": "planned_not_run",
+      "test_class_or_record": "CargoAgePlayModeTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/CargoAgePlayModeTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "conditional_normal_earned",
+      "scenario": "After OPEN09 choose storage ageing; old/new food batches,cargo travel/load,long absence",
+      "expected": "No fresh reset of old stock; storage owner/timing conserved; chosen contamination/spoilage costs evidenced",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.PlayMode",
+        "mode": "PlayMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.CargoAgePlayModeTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.CargoAgePlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\CargoAgePlayModeTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A29",
+      "title": "NativeFoundationAccessibility",
+      "status": "planned_not_run",
+      "test_class_or_record": "NativeJourneyEvidence",
+      "target_path": "docs/playtest/formal-foundation-native/evidence.json",
+      "target_status": "proposed",
+      "evidence_scope": "native_manual",
+      "scenario": "Actual Windows player keyboard/mouse/gamepad,Title/first ship/save/revisit,1200x800/2x caption and panel checks",
+      "expected": "Exact build/source/input recorded; all required controls reachable/readable; no batch fixture masquerades as native",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "native manual evidence",
+        "execute": "Scoped runner or native input record after review",
+        "requirement": "No dotnet/Unity discovery claim for this target"
+      }
+    },
+    {
+      "id": "A30",
+      "title": "TravelCostRecoveryLogistics",
+      "status": "planned_not_run",
+      "test_class_or_record": "TravelResourceTransactionTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Travel/TravelResourceTransactionTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "conditional_model_then_normal",
+      "scenario": "After OPEN09/12 choose travel costs/tow/load; actual travel debit,rollback,scout vs home",
+      "expected": "Actual accepted resource debit once; failed travel preserves resources/poses; helpers alone not treated as live charging",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~TravelResourceTransactionTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~TravelResourceTransactionTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A31",
+      "title": "InstanceSelectionAndDestinationDiscovery",
+      "status": "planned_not_run",
+      "test_class_or_record": "ComponentInstancePanelTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/ComponentInstancePanelTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "package_UI_commands_then_F09_normal_input",
+      "scenario": "InventoryPanel/ShipModificationPanel mouse/keyboard/gamepad choose same-form0.23 vs0.81; reorder; actual incompatible and compatible slots",
+      "expected": "Stable instance command picks selected object; no panel mutation; physical install prompt; explicit compatibility/condition/tool/range reason",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "SynapticSea",
+        "assembly": "SynapticSea.Tests.EditModeUnity",
+        "mode": "EditMode",
+        "proposed_fixture_fullname": "SynapticSea.Tests.Unity.ComponentInstancePanelTests",
+        "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode EditMode --filter \"SynapticSea.Tests.Unity.ComponentInstancePanelTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-v3-review\\run-01\\ComponentInstancePanelTests.xml\"",
+        "requirement": "Verify actual/proposed fixture namespace before run; assert intended fullnames/nonzero execution from XML. Core cannot discover this assembly; use new output per attempt"
+      }
+    },
+    {
+      "id": "A32",
+      "title": "AtomicDomainBoundaryFaults",
+      "status": "planned_not_run",
+      "test_class_or_record": "DomainTransactionTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/DomainTransactionTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "package_model_unit_then_F06_saved_receipt",
+      "scenario": "Inject before/after registry,placement,inventory,machinery,job/payment,XP/training log,receipt,publication and notification",
+      "expected": "Sole coordinator publishes all-or-none; precommit old state hash/no effects; postpublish full new bundle; retry no duplication",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~DomainTransactionTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~DomainTransactionTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A33",
+      "title": "ExactlyOnePaidCraftThroughOutageContinue",
+      "status": "planned_not_run",
+      "test_class_or_record": "PaidCraftStateTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/PaidCraftStateTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "package_phase_unit_and_F06_saved_integration",
+      "scenario": "One exact ingredient set; start consumes to zero; power outage,serialize/Continue,pending output full,duplicate completion",
+      "expected": "Paid receipt/quality persists; no second material requirement/debit/refund; exactly one accepted output and one receipt",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~PaidCraftStateTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~PaidCraftStateTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A34",
+      "title": "SlotPayloadBindingAndFrozenRecovery",
+      "status": "planned_not_run",
+      "test_class_or_record": "SlotPayloadBindingTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/SlotPayloadBindingTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "package_plain_schema_then_F06_integrated_restore",
+      "scenario": "world/checkpoint,active/rotating,quick/manual full bundle; index corrupt after FreezeRun; predeath parent/temp available",
+      "expected": "Matching complete run/world/layout revision; manual restore whole captured world; no ancestor resurrection/tombstone clearing; legacy limit explicit",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~SlotPayloadBindingTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~SlotPayloadBindingTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      }
+    },
+    {
+      "id": "A35",
+      "title": "LegacyCraftPaymentReconciliation",
+      "status": "planned_not_run",
+      "test_class_or_record": "LegacyCraftReconciliationTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/LegacyCraftReconciliationTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "legacy_diagnostic_then_actual_UI",
+      "scenario": "Paid BeginCraft and unpaid queue auto-start same active shape; complete status; Keep paused/Abandon/Start fresh and reload",
+      "expected": "Both unproved records stay paused_unverified; no automatic output/refund; explicit fresh payment/full time; original/archive/disposition retained once",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~LegacyCraftReconciliationTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~LegacyCraftReconciliationTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      },
+      "normal_input_gate": "F09 actual UI/acquisition/Continue; package provisioned tests cannot substitute"
+    },
+    {
+      "id": "A36",
+      "title": "ReachableLegacyUnknownOverhaul",
+      "status": "planned_not_run",
+      "test_class_or_record": "LegacyEquipmentReconciliationTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/LegacyEquipmentReconciliationTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "migration_preflight_and_normal_input",
+      "scenario": "Unknown null cargo; actual acquired wrench/raw1+1/passive surface/30 nominal seconds; essential unreachable or budget shortage; save interruption",
+      "expected": "Newly achieved0.60 paid provenance/zeroXP, same instance and unchanged machinery; no previous-health guess; unresolved essential conversion leaves original bytes/live world intact",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~LegacyEquipmentReconciliationTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~LegacyEquipmentReconciliationTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      },
+      "normal_input_gate": "F09 actual UI/acquisition/Continue; package provisioned tests cannot substitute"
+    },
+    {
+      "id": "A37",
+      "title": "RealUtilityRepairAndFiniteRecovery",
+      "status": "planned_not_run",
+      "test_class_or_record": "HomeUtilityRepairTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/HomeUtilityRepairTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "model_consumers_then_normal_acquisition",
+      "scenario": "Four named feed/relay/light/beacon defects; raw quantities;12 nominal seconds/main stamina+wounds/rest; ordinary primary4+4 spending then racks8+8; objective orders",
+      "expected": "Actual consumers/views change; direct60XP/class fraction and record-only receipt once; no part-category shortcut/RepairPoint25 duplication/farming/refill; bounded recovery includes four jobs",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~HomeUtilityRepairTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~HomeUtilityRepairTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      },
+      "normal_input_gate": "F09 actual UI/acquisition/Continue; package provisioned tests cannot substitute",
+      "additional_targets": [
+        {
+          "package": "F08",
+          "target_path": "SynapticSea/Assets/_Project/Tests/PlayMode/AuxiliaryUtilityViewPlayModeTests.cs",
+          "target_status": "proposed",
+          "test_class_or_record": "AuxiliaryUtilityViewPlayModeTests",
+          "evidence_scope": "Instantiated real UI/consumer/view with explicitly provisioned fixture state; earned acquisition remains F09",
+          "runner": {
+            "project": "SynapticSea",
+            "assembly": "SynapticSea.Tests.PlayMode",
+            "mode": "PlayMode",
+            "proposed_fixture_fullname": "SynapticSea.Tests.PlayMode.AuxiliaryUtilityViewPlayModeTests",
+            "expected_case_names": [
+              "FabricatorFeedProjectsCommittedPower",
+              "CargoRelayEnablesBulkCommandsPreservesManualAccess",
+              "MedbayLampProjectsUtilityWithoutHealing",
+              "DockBeaconShowsActualDockAndAirlockState"
+            ],
+            "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode PlayMode --filter \"SynapticSea.Tests.PlayMode.AuxiliaryUtilityViewPlayModeTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-c6\\run-01\\utility-views.xml\"",
+            "xml_requirement": "Foundation plan Assert-UnityFixtureXml: every expected case fullname present, target count > 0, every target result Passed; missing/zero/skipped-only is failure. Separate output each attempt."
+          }
+        }
+      ],
+      "additional_target_paths": [
+        "SynapticSea/Assets/_Project/Tests/PlayMode/AuxiliaryUtilityViewPlayModeTests.cs"
+      ]
+    },
+    {
+      "id": "A38",
+      "title": "RetainedManualStudy",
+      "status": "planned_not_run",
+      "test_class_or_record": "ManualStudyTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/ManualStudyTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "model_then_actual_UI_and_Continue",
+      "scenario": "Carried book30 eligible stationary seconds; release/copy loss/injury/Continue; duplicate copy; legacy BooksRead; real Study/View UI",
+      "expected": "Manual retained; no industrial stamina drain; atomic BooksRead+knowledge+authoredXP once per character/book; legacy read seeds knowledge with no XP replay",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~ManualStudyTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~ManualStudyTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      },
+      "normal_input_gate": "F09 actual UI/acquisition/Continue; package provisioned tests cannot substitute",
+      "additional_targets": [
+        {
+          "package": "F07",
+          "target_path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/ManualStudyPanelTests.cs",
+          "target_status": "proposed",
+          "test_class_or_record": "ManualStudyPanelTests",
+          "evidence_scope": "Instantiated real UI/consumer/view with explicitly provisioned fixture state; earned acquisition remains F09",
+          "runner": {
+            "project": "SynapticSea",
+            "assembly": "SynapticSea.Tests.EditModeUnity",
+            "mode": "EditMode",
+            "proposed_fixture_fullname": "SynapticSea.Tests.Unity.ManualStudyPanelTests",
+            "expected_case_names": [
+              "CarriedManualOpensTimedStudyAndView",
+              "InterruptedStudyAndContinueRemainPaused",
+              "RepeatedCopiesAndLegacyReadDoNotAwardAgain"
+            ],
+            "execute": "& \"$env:LOCALAPPDATA\\Unity\\bin\\unity.exe\" test \"F:\\tmp\\synaptic-sea-playable\\SynapticSea\" --mode EditMode --filter \"SynapticSea.Tests.Unity.ManualStudyPanelTests\" --output \"F:\\tmp\\synaptic-sea-playable\\artifacts\\foundation-c6\\run-01\\manual-study-ui.xml\"",
+            "xml_requirement": "Foundation plan Assert-UnityFixtureXml: every expected case fullname present, target count > 0, every target result Passed; missing/zero/skipped-only is failure. Separate output each attempt."
+          }
+        }
+      ],
+      "additional_target_paths": [
+        "SynapticSea/Assets/_Project/Tests/EditModeUnity/ManualStudyPanelTests.cs"
+      ]
+    },
+    {
+      "id": "A39",
+      "title": "EarlyWorkAndAppliedTrainingPrimitives",
+      "status": "planned_not_run",
+      "test_class_or_record": "WorkKernelTests",
+      "target_path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/WorkActions/WorkKernelTests.cs",
+      "target_status": "proposed",
+      "evidence_scope": "early_kernel_unit_no_gameplay_acceptance",
+      "scenario": "Owner/range/hold/effort/progress/paused serialization with fake commit port; record-only event and restored progression replay",
+      "expected": "Kernel has no concrete F03/F04/F08 dependency; no live mutation without bound port; RecordApplied grants zero XP and receipt-owned replay never double-awards",
+      "provisioning_policy": "All diagnostics labeled; normal/native gates require finite earned acquisition",
+      "runner": {
+        "project": "tools/dotnet/SynapticSea.Core.Tests/SynapticSea.Core.Tests.csproj",
+        "discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~WorkKernelTests",
+        "execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~WorkKernelTests",
+        "requirement": "Assert expected test names and nonzero executed count; zero-filter match is not PASS"
+      },
+      "additional_target_paths": [
+        "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Progression/TrainingReceiptTests.cs"
+      ],
+      "additional_discovery": "dotnet test tools/dotnet/SynapticSea.Core.Tests --list-tests --filter FullyQualifiedName~TrainingReceiptTests",
+      "additional_execute": "dotnet test tools/dotnet/SynapticSea.Core.Tests --nologo --filter FullyQualifiedName~TrainingReceiptTests --logger \"trx;LogFileName=training-receipts.trx\" --results-directory artifacts/foundation-c6/run-01"
+    }
+  ]
+}

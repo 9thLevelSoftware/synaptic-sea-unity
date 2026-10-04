@@ -5,6 +5,25 @@ using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Core.Session
 {
+    /// <summary>Optional, operation-owned home replacement; legacy home loading is unchanged.</summary>
+    public interface IPreparedHomeSceneHost
+    {
+        // A null expected home is fresh boot only: the host must own no current/prepared home.
+        // The returned handle owns the detached candidate before any adoption callback.
+        IPreparedHome PrepareHome(ShipDocuments documents, IShipLoaderView expectedCurrentHome, out string reason);
+    }
+
+    public interface IPreparedHome : System.IDisposable
+    {
+        IShipLoaderView PreparedLoader { get; }
+        bool IsAdopted { get; }
+        bool TryAdopt(out string reason);
+        // For fresh boot, restore empty host ownership; Dispose then frees its candidate once.
+        void RestoreRetainedHome();
+        // Fresh boot retains the adopted candidate and has no prior home to retire.
+        void Commit();
+    }
+
     /// <summary>
     /// RUNTIME: every place the coordinator created, parented, moved or freed a ship scene root: the home
     /// <c>loader.load_from_paths</c>, the <c>GeneratedShipLoader</c> the ShipGenerator built from generated documents,

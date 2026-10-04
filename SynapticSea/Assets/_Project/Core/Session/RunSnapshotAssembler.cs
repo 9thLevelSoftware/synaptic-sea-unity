@@ -15,7 +15,17 @@ namespace SynapticSea.Core.Session
     {
         /// <summary><c>_build_run_snapshot(use_home_arc_summary)</c>; null when not started / complete / no save service.</summary>
         public static RunSnapshot Build(RunSession s, bool useHomeArcSummary = false)
+            => BuildCore(s, useHomeArcSummary, true);
+
+        internal static RunSnapshot BuildDetached(RunSession s, RunSession.PaidRestoreOperation operation, bool useHomeArcSummary = false)
         {
+            s.RequirePaidRestoreOperation(operation);
+            return BuildCore(s, useHomeArcSummary, false);
+        }
+
+        static RunSnapshot BuildCore(RunSession s, bool useHomeArcSummary, bool synchronize)
+        {
+            if (synchronize && s.ComponentGenerationRestoreInProgress) return null;
             if (!s.PlayableStarted || s.SliceComplete)
                 return null;
             if (s.SaveLoadService == null)
@@ -66,7 +76,7 @@ namespace SynapticSea.Core.Session
             }
             else if (s.ElectricalArcState != null)
             {
-                s.SyncArcSummaryForSave();
+                if (synchronize) s.SyncArcSummaryForSave();
                 snapshot.ElectricalArcSummary = s.ElectricalArcState.GetSummary();
             }
             if (s.ObjectiveProgressState != null)
@@ -109,7 +119,7 @@ namespace SynapticSea.Core.Session
                 snapshot.AmmoSummary = s.AmmoState.GetSummary();
             if (s.UtilityItemState != null)
                 snapshot.UtilitySummary = s.UtilityItemState.GetSummary();
-            s.SyncPillarSummariesForSave();
+            if (synchronize) s.SyncPillarSummariesForSave();
             if (s.ModuleIntegrityMap != null)
                 snapshot.ModuleIntegritySummary = s.ModuleIntegrityMap.GetSummary();
             else if (s.CurrentShip != null && !s.CurrentShip.ModuleIntegritySummary.IsEmpty)

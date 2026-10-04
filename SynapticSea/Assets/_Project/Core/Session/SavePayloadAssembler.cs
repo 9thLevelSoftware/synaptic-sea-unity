@@ -95,6 +95,7 @@ namespace SynapticSea.Core.Session
         {
             GdDict Fail(string why) => new GdDict { { "ok", false }, { "reason", why }, { "payloads", null } };
             if (session == null || !session.CompleteGenerationEnabled) return Fail("component_integration_not_enabled");
+            if (session.ComponentGenerationRestoreInProgress) return Fail("restore_in_progress");
             if (session.ComponentTerminalPending) return Fail("terminal_pending");
             if (!session.PlayableStarted || session.SliceComplete || session.SaveLoadService == null) return Fail("run_not_playable");
             if (session.DomainPublicationInProgress) return Fail("component_publication_in_progress");
@@ -191,6 +192,27 @@ namespace SynapticSea.Core.Session
                 return new GdDict { { "ok", true }, { "reason", "captured" }, { "payloads", payloads } };
             }
             catch (Exception e) { return new GdDict { { "ok", false }, { "reason", "capture_failed" }, { "detail", e is PaidSnapshotCodec.ValidationException invalid ? invalid.Diagnostic : e.GetType().Name }, { "payloads", null } }; }
+        }
+
+        // Private rollback capture is not a save: no owner refresh, revision allocation, pointer read or live Sync.
+        internal static WorldSnapshot CaptureBeforeWorld(RunSession session, RunSession.PaidRestoreOperation operation, out GdDict documents)
+        {
+            session.RequirePaidRestoreOperation(operation);
+            WorldSnapshot world = WorldSnapshotAssembler.BuildDetached(session, operation);
+            if (world == null || !session.BuildDetachedGenerationDocumentSet(world, operation, out GdDict references, out GdArray artifacts, out string reason))
+                throw new InvalidOperationException("before_world_unavailable");
+            GdDict home = world.HomeShip.DeepCopy(), homeRef = references.GetDictOrEmpty("ship_start");
+            home["layout_path"] = homeRef.Get("layout_path"); home["kit_path"] = homeRef.Get("kit_path");
+            home["gameplay_slice_path"] = homeRef.Get("gameplay_slice_path");
+            home["slice_version"] = session.ComponentIntegrationEnabled ? RunSnapshot.ComponentIntegrationVersion : SaveLoadService.CURRENT_SLICE_VERSION;
+            world.HomeShip = home;
+            world.SliceVersion = session.ComponentIntegrationEnabled ? WorldSnapshot.ComponentIntegrationVersion : WorldSnapshot.WorldSliceVersion;
+            ShipInstance aboard = session.FindShipByIdInternal(world.AboardShipId);
+            if (aboard?.SceneRoot == null) throw new InvalidOperationException("before_pose_owner_missing");
+            Vec3 local = SessionMath.AffineInverse(aboard.SceneRoot.GlobalTransform) * session.Scene.PlayerPosition;
+            world.PlayerPositionInShip = GdArray.Of((double)local.X, (double)local.Y, (double)local.Z);
+            documents = new GdDict { { "binding", new GdDict { { "ship_references", references } } }, { "artifacts", artifacts } };
+            return world;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace SynapticSea.Core.Session
         Func<string, string, bool> _paidRewardFilter;
         Func<string, bool> _paidRewardGate;
         public bool PaidCraftingEnabled => Deps.EnablePaidCrafting;
-        public bool DomainPublicationInProgress => _componentPublishing || _componentMutating;
+        public bool DomainPublicationInProgress => _componentPublishing || _componentMutating || ComponentGenerationRestoreInProgress;
         public RecipeKnowledgeState RecipeKnowledge { get; private set; }
         static GdDict PaidState(GdDict domain) => PaidCraftingState.State(domain);
         static string CraftChannel(string kind) => kind == "field_crafting" ? "field" : "station";
@@ -37,7 +37,7 @@ namespace SynapticSea.Core.Session
         }
         internal void InitializePaidCrafting()
         {
-            if (!PaidCraftingEnabled || _paidInitializing || CraftingState == null || HomeShip == null || string.IsNullOrEmpty(RunId)) return;
+            if (ComponentGenerationRestoreInProgress || !PaidCraftingEnabled || _paidInitializing || CraftingState == null || HomeShip == null || string.IsNullOrEmpty(RunId)) return;
             _paidInitializing = true;
             try
             {
@@ -86,6 +86,7 @@ namespace SynapticSea.Core.Session
         }
         string PaidRecipePreflight(GdDict recipe)
         {
+            if (ComponentGenerationRestoreInProgress) return "restore_in_progress";
             if (ComponentTerminalPending || SliceComplete) return "terminal_pending";
             if (IsComponentForm(recipe.GetDictOrEmpty("produces").GetString("item_id")) || recipe.GetDictOrEmpty("ingredients").Keys.Any(id => IsComponentForm(V.Str(id))))
                 return ComponentIntegrationEnabled ? "diagnostic_component_crafting_unavailable" : "component_crafting_unavailable";
@@ -93,12 +94,13 @@ namespace SynapticSea.Core.Session
         }
         bool EnsurePaidOwner()
         {
-            if (!PaidCraftingEnabled) return false;
+            if (ComponentGenerationRestoreInProgress || !PaidCraftingEnabled) return false;
             if (_componentDomain == null || _componentDomain.SchemaVersion != 3) InitializePaidCrafting();
             return _componentDomain?.SchemaVersion == 3;
         }
         public GdDict CapturePaidCraftingDomain()
         {
+            if (ComponentGenerationRestoreInProgress) return PaidFailure("restore_in_progress");
             if (!EnsurePaidOwner()) return PaidFailure("paid_crafting_inactive");
             if (!DomainPublicationInProgress) RefreshComponentParticipants();
             return _componentDomain.GetSummary();
@@ -505,20 +507,26 @@ namespace SynapticSea.Core.Session
 
         public bool ValidatePaidCraftingRestore(GdDict summary, out string reason)
         {
+            if (ComponentGenerationRestoreInProgress) { reason = "restore_in_progress"; return false; }
+            return ValidatePaidCraftingRestoreInContext(summary, CurrentPaidRestoreContext(), out reason);
+        }
+
+        bool ValidatePaidCraftingRestoreInContext(GdDict summary, PaidRestoreContext context, out string reason)
+        {
             reason = "paid_crafting_inactive";
             if (!PaidCraftingEnabled) return false;
             if (!DomainBundle.TryCreate(summary, out _, out reason) || summary.GetInt("schema_version") != 3) return false;
             if (summary.GetString("domain_mode") != (ComponentIntegrationEnabled ? "components_and_craft" : "craft_only")) { reason = "domain_mode_mismatch"; return false; }
             if (ComponentIntegrationEnabled && !ValidateComponentDomainRestore(summary, out reason)) return false;
             GdDict state = PaidState(summary), participants = summary.GetDictOrEmpty("participating_state");
-            if (state.GetString("run_id") != RunId || state.GetString("actor_id") != PLAYER_LOCAL_ID) { reason = "paid_owner_mismatch"; return false; }
+            if (context == null || state.GetString("run_id") != context.RunId || state.GetString("actor_id") != PLAYER_LOCAL_ID) { reason = "paid_owner_mismatch"; return false; }
             foreach (GdDict job in state.GetDictOrEmpty("jobs").Values.OfType<GdDict>())
             {
                 string kind = job.GetString("station_kind"), recipe = job.GetString("recipe_id");
-                if (job.GetString("station_id") != PaidStationId(kind) || job.GetString("station_owner_id") != PaidStationOwner(kind) ||
-                    job.GetString("inventory_owner_id") != "player:" + PLAYER_LOCAL_ID || !PaidStationExists(kind, false)) { reason = "paid_station_owner_mismatch"; return false; }
-                if (!PaidCraftingState.Terminal(job) && (!CraftingState.HasRecipe(recipe) || CraftingState.GetStationKind(recipe) != kind ||
-                    job.GetString("input_state") == "paid" && PaidCraftingState.Hash(CraftingState.GetRecipe(recipe)) != job.GetString("recipe_hash")))
+                if (job.GetString("station_id") != context.StationId(kind) || job.GetString("station_owner_id") != context.StationOwner(kind) ||
+                    job.GetString("inventory_owner_id") != "player:" + PLAYER_LOCAL_ID || !context.StationExists(kind)) { reason = "paid_station_owner_mismatch"; return false; }
+                if (!PaidCraftingState.Terminal(job) && (!context.Crafting.HasRecipe(recipe) || context.Crafting.GetStationKind(recipe) != kind ||
+                    job.GetString("input_state") == "paid" && PaidCraftingState.Hash(context.Crafting.GetRecipe(recipe)) != job.GetString("recipe_hash")))
                 { reason = "recipe_definition_mismatch"; return false; }
             }
             if (!ValidatePaidMirrors(participants)) { reason = "paid_projection_mismatch"; return false; }

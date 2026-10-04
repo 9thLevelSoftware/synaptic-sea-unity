@@ -16,6 +16,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Resolves visible markers at the gated detail level (current systems + scanner skill); records web-chart views.</summary>
         public GdDict Scan()
         {
+            if (ComponentGenerationRestoreInProgress) return new GdDict { { "detail_level", 0L }, { "markers", new GdArray() } };
             if (CurrentShip == null || SynapticSeaWorld == null || ScannerState == null)
                 return new GdDict { { "detail_level", 0L }, { "markers", new GdArray() } };
             GdDict ops = CurrentSystemsOps();
@@ -31,6 +32,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Travel to an in-range marker by id; {success:false, reason:"unknown_marker"} otherwise.</summary>
         public GdDict TravelToMarkerId(string markerId)
         {
+            if (ComponentGenerationRestoreInProgress) return new GdDict { { "success", false }, { "reason", "restore_in_progress" } };
             if (SynapticSeaWorld == null || ScannerState == null)
                 return new GdDict { { "success", false }, { "reason", "not_ready" } };
             foreach (ShipMarker m in SynapticSeaWorld.MarkersInRange(ScannerState.RangeRadius))
@@ -130,6 +132,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Validates + executes a jump to a marker (gated by the PILOTED ship's propulsion).</summary>
         public GdDict TravelTo(ShipMarker marker)
         {
+            if (ComponentGenerationRestoreInProgress) return new GdDict { { "success", false }, { "reason", "restore_in_progress" } };
             if (CurrentShip == null || SynapticSeaWorld == null || TravelController == null || ShipGenerator == null)
                 return new GdDict { { "success", false }, { "reason", "not_ready" } };
             if (PilotedShip != null && CurrentShip == PilotedShip && marker.MarkerId == CurrentShip.MarkerId)
@@ -259,6 +262,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Returns to the home ship: frees the derelict scene, re-docks the ride home, rebuilds home interactables.</summary>
         public bool TravelHome()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if(PilotedShip==HomeShip)
             { SetHazardFeedbackLine("You are already aboard the mobile home. Select a surveyed contact to move the assembly.");return false; }
             if (!AwayFromStart || HomeShip == null) return false;
@@ -458,6 +462,19 @@ namespace SynapticSea.Core.Session
                 CurrentShip.ComponentPlacementSummary = ComponentPlacementState.GetSummary();
             if (ComponentIntegrationEnabled) BindComponentIntegrationForCurrentShip();
             RebuildComponentMarkers();
+        }
+
+        internal GdDict DetachedCurrentShipSummaryForRestore(PaidRestoreOperation operation)
+        {
+            RequirePaidRestoreOperation(operation);
+            GdDict summary = CurrentShip?.GetSummary().DeepCopy() ?? new GdDict();
+            if (CurrentShip == null) return summary;
+            if (ThreatManager != null) summary["combat"] = ThreatManager.GetSummary().DeepCopy();
+            if (ElectricalArcState != null) summary["arc"] = ElectricalArcState.GetSummary().DeepCopy();
+            if (OxygenState != null) summary["breach_environment"] = BreachEnvironmentFrom(OxygenState.GetSummary());
+            if (ModuleIntegrityMap != null) summary["module_integrity"] = ModuleIntegrityMap.GetSummary().DeepCopy();
+            if (ComponentPlacementState != null) summary["component_placement"] = ComponentPlacementState.GetSummary().DeepCopy();
+            return summary;
         }
 
         long ComponentPlacementSeedForCurrentShip()

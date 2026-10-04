@@ -55,6 +55,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public GdDict RunWorkAction(string actionId, string targetId, GdDict inventoryOverride = null)
         {
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
             if (ComponentIntegrationEnabled && (actionId == "mount_component" || actionId == "dismount_component" || actionId == "unbolt_component"))
                 return ComponentFailure("named_component_work_required");
             if (WorkActionDriver == null)
@@ -179,6 +180,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public bool BeginWorkHold()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (ComponentIntegrationEnabled && ComponentTerminalPending) { _workHoldInput = false; return false; }
             _workHoldInput = true;
             if (ComponentIntegrationEnabled && ResumeComponentWork()) return true;
@@ -197,12 +199,14 @@ namespace SynapticSea.Core.Session
         /// <summary>The input layer calls this on interact release: in hold mode progress pauses until the next hold.</summary>
         public void EndWorkHold()
         {
+            if (ComponentGenerationRestoreInProgress) return;
             _workHoldInput = false;
         }
 
         /// <summary>Cancels the in-progress work action (interrupt; progress is lost). False when nothing was in progress.</summary>
         public bool CancelWorkAction()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
             { PauseComponentWork("cancelled"); RefreshWorkActionHud(); return true; }
             if (WorkActionDriver?.Work == null || (!WorkActionDriver.IsWorking() && !_workAwaitingResume))
@@ -1301,6 +1305,7 @@ namespace SynapticSea.Core.Session
         /// <summary>A ship-mod install: mirror the panel bag into InventoryState, restore the linked sub, tiers, plating.</summary>
         public void OnShipModInstalled(string componentId, string itemForm)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (ComponentIntegrationEnabled) return;
             if (InventoryState != null && !string.IsNullOrEmpty(itemForm) && InventoryState.GetQuantity(itemForm) > 0)
                 InventoryState.RemoveItem(itemForm, 1);
@@ -1314,6 +1319,7 @@ namespace SynapticSea.Core.Session
         /// <summary>A ship-mod uninstall: add back returned items (panel bag minus live inventory), strip the linked sub.</summary>
         public void OnShipModUninstalled(string componentId, GdDict panelBag)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (ComponentIntegrationEnabled) return;
             if (InventoryState != null && panelBag != null)
             {

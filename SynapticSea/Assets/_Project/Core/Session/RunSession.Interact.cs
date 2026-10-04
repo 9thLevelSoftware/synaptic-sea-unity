@@ -64,6 +64,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public string RequestInteract()
         {
+            if (ComponentGenerationRestoreInProgress) return "restore_in_progress";
             if (ComponentIntegrationEnabled && ComponentTerminalPending) return "terminal_pending";
             TriggerTutorial("player_interacted", "any");
             SessionLocation location = AwayFromStart ? SessionLocation.Away : SessionLocation.Home;

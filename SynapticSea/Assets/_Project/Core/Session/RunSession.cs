@@ -342,6 +342,11 @@ namespace SynapticSea.Core.Session
         public static RunSession Create(RunSessionDeps deps, Action<RunSession> beforeReady)
         {
             var session = new RunSession(deps);
+            if (session.PaidCraftingEnabled && deps.SelectedSaveGeneration != null)
+            {
+                session.BootPaidSelectedGeneration(beforeReady);
+                return session;
+            }
             beforeReady?.Invoke(session);
             if (!session.PrepareGenerationBoot()) return session;
             session.WithSelectedArtifactReader(() =>
@@ -467,6 +472,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>emit_training_event(event_id, target_id)</c>: the resolved record, or null on rejection.</summary>
         public GdDict EmitTrainingEvent(string eventId, string targetId = "")
         {
+            if (ComponentGenerationRestoreInProgress) return null;
             if (TrainingEventBus == null || PlayerProgression == null)
                 return null;
             return TrainingEventBus.Emit(eventId, targetId, PlayerProgression);

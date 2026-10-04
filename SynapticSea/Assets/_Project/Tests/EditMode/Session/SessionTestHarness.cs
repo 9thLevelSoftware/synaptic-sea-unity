@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
@@ -127,8 +128,10 @@ namespace SynapticSea.Tests.Session
     }
 
     /// <summary>Headless IShipSceneHost: loads documents through the real procgen/loader pure halves, tracks parenting.</summary>
-    public sealed class FakeShipHost : IShipSceneHost
+    public sealed class FakeShipHost : IShipSceneHost, IPreparedHomeSceneHost
     {
+        IShipLoaderView _currentHome;
+        IShipLoaderView _preparedEmptyHome;
         public readonly List<IShipSceneRoot> Attached = new List<IShipSceneRoot>();
         public readonly List<IShipSceneRoot> Freed = new List<IShipSceneRoot>();
         public int HomeLoads;
@@ -153,7 +156,67 @@ namespace SynapticSea.Tests.Session
             HomeLoads++;
             var view = new FakeLoaderView(layout, gameplay, gameplaySlicePath) { IsInsideTree = true };
             Attached.Add(view);
+            _currentHome = view;
             return view;
+        }
+
+        public IPreparedHome PrepareHome(ShipDocuments documents, IShipLoaderView expectedCurrentHome, out string reason)
+        {
+            reason = "prepared_home_invalid";
+            if (documents == null || documents.IsAway || documents.Layout == null || documents.GameplaySlice == null ||
+                expectedCurrentHome != _currentHome) return null;
+            if (expectedCurrentHome == null)
+            { if (_preparedEmptyHome != null) return null; }
+            else if (!expectedCurrentHome.IsValid || !Attached.Contains(expectedCurrentHome)) return null;
+            var selected = new FakeLoaderView(documents.Layout, documents.GameplaySlice, "");
+            if (expectedCurrentHome == null) _preparedEmptyHome = selected;
+            reason = ""; return new PreparedHome(this, expectedCurrentHome, selected);
+        }
+        sealed class PreparedHome : IPreparedHome
+        {
+            readonly FakeShipHost _host;
+            readonly IShipLoaderView _old, _selected;
+            readonly Xform3 _transform;
+            bool _finished;
+            public IShipLoaderView PreparedLoader => _selected;
+            public bool IsAdopted { get; private set; }
+            public PreparedHome(FakeShipHost host, IShipLoaderView old, IShipLoaderView selected)
+            { _host = host; _old = old; _selected = selected; if (old != null) _transform = old.Transform; }
+            public bool TryAdopt(out string reason)
+            {
+                reason = "prepared_home_invalid";
+                if (_finished || IsAdopted || _host._currentHome != _old || !_selected.IsValid ||
+                    (_old == null ? _host._preparedEmptyHome != _selected : !_old.IsValid || !_host.Attached.Contains(_old)) ||
+                    _host.Attached.Contains(_selected)) return false;
+                IsAdopted = true; _host._currentHome = _selected;
+                if (_old != null) { _host.Attached.Remove(_old); ((FakeShipRoot)_old).IsInsideTree = false; }
+                _host.AttachShipRoot(_selected); reason = ""; return true;
+            }
+            public void RestoreRetainedHome()
+            {
+                if (_finished || _old != null && !_old.IsValid) throw new InvalidOperationException("retained_home_unavailable");
+                _host._currentHome = _old;
+                if (_old != null) _old.Transform = _transform;
+                _host.Attached.Remove(_selected); ((FakeShipRoot)_selected).IsInsideTree = false;
+                if (_old != null) _host.AttachShipRoot(_old);
+                IsAdopted = false;
+            }
+            public void Commit()
+            {
+                if (_finished || !IsAdopted || _host._currentHome != _selected || !_selected.IsValid)
+                    throw new InvalidOperationException("prepared_home_not_adopted");
+                _finished = true;
+                if (_old == null) _host._preparedEmptyHome = null;
+                else _host.FreeShipRoot(_old);
+            }
+            public void Dispose()
+            {
+                if (_finished) return;
+                if (IsAdopted) RestoreRetainedHome();
+                _finished = true;
+                if (_old == null && _host._preparedEmptyHome == _selected) _host._preparedEmptyHome = null;
+                if (_selected.IsValid) _host.FreeShipRoot(_selected);
+            }
         }
 
         public IShipLoaderView BuildShipScene(ShipDocuments documents)

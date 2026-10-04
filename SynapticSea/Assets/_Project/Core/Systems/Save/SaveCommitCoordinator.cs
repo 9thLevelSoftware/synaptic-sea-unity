@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -57,6 +58,38 @@ namespace SynapticSea.Core.Systems
             _fault = fault;
             _allowComponentIntegration = allowComponentIntegration;
             _allowPaidCrafting = allowPaidCrafting;
+            if (_validRoot && allowPaidCrafting && storage is FileSystemStorage native)
+                _storage = new PaidNativeReads(native, root, CheckPhysicalPath);
+        }
+
+        // Both partials use this instance-local boundary. Legacy paths and nonpaid storage keep their decoder.
+        sealed class PaidNativeReads : IStorage
+        {
+            readonly FileSystemStorage _inner;
+            readonly string _root;
+            readonly Action<string> _checkPath;
+            internal PaidNativeReads(FileSystemStorage inner, string root, Action<string> checkPath)
+            { _inner = inner; _root = root; _checkPath = checkPath; }
+            public string ReadText(string path)
+            {
+                if (path != _root && !(path?.StartsWith(_root + "/", StringComparison.Ordinal) ?? false))
+                    return _inner.ReadText(path);
+                _checkPath(path);
+                string physical = _inner.Globalize(path);
+                if (!File.Exists(physical)) return null;
+                try { return Utf8.GetString(File.ReadAllBytes(physical)); }
+                catch (DecoderFallbackException) { throw new Refusal("corrupt_generation"); }
+            }
+            public bool FileExists(string path) => _inner.FileExists(path);
+            public bool DirExists(string path) => _inner.DirExists(path);
+            public void WriteText(string path, string text) => _inner.WriteText(path, text);
+            public bool Delete(string path) => _inner.Delete(path);
+            public bool Rename(string from, string to) => _inner.Rename(from, to);
+            public void MakeDirRecursive(string path) => _inner.MakeDirRecursive(path);
+            public IReadOnlyList<string> ListFiles(string path) => _inner.ListFiles(path);
+            public IReadOnlyList<string> ListDirectories(string path) => _inner.ListDirectories(path);
+            public bool DeleteDirectory(string path) => _inner.DeleteDirectory(path);
+            public string Globalize(string path) => _inner.Globalize(path);
         }
 
         public GdDict Commit(GdDict payloads, string runId, string slotId)

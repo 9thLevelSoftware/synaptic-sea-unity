@@ -21,6 +21,11 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public long EndRun(string reason = "extraction")
         {
+            if (ComponentGenerationRestoreInProgress)
+            {
+                if (reason != "death") return 0;
+                _paidRestoreOperation?.TerminalRuns.Add(_runId);
+            }
             if (ComponentIntegrationEnabled && ComponentTerminalPending && reason != "death") return 0;
             if (SliceComplete || reason == "complete" || reason == "completion")
                 return 0;
@@ -152,6 +157,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Timed/rotating autosave loop (autosave_a/b/c), additive to the checkpoint save.</summary>
         void TickAutosavePolicy(double delta)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (AutosavePolicy == null || SaveLoadService == null || SliceComplete)
                 return;
             if (DemoSaveRefused())
@@ -177,6 +183,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Force one rotating autosave through the real path (was <c>force_autosave_for_validation</c>).</summary>
         public GdDict ForceAutosave()
         {
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
             if (AutosavePolicy == null)
                 return new GdDict();
             AutosavePolicy.Force = true;
@@ -189,6 +196,7 @@ namespace SynapticSea.Core.Session
         /// <summary>F6 quicksave (cooldown-gated) to the quicksave slot.</summary>
         public bool RequestQuicksave()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (SliceComplete || SaveLoadService == null || AutosavePolicy == null)
                 return false;
             if (DemoSaveRefused())
@@ -220,6 +228,7 @@ namespace SynapticSea.Core.Session
         /// <summary>F5 / pause-menu save: the whole world (save-anywhere, ADR-0012). Refused before start / after completion.</summary>
         public bool RequestSave()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (CompleteGenerationEnabled)
             {
                 bool saved = RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World");
@@ -296,8 +305,8 @@ namespace SynapticSea.Core.Session
         /// <summary>F9 / Continue: load the whole world and apply it; adopts the loaded run_id.</summary>
         public bool RequestLoad()
         {
-            if (PaidCraftingEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "paid_restore_not_available" } }; return false; }
-            if (ComponentIntegrationEnabled)
+            if (ComponentGenerationRestoreInProgress) return false;
+            if (CompleteGenerationEnabled)
             {
                 if (ComponentTerminalPending) return false;
                 GdDict selected = SaveLoadService?.SelectGeneration("world");
@@ -407,7 +416,18 @@ namespace SynapticSea.Core.Session
         internal bool ApplyRunSnapshotInternal(RunSnapshot snapshot)
         {
             if (PaidCraftingEnabled) return RefusePaidRestore();
-            if (snapshot == null || !PlayableStarted)
+            return ApplyRunSnapshotBody(snapshot, null);
+        }
+
+        internal bool ApplyOwnedRunSnapshot(RunSnapshot snapshot, PaidRestoreOperation operation)
+        {
+            RequirePaidRestoreOperation(operation);
+            return ApplyRunSnapshotBody(snapshot, operation);
+        }
+
+        bool ApplyRunSnapshotBody(RunSnapshot snapshot, PaidRestoreOperation operation)
+        {
+            if (snapshot == null || operation == null && !PlayableStarted)
                 return false;
             _isReloading = true;
             ResetRuntimeForReload();
@@ -416,7 +436,8 @@ namespace SynapticSea.Core.Session
             GameplaySlicePath = RunSnapshot.ResolveGameplaySlicePath(snapshot.LayoutPath, snapshot.GameplaySlicePath);
             snapshot.GameplaySlicePath = GameplaySlicePath;
             PlayableStarted = false;
-            LoadFromPaths(LayoutPath, KitPath, GameplaySlicePath);
+            if (operation == null) LoadFromPaths(LayoutPath, KitPath, GameplaySlicePath);
+            else LoadPreparedHome(operation, LayoutPath, KitPath, GameplaySlicePath);
             if (!PlayableStarted)
             {
                 _isReloading = false;
@@ -743,7 +764,8 @@ namespace SynapticSea.Core.Session
             SequenceKinds.Clear();
             _autosaveRunSeconds = 0.0;
             _lastAutosaveResult = new GdDict();
-            AutosavePolicy?.Reset();
+            // Owned restore leaves policy internals untouched; failed apply cannot consume/reset save cadence.
+            if (_paidRestoreOperation == null) AutosavePolicy?.Reset();
         }
     }
 }
