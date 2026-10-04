@@ -175,11 +175,38 @@ namespace SynapticSea.Tests.PlayMode
                 + " landing_valid=" + landing.IsValid + " landing_inside_tree=" + landing.IsInsideTree
                 + " candidate_overlap=" + landing.CandidatePlayerInRange + " host_paused=" + _boot.Host.Paused);
             Assert.AreSame(landing, focused, "ordinary HUD focus must target the same landing used by interact");
+            AssertDeckPresentation(landing);
             _boot.Host.SceneState.Player.RequestInteract(); yield return WaitForGrounded(landing.DestinationDeck, "ordinary transfer " + direction);
             Assert.AreEqual("deck_transition", _session.LastInteractHandlerId, "normal input invokes transfer handler");
             AssertStanding(landing.DestinationDeck, "after ordinary discrete transfer " + direction);
             Debug.Log("[FrozenLadderEndpoint] fixture=" + _fixtureId + " connection=" + landing.ConnectionId + " type=" + landing.ConnectionType + " source=" + landing.SourceDeck + " destination=" + landing.DestinationDeck + " placement_probe=true ordinary_input=true grounded=true");
             yield return Capture(direction + "-standing.png");
+        }
+        void AssertDeckPresentation(DeckTransition landing)
+        {
+            var cues = _boot.Host.Affordances.PropsFor(_session.Loader).Values.Where(p => p != null)
+                .Select(p => p.GetComponent<DeckTransferPresentation>()).Where(c => c != null).ToArray();
+            Assert.AreEqual(2, cues.Length, "two explicit landing presentations for the one raw ladder link");
+            var cue = cues.Single(c => c.ConnectionId == landing.ConnectionId && c.SourceDeck == landing.SourceDeck && c.DestinationDeck == landing.DestinationDeck);
+            Assert.AreEqual(landing.ConnectionType, cue.ConnectionType);
+            Assert.AreEqual(landing.LocalPosition, cue.SourceLocal, "presentation uses exact authored interaction anchor");
+            Assert.AreEqual(landing.DestinationLocal, cue.DestinationLocal);
+            Assert.Less(Vector3.Distance(cue.transform.position, Frame.ToUnity(landing.GlobalPosition)), .001f);
+            Assert.AreEqual("Ladder transfer\n" + (landing.DestinationDeck > landing.SourceDeck ? "Up" : "Down") + " to deck " + landing.DestinationDeck, cue.Label);
+            Assert.IsTrue(cue.VisibleOnSourceDeck, "only current source-deck cue is visible");
+            foreach (var item in cues)
+            {
+                Assert.IsEmpty(item.GetComponentsInChildren<Collider>(true), "presentation never adds blocking or sensor colliders");
+                Assert.IsEmpty(item.GetComponentsInChildren<Rigidbody>(true));
+                Assert.IsEmpty(item.GetComponentsInChildren<NavMeshObstacle>(true));
+                Assert.IsTrue(_boot.Host.Affordances.Labels.Entries.TryGetValue(item.WorldLabelId, out var label));
+                Assert.AreEqual(item.Label, label.Text, "world label type/direction/destination match presentation");
+                Assert.AreEqual(item.VisibleOnSourceDeck, label.Anchor().HasValue, "off-deck labels do not obscure the current deck");
+                foreach (var renderer in item.GetComponentsInChildren<MeshRenderer>(true))
+                    Assert.AreEqual(item.VisibleOnSourceDeck, renderer.enabled, "off-deck presentation meshes are hidden without altering structure");
+            }
+            Assert.IsFalse(cues.Single(c => c != cue).VisibleOnSourceDeck, "opposite-deck cue remains hidden");
+            Assert.IsFalse(_boot.Host.Affordances.Labels.Entries.Values.Any(e => e.Text == "Ramp\nUp"), "ladder does not inherit the misleading generic ramp-up label");
         }
         void AssertStanding(long deck, string context)
         {

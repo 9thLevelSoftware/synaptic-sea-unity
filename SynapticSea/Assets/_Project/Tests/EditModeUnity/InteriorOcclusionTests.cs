@@ -127,6 +127,57 @@ namespace SynapticSea.Tests.Unity
             _occlusion.RestoreAll(); Assert.AreSame(original, renderer.sharedMaterial);
         }
 
+        [Test] public void RendererDisabledDuringCutawayRestoresImmediatelyWithoutBeingEnabled()
+        {
+            var wall = Wall(-2); var original = wall.sharedMaterial;
+            Reveal(); Assert.AreNotSame(original, wall.sharedMaterial);
+            wall.enabled = false; Reveal();
+            Assert.AreEqual(0, _occlusion.ActiveRendererCount);
+            Assert.AreSame(original, wall.sharedMaterial);
+            Assert.IsFalse(wall.enabled);
+            Assert.IsFalse(wall.forceRenderingOff);
+            Assert.IsTrue(wall.GetComponent<Collider>().enabled);
+        }
+
+        [Test] public void FullyRevealedWallHidesChildTrimAndRestoresEveryOriginalVisibilityState()
+        {
+            var wall = Wall(-2);
+            var trim = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            trim.transform.SetParent(wall.transform, false);
+            trim.transform.localPosition = new Vector3(0.45f, 0.5f, 0);
+            trim.transform.localScale = Vector3.one * 0.05f;
+            trim.layer = PhysicsLayers.Structure;
+            var child = trim.GetComponent<Renderer>(); child.sharedMaterial = RuntimeVisualCatalog.Material(Color.white);
+            var originalWall = wall.sharedMaterial; var originalChild = child.sharedMaterial;
+            var neighbor = Wall(-2, 5); var originalNeighbor = neighbor.sharedMaterial;
+            var block = new MaterialPropertyBlock(); block.SetFloat("_Metallic", 0.37f); child.SetPropertyBlock(block, 0);
+            var hidden = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            hidden.transform.SetParent(wall.transform, false); hidden.layer = PhysicsLayers.Structure;
+            var hiddenRenderer = hidden.GetComponent<Renderer>(); hiddenRenderer.sharedMaterial = originalChild;
+            hiddenRenderer.forceRenderingOff = true;
+            var disabled = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            disabled.transform.SetParent(wall.transform, false); disabled.layer = PhysicsLayers.Structure;
+            var disabledRenderer = disabled.GetComponent<Renderer>(); disabledRenderer.sharedMaterial = originalChild;
+            disabledRenderer.enabled = false;
+            Reveal(); Reveal();
+            Assert.IsTrue(wall.forceRenderingOff, "fully faded panel is removed independent of shader alpha support");
+            Assert.IsTrue(child.forceRenderingOff, "off-ray child trim follows its wall owner");
+            Assert.IsTrue(hiddenRenderer.forceRenderingOff); Assert.IsFalse(disabledRenderer.enabled);
+            Assert.IsFalse(neighbor.forceRenderingOff); Assert.AreSame(originalNeighbor, neighbor.sharedMaterial,
+                "neighboring module outside reveal rays must remain unchanged");
+            Assert.IsTrue(wall.GetComponent<Collider>().enabled);
+            Assert.IsTrue(trim.GetComponent<Collider>().enabled);
+            _occlusion.RestoreAll();
+            Assert.IsFalse(wall.forceRenderingOff); Assert.IsFalse(child.forceRenderingOff);
+            Assert.IsTrue(hiddenRenderer.forceRenderingOff, "original hidden owner state must remain hidden");
+            Assert.IsFalse(disabledRenderer.enabled, "original disabled renderer must remain disabled");
+            Assert.AreSame(originalChild, hiddenRenderer.sharedMaterial);
+            Assert.AreSame(originalChild, disabledRenderer.sharedMaterial);
+            Assert.AreSame(originalWall, wall.sharedMaterial); Assert.AreSame(originalChild, child.sharedMaterial);
+            child.GetPropertyBlock(block, 0); Assert.AreEqual(0.37f, block.GetFloat("_Metallic"));
+            Assert.AreEqual(0, _occlusion.ActiveRendererCount);
+        }
+
         [Test] public void UpperFloorRevealDoesNotRecreateTheObstructionAsAFootprint()
         {
             var floor = Wall(-3); floor.GetComponent<StructuralModule>().layer = "floor";

@@ -23,6 +23,7 @@ namespace SynapticSea.Runtime
         public const string BLOCKED_KIND = "BlockedBiomatter";
         public const string RAMP_NAME = "VerticalAffordance_01_RampCue";
         public const string RAMP_KIND = "RampCue";
+        public const string DECK_TRANSFER_KIND = "DiscreteDeckTransferCue";
         public const string ENTRY_NAME = "EntryBeacon";
         public const string ENTRY_KIND = "EntryBeacon";
         public const string DESTINATION_NAME = "DestinationReactorCore";
@@ -63,6 +64,30 @@ namespace SynapticSea.Runtime
             AddBox(root.transform, "RampCueStem", new Vec3(2.4f, 0.15f, 0.7f), new Vec3(0f, 0.075f, 0f), new Color(0.95f, 0.78f, 0.30f));
             AddBox(root.transform, "RampCueHead", new Vec3(0.9f, 0.20f, 1.3f), new Vec3(1.55f, 0.10f, 0f), new Color(0.98f, 0.55f, 0.12f));
             AddMarker(root.transform, "RampCueAim", new Vec3(2.0f, 0.18f, 0f));
+            return root;
+        }
+
+        /// <summary>A compact landing pad and transfer control, never a continuous ladder/ramp or collision source.</summary>
+        public static GameObject CreateDeckTransferCue(long index, string connectionId, string connectionType, long sourceDeck, long destinationDeck)
+        {
+            string direction = destinationDeck > sourceDeck ? "Up" : "Down";
+            var root = BaseProp("VerticalAffordance_" + GdString.FormatIntPadded(index, 2) + "_" + direction + "ToDeck" + destinationDeck, DECK_TRANSFER_KIND);
+            var transfer = root.AddComponent<DeckTransferPresentation>();
+            transfer.ConnectionId = connectionId; transfer.ConnectionType = connectionType;
+            transfer.SourceDeck = sourceDeck; transfer.DestinationDeck = destinationDeck;
+            var pad = new Color(.18f, .64f, .72f); var accent = new Color(.98f, .78f, .24f);
+            // Root is the authored interaction anchor (.55m above floor). Thin pad stays near the floor;
+            // the control stands on the default isometric camera-facing corner, clear of the midpoint marker.
+            // It does not form a climbable span or cover the player's standing center.
+            AddBox(root.transform, "TransferPad", new Vec3(1.3f, .045f, 1.3f), new Vec3(0f, -.40f, 0f), pad);
+            AddBox(root.transform, "TransferPost", new Vec3(.13f, .9f, .13f), new Vec3(.9f, -.02f, .9f), pad);
+            AddBox(root.transform, "TransferControl", new Vec3(.48f, .52f, .09f), new Vec3(.9f, .47f, .9f), new Color(.08f, .22f, .27f));
+            AddBox(root.transform, "DirectionStem", new Vec3(.05f, .26f, .025f), new Vec3(.9f, .47f, .96f), accent);
+            float sign = destinationDeck > sourceDeck ? 1f : -1f;
+            var left = AddBox(root.transform, "DirectionHeadLeft", new Vec3(.05f, .17f, .025f), new Vec3(.845f, .47f + .10f * sign, .96f), accent);
+            var right = AddBox(root.transform, "DirectionHeadRight", new Vec3(.05f, .17f, .025f), new Vec3(.955f, .47f + .10f * sign, .96f), accent);
+            left.transform.localRotation = Quaternion.Euler(0f, 0f, -45f * sign);
+            right.transform.localRotation = Quaternion.Euler(0f, 0f, 45f * sign);
             return root;
         }
 

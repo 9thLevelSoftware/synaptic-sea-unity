@@ -56,7 +56,7 @@ namespace SynapticSea.Runtime
             foreach (var pair in new List<KeyValuePair<Renderer, State>>(_states))
             {
                 var state = pair.Value;
-                if (pair.Key == null || !pair.Key.gameObject.activeInHierarchy || (state.module != null && state.integrity != state.module.integrityState))
+                if (pair.Key == null || !pair.Key.enabled || !pair.Key.gameObject.activeInHierarchy || (state.module != null && state.integrity != state.module.integrityState))
                 { Restore(state, state.module != null && state.module.HasSingleVisual && state.integrity != state.module.integrityState); _states.Remove(pair.Key); continue; }
                 bool wanted = _wanted.Contains(pair.Key) || _clock - state.lastWanted < ReleaseDelay;
                 state.alpha = Mathf.MoveTowards(state.alpha, wanted ? 0f : 1f, Mathf.Max(0, dt) / 0.16f);
@@ -91,8 +91,7 @@ namespace SynapticSea.Runtime
                 {
                     bool upperDeck = (module.layer == "floor" || module.layer == "ceiling") && hit.point.y > anchor.y + 0.6f;
                     if (module.layer != "edge" && !upperDeck) continue; // The player's own support floor always renders.
-                    foreach (var renderer in module.GetComponentsInChildren<Renderer>())
-                        if (renderer.enabled && (camera.cullingMask & (1 << renderer.gameObject.layer)) != 0) _wanted.Add(renderer);
+                    CollectAssembly(module.transform, camera);
                 }
                 else
                 {
@@ -185,6 +184,10 @@ namespace SynapticSea.Runtime
 
         static void Apply(State state)
         {
+            // Retain the fade transition, then remove the entire selected assembly's renderers.
+            // At zero alpha this also covers child/trim shader passes that still draw opaque pixels.
+            // Never reveal a renderer that was already intentionally hidden before the cutaway.
+            state.renderer.forceRenderingOff = state.originalOff || !state.canFade || state.alpha <= 0f;
             if (state.canFade)
             {
                 for (int i = 0; i < state.fades.Length; i++)
@@ -194,7 +197,7 @@ namespace SynapticSea.Runtime
                     state.renderer.SetPropertyBlock(state.working[i], i);
                 }
             }
-            else state.renderer.forceRenderingOff = true; // Unsupported shader: never mutate it or guess its blending.
+            // Unsupported shaders use the material-independent hide path above.
         }
 
         static void Restore(State state, bool preserveCurrentTint = false)

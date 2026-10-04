@@ -198,15 +198,31 @@ namespace SynapticSea.Runtime.Session
                 if (blockedHidden) prop.SetActive(false);
             }
 
-            // _build_vertical_affordance_props
-            index = 0;
-            foreach (RuntimeMarker node in loader.View.GetVisibleVerticalTransitionNodes())
+            // Explicit presentation adapter: two collider-free, typed landing cues per authored link.
+            // Structural midpoint marker geometry remains loader-owned and untouched.
+            int verticalIndex = 0;
+            GdDict verticalLayout = loader.GetLayoutCopy();
+            double cellSize = verticalLayout.GetFloat("cell_size", 4.0), deckHeight = verticalLayout.GetFloat("deck_height", 4.0);
+            foreach (object raw in verticalLayout.GetArrayOrEmpty("vertical_connections"))
             {
-                if (node == null) continue;
-                index++;
-                GameObject prop = ReadabilityPropFactory.CreateRampCue();
-                prop.name = "VerticalAffordance_" + GdString.FormatIntPadded(index, 2) + "_RampCue";
-                Register(set, prop, xf * node.GodotPosition);
+                if (!(raw is GdDict link)) continue;
+                var from = link.GetArrayOrEmpty("from_cell"); var to = link.GetArrayOrEmpty("to_cell");
+                if (from.Count < 3 || to.Count < 3 || V.I64(from[2]) == V.I64(to[2])) continue;
+                verticalIndex++;
+                AddLanding(from, to); AddLanding(to, from);
+                void AddLanding(GdArray source, GdArray destination)
+                {
+                    Vec3 Local(GdArray cell) => new Vec3(V.F64(cell[0]) * cellSize,
+                        V.F64(cell[2]) * deckHeight + RunSession.PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR, V.F64(cell[1]) * cellSize);
+                    GameObject prop = ReadabilityPropFactory.CreateDeckTransferCue(verticalIndex, link.GetString("id"), link.GetString("type"), V.I64(source[2]), V.I64(destination[2]));
+                    var presentation = prop.GetComponent<DeckTransferPresentation>();
+                    presentation.SourceLocal = Local(source); presentation.DestinationLocal = Local(destination);
+                    presentation.ShipRoot = loader.GameObject.transform;
+                    presentation.BindViewer(() => session.Scene != null && session.Scene.HasPlayer ? session.Scene.PlayerPosition : (Vec3?)null);
+                    Register(set, prop, xf * presentation.SourceLocal);
+                    prop.transform.SetParent(loader.GameObject.transform, false);
+                    prop.transform.localPosition = Frame.ToUnity(presentation.SourceLocal);
+                }
             }
 
             // _build_entry_destination_props (+ D4 glows)
@@ -260,7 +276,7 @@ namespace SynapticSea.Runtime.Session
                 if (vfxId.Length != 0) AddVfx(set, vfxId, _root, xf * landmarks[i].GodotPosition);
             }
 
-            if (ShowAffordanceLabels) BuildAffordanceLabels(set.LabelPrefix, objectives, loader, xf, blockedHidden);
+            if (ShowAffordanceLabels) BuildAffordanceLabels(set, objectives, loader, xf, blockedHidden);
         }
 
         /// <summary>
@@ -303,8 +319,9 @@ namespace SynapticSea.Runtime.Session
         public static bool IsImported(GameObject prop) =>
             prop != null && prop.transform.Find(RuntimePropVisualBinder.IMPORTED_VISUAL_NAME) != null;
 
-        void BuildAffordanceLabels(string prefix, List<ObjectiveInteractable> objectives, ShipLoaderNode loader, Xform3 xf, bool blockedHidden)
+        void BuildAffordanceLabels(RootSet set, List<ObjectiveInteractable> objectives, ShipLoaderNode loader, Xform3 xf, bool blockedHidden)
         {
+            string prefix = set.LabelPrefix;
             foreach (ObjectiveInteractable it in objectives)
             {
                 ObjectiveInteractable captured = it;
@@ -322,13 +339,14 @@ namespace SynapticSea.Runtime.Session
                 Labels.Set(prefix + "blocked_" + GdString.FormatIntPadded(index, 2), "Blocked\nBio", () => at, BlockedLabelColor,
                     hazard: false, visible: !blockedHidden);
             }
-            index = 0;
-            foreach (RuntimeMarker node in loader.View.GetVisibleVerticalTransitionNodes())
+            foreach (var pair in set.Props)
             {
-                if (node == null) continue;
-                index++;
-                Vector3 at = Frame.ToUnity(xf * node.GodotPosition + new Vec3(0f, 2.2f, 0f));
-                Labels.Set(prefix + "vertical_" + GdString.FormatIntPadded(index, 2), "Ramp\nUp", () => at, RampLabelColor, hazard: false);
+                var presentation = pair.Value != null ? pair.Value.GetComponent<DeckTransferPresentation>() : null;
+                if (presentation == null) continue;
+                presentation.WorldLabelId = prefix + pair.Key;
+                Labels.Set(presentation.WorldLabelId, presentation.Label,
+                    () => presentation != null && presentation.VisibleOnSourceDeck ? presentation.SourceWorld + Vector3.up * 1.6f : (Vector3?)null,
+                    RampLabelColor, hazard: false);
             }
             index = 0;
             foreach (RuntimeMarker node in loader.View.GetLandmarkNodes())
