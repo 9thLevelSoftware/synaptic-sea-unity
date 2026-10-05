@@ -64,6 +64,8 @@ namespace SynapticSea.Game
         public readonly ShipModificationPanel ShipMod = new ShipModificationPanel();
         public readonly ChartPanel Chart = new ChartPanel();
         public readonly RecipePickerPanel RecipePicker = new RecipePickerPanel();
+        public readonly NearbyWorkPickerPanel NearbyWorkPicker = new NearbyWorkPickerPanel();
+        public Button NearbyWorkAction { get; private set; }
         SessionComponentHost _componentHost;
         TerminalSaveRetryPanel _terminalSaveRetry;
         public SurfacePanel TerminalSaveRetry => _terminalSaveRetry;
@@ -302,6 +304,21 @@ namespace SynapticSea.Game
             Chart.PanelClosed += () => OnInspectionClosed(Chart);
             RecipePicker.Bind(new SessionRecipeHost(session, Audio));
             RecipePicker.PanelClosed += () => OnInspectionClosed(RecipePicker);
+            NearbyWorkPicker.ListTargets = session.ListNearbyWorkTargets;
+            NearbyWorkPicker.DescribeTarget = session.DescribeWorkTarget;
+            NearbyWorkPicker.RequestTarget = target => host != null ? host.RequestWorkTargetFromPicker(target)
+                : new GdDict { { "ok", false }, { "reason", "not_ready" } };
+            NearbyWorkPicker.PanelClosed += () => OnInspectionClosed(NearbyWorkPicker);
+            NearbyWorkPicker.WorkResolved += result =>
+            {
+                if (!result.GetBool("started")) return;
+                // UI confirmation is never a held world Interact press.
+                session.EndWorkHold();
+                Router?.ApplyGameplayGate();
+                Hud.ShowToast("Selected work started.", Severity.Info);
+            };
+            NearbyWorkAction = UiFactory.Button("Choose nearby work", OpenNearbyWorkPicker, "action:nearby_work");
+            Inventory.CloseAction.parent.Insert(0, NearbyWorkAction);
 
             Router = new UiInputRouter(Input, Coordinator.Stack, Coordinator.HandleUiInput);
             Router.PanelToggleRequested += OnPanelToggle;
@@ -334,6 +351,8 @@ namespace SynapticSea.Game
                 if (Inventory.IsOpen()) Inventory.RefreshComponents();
                 if (ShipMod.IsOpen()) ShipMod.Refresh();
             }
+            NearbyWorkPicker.Refresh();
+            RefreshPrompt();
             Router?.Tick();
             if (_session?.VitalsModel != null && Hud.Vitals != null) Hud.Vitals.Refresh(_session.VitalsModel);
             if (Hud.Vitals != null && Time.unscaledTime >= _nextEffectRefresh)
@@ -343,7 +362,13 @@ namespace SynapticSea.Game
             }
         }
 
-        void RefreshPrompt() => Hud.SetContextPrompt(_focusPrompt.Length > 0 ? _focusPrompt : _objectivePrompt);
+        void RefreshPrompt()
+        {
+            string prompt = _focusPrompt.Length > 0 ? _focusPrompt : _objectivePrompt;
+            if (_session?.ListNearbyWorkTargets().Count > 0)
+                prompt += (prompt.Length > 0 ? "\n" : "") + "Inventory → Choose nearby work";
+            Hud.SetContextPrompt(prompt);
+        }
 
         void RefreshTerminalSaveRetry()
         {
@@ -456,6 +481,7 @@ namespace SynapticSea.Game
         {
             if (loaded)
             {
+                NearbyWorkPicker.Close();
                 ApplyPersistedPreferences();
                 if (_session?.ComponentIntegrationEnabled == true) RefreshComponentPanels(new GdDict());
             }
@@ -668,6 +694,16 @@ namespace SynapticSea.Game
                     }
                     break;
             }
+        }
+
+        /// <summary>Existing inventory navigation opens deliberate work selection; opening never starts work.</summary>
+        public void OpenNearbyWorkPicker()
+        {
+            if (_session == null || Coordinator == null || _session.SliceComplete) return;
+            if (!Inventory.IsOpen() || !ReferenceEquals(Coordinator.Stack.Top, Inventory)) return;
+            Inventory.Close();
+            NearbyWorkPicker.Open();
+            Show(NearbyWorkPicker);
         }
 
         /// <summary><c>_open_inventory_self</c>.</summary>

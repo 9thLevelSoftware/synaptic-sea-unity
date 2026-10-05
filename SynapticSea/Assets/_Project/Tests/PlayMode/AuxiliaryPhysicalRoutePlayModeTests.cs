@@ -4,10 +4,12 @@ using System.Linq;
 using NUnit.Framework;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Variant;
+using SynapticSea.Runtime;
 using SynapticSea.Runtime.Session;
 using SynapticSea.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 namespace SynapticSea.Tests.PlayMode
 {
@@ -120,6 +122,323 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsNotEmpty(_s.GetAuxiliaryServiceState().GetDictOrEmpty("services").GetDictOrEmpty(id).GetString("completion_commit_id"), GdJson.Stringify(_s.GetAuxiliaryServiceState()));
         }
 
+        const string AuxiliaryCaptureEnv = "SYNAPTIC_AUXILIARY_CHECKPOINT_CAPTURE_DIR";
+        const string AuxiliaryReplayEnv = "SYNAPTIC_AUXILIARY_CHECKPOINT_DIR";
+        static readonly System.Text.UTF8Encoding AuxiliaryUtf8 = new System.Text.UTF8Encoding(false, true);
+        static GdArray AuxiliaryPosition(Vec3 position) => new GdArray { position.X, position.Y, position.Z };
+        static string AuxiliaryHash(byte[] bytes)
+        {
+            using (var hash = System.Security.Cryptography.SHA256.Create())
+                return System.BitConverter.ToString(hash.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+        }
+        static bool AuxiliaryRelativePath(string path) => !string.IsNullOrEmpty(path) && !System.IO.Path.IsPathRooted(path)
+            && path.IndexOf('\\') < 0 && path.IndexOf(':') < 0 && path.Split('/').All(part => part.Length > 0 && part != "." && part != "..");
+        static string AuxiliaryReadVerified(string directory, string relative, string hash)
+        {
+            Assert.IsTrue(AuxiliaryRelativePath(relative), "checkpoint path must stay in its owned directory");
+            byte[] bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(directory, relative));
+            Assert.AreEqual(hash, AuxiliaryHash(bytes), "immutable checkpoint bytes: " + relative);
+            Assert.IsFalse(bytes.Length >= 3 && bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf, "checkpoint UTF8 must be BOM-free");
+            return AuxiliaryUtf8.GetString(bytes);
+        }
+        static GdDict AuxiliaryLaunchMetadata(RunLaunchRequest request) => new GdDict {
+            { "mode", request.Mode.ToString() }, { "slot_id", request.SlotId }, { "class_id", request.ClassId },
+            { "seed", request.Seed }, { "biome_id", request.BiomeId }, { "difficulty_id", request.DifficultyId },
+            { "layout_override_path", request.LayoutOverridePath }, { "enable_auxiliary_services", request.EnableAuxiliaryServices },
+            { "enable_manual_study", request.EnableManualStudy }, { "enable_component_integration", request.EnableComponentIntegration } };
+        GdDict AuxiliaryOrdinaryProbeState(string phase, BreachSealPoint intended)
+        {
+            Vec3 position = _boot.Host.SceneState.Player.GodotPosition;
+            var repairs = new GdArray(); var seals = new GdArray();
+            var precheck = typeof(RepairPoint).GetMethod("PrecheckReason", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            Assert.IsNotNull(precheck);
+            foreach (var point in _s.RepairPoints.OrderBy(p => p.GlobalPosition.DistanceSquaredTo(position)))
+            {
+                var sub = point.TargetManager?.GetSystem(point.SystemId)?.GetSubcomponent(point.SubcomponentId);
+                var parts = new GdDict(); var tools = new GdDict();
+                if (sub != null)
+                {
+                    foreach (string part in sub.RequiredParts) parts[part] = _s.InventoryState.GetQuantity(part);
+                    foreach (string tool in sub.RequiredTools) tools[tool] = _s.InventoryState.GetQuantity(tool);
+                }
+                repairs.Add(new GdDict { { "source_order_index", _s.RepairPoints.IndexOf(point) }, { "id", point.SystemId + "." + point.SubcomponentId }, { "node_name", point.NodeName },
+                    { "position", AuxiliaryPosition(point.GlobalPosition) }, { "distance_squared", point.GlobalPosition.DistanceSquaredTo(position) },
+                    { "strict_range", point.IsPlayerInDirectRangeStrict(position) }, { "valid", point.IsValid }, { "inside_tree", point.IsInsideTree },
+                    { "repaired", point.Repaired }, { "channeling", point.Channeling }, { "can_begin", point.CanBeginRepair() },
+                    { "can_focus", _s.CanFocusInteractable(point) }, { "precheck_reason", sub == null ? "missing_subcomponent" : (string)precheck.Invoke(point, new object[] { sub, _s.PlayerProgression.GetSkillLevel("repair") }) },
+                    { "manager_binding", ReferenceEquals(point.TargetManager, _s.ShipSystemsManager) }, { "min_skill", point.MinSkill }, { "part_quantities", parts }, { "tool_quantities", tools },
+                    { "functional", sub?.IsFunctional() ?? false }, { "inventory_binding", ReferenceEquals(point.InventoryState, _s.InventoryState) },
+                    { "progression_binding", ReferenceEquals(point.PlayerProgression, _s.PlayerProgression) } });
+            }
+            foreach (var point in _s.BreachSealPoints.OrderBy(p => p.GlobalPosition.DistanceSquaredTo(position)))
+                seals.Add(new GdDict { { "source_order_index", _s.BreachSealPoints.IndexOf(point) }, { "id", point.CompartmentId }, { "node_name", point.NodeName },
+                    { "position", AuxiliaryPosition(point.GlobalPosition) }, { "distance_squared", point.GlobalPosition.DistanceSquaredTo(position) },
+                    { "strict_range", point.IsPlayerInDirectRangeStrict(position) }, { "valid", point.IsValid }, { "inside_tree", point.IsInsideTree },
+                    { "can_focus", _s.CanFocusInteractable(point) }, { "sealed", point.Sealed }, { "channeling", point.Channeling }, { "required_item", point.RequiredItem },
+                    { "required_item_quantity", point.InventoryState?.GetQuantity(point.RequiredItem) ?? 0 },
+                    { "breach_open", point.HullState?.Compartments.GetDictOrEmpty(point.CompartmentId).GetBool("breach_open") ?? false },
+                    { "hull_binding", ReferenceEquals(point.HullState, _s.HullIntegrityState) },
+                    { "inventory_binding", ReferenceEquals(point.InventoryState, _s.InventoryState) } });
+            return new GdDict { { "phase", phase }, { "intended_caller", "AuxiliaryHomeRoute.cargo_seal" },
+                { "intended_target", intended.CompartmentId }, { "intended_position", AuxiliaryPosition(intended.GlobalPosition) },
+                { "player_position", AuxiliaryPosition(position) }, { "focused_kind", _boot.Host.FocusedView?.Model?.Kind ?? "" },
+                { "focused_node", _boot.Host.FocusedView?.Model?.NodeName ?? "" }, { "los_probe_has_space", _s.Deps.LosProbe?.HasSpace ?? false }, { "actual_handler", _s.LastInteractHandlerId ?? "" },
+                { "natural_channel_active", NaturalChannelActive() }, { "repair_skill", _s.PlayerProgression.GetSkillLevel("repair") },
+                { "inventory", _s.InventoryState.GetSummary() }, { "vitals", _s.VitalsState.GetSummary() },
+                { "repair_candidates", repairs }, { "seal_candidates", seals } };
+        }
+        void AuxiliaryCaptureCheckpoint(string directory, string classId)
+        {
+            Assert.IsFalse(System.IO.Directory.Exists(directory) || System.IO.File.Exists(directory), "capture destination must be new; existing evidence is immutable");
+            string revision = System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_CHECKPOINT_REVISION");
+            Assert.IsTrue(revision != null && revision.Length == 40 && revision.All(c => c >= '0' && c <= '9' || c >= 'a' && c <= 'f'), "capture requires full source HEAD in SYNAPTIC_AUXILIARY_CHECKPOINT_REVISION");
+            GdDict selected = _s.SaveLoadService.SelectGeneration("world"); Assert.IsTrue(selected.GetBool("ok"), GdJson.Stringify(selected));
+            var intended = _s.BreachSealPoints.Single(point => point.CompartmentId == "cargo" && !point.Sealed);
+            var request = new RunLaunchRequest { Mode = RunLaunchMode.Continue, SlotId = RunLaunchRequest.WorldSlotId,
+                ClassId = classId, Seed = _boot.Launch.Seed, BiomeId = _boot.Launch.BiomeId, DifficultyId = _boot.Launch.DifficultyId,
+                LayoutOverridePath = _boot.Launch.LayoutOverridePath, EnableAuxiliaryServices = true };
+            var metadata = new GdDict { { "schema_version", 1L }, { "boundary", "post_racks_saved_and_continued_before_ordinary_channel" },
+                { "source_commit", revision }, { "unity_version", Application.unityVersion }, { "application_version", Application.version },
+                { "run_id", selected.GetString("run_id") }, { "generation_id", selected.GetString("generation_id") },
+                { "generation_manifest_sha256", selected.GetString("manifest_sha256") }, { "initial_launch", AuxiliaryLaunchMetadata(_boot.Launch) },
+                { "continue_launch", AuxiliaryLaunchMetadata(request) }, { "world_time", _s.WorldTime },
+                { "progression", _s.PlayerProgression.GetSummary() }, { "auxiliary_state", _s.GetAuxiliaryServiceState() },
+                { "boundary_state", AuxiliaryOrdinaryProbeState("checkpoint_boundary", intended) } };
+            var catalogHashes = new GdArray();
+            foreach (string resource in new[] { "res://data/items/item_definitions.json", "res://data/tools/tool_definitions.json", "res://data/player/classes.json", "res://data/player/skills.json", "res://data/player/skill_books.json", "res://data/ship_systems/systems.json", "res://data/work_actions/work_action_catalog.json" })
+            {
+                Assert.IsTrue(SynapticSea.Core.Services.CoreServices.Resources.Exists(resource), resource);
+                catalogHashes.Add(new GdDict { { "logical_path", resource }, { "sha256", AuxiliaryHash(AuxiliaryUtf8.GetBytes(SynapticSea.Core.Services.CoreServices.Resources.ReadText(resource))) } });
+            }
+            metadata["catalog_hashes"] = catalogHashes;
+            metadata["runtime"] = new GdDict { { "framework", System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription },
+                { "architecture", System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString() },
+                { "engine_version", _s.Deps.Engine.VersionString }, { "core_mvid", typeof(RunSession).Assembly.ManifestModule.ModuleVersionId.ToString() },
+                { "runtime_mvid", typeof(RunSessionHost).Assembly.ManifestModule.ModuleVersionId.ToString() },
+                { "test_mvid", typeof(RunLifecyclePlayModeTests).Assembly.ManifestModule.ModuleVersionId.ToString() } };
+            System.IO.Directory.CreateDirectory(directory);
+            var rows = new GdArray(); var dirs = new GdArray();
+            void ExportDirectory(string relative)
+            {
+                foreach (string name in _storage.ListFiles(relative))
+                {
+                    string storagePath = relative.Length == 0 ? name : relative + "/" + name;
+                    Assert.IsTrue(AuxiliaryRelativePath(storagePath));
+                    string artifact = "files/" + storagePath; byte[] bytes = AuxiliaryUtf8.GetBytes(_storage.ReadText(storagePath));
+                    string target = System.IO.Path.Combine(directory, artifact); System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target));
+                    System.IO.File.WriteAllBytes(target, bytes);
+                    rows.Add(new GdDict { { "storage_path", storagePath }, { "file", artifact }, { "bytes", (long)bytes.Length }, { "sha256", AuxiliaryHash(bytes) } });
+                }
+                foreach (string name in _storage.ListDirectories(relative))
+                {
+                    string child = relative.Length == 0 ? name : relative + "/" + name; Assert.IsTrue(AuxiliaryRelativePath(child)); dirs.Add(child); ExportDirectory(child);
+                }
+            }
+            ExportDirectory("");
+            byte[] selectionBytes = AuxiliaryUtf8.GetBytes(SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(selected));
+            byte[] metadataBytes = AuxiliaryUtf8.GetBytes(SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(metadata));
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, "selection.json"), selectionBytes);
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, "metadata.json"), metadataBytes);
+            var manifest = new GdDict { { "schema_version", 1L }, { "source_commit", revision }, { "files", rows }, { "directories", dirs },
+                { "selection_file", "selection.json" }, { "selection_sha256", AuxiliaryHash(selectionBytes) },
+                { "metadata_file", "metadata.json" }, { "metadata_sha256", AuxiliaryHash(metadataBytes) },
+                { "generation_id", selected.GetString("generation_id") }, { "generation_manifest_sha256", selected.GetString("manifest_sha256") } };
+            byte[] manifestBytes = AuxiliaryUtf8.GetBytes(SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(manifest));
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, "manifest.json"), manifestBytes);
+            Debug.Log("[AuxiliaryCheckpointCaptured] directory=" + directory + " manifest_sha256=" + AuxiliaryHash(manifestBytes)
+                + " generation=" + selected.GetString("generation_id") + " files=" + rows.Count + " boundary=" + GdJson.Stringify(metadata.GetDictOrEmpty("boundary_state")));
+        }
+        [UnityTest, Explicit("Requires an immutable captured auxiliary checkpoint and pinned manifest environment variables"), Timeout(120000)]
+        public IEnumerator ContinueAuxiliaryCheckpointAndProbeFirstOrdinaryChannel()
+        {
+            string directory = System.Environment.GetEnvironmentVariable(AuxiliaryReplayEnv);
+            Assert.IsFalse(string.IsNullOrEmpty(directory), "explicit owned checkpoint directory required in " + AuxiliaryReplayEnv);
+            string manifestHash = System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_CHECKPOINT_MANIFEST_SHA256");
+            Assert.IsFalse(string.IsNullOrEmpty(manifestHash), "pin exact checkpoint manifest SHA256 before replay");
+            var manifest = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(AuxiliaryReadVerified(directory, "manifest.json", manifestHash));
+            Assert.AreEqual(1, manifest.GetInt("schema_version"));
+            var selected = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(AuxiliaryReadVerified(directory, manifest.GetString("selection_file"), manifest.GetString("selection_sha256")));
+            var metadata = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(AuxiliaryReadVerified(directory, manifest.GetString("metadata_file"), manifest.GetString("metadata_sha256")));
+            Assert.AreEqual(manifest.GetString("generation_id"), selected.GetString("generation_id"));
+            Assert.AreEqual(manifest.GetString("generation_manifest_sha256"), selected.GetString("manifest_sha256"));
+            var seen = new HashSet<string>(System.StringComparer.Ordinal);
+            var imported = new Dictionary<string,string>(System.StringComparer.Ordinal);
+            var importedDirs = new List<string>();
+            foreach (object value in manifest.GetArrayOrEmpty("directories"))
+            { string path = V.Str(value); Assert.IsTrue(AuxiliaryRelativePath(path)); importedDirs.Add(path); }
+            foreach (GdDict row in manifest.GetArrayOrEmpty("files"))
+            {
+                string path = row.GetString("storage_path"); Assert.IsTrue(AuxiliaryRelativePath(path) && seen.Add(path));
+                string text = AuxiliaryReadVerified(directory, row.GetString("file"), row.GetString("sha256"));
+                Assert.AreEqual(row.GetInt("bytes"), AuxiliaryUtf8.GetByteCount(text)); imported.Add(path, text);
+            }
+            // Validate every owned file before importing any bytes into the new MemoryStorage.
+            foreach (string directoryPath in importedDirs) _storage.MakeDirRecursive(directoryPath);
+            foreach (var row in imported) _storage.WriteText(row.Key, row.Value);
+            var launch = metadata.GetDictOrEmpty("continue_launch");
+            Assert.AreEqual("Continue", launch.GetString("mode")); Assert.AreEqual("world", launch.GetString("slot_id"));
+            Assert.IsTrue(launch.GetBool("enable_auxiliary_services"));
+            // Compare both reader policies with the same immutable package and normal app ports.
+            // Neither returned reader is used to substitute for normal bootstrap admission.
+            SynapticSea.App.AppServices.Ensure();
+            bool legacyReaderOk = SynapticSea.Core.Systems.SaveGenerationArtifacts.TryCreateReader(selected,
+                SynapticSea.Core.Services.CoreServices.Resources, out var legacyReader, out string legacyReaderReason);
+            string expectedMode = launch.GetBool("enable_component_integration")
+                ? SynapticSea.Core.Systems.PaidSnapshotCodec.DiagnosticMode : SynapticSea.Core.Systems.PaidSnapshotCodec.OrdinaryMode;
+            bool paidReaderOk = SynapticSea.Core.Systems.SaveGenerationArtifacts.TryCreateReader(selected,
+                SynapticSea.Core.Services.CoreServices.Resources, out var paidReader, out string paidReaderReason, true, expectedMode);
+            var package = selected.GetDictOrEmpty("payloads");
+            Debug.Log("[AuxiliaryReaderPolicyProbe] " + GdJson.Stringify(new GdDict {
+                { "run_id", selected.GetString("run_id") }, { "generation_id", selected.GetString("generation_id") },
+                { "selected_mode", selected.GetString("save_mode") }, { "expected_mode", expectedMode },
+                { "legacy_reader_ok", legacyReaderOk }, { "legacy_reason", legacyReaderReason },
+                { "paid_reader_ok", paidReaderOk }, { "paid_reason", paidReaderReason },
+                { "selected_payload_sha256", selected.GetString("payloads_sha256") },
+                { "legacy_payload_sha256", SynapticSea.Core.Systems.SaveGenerationArtifacts.Hash(GdJson.Stringify(package)) },
+                { "paid_payload_sha256", SynapticSea.Core.Systems.SaveGenerationArtifacts.Hash(SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(package)) } }));
+            _recordJourneyTelemetry = true;
+            yield return BootPlayable(new RunLaunchRequest { Mode = RunLaunchMode.Continue, SlotId = launch.GetString("slot_id"),
+                ClassId = launch.GetString("class_id"), Seed = launch.GetInt("seed"), BiomeId = launch.GetString("biome_id"), DifficultyId = launch.GetString("difficulty_id"),
+                LayoutOverridePath = launch.GetString("layout_override_path"), EnableAuxiliaryServices = true,
+                EnableManualStudy = launch.GetBool("enable_manual_study"), EnableComponentIntegration = launch.GetBool("enable_component_integration"), SelectedSaveGeneration = selected });
+            // Normal scene boot installs resource/catalog ports before typed-owner admission can validate.
+            var reread = _s.SaveLoadService.ReadGeneration(selected.GetString("run_id"), selected.GetString("slot_id"), selected.GetString("generation_id"), selected.GetString("manifest_sha256"));
+            Assert.IsTrue(reread.GetBool("ok"), GdJson.Stringify(reread));
+            foreach (string key in new[] { "run_id", "slot_id", "generation_id", "manifest_sha256" }) Assert.AreEqual(selected.GetString(key), reread.GetString(key), key);
+            Assert.IsTrue(V.VariantEquals(selected.GetDictOrEmpty("payloads"), reread.GetDictOrEmpty("payloads")), "normal ReadGeneration must verify the complete selected package after raw import");
+            foreach (GdDict catalog in metadata.GetArrayOrEmpty("catalog_hashes"))
+                Assert.AreEqual(catalog.GetString("sha256"), AuxiliaryHash(AuxiliaryUtf8.GetBytes(SynapticSea.Core.Services.CoreServices.Resources.ReadText(catalog.GetString("logical_path")))), "same catalog bytes on checkpoint replay");
+            var actual = _s.SaveLoadService.SelectGeneration("world");
+            Assert.IsTrue(actual.GetBool("ok")); Assert.AreEqual(selected.GetString("generation_id"), actual.GetString("generation_id"));
+            Assert.AreEqual(selected.GetString("manifest_sha256"), actual.GetString("manifest_sha256"));
+            Assert.IsTrue(V.VariantEquals(selected.GetDictOrEmpty("payloads"), actual.GetDictOrEmpty("payloads")), "Continue kept the exact selected payload package");
+            var intended = _s.BreachSealPoints.Single(point => point.CompartmentId == "cargo" && !point.Sealed);
+            yield return AuxiliaryDeck(intended.GlobalPosition.Y > 3 ? 1 : 0);
+            yield return WalkTo(intended.GlobalPosition, 1.6f);
+            yield return FixedSteps(2);
+            var player = _boot.Host.SceneState.Player;
+            Assert.IsTrue(intended.IsPlayerInDirectRangeStrict(player.GodotPosition), "ordinary strict seal reach");
+            Assert.IsTrue(_s.RepairPoints.Any(point => point.IsPlayerInDirectRangeStrict(player.GodotPosition)),
+                "the selection regression retains the proven competing repair overlap");
+            var floor = SpawnClearance.FloorUnder(player.transform.position);
+            Assert.IsNotNull(floor, "physical floor supports the actual standing spot");
+            var controller = player.GetComponent<CharacterController>();
+            Assert.IsNotNull(controller); Assert.IsTrue(controller.isGrounded, "collision-authoritative player is grounded");
+            Assert.IsTrue(_s.CanFocusInteractable(intended), "production focus reach and LOS admit the intended seal");
+            Debug.Log("[AuxiliarySealStandingProof] " + GdJson.Stringify(new GdDict {
+                { "player", new GdArray { player.GodotPosition.X, player.GodotPosition.Y, player.GodotPosition.Z } },
+                { "floor", floor.name }, { "grounded", controller.isGrounded }, { "production_focus_los", true },
+                { "repair_strict_range_count", _s.RepairPoints.Count(point => point.IsPlayerInDirectRangeStrict(player.GodotPosition)) } }));
+            Assert.AreEqual(1, _s.PlayerProgression.GetSkillLevel("repair"));
+            Assert.AreEqual(188, _s.PlayerProgression.GetSkillXp("repair"), "immutable Cook checkpoint before exact 12 XP seal reward");
+            long sealantBefore = _s.InventoryState.GetQuantity(intended.RequiredItem);
+            int sealCompletions = 0;
+            System.Action<string> completed = id => { Assert.AreEqual("cargo", id); sealCompletions++; };
+            intended.BreachSealed += completed;
+            var events = new GdArray(); var detach = new List<System.Action>();
+            foreach (var point in _s.RepairPoints)
+            {
+                var captured = point; System.Action<string,string,string> blocked = (system, sub, reason) => events.Add(new GdDict { { "kind", "repair_blocked" }, { "id", system + "." + sub }, { "reason", reason } });
+                System.Action<string,string> started = (system, sub) => events.Add(new GdDict { { "kind", "repair_started" }, { "id", system + "." + sub } });
+                point.RepairBlocked += blocked; point.RepairStarted += started;
+                detach.Add(() => { captured.RepairBlocked -= blocked; captured.RepairStarted -= started; });
+            }
+            foreach (var point in _s.BreachSealPoints)
+            {
+                var captured = point; System.Action<string,string> blocked = (id, reason) => events.Add(new GdDict { { "kind", "seal_blocked" }, { "id", id }, { "reason", reason } });
+                point.SealBlocked += blocked; detach.Add(() => captured.SealBlocked -= blocked);
+            }
+            try
+            {
+                Debug.Log("[AuxiliaryOrdinaryProbeBefore] " + GdJson.Stringify(AuxiliaryOrdinaryProbeState("before_request", intended)));
+                var gravity = _s.RepairPoints.Single(point => point.SystemId == "gravity" && point.SubcomponentId == "field_emitter");
+                Assert.IsTrue(gravity.IsPlayerInDirectRangeStrict(player.GodotPosition), "proven unavailable repair remains physically overlapping");
+                var inventoryBeforeDenial = _s.InventoryState.GetSummary().DeepCopy();
+                var progressionBeforeDenial = _s.PlayerProgression.GetSummary().DeepCopy();
+                AuxiliaryOpenWorkPickerFromInventory();
+                Assert.IsFalse(NaturalChannelActive(), "opening the chooser never confirms work");
+                AuxiliarySelectWorkRow(gravity);
+                StringAssert.Contains("insufficient_skill", _boot.Ui.NearbyWorkPicker.DetailText);
+                AuxiliarySubmit(_boot.Ui.NearbyWorkPicker.List.RowAt(_boot.Ui.NearbyWorkPicker.List.SelectedIndex));
+                Assert.IsTrue(_boot.Ui.NearbyWorkPicker.IsOpen(), "denied selection remains visible for feedback");
+                StringAssert.Contains("insufficient_skill", _boot.Ui.NearbyWorkPicker.StatusDisplay);
+                Assert.IsTrue(events.Cast<GdDict>().Any(row => row.GetString("kind") == "repair_blocked" && row.GetString("id") == "gravity.field_emitter" && row.GetString("reason") == "insufficient_skill"));
+                Assert.IsFalse(NaturalChannelActive(), "deliberately unavailable repair cannot fall back to the seal");
+                Assert.IsTrue(V.VariantEquals(inventoryBeforeDenial, _s.InventoryState.GetSummary()), "repair denial changes no inventory");
+                Assert.IsTrue(V.VariantEquals(progressionBeforeDenial, _s.PlayerProgression.GetSummary()), "repair denial awards no XP");
+                _boot.Ui.NearbyWorkPicker.Close();
+                Assert.IsFalse(NaturalChannelActive(), "cancel starts no work");
+                AuxiliaryOpenWorkPickerFromInventory();
+                Assert.IsFalse(NaturalChannelActive(), "reopening starts no work");
+                AuxiliarySelectWorkRow(intended);
+                yield return CaptureHud("work-picker-cargo-selection.png");
+                AuxiliarySubmit(_boot.Ui.NearbyWorkPicker.List.RowAt(_boot.Ui.NearbyWorkPicker.List.SelectedIndex));
+                Assert.IsFalse(_boot.Ui.NearbyWorkPicker.IsOpen(), "successful player selection returns to world work");
+                Assert.IsTrue(NaturalChannelActive(), "explicit player selection must start the selected seal channel");
+                Assert.IsTrue(intended.Channeling, "cargo seal alone receives confirmation");
+                Assert.IsFalse(_s.RepairPoints.Any(point => point.Channeling), "selection starts no competing repair");
+                Debug.Log("[AuxiliaryPickerSelection] " + GdJson.Stringify(new GdDict { { "selected", "seal:cargo" }, { "events", events.DeepCopy() },
+                    { "inventory_before", inventoryBeforeDenial }, { "progression_before", progressionBeforeDenial }, { "state", AuxiliaryOrdinaryProbeState("explicit_seal_started", intended) } }));
+                float completionDeadline = Time.realtimeSinceStartup + 30f;
+                while (intended.Channeling)
+                {
+                    Assert.Less(Time.realtimeSinceStartup, completionDeadline, "ordinary Process must complete the four-second seal channel");
+                    Assert.IsFalse(_s.SliceComplete, "player survives normal seal work");
+                    yield return null;
+                }
+                Assert.IsTrue(intended.Sealed); Assert.AreEqual(1, sealCompletions);
+                Assert.AreEqual(sealantBefore - 1, _s.InventoryState.GetQuantity(intended.RequiredItem), "exact one sealant consumed");
+                Assert.AreEqual(2, _s.PlayerProgression.GetSkillLevel("repair"));
+                Assert.AreEqual(0, _s.PlayerProgression.GetSkillXp("repair"), "Cook repair 188 + 12 reaches level 2 exactly");
+                var completedInventory = _s.InventoryState.GetSummary().DeepCopy();
+                var completedProgression = _s.PlayerProgression.GetSummary().DeepCopy();
+                AuxiliaryOpenWorkPickerFromInventory();
+                for (int row = 0; row < _boot.Ui.NearbyWorkPicker.List.Count; row++)
+                {
+                    Assert.IsFalse(ReferenceEquals(_boot.Ui.NearbyWorkPicker.SelectedTarget, intended), "completed seal is not an available chooser row");
+                    _boot.Ui.NearbyWorkPicker.MoveSelection(1);
+                }
+                _boot.Ui.NearbyWorkPicker.Close();
+                yield return FixedSteps(8);
+                Assert.AreEqual(1, sealCompletions, "completed seal cannot award twice");
+                Assert.IsFalse(NaturalChannelActive(), "repeat request cannot start another local channel");
+                Assert.IsTrue(V.VariantEquals(completedInventory, _s.InventoryState.GetSummary()), "repeat preserves exact inventory");
+                Assert.IsTrue(V.VariantEquals(completedProgression, _s.PlayerProgression.GetSummary()), "repeat preserves every skill reward");
+                Debug.Log("[AuxiliaryOrdinaryProbeCompleted] " + GdJson.Stringify(AuxiliaryOrdinaryProbeState("completed_and_reopened", intended)));
+            }
+            finally { intended.BreachSealed -= completed; foreach (var unsubscribe in detach) unsubscribe(); }
+        }
+
+
+        static void AuxiliarySubmit(VisualElement element)
+        {
+            Assert.IsNotNull(element); Assert.IsNotNull(element.panel, "actual mounted UI control");
+            element.Focus();
+            Assert.AreSame(element, element.panel.focusController.focusedElement, "player confirmation targets the focused UI control");
+            using (var submit = NavigationSubmitEvent.GetPooled())
+            { submit.target = element; element.SendEvent(submit); }
+        }
+
+        void AuxiliaryOpenWorkPickerFromInventory()
+        {
+            _boot.Ui.OpenInventorySelf();
+            Assert.IsTrue(_boot.Ui.Inventory.IsOpen());
+            AuxiliarySubmit(_boot.Ui.NearbyWorkAction);
+            Assert.IsTrue(_boot.Ui.NearbyWorkPicker.IsOpen(), "actual inventory action opens the chooser");
+            Assert.IsFalse(_boot.Ui.Inventory.IsOpen(), "chooser replaces inventory modal");
+        }
+
+        void AuxiliarySelectWorkRow(SessionInteractable target)
+        {
+            var picker = _boot.Ui.NearbyWorkPicker;
+            for (int index = 0; index < picker.List.Count; index++)
+            {
+                if (ReferenceEquals(picker.SelectedTarget, target)) return;
+                picker.MoveSelection(1);
+            }
+            Assert.Fail("exact live target was absent from player chooser: " + target.NodeName);
+        }
+
         IEnumerator AuxiliaryHomeRoute(string classId)
         {
             var routeWall=System.Diagnostics.Stopwatch.StartNew();
@@ -183,6 +502,9 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(_s.IsAuxiliaryHardwareReady(_s.HomeShip.ShipId,"maintenance_cargo_relay_01"));
             foreach(string id in new[]{"home_spare_harness_rack_01","home_spare_harness_rack_02"})Assert.AreEqual(0,_s.GetAuxRackRemaining(id).GetInt("scrap_metal"));
             yield return CaptureHud(classId+"-finite-racks-restored.png");
+            string checkpointDirectory = System.Environment.GetEnvironmentVariable(AuxiliaryCaptureEnv);
+            if (!string.IsNullOrEmpty(checkpointDirectory))
+            { AuxiliaryCaptureCheckpoint(checkpointDirectory, classId); yield break; }
             // Existing ordinary first-away content contract remains unchanged; no frozen-source gate bypass.
             var seal=_s.BreachSealPoints.Single(p=>p.CompartmentId=="cargo"&&!p.Sealed);
             yield return AuxiliaryDeck(seal.GlobalPosition.Y>3?1:0); yield return WalkAndFinishChannel(seal.GlobalPosition);

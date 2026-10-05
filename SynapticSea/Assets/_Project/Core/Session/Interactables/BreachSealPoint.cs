@@ -72,6 +72,16 @@ namespace SynapticSea.Core.Session
             NotifyChanged();
         }
 
+        /// <summary>Authoritative breach/item status without starting work or spending items.</summary>
+        public string DescribeReason()
+        {
+            if (Channeling) return "work_busy";
+            if (Sealed) return "completed";
+            if (HullState == null || !HullState.Compartments.Has(CompartmentId)) return "invalid_binding";
+            if (!V.Bool(HullState.Compartments.GetDictOrEmpty(CompartmentId).Get("breach_open", false))) return "not_breached";
+            return HasRequiredItem() ? "ok" : "missing_sealant";
+        }
+
         /// <summary>Begins the channel if the player is in range and a dry-run would succeed.</summary>
         public bool TryStart(Vec3 playerPosition)
         {

@@ -425,6 +425,18 @@ namespace SynapticSea.Runtime.Session
             return handler;
         }
 
+        /// <summary>Explicit picker confirmation bypasses no Core gates and never falls back to the registry.</summary>
+        public GdDict RequestWorkTargetFromPicker(SessionInteractable target)
+        {
+            if (Session == null || Paused)
+                return new GdDict { { "ok", false }, { "started", false }, { "reason", "not_ready" } };
+            SceneState?.Sensor?.Refresh();
+            foreach (InteractableView view in _interactables.Values) view.Sync();
+            GdDict result = Session.RequestWorkTarget(target);
+            ApplyViews();
+            return result;
+        }
+
         // ------------------------------------------------------------------ interaction nodes
 
         void OnInteractableSpawned(SessionInteractable model)
