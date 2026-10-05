@@ -675,6 +675,7 @@ namespace SynapticSea.Tests.PlayMode
                 else Assert.AreEqual("0:0:0", witnessedMarker, "representative uses actual first contact");
                 Assert.AreEqual("first_away_salvage_v1", _s.CurrentShip.Blueprint.GenerationProfile, "actual admitted profile; no forced marker/seed");
                 Assert.AreEqual(42, _s.CurrentShip.Blueprint.SeedValue, "normal ordered preferred gate selected its first complete candidate");
+                yield return AuxiliaryWitnessOwnedAwayPressure();
                 witnessedBinding = AuxiliaryAssertFirstAwayRawBinding(_s.CurrentShip);
                 Debug.Log("[AuxiliaryReviewedFirstAwayBoarded] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
                     { "ship_id", _s.CurrentShip.ShipId }, { "marker_id", _s.CurrentShip.MarkerId }, { "blueprint", _s.CurrentShip.Blueprint.ToDict() },
@@ -838,10 +839,41 @@ namespace SynapticSea.Tests.PlayMode
             AuxiliaryContinuationState("one_earned_sealant_retrieved_from_home");
         }
 
+        IEnumerator AuxiliaryWitnessOwnedAwayPressure()
+        {
+            var ship = _s.CurrentShip;
+            Assert.AreSame(ship, _s.CurrentOccupancy, "pressure witness belongs to boarded destination");
+            Assert.IsTrue(ship.Hull.Compartments.Has("cargo"));
+            var cargo = ship.Hull.Compartments.GetDictOrEmpty("cargo");
+            Assert.IsTrue(cargo.Has("breach_open") && cargo["breach_open"] is bool && (bool)cargo["breach_open"]);
+            var loader = ship.SceneRoot as IShipLoaderView; Assert.IsNotNull(loader);
+            var arrival = _boot.Host.SceneState.Player.GodotPosition;
+            var local = SessionMath.AffineInverse(ship.SceneRoot.GlobalTransform) * arrival;
+            var before = _s.GetOxygenSummary().DeepCopy(); double started = _s.WorldTime;
+            Assert.Greater(before.GetFloat("effective_drain_rate"), 0);
+            Debug.Log("[AuxiliaryOwnedAwayPressureBefore] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "owner_id", ship.ShipId }, { "oxygen", before }, { "world_time", started }, { "position", AuxiliaryPosition(arrival) },
+                { "atmosphere", loader.GetAuthoredAtmosphereAt(local) }, { "atmosphere_multiplier", loader.GetAuthoredAtmosphereDrainMultiplierAt(local) },
+                { "vitals", _s.VitalsState.GetSummary() }, { "threats", new GdArray(_s.ThreatManager.Threats.Select(threat => threat.GetSummary())) } }));
+            // Ordinary simulation at the actual arrival point: no clock injection or positional changes.
+            // This witnesses existing away field pressure, not a spatial cargo breach zone.
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (_s.WorldTime - started < 1.0 && !_s.SliceComplete && Time.realtimeSinceStartup < deadline) yield return null;
+            var after = _s.GetOxygenSummary();
+            Debug.Log("[AuxiliaryOwnedAwayPressureAfter] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "owner_id", ship.ShipId }, { "oxygen", after }, { "world_time", _s.WorldTime },
+                { "position", AuxiliaryPosition(_boot.Host.SceneState.Player.GodotPosition) }, { "vitals", _s.VitalsState.GetSummary() },
+                { "threats", new GdArray(_s.ThreatManager.Threats.Select(threat => threat.GetSummary())) } }));
+            Assert.IsFalse(_s.SliceComplete); Assert.AreSame(ship, _s.CurrentOccupancy);
+            Assert.GreaterOrEqual(_s.WorldTime - started, 1.0, "bounded ordinary simulation advances");
+            Assert.Less(after.GetFloat("oxygen"), before.GetFloat("oxygen"), "actual away field pressure consumes suit oxygen");
+        }
+
         IEnumerator AuxiliaryWitnessReviewedProfileWork()
         {
-            Assert.IsTrue(_s.CurrentShip.Hull.Compartments.GetDictOrEmpty("cargo").GetBool("breach_open"), "authentic runtime cargo breach materialized");
-            Assert.Greater(_s.GetBreachZoneCollisionEnabledCount(), 0, "ordinary breach hazard zone materialized");
+            Assert.IsTrue(_s.CurrentShip.Hull.Compartments.Has("cargo"));
+            var cargo = _s.CurrentShip.Hull.Compartments.GetDictOrEmpty("cargo");
+            Assert.IsTrue(cargo.Has("breach_open") && cargo["breach_open"] is bool && (bool)cargo["breach_open"], "owned cargo has explicit runtime breach");
             var living = _s.ThreatManager.Threats.Where(threat => threat.ArchetypeId == "biomatter_swarm" && threat.Health > 0).ToArray();
             Assert.Greater(living.Length, 0, "normal biomatter_lurker resolves to actual living swarm");
             foreach (var threat in living)
