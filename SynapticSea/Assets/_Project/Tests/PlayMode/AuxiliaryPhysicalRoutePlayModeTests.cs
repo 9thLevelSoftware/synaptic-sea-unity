@@ -929,6 +929,27 @@ namespace SynapticSea.Tests.PlayMode
             AuxiliaryDockSeamDiagnostic("after_normal_landing_walk", dockLanding);
             Assert.IsNotNull(SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position));
             Assert.IsTrue(_boot.Host.SceneState.Player.GetComponent<CharacterController>().isGrounded);
+            // The spawn landing is a shared docking overlap. Walk to an actual dock-owned floor
+            // whose entire existing arrival allowance lies outside every lifeboat floor.
+            var dockRoom = _s.CurrentShip.BuiltLayout.GetArrayOrEmpty("rooms").Cast<GdDict>()
+                .Single(room => room.GetString("semantic_id") == "dock" && room.GetString("owner_id") == _s.CurrentShip.ShipId);
+            var dockCells = dockRoom.GetArrayOrEmpty("cells").Select(SynapticSea.Core.Procgen.LayoutSerializer.ParseSlotCell).ToArray();
+            var mobileInverse = SessionMath.AffineInverse(_s.LifeboatShip.SceneRoot.GlobalTransform);
+            var mobileFloors = SynapticSea.Core.Systems.AssemblyMobility.Floors(_s.LifeboatShip.BuiltLayout);
+            var exclusiveFloors = SynapticSea.Core.Systems.AssemblyMobility.Floors(_s.CurrentShip.BuiltLayout)
+                .Where(center => dockCells.Any(cell => System.Math.Abs(center.X - V.I64(cell[0]) * 4.0) < .01 && System.Math.Abs(center.Z - V.I64(cell[1]) * 4.0) < .01))
+                .Select(center => _s.CurrentShip.SceneRoot.GlobalTransform * center)
+                .Where(world => { var local = mobileInverse * world; return mobileFloors.All(center =>
+                    System.Math.Abs(local.X - center.X) > 2.01 + 1.1 || System.Math.Abs(local.Z - center.Z) > 2.01 + 1.1); })
+                .OrderBy(world => (Frame.ToUnity(world) - _boot.Host.SceneState.Player.transform.position).sqrMagnitude)
+                .ThenBy(world => world.X).ThenBy(world => world.Z).ToArray();
+            Assert.Greater(exclusiveFloors.Length, 0, "actual owned dock floor outside lifeboat coverage and unchanged arrival allowance");
+            var pressureStandingPoint = exclusiveFloors[0] + new Vec3(0, .12, 0);
+            AuxiliaryDockSeamDiagnostic("before_normal_destination_exclusive_walk", pressureStandingPoint);
+            yield return WalkTo(pressureStandingPoint, 1.1f);
+            AuxiliaryDockSeamDiagnostic("after_normal_destination_exclusive_walk", pressureStandingPoint);
+            Assert.IsNotNull(SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position));
+            Assert.IsTrue(_boot.Host.SceneState.Player.GetComponent<CharacterController>().isGrounded);
             yield return AuxiliaryWitnessOwnedAwayPressure();
             foreach (var threat in living)
             {
