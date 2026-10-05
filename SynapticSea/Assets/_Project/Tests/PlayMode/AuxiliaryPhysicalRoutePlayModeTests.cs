@@ -626,6 +626,114 @@ namespace SynapticSea.Tests.PlayMode
             yield return CaptureHud("cook-checkpoint-earned-return.png");
         }
 
+        [UnityTest, Explicit("Pinned immutable post-seal checkpoint; isolated first-away generation diagnosis"), Timeout(120000)]
+        public IEnumerator DiagnoseAuxiliaryFirstAwayContractFromImmutableCheckpoint()
+        {
+            yield return AuxiliaryBootImmutableCheckpoint("post_seal_saved_and_continued_before_machinery");
+            Assert.AreEqual(0, _s.VisitedShips.Count, "same first-away profile as refused earned route");
+            var orderedMarkers = _s.SynapticSeaWorld.MarkersInRange(_s.ScannerState.RangeRadius);
+            var marker = orderedMarkers.First();
+            Assert.AreEqual(Vec3.Zero, _s.SynapticSeaWorld.PlayerPosition, "same sea position as recorded v7 first selection index zero");
+            var contract = _s.FirstRunContract;
+            Assert.IsNotNull(contract); Assert.IsFalse(contract.Contract.IsEmpty);
+            var live = _s.ShipGenerator;
+            var generator = new SynapticSea.Core.Procgen.ShipGenerator {
+                DerelictSource = live.DerelictSource,
+                EnableReviewedFrozenVersion4 = live.EnableReviewedFrozenVersion4,
+                ExpeditionProfile = SynapticSea.Core.Procgen.ConstrainedExpedition.Profile, RichExpeditions = false };
+            Assert.IsNull(live.DerelictSource, "unexpected external generator needs isolated provider-specific diagnosis, not shared mutable source");
+            object[] liveStages = { live.LayoutGenerator.TemplateSelectorStage, live.LayoutGenerator.RoomAssignerStage, live.LayoutGenerator.CellLayoutEngineStage, live.LayoutGenerator.WallDoorResolverStage, live.LayoutGenerator.LayoutSerializerStage };
+            object[] freshStages = { generator.LayoutGenerator.TemplateSelectorStage, generator.LayoutGenerator.RoomAssignerStage, generator.LayoutGenerator.CellLayoutEngineStage, generator.LayoutGenerator.WallDoorResolverStage, generator.LayoutGenerator.LayoutSerializerStage };
+            for (int stage = 0; stage < liveStages.Length; stage++) Assert.AreEqual(freshStages[stage].GetType(), liveStages[stage].GetType(), "custom layout stage requires separate diagnosis");
+            string liveBiome = live.BiomeId, liveDifficulty = live.DifficultyId, liveProfile = live.ExpeditionProfile;
+            string liveLayoutBiome = live.LayoutGenerator.BiomeId, liveLayoutDifficulty = live.LayoutGenerator.DifficultyId;
+            bool liveRich = live.RichExpeditions; var liveSelector = live.LayoutGenerator.VariantSelector;
+            long originalMarkerSeed = marker.SeedValue;
+            generator.ConfigureRunContext(contract.Contract.GetString("biome_id"), contract.Contract.GetString("difficulty_id"));
+            string output = System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_CONTRACT_DIAGNOSTIC_DIR");
+            if (!string.IsNullOrEmpty(output))
+            {
+                Assert.IsFalse(System.IO.Directory.Exists(output) || System.IO.File.Exists(output), "diagnostic artifact destination must be fresh");
+                System.IO.Directory.CreateDirectory(output);
+            }
+            var report = new GdDict { { "source_commit", System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_CHECKPOINT_REVISION") ?? "" },
+                { "test_source_sha256", System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_CHECKPOINT_TEST_SOURCE_SHA256") ?? "" },
+                { "resource_reader_type", SynapticSea.Core.Services.CoreServices.Resources.GetType().AssemblyQualifiedName },
+                { "streaming_assets_path", Application.streamingAssetsPath },
+                { "contract_catalog_sha256", AuxiliaryHash(AuxiliaryUtf8.GetBytes(SynapticSea.Core.Services.CoreServices.Resources.ReadText(SynapticSea.Core.Procgen.FirstRunContract.CONTRACT_PATH))) },
+                { "room_variant_effects_sha256", AuxiliaryHash(AuxiliaryUtf8.GetBytes(SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(SynapticSea.Core.Procgen.RoomVariantSelector.VARIANT_EFFECTS))) },
+                { "marker_order", new GdArray(orderedMarkers.Select(item => new GdDict { { "marker_id", item.MarkerId }, { "size_class", item.SizeClass }, { "condition", item.Condition }, { "position", AuxiliaryPosition(item.Position) } })) },
+                { "generator_type", live.GetType().AssemblyQualifiedName }, { "layout_generator_type", live.LayoutGenerator.GetType().AssemblyQualifiedName },
+                { "layout_stage_types", new GdArray(liveStages.Select(stage => stage.GetType().AssemblyQualifiedName)) },
+                { "variant_selector_type", liveSelector?.GetType().AssemblyQualifiedName ?? "null" },
+                { "derelict_source_type", live.DerelictSource?.GetType().AssemblyQualifiedName ?? "null" },
+                { "route", live.DerelictSource == null ? "ordinary_csharp_layout_pipeline" : "derelict_layout_source_worldgen" },
+                { "enable_reviewed_frozen_version4", live.EnableReviewedFrozenVersion4 }, { "contract", contract.Contract.DeepCopy() },
+                { "marker_id", marker.MarkerId }, { "size_class", marker.SizeClass }, { "condition", marker.Condition },
+                { "world_position", AuxiliaryPosition(_s.SynapticSeaWorld.PlayerPosition) },
+                { "generation_profile", generator.ExpeditionProfile }, { "rich_expeditions", generator.RichExpeditions } };
+            var candidates = new GdArray();
+            foreach (object preferred in contract.Contract.GetArrayOrEmpty("preferred_seeds"))
+            {
+                long seed = V.I64(preferred);
+                var docs = generator.GenerateFromSeed(seed, marker.SizeClass, marker.Condition);
+                Assert.IsNotNull(docs, "candidate generation returned no documents: " + seed);
+                var layout = docs.Layout; var gameplay = docs.GameplaySlice;
+                var hazards = new GdArray(); var available = new HashSet<string>();
+                foreach (var pair in new[] { new KeyValuePair<string,GdDict>("layout", layout), new KeyValuePair<string,GdDict>("gameplay", gameplay) })
+                    foreach (string kind in new[] { "fire_zone", "breach_zone" })
+                    {
+                        var rows = pair.Value.GetArrayOrEmpty(kind == "fire_zone" ? "fire_zones" : "breach_zones");
+                        if (!rows.IsEmpty) available.Add(kind);
+                        hazards.Add(new GdDict { { "source", pair.Key }, { "kind", kind }, { "count", rows.Count }, { "rows", rows.DeepCopy() } });
+                    }
+                var roles = new HashSet<string>(new[] { "bridge", "cockpit", "engineering", "reactor", "engine_bay", "hydroponics", "cargo", "storage" });
+                var variants = new GdArray(); var selector = new SynapticSea.Core.Procgen.RoomVariantSelector();
+                foreach (GdDict room in layout.GetArrayOrEmpty("rooms"))
+                {
+                    string role = room.GetString("room_role", room.GetString("role")); string variant = room.GetString("variant", "standard");
+                    var effect = selector.EffectsFor(variant).GetDictOrEmpty("sim").GetDictOrEmpty("hazard");
+                    string kind = effect.GetString("kind"); bool eligible = roles.Contains(role);
+                    if (eligible && kind == "fire") available.Add("fire_zone");
+                    if (eligible && kind == "breach") available.Add("breach_zone");
+                    variants.Add(new GdDict { { "room_id", room.GetString("id") }, { "role", role }, { "variant", variant }, { "eligible_hazard_role", eligible }, { "effect", effect.DeepCopy() } });
+                }
+                long loot = gameplay.GetArrayOrEmpty("loot_containers").Count, encounters = layout.GetArrayOrEmpty("encounters").Count;
+                bool hazardPass = contract.Contract.GetArrayOrEmpty("require_any").Cast<object>().Any(value => available.Contains(V.Str(value)));
+                var checks = new GdDict {
+                    { "layout_nonempty", !layout.IsEmpty }, { "gameplay_nonempty", !gameplay.IsEmpty },
+                    { "biome", layout.Has("biome_id") && layout.GetString("biome_id") == contract.Contract.GetString("biome_id") },
+                    { "difficulty", layout.Has("difficulty_id") && layout.GetString("difficulty_id") == contract.Contract.GetString("difficulty_id") },
+                    { "loot_minimum", gameplay.Get("loot_containers") is GdArray && loot >= contract.Contract.GetInt("require_min_loot_containers") },
+                    { "encounter_minimum", layout.Get("encounters") is GdArray && encounters >= contract.Contract.GetInt("require_min_encounters") },
+                    { "required_hazard", hazardPass }, { "standing_start_to_goal", SynapticSea.Core.Procgen.FirstRunAwayGate.HasStandingStartToGoal(layout) },
+                    { "objective_minimum", SynapticSea.Core.Procgen.FirstRunAwayGate.ObjectiveCount(gameplay) >= 1 },
+                    { "interior_loot", SynapticSea.Core.Procgen.FirstRunAwayGate.HasInteriorLootSlot(layout, gameplay) },
+                    { "wreck_overlay", !SynapticSea.Core.Procgen.FirstRunAwayGate.RequiresWreckOverlay(marker.Condition) || SynapticSea.Core.Procgen.FirstRunAwayGate.HasWreckOverlay(layout) } };
+                string layoutText = SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(layout), gameplayText = SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(gameplay);
+                var row = new GdDict { { "seed", seed }, { "checks", checks }, { "production_validate", contract.Validate(layout, gameplay) },
+                    { "production_first_reject", SynapticSea.Core.Procgen.FirstRunAwayGate.RejectReason(contract, layout, gameplay, marker.Condition) },
+                    { "actual_biome", layout.GetString("biome_id") }, { "actual_difficulty", layout.GetString("difficulty_id") },
+                    { "loot_count", loot }, { "encounter_count", encounters }, { "objective_count", SynapticSea.Core.Procgen.FirstRunAwayGate.ObjectiveCount(gameplay) },
+                    { "hazards", hazards }, { "room_variants", variants }, { "available_hazard_kinds", new GdArray(available) },
+                    { "layout_sha256", AuxiliaryHash(AuxiliaryUtf8.GetBytes(layoutText)) }, { "gameplay_sha256", AuxiliaryHash(AuxiliaryUtf8.GetBytes(gameplayText)) } };
+                candidates.Add(row);
+                if (!string.IsNullOrEmpty(output))
+                {
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(output, seed + "-layout.json"), layoutText, AuxiliaryUtf8);
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(output, seed + "-gameplay.json"), gameplayText, AuxiliaryUtf8);
+                }
+                Debug.Log("[AuxiliaryFirstAwayCandidate] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(row));
+            }
+            Assert.AreEqual(liveBiome, live.BiomeId); Assert.AreEqual(liveDifficulty, live.DifficultyId);
+            Assert.AreEqual(liveProfile, live.ExpeditionProfile); Assert.AreEqual(liveRich, live.RichExpeditions);
+            Assert.AreEqual(liveLayoutBiome, live.LayoutGenerator.BiomeId); Assert.AreEqual(liveLayoutDifficulty, live.LayoutGenerator.DifficultyId);
+            Assert.AreSame(liveSelector, live.LayoutGenerator.VariantSelector); Assert.AreEqual(originalMarkerSeed, marker.SeedValue);
+            report["candidates"] = candidates;
+            Debug.Log("[AuxiliaryFirstAwayProvider] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(report));
+            if (!string.IsNullOrEmpty(output)) System.IO.File.WriteAllText(System.IO.Path.Combine(output, "report.json"), SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(report), AuxiliaryUtf8);
+        }
+
         static void AuxiliarySubmit(VisualElement element)
         {
             Assert.IsNotNull(element); Assert.IsNotNull(element.panel, "actual mounted UI control");
