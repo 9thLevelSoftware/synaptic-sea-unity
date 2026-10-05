@@ -668,6 +668,7 @@ namespace SynapticSea.Tests.PlayMode
                 { "threats", new GdArray(_s.ThreatManager.Threats.Select(threat => threat.GetSummary())) } }));
             yield return FixedSteps(8);
             string witnessedMarker = ""; string witnessedLoot = ""; GdDict witnessedBinding = null;
+            GdDict witnessedInventory = null;
             if (reviewedProfile)
             {
                 witnessedMarker = _s.CurrentShip.MarkerId;
@@ -690,6 +691,7 @@ namespace SynapticSea.Tests.PlayMode
             {
                 yield return AuxiliaryWitnessReviewedProfileWork();
                 witnessedLoot = _s.LootContainers.Single(container => container.ContainerId.EndsWith("/common_cache", System.StringComparison.Ordinal)).ContainerId;
+                witnessedInventory = _s.InventoryState.Items.DeepCopy();
             }
             var loader = _s.CurrentShip.SceneRoot as SynapticSea.Core.Session.IShipLoaderView;
             Assert.IsNotNull(loader);
@@ -712,6 +714,8 @@ namespace SynapticSea.Tests.PlayMode
             {
                 Assert.AreEqual(witnessedBinding.GetString("descriptor_text"), _s.VisitedShips[witnessedMarker].Blueprint.FirstAwayDescriptorText, "Continue retains exact typed descriptor bytes");
                 AuxiliaryAssertProfileCargoClosed(_s.VisitedShips[witnessedMarker]);
+                Assert.IsTrue(_s.VisitedShips[witnessedMarker].LootedContainerIds.Contains(witnessedLoot), "Continue preserves ordinary searched ID on exact owner");
+                Assert.IsTrue(V.VariantEquals(witnessedInventory, _s.InventoryState.Items), "return/save/Continue preserves exact accepted inventory after seal cost");
                 _s.EnableReviewedFirstAwayProfile = true;
                 var homeBridge = _s.BridgeTerminals.Single(terminal => terminal.ShipId == _s.PilotedShip.ShipId);
                 yield return AuxiliaryDeck(homeBridge.GlobalPosition.Y > 3 ? 1 : 0); yield return WalkTo(homeBridge, 1.2f);
@@ -734,7 +738,15 @@ namespace SynapticSea.Tests.PlayMode
                 Assert.AreEqual("first_away_salvage_v1", _s.CurrentShip.Blueprint.GenerationProfile);
                 AuxiliaryAssertProfileCargoClosed(_s.CurrentShip);
                 var cached = _s.LootContainers.Single(container => container.ContainerId == witnessedLoot);
-                Assert.IsTrue(cached.Searched, "finite acquired cache remains depleted on revisit");
+                Assert.IsTrue(cached.Searched, "ordinary acquired cache remains searched on revisit");
+                Assert.IsTrue(_s.CurrentShip.LootedContainerIds.Contains(witnessedLoot));
+                Assert.IsTrue(V.VariantEquals(witnessedInventory, _s.InventoryState.Items), "revisit grants no inventory");
+                yield return WalkTo(cached, 1.1f);
+                Assert.IsTrue(cached.IsPlayerInDirectRangeStrict(_boot.Host.SceneState.Player.GodotPosition), "repeat search attempt reaches actual searched container");
+                Assert.IsFalse(_s.CanFocusInteractable(cached), "ordinary focus excludes already searched cache");
+                _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+                Assert.IsTrue(cached.Searched);
+                Assert.IsTrue(V.VariantEquals(witnessedInventory, _s.InventoryState.Items), "ordinary repeat interaction after save/revisit grants no items");
                 Assert.AreEqual(0, _s.InventoryState.GetQuantity("hull_sealant"), "one carried earned sealant remains spent");
                 var revisitedBinding = AuxiliaryAssertFirstAwayRawBinding(_s.CurrentShip);
                 Assert.IsTrue(V.VariantEquals(witnessedBinding, revisitedBinding), "return/Continue/revisit preserves exact generation raw document hashes and descriptor text");
@@ -962,17 +974,19 @@ namespace SynapticSea.Tests.PlayMode
             var cache = _s.LootContainers.Single(container => container.ContainerId.EndsWith("/common_cache", System.StringComparison.Ordinal));
             yield return WalkTo(cache, 1.1f);
             Assert.IsTrue(_s.CanFocusInteractable(cache), "safe cache real range and LOS");
-            Assert.IsNotNull(cache.FiniteSource, "ordinary cache owns finite stock");
-            var remaining = cache.FiniteSource.GetDictOrEmpty("remaining").DeepCopy();
-            long scrapAward = V.I64(remaining.Get("scrap_metal", 0L)), wiringAward = V.I64(remaining.Get("wiring_spool", 0L));
+            Assert.IsTrue(cache.LootContext.Has("contents"), "ordinary cache has explicit authored stacks");
+            var contents = LootContainer.NormalizedContents(cache.LootContext).Cast<GdDict>().ToArray();
+            Assert.IsTrue(contents.Select(stack => stack.GetString("item_id")).Distinct().Count() == contents.Length);
+            long scrapAward = contents.Where(stack => stack.GetString("item_id") == "scrap_metal").Sum(stack => stack.GetInt("quantity"));
+            long wiringAward = contents.Where(stack => stack.GetString("item_id") == "wiring_spool").Sum(stack => stack.GetInt("quantity"));
             Assert.AreEqual(1, scrapAward); Assert.That(wiringAward, Is.InRange(0L, 2L));
-            Assert.IsTrue(remaining.Keys.All(key => V.Str(key) == "scrap_metal" || V.Str(key) == "wiring_spool"), "ordinary common cache contains only reviewed stacks");
+            Assert.IsTrue(contents.All(stack => stack.GetString("item_id") == "scrap_metal" || stack.GetString("item_id") == "wiring_spool"), "ordinary common cache contains only reviewed stacks");
             long scrapBefore = _s.InventoryState.GetQuantity("scrap_metal"), wiringBefore = _s.InventoryState.GetQuantity("wiring_spool");
             _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
             Assert.IsTrue(cache.Searched);
             Assert.AreEqual(scrapBefore + scrapAward, _s.InventoryState.GetQuantity("scrap_metal"));
             Assert.AreEqual(wiringBefore + wiringAward, _s.InventoryState.GetQuantity("wiring_spool"));
-            Assert.IsTrue(SynapticSea.Core.Systems.FiniteLootState.Depleted(cache.FiniteSource), "actual finite cache stock depleted");
+            Assert.IsTrue(_s.CurrentShip.LootedContainerIds.Contains(cache.ContainerId), "ordinary one-use search persists on exact owner");
             _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
             Assert.AreEqual(scrapBefore + scrapAward, _s.InventoryState.GetQuantity("scrap_metal"), "repeat ordinary interaction grants no extra scrap");
             Assert.AreEqual(wiringBefore + wiringAward, _s.InventoryState.GetQuantity("wiring_spool"), "repeat ordinary interaction grants no extra wiring");
