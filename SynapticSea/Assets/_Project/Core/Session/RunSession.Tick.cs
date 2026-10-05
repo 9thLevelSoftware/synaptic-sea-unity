@@ -31,7 +31,7 @@ namespace SynapticSea.Core.Session
             _inTick = true;
             try
             {
-                if(!RestoringConnections && !_switchingBoardedContext && (HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
                     || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.FirstAwayGenerationInputs.Profile)) RecomputeOccupancy();
                 double delta = ctx.Delta;
                 WorldTime += delta;
@@ -244,7 +244,8 @@ namespace SynapticSea.Core.Session
             bool hasAuthoredRadiationSource = false;
             bool hasAuthoredTemperatureSource = false;
             bool inAuthoredTemperatureSource = false;
-            IShipLoaderView authoredLoader = AwayFromStart && CurrentShip != null ? CurrentShip.SceneRoot as IShipLoaderView : Loader;
+            IShipLoaderView authoredLoader = PhysicalAirOwner()?.SceneRoot as IShipLoaderView
+                ?? (PhysicalAirInfrastructureAbsent() ? Loader : null);
             var authoredAtmosphere = new GdDict();
             if (authoredLoader != null && authoredLoader.IsValid && HasPlayer)
                 authoredAtmosphere = authoredLoader.GetAuthoredAtmosphereAt(ToLocal(authoredLoader, PlayerPos)) ?? new GdDict();
@@ -289,7 +290,7 @@ namespace SynapticSea.Core.Session
             if (StatusEffectsState != null)
                 statusMult = StatusEffectsState.GetModifier("stamina_recovery");
             double atmoDrain = 0.0;
-            if (LifeSupportExpandedState != null && !AwayFromStart)
+            if (LifeSupportExpandedState != null && PhysicalHomeAtmosphereApplies())
             {
                 atmoDrain = LifeSupportExpandedState.GetHealthDrainPerSecond();
                 tempMult *= LifeSupportExpandedState.GetThirstMultiplier();

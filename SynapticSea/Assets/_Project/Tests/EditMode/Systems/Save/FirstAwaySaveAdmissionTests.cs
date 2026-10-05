@@ -82,7 +82,19 @@ namespace SynapticSea.Tests.Systems
                 var items = s.InventoryState.Items.DeepCopy(); var xp = s.PlayerProgression.GetSummary().DeepCopy();
                 var returned = s.ReturnHomeFromNavigation(); Assert.IsTrue(returned.GetBool("success"), GdJson.Stringify(returned));
                 Assert.AreEqual(new Vec3(42, 0, -72), s.SynapticSeaWorld.PlayerPosition); Assert.IsFalse(s.AwayFromStart);
+                // Real paid adapter preserves distinct air authorities while returning/continuing in the boat.
+                s.LifeSupportExpandedState.OxygenPercent = 0; s.LifeSupportExpandedState.Co2Percent = 100;
+                s.OxygenState.Oxygen = 40;
                 Assert.IsTrue(s.RequestSave(), GdJson.Stringify(s.LastSaveResult)); Assert.IsTrue(s.RequestLoad());
+                Assert.AreEqual(0, s.LifeSupportExpandedState.OxygenPercent); Assert.AreEqual(100, s.LifeSupportExpandedState.Co2Percent);
+                s.Tick(TickContext.Frame(.02, rig.Scene.PlayerPosition));
+                Assert.AreSame(s.LifeboatShip, s.CurrentOccupancy);
+                Assert.Greater(s.OxygenState.Oxygen, 40, "paid Continue supplies actual independent boat air, not fouled home air");
+                s.LifeboatShip.SystemsManager.DamageSubcomponent("life_support", "air_recycler", 1);
+                Assert.IsTrue(s.RequestSave(), GdJson.Stringify(s.LastSaveResult)); Assert.IsTrue(s.RequestLoad());
+                double airBefore = s.OxygenState.Oxygen;
+                s.Tick(TickContext.Frame(.02, rig.Scene.PlayerPosition));
+                Assert.Less(s.OxygenState.Oxygen, airBefore, "paid Continue does not repair local services or grant shelter");
                 Assert.AreEqual(new Vec3(42, 0, -72), s.HomeSeaPosition); Assert.AreEqual(s.HomeSeaPosition, s.SynapticSeaWorld.PlayerPosition);
                 Assert.AreEqual(descriptor, s.VisitedShips[marker].Blueprint.FirstAwayDescriptorText);
                 var capture = SavePayloadAssembler.Build(s, "world", "world"); Assert.IsTrue(capture.GetBool("ok"));

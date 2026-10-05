@@ -98,13 +98,19 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void WreckFireDoesNotConsumeAirWhilePhysicallyShelteringInIndependentShuttle()
         {
-            var s=SessionHarness.CreateGolden().Session;s.ForceRepairAll();
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;s.ForceRepairAll();
+            s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
+            var boatFloor=AssemblyMobility.Floors(s.LifeboatShip.BuiltLayout)[0];
+            rig.Scene.PlayerPosition=s.LifeboatShip.SceneRoot.GlobalTransform*(boatFloor+new Vec3(0,.55,0));
             var bp=new SynapticSea.Core.Procgen.ShipBlueprint(1,0,17);
             var wreck=ShipInstance.Create("burning_wreck","test",bp,s.ShipSystemsManager,s.HomeShip.SceneRoot);
+            wreck.BuiltLayout=s.HomeShip.BuiltLayout;
             wreck.GetFire().Ignite("engineering",1);
             s.CurrentShip=wreck;s.CurrentOccupancy=s.LifeboatShip;s.AwayFromStart=true;
             s.OxygenState.Oxygen=40;s.StageOxygen(1);
             Assert.Greater(s.OxygenState.Oxygen,40,"shuttle air is independent of the adjacent burning wreck");
+            var wreckFloor=AssemblyMobility.Floors(wreck.BuiltLayout)[0];
+            rig.Scene.PlayerPosition=wreck.SceneRoot.GlobalTransform*(wreckFloor+new Vec3(0,.55,0));
             s.CurrentOccupancy=wreck;s.StageOxygen(1);
             Assert.Less(s.OxygenState.Oxygen,40,"boarding the burning wreck retains its real oxygen hazard");
             Assert.Greater(wreck.GetFire().GetTotalIntensity(),0,"shelter does not extinguish another ship's fire");
@@ -383,12 +389,18 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void NewRecoveryProfileHasOnlyAuthoredRadiationWhileLegacyFallbackRemains()
         {
-            var rig=SessionHarness.CreateGolden();var s=rig.Session;var loader=(FakeLoaderView)s.Loader;
+            var rig=SessionHarness.CreateGolden();var s=rig.Session;
+            var loader=new FakeLoaderView(s.HomeShip.BuiltLayout,new GdDict(),"")
+                {IsInsideTree=true,Transform=new Xform3(Basis3.Identity,new Vec3(800,0,800))};
             loader.Model.AuthoredAtmosphereSpecs.Clear();loader.Model.RadiationZoneSpecs.Clear();
             var bp=new SynapticSea.Core.Procgen.ShipBlueprint(1,0,17){GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.Profile};
-            s.CurrentShip=ShipInstance.Create("radiation_test","test",bp,s.ShipSystemsManager,s.Loader);
+            s.CurrentShip=ShipInstance.Create("radiation_test","test",bp,s.ShipSystemsManager,loader);
             s.CurrentShip.BuiltLayout=s.HomeShip.BuiltLayout;s.AwayFromStart=true;s.RadiationState.Radiation=0;
-            TickSeconds(rig,2);Assert.AreEqual(0,s.RadiationState.Radiation,"a new ship without a radiation source is not universally radioactive");
+            var floor=AssemblyMobility.Floors(s.CurrentShip.BuiltLayout)[0];
+            rig.Scene.PlayerPosition=s.CurrentShip.SceneRoot.GlobalTransform*(floor+new Vec3(0,.55,0));
+            s.CurrentOccupancy=s.CurrentShip;
+            TickSeconds(rig,2);Assert.AreSame(s.CurrentShip,s.CurrentOccupancy,"the fixture must stand on the tested hull");
+            Assert.AreEqual(0,s.RadiationState.Radiation,"a new ship without a radiation source is not universally radioactive");
             s.CurrentShip.Blueprint.GenerationProfile=SynapticSea.Core.Procgen.ConstrainedExpedition.LegacyProfile;
             TickSeconds(rig,2);Assert.Greater(s.RadiationState.Radiation,0,"legacy saves retain their prior fallback contract");
         }
