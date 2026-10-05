@@ -38,6 +38,8 @@ namespace SynapticSea.Core.Procgen
         /// values are "(x, y)" strings, exactly what load_from_paths parsed.
         /// </summary>
         public GdDict Layout;
+        public FirstAwayGenerationDescriptor FirstAwayDescriptor;
+        public FirstAwayGenerationInputs FirstAwayInputs;
 
         /// <summary>The structural kit document (res://data/kits/*.json).</summary>
         public GdDict Kit;
@@ -146,6 +148,24 @@ namespace SynapticSea.Core.Procgen
 
             return LoadLayoutAsDocuments(layout);
         }
+
+        /// <summary>Explicit acceptance-only managed profile; does not change run context or ordinary provider selection.</summary>
+        public ShipDocuments GenerateFirstAway(FirstAwayGenerationInputs inputs)
+        {
+            if (inputs == null || DerelictSource != null) return null;
+            try
+            {
+                var catalogs = FirstAwaySalvageProfile.LoadPinnedCatalogs();
+                if (catalogs == null) return null;
+                var layout = LayoutGenerator.GenerateFirstAway(inputs);
+                if (layout.IsEmpty) return null;
+                return FirstAwaySalvageProfile.AsDocuments(inputs, layout, KitPathForLayout(layout), catalogs);
+            }
+            catch (ArgumentException exception) { CoreServices.Log.Error("First-away admission: " + exception.Message); return null; }
+        }
+
+        public bool TryRestoreFirstAway(FirstAwayGenerationInputs expected, GdDict snapshot, string layoutJson, string gameplayJson, out ShipDocuments documents) =>
+            FirstAwaySalvageProfile.TryRestore(expected, snapshot, layoutJson, gameplayJson, out documents);
 
         static GdDict DefaultDerelictArchetype()
         {

@@ -145,7 +145,8 @@ namespace SynapticSea.Tests.PlayMode
             { "mode", request.Mode.ToString() }, { "slot_id", request.SlotId }, { "class_id", request.ClassId },
             { "seed", request.Seed }, { "biome_id", request.BiomeId }, { "difficulty_id", request.DifficultyId },
             { "layout_override_path", request.LayoutOverridePath }, { "enable_auxiliary_services", request.EnableAuxiliaryServices },
-            { "enable_manual_study", request.EnableManualStudy }, { "enable_component_integration", request.EnableComponentIntegration } };
+            { "enable_manual_study", request.EnableManualStudy }, { "enable_component_integration", request.EnableComponentIntegration },
+            { "enable_reviewed_first_away_profile", request.EnableReviewedFirstAwayProfile } };
         GdDict AuxiliaryOrdinaryProbeState(string phase, BreachSealPoint intended)
         {
             Vec3 position = _boot.Host.SceneState.Player.GodotPosition;
@@ -197,7 +198,7 @@ namespace SynapticSea.Tests.PlayMode
             var intended = _s.BreachSealPoints.SingleOrDefault(point => point.CompartmentId == "cargo");
             var request = new RunLaunchRequest { Mode = RunLaunchMode.Continue, SlotId = RunLaunchRequest.WorldSlotId,
                 ClassId = classId, Seed = _boot.Launch.Seed, BiomeId = _boot.Launch.BiomeId, DifficultyId = _boot.Launch.DifficultyId,
-                LayoutOverridePath = _boot.Launch.LayoutOverridePath, EnableAuxiliaryServices = true };
+                LayoutOverridePath = _boot.Launch.LayoutOverridePath, EnableAuxiliaryServices = true, EnableReviewedFirstAwayProfile = _s.EnableReviewedFirstAwayProfile };
             var metadata = new GdDict { { "schema_version", 1L }, { "boundary", boundary },
                 { "source_commit", revision }, { "test_source_sha256", System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_CHECKPOINT_TEST_SOURCE_SHA256") ?? "" }, { "unity_version", Application.unityVersion }, { "application_version", Application.version },
                 { "run_id", selected.GetString("run_id") }, { "generation_id", selected.GetString("generation_id") },
@@ -256,7 +257,7 @@ namespace SynapticSea.Tests.PlayMode
             yield return AuxiliaryProbeSealAndCapture();
         }
 
-        IEnumerator AuxiliaryBootImmutableCheckpoint(string expectedBoundary)
+        IEnumerator AuxiliaryBootImmutableCheckpoint(string expectedBoundary, bool reviewedProfileAdmission = false)
         {
             string directory = System.Environment.GetEnvironmentVariable(AuxiliaryReplayEnv);
             Assert.IsFalse(string.IsNullOrEmpty(directory), "explicit owned checkpoint directory required in " + AuxiliaryReplayEnv);
@@ -308,7 +309,8 @@ namespace SynapticSea.Tests.PlayMode
             yield return BootPlayable(new RunLaunchRequest { Mode = RunLaunchMode.Continue, SlotId = launch.GetString("slot_id"),
                 ClassId = launch.GetString("class_id"), Seed = launch.GetInt("seed"), BiomeId = launch.GetString("biome_id"), DifficultyId = launch.GetString("difficulty_id"),
                 LayoutOverridePath = launch.GetString("layout_override_path"), EnableAuxiliaryServices = true,
-                EnableManualStudy = launch.GetBool("enable_manual_study"), EnableComponentIntegration = launch.GetBool("enable_component_integration"), SelectedSaveGeneration = selected });
+                EnableManualStudy = launch.GetBool("enable_manual_study"), EnableComponentIntegration = launch.GetBool("enable_component_integration"),
+                EnableReviewedFirstAwayProfile = reviewedProfileAdmission || launch.GetBool("enable_reviewed_first_away_profile"), SelectedSaveGeneration = selected });
             // Normal scene boot installs resource/catalog ports before typed-owner admission can validate.
             var reread = _s.SaveLoadService.ReadGeneration(selected.GetString("run_id"), selected.GetString("slot_id"), selected.GetString("generation_id"), selected.GetString("manifest_sha256"));
             Assert.IsTrue(reread.GetBool("ok"), GdJson.Stringify(reread));
@@ -583,9 +585,64 @@ namespace SynapticSea.Tests.PlayMode
             while (!_s.PropulsionExpandedState.CanPropel() && !_s.SliceComplete && Time.realtimeSinceStartup < propelEnd) yield return null;
             AuxiliaryContinuationState("before_departure");
             Assert.IsTrue(_s.PropulsionExpandedState.CanPropel(), GdJson.Stringify(_s.TravelCapability()));
+            string readyCapture = System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_READY_CAPTURE_DIR");
+            if (!string.IsNullOrEmpty(readyCapture))
+            {
+                Assert.IsTrue(_s.RequestSave(), GdJson.Stringify(_s.LastSaveResult)); Assert.IsTrue(_s.RequestLoad()); yield return FixedSteps(8);
+                AuxiliaryAssertEarnedReady();
+                yield return AuxiliaryCapturePhysicalHud("cook-earned-ready-checkpoint.png");
+                AuxiliaryCaptureCheckpoint(readyCapture, "cook", "post_ready_saved_and_continued_before_first_away");
+                yield break;
+            }
+            yield return AuxiliaryTravelReturnWitness(false);
+        }
+
+        void AuxiliaryAssertEarnedReady()
+        {
+            AuxiliaryAssertCargoClosedAfterRestore();
+            Assert.AreEqual(2, _s.PlayerProgression.GetSkillLevel("repair"));
+            Assert.AreEqual(80, _s.PlayerProgression.GetSkillXp("repair"));
+            Assert.AreEqual(1, _s.InventoryState.GetQuantity("lockpick_set"));
+            Assert.IsTrue(_s.ShipSystemsManager.IsOperational("navigation"));
+            Assert.IsTrue(_s.ShipSystemsManager.IsOperational("propulsion"));
+            Assert.IsTrue(_s.TravelCapability().GetBool("success"), GdJson.Stringify(_s.TravelCapability()));
+            _s.RebuildHomeJoinControls();
+            Assert.IsFalse(_s.HomeJoinControls.Any(control => control.ActionId == "cut_web_attachment" &&
+                (control.ShipId == _s.HomeShip.ShipId || control.ShipId == _s.LifeboatShip.ShipId)), "both earned mooring cuts remain detached after Continue");
+            Assert.AreEqual(0, _s.VisitedShips.Count, "ready capture is before first successful away visit");
+            var visible = _s.Scan().GetArrayOrEmpty("markers");
+            var actual = _s.SynapticSeaWorld.MarkersInRange(_s.ScannerState.RangeRadius).ToDictionary(marker => marker.MarkerId);
+            Debug.Log("[AuxiliaryReadyAuthenticMarkerCoverage] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "scanner_range", _s.ScannerState.RangeRadius }, { "visible_count", visible.Count }, { "world_position", AuxiliaryPosition(_s.SynapticSeaWorld.PlayerPosition) },
+                { "markers", new GdArray(visible.Cast<GdDict>().Select(row => actual[row.GetString("marker_id")]).Select(marker => new GdDict {
+                    { "marker_id", marker.MarkerId }, { "size", marker.SizeClass }, { "condition", marker.Condition }, { "position", AuxiliaryPosition(marker.Position) } })) } }));
+            AuxiliaryContinuationState("earned_ready_verified");
+        }
+
+        [UnityTest, Explicit("Pinned earned-ready checkpoint and reviewed first-away profile opt-in; no prefix or repairs replayed"), Timeout(180000)]
+        public IEnumerator ContinueAuxiliaryEarnedReadyCheckpointThroughReviewedFirstAwayAndReturn()
+        {
+            yield return AuxiliaryBootImmutableCheckpoint("post_ready_saved_and_continued_before_first_away", true);
+            AuxiliaryAssertEarnedReady();
+            yield return AuxiliaryRetrieveEarnedSealant();
+            _s.EnableReviewedFirstAwayProfile = true;
+            yield return AuxiliaryTravelReturnWitness(true);
+        }
+
+        IEnumerator AuxiliaryTravelReturnWitness(bool reviewedProfile)
+        {
             var bridge = _s.BridgeTerminals.Single(t => t.ShipId == _s.PilotedShip.ShipId);
             yield return AuxiliaryDeck(bridge.GlobalPosition.Y > 3 ? 1 : 0); yield return WalkTo(bridge, 1.2f);
             _boot.Ui.OnPanelToggle("toggle_scanner"); Assert.IsTrue(_boot.Ui.Scanner.IsOpen()); Assert.Greater(_boot.Ui.Scanner.List.Count, 0);
+            string requestedMarker = reviewedProfile ? System.Environment.GetEnvironmentVariable("SYNAPTIC_FIRST_AWAY_ACTUAL_MARKER_ID") : null;
+            if (!string.IsNullOrEmpty(requestedMarker))
+            {
+                var actualRows = _s.Scan().GetArrayOrEmpty("markers").Cast<GdDict>().ToArray();
+                int index = System.Array.FindIndex(actualRows, row => row.GetString("marker_id") == requestedMarker);
+                Assert.GreaterOrEqual(index, 0, "requested actual marker is not normally visible; do not fabricate matrix context");
+                for (int step = 0; step < actualRows.Length && _boot.Ui.Scanner.GetSelectedIndex() != index; step++) _boot.Ui.Scanner.MoveSelection(1);
+                Assert.AreEqual(index, _boot.Ui.Scanner.GetSelectedIndex());
+            }
             var travelResults = new List<GdDict>();
             System.Action<GdDict> travelResolved = result => travelResults.Add(result.DeepCopy());
             _boot.Ui.Scanner.TravelResolved += travelResolved;
@@ -606,9 +663,34 @@ namespace SynapticSea.Tests.PlayMode
                 Assert.AreNotSame(_s.LifeboatShip, _s.CurrentShip, "lifeboat away-context is not a departure witness");
             }
             finally { _boot.Ui.Scanner.TravelResolved -= travelResolved; }
-            yield return FixedSteps(8); AuxiliaryContinuationState("departed");
+            if (reviewedProfile) Debug.Log("[AuxiliaryImmediateArrivalThreatPoses] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "owner_id", _s.CurrentShip.ShipId }, { "player_position", AuxiliaryPosition(_boot.Host.SceneState.Player.GodotPosition) },
+                { "threats", new GdArray(_s.ThreatManager.Threats.Select(threat => threat.GetSummary())) } }));
+            yield return FixedSteps(8);
+            string witnessedMarker = ""; string witnessedLoot = ""; GdDict witnessedBinding = null;
+            if (reviewedProfile)
+            {
+                witnessedMarker = _s.CurrentShip.MarkerId;
+                if (!string.IsNullOrEmpty(requestedMarker)) Assert.AreEqual(requestedMarker, witnessedMarker);
+                else Assert.AreEqual("0:0:0", witnessedMarker, "representative uses actual first contact");
+                Assert.AreEqual("first_away_salvage_v1", _s.CurrentShip.Blueprint.GenerationProfile, "actual admitted profile; no forced marker/seed");
+                Assert.AreEqual(42, _s.CurrentShip.Blueprint.SeedValue, "normal ordered preferred gate selected its first complete candidate");
+                witnessedBinding = AuxiliaryAssertFirstAwayRawBinding(_s.CurrentShip);
+                Debug.Log("[AuxiliaryReviewedFirstAwayBoarded] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                    { "ship_id", _s.CurrentShip.ShipId }, { "marker_id", _s.CurrentShip.MarkerId }, { "blueprint", _s.CurrentShip.Blueprint.ToDict() },
+                    { "layout", _s.CurrentShip.BuiltLayout }, { "oxygen", _s.OxygenState.GetSummary() },
+                    { "threats", new GdArray(_s.ThreatManager.Threats.Select(threat => threat.GetSummary())) },
+                    { "live_threat_view_count", _boot.Host.Threats.Count } }));
+            }
+            AuxiliaryContinuationState("departed");
             Assert.IsTrue(_s.AwayFromStart); Assert.IsFalse(_s.SliceComplete, "departure is not extraction");
-            yield return CaptureHud("cook-checkpoint-earned-departure.png");
+            if (reviewedProfile) yield return AuxiliaryCapturePhysicalHud("cook-reviewed-first-away-arrival.png");
+            else yield return CaptureHud("cook-checkpoint-earned-departure.png");
+            if (reviewedProfile)
+            {
+                yield return AuxiliaryWitnessReviewedProfileWork();
+                witnessedLoot = _s.LootContainers.Single(container => container.ContainerId.EndsWith("/common_cache", System.StringComparison.Ordinal)).ContainerId;
+            }
             var loader = _s.CurrentShip.SceneRoot as SynapticSea.Core.Session.IShipLoaderView;
             Assert.IsNotNull(loader);
             var exit = loader.GetAuthoredPortals().Where(portal => portal.IsValid && portal.IsExterior)
@@ -620,10 +702,202 @@ namespace SynapticSea.Tests.PlayMode
             _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
             AuxiliaryContinuationState("return_portal_requested", exit.PortalId);
             Assert.IsFalse(_s.AwayFromStart, "normal exterior interaction returns home; no direct TravelHome call");
+            Assert.AreEqual("authored_portal", _s.LastInteractHandlerId, "actual successful exterior handler, not an away-context inference");
+            Assert.AreSame(_s.HomeShip, _s.CurrentShip); Assert.AreEqual(_s.HomeSeaPosition, _s.SynapticSeaWorld.PlayerPosition);
             Assert.IsTrue(_s.RequestSave(), GdJson.Stringify(_s.LastSaveResult)); Assert.IsTrue(_s.RequestLoad()); yield return FixedSteps(8);
             Assert.IsTrue(_s.IsAuxiliaryHardwareReady(_s.HomeShip.ShipId, "maintenance_fabricator_feed_01"));
             AuxiliaryContinuationState("returned_saved_and_continued");
             yield return CaptureHud("cook-checkpoint-earned-return.png");
+            if (reviewedProfile)
+            {
+                Assert.AreEqual(witnessedBinding.GetString("descriptor_text"), _s.VisitedShips[witnessedMarker].Blueprint.FirstAwayDescriptorText, "Continue retains exact typed descriptor bytes");
+                AuxiliaryAssertProfileCargoClosed(_s.VisitedShips[witnessedMarker]);
+                _s.EnableReviewedFirstAwayProfile = true;
+                var homeBridge = _s.BridgeTerminals.Single(terminal => terminal.ShipId == _s.PilotedShip.ShipId);
+                yield return AuxiliaryDeck(homeBridge.GlobalPosition.Y > 3 ? 1 : 0); yield return WalkTo(homeBridge, 1.2f);
+                _boot.Ui.OnPanelToggle("toggle_scanner");
+                var rows = _s.Scan().GetArrayOrEmpty("markers").Cast<GdDict>().ToArray();
+                int revisitIndex = System.Array.FindIndex(rows, row => row.GetString("marker_id") == witnessedMarker);
+                Assert.GreaterOrEqual(revisitIndex, 0, "same real marker remains normally visible for revisit");
+                for (int step = 0; step < rows.Length && _boot.Ui.Scanner.GetSelectedIndex() != revisitIndex; step++) _boot.Ui.Scanner.MoveSelection(1);
+                Assert.AreEqual(revisitIndex, _boot.Ui.Scanner.GetSelectedIndex());
+                var revisits = new List<GdDict>(); System.Action<GdDict> resolved = result => revisits.Add(result.DeepCopy());
+                _boot.Ui.Scanner.TravelResolved += resolved;
+                try
+                {
+                    AuxiliarySubmit(_boot.Ui.Scanner.List.RowAt(revisitIndex));
+                    Assert.AreEqual(1, revisits.Count); Assert.IsTrue(revisits[0].GetBool("success"), GdJson.Stringify(revisits[0]));
+                }
+                finally { _boot.Ui.Scanner.TravelResolved -= resolved; }
+                yield return FixedSteps(8);
+                Assert.AreEqual(witnessedMarker, _s.CurrentShip.MarkerId);
+                Assert.AreEqual("first_away_salvage_v1", _s.CurrentShip.Blueprint.GenerationProfile);
+                AuxiliaryAssertProfileCargoClosed(_s.CurrentShip);
+                var cached = _s.LootContainers.Single(container => container.ContainerId == witnessedLoot);
+                Assert.IsTrue(cached.Searched, "finite acquired cache remains depleted on revisit");
+                Assert.AreEqual(0, _s.InventoryState.GetQuantity("hull_sealant"), "one carried earned sealant remains spent");
+                var revisitedBinding = AuxiliaryAssertFirstAwayRawBinding(_s.CurrentShip);
+                Assert.IsTrue(V.VariantEquals(witnessedBinding, revisitedBinding), "return/Continue/revisit preserves exact generation raw document hashes and descriptor text");
+                AuxiliaryContinuationState("reviewed_profile_revisited_with_depletion_and_repair");
+                yield return AuxiliaryCapturePhysicalHud("cook-reviewed-first-away-revisited.png");
+            }
+        }
+
+        void AuxiliaryAssertProfileCargoClosed(SynapticSea.Core.Systems.ShipInstance ship)
+        {
+            Assert.IsTrue(ship.Hull.Compartments.Has("cargo"), "saved profile retains cargo compartment");
+            var cargo = ship.Hull.Compartments.GetDictOrEmpty("cargo");
+            Assert.IsTrue(cargo.Has("breach_open"));
+            Assert.IsTrue(cargo["breach_open"] is bool && !(bool)cargo["breach_open"], "saved profile closure is explicit boolean false");
+        }
+
+        GdDict AuxiliaryAssertFirstAwayRawBinding(SynapticSea.Core.Systems.ShipInstance ship)
+        {
+            var blueprint = ship.Blueprint;
+            var snapshot = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(blueprint.FirstAwayDescriptorText);
+            var expected = new SynapticSea.Core.Procgen.FirstAwayGenerationInputs(blueprint.SeedValue, _s.SynapticSeaWorld.WorldSeed,
+                blueprint.ShipSize, blueprint.ShipCondition, ship.MarkerId, ship.ShipId, "breach_field", "standard");
+            Assert.IsTrue(RunSession.FirstAwayMatchesSourceMarker(expected), "full inputs authenticate actual world marker size/condition/owner");
+            Assert.IsTrue(_s.RequestSave(), GdJson.Stringify(_s.LastSaveResult));
+            var selected = _s.SaveLoadService.SelectGeneration("world"); Assert.IsTrue(selected.GetBool("ok"), GdJson.Stringify(selected));
+            var payload = selected.GetDictOrEmpty("payloads");
+            var references = payload.GetDictOrEmpty("binding").GetDictOrEmpty("ship_references").GetDictOrEmpty(ship.ShipId);
+            Assert.AreEqual("first_away_salvage_v1", references.GetString("profile_id"));
+            var archive = payload.GetArrayOrEmpty("artifacts").Cast<GdDict>().ToDictionary(row => row.GetString("logical_path"));
+            string layout = archive[references.GetString("layout_path")].GetString("text");
+            string gameplay = archive[references.GetString("gameplay_slice_path")].GetString("text");
+            string archivedBlueprint = archive[references.GetString("blueprint_path")].GetString("text");
+            Assert.AreEqual(blueprint.FirstAwayDescriptorText, SynapticSea.Core.Procgen.ShipBlueprint.FromDict(GdJson.ParseDict(archivedBlueprint)).FirstAwayDescriptorText);
+            Assert.AreEqual(snapshot.GetString("layout_sha256"), AuxiliaryHash(AuxiliaryUtf8.GetBytes(layout)));
+            Assert.AreEqual(snapshot.GetString("gameplay_sha256"), AuxiliaryHash(AuxiliaryUtf8.GetBytes(gameplay)));
+            Assert.IsTrue(_s.ShipGenerator.TryRestoreFirstAway(expected, snapshot, layout, gameplay, out var admitted), "ordinary exact raw/canonical input/catalog descriptor admission");
+            Assert.AreEqual(ship.ShipId, admitted.FirstAwayInputs.OwnerId); Assert.AreEqual(ship.MarkerId, admitted.FirstAwayInputs.MarkerId);
+            var proof = new GdDict { { "descriptor_text", blueprint.FirstAwayDescriptorText }, { "layout_sha256", snapshot.GetString("layout_sha256") },
+                { "gameplay_sha256", snapshot.GetString("gameplay_sha256") }, { "binding_sha256", admitted.FirstAwayDescriptor.BindingSha256 } };
+            Debug.Log("[AuxiliaryReviewedRawBinding] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(proof));
+            return proof;
+        }
+
+        IEnumerator AuxiliaryCapturePhysicalHud(string name)
+        {
+            string folder = System.Environment.GetEnvironmentVariable("SYNAPTIC_ENTRY_CAPTURE_DIR");
+            Assert.IsFalse(string.IsNullOrEmpty(folder), "explicit owned screenshot destination required in SYNAPTIC_ENTRY_CAPTURE_DIR");
+            System.IO.Directory.CreateDirectory(folder); string path = System.IO.Path.Combine(folder,name);
+            // Batch players have no screen framebuffer. Render the actual camera and HUD panel offscreen,
+            // then composite their pixels; no UI is redrawn or invented by the capture helper.
+            var camera = _boot.Host.SceneState.CameraRig.Camera;
+            var panel = _boot.HudDocument.panelSettings;
+            var world = new RenderTexture(2048,1224,24);
+            var hud = new RenderTexture(2048,1224,0,RenderTextureFormat.ARGB32);
+            var pixels = new Texture2D(2048,1224,TextureFormat.RGBA32,false);
+            var hudPixels = new Texture2D(2048,1224,TextureFormat.RGBA32,false);
+            var oldCamera = camera.targetTexture; var oldPanel = panel.targetTexture;
+            bool oldClear = panel.clearColor; Color oldClearValue = panel.colorClearValue;
+            var oldActive = RenderTexture.active;
+            try
+            {
+                hud.Create(); panel.targetTexture = hud; panel.clearColor = true; panel.colorClearValue = Color.clear;
+                for(int i=0;i<10;i++) yield return null;
+                camera.targetTexture = world; camera.Render(); RenderTexture.active = world;
+                pixels.ReadPixels(new Rect(0,0,2048,1224),0,0); pixels.Apply();
+                RenderTexture.active = hud; hudPixels.ReadPixels(new Rect(0,0,2048,1224),0,0); hudPixels.Apply();
+                var sceneColors = pixels.GetPixels32(); var uiColors = hudPixels.GetPixels32(); int uiCount=0, sceneCount=0;
+                for(int i=0;i<sceneColors.Length;i++)
+                {
+                    if(uiColors[i].a>0) uiCount++;
+                    if(sceneColors[i].r+sceneColors[i].g+sceneColors[i].b>30) sceneCount++;
+                    float alpha=uiColors[i].a/255f;
+                    sceneColors[i] = new Color32((byte)Mathf.Min(255,uiColors[i].r+sceneColors[i].r*(1-alpha)),
+                        (byte)Mathf.Min(255,uiColors[i].g+sceneColors[i].g*(1-alpha)),
+                        (byte)Mathf.Min(255,uiColors[i].b+sceneColors[i].b*(1-alpha)),255);
+                }
+                Assert.Greater(uiCount,1000,"capture must contain the actual rendered HUD");
+                Assert.Greater(sceneCount,10000,"capture must contain the rendered world");
+                pixels.SetPixels32(sceneColors); pixels.Apply(); System.IO.File.WriteAllBytes(path,pixels.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture=oldCamera; panel.targetTexture=oldPanel; panel.clearColor=oldClear; panel.colorClearValue=oldClearValue;
+                RenderTexture.active=oldActive; Object.Destroy(world); Object.Destroy(hud); Object.Destroy(pixels); Object.Destroy(hudPixels);
+            }
+        }
+
+        IEnumerator AuxiliaryRetrieveEarnedSealant()
+        {
+            var hold = _s.CargoHoldControls.First(control => control.IsValid && control.CarrierId == _s.HomeShip.ShipId);
+            yield return AuxiliaryDeck(hold.GlobalPosition.Y > 3 ? 1 : 0); yield return WalkTo(hold, .5f);
+            for (int attempt = 0; attempt < 6 && !_boot.Ui.Inventory.IsOpen(); attempt++)
+            { _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8); }
+            Assert.IsTrue(_boot.Ui.Inventory.IsOpen(), "actual cargo handle opens normal quantity transfer");
+            long source = _s.HomeShip.Inventory.GetQuantity("hull_sealant"), carried = _s.InventoryState.GetQuantity("hull_sealant");
+            Assert.AreEqual(0, carried); Assert.GreaterOrEqual(source, 1, "earned home stock shortfall; never provision supplies");
+            Assert.AreEqual(1, _boot.Ui.Inventory.TransferQuantity(InventoryPanel.PaneContainer, "hull_sealant", 1));
+            Assert.AreEqual(source - 1, _s.HomeShip.Inventory.GetQuantity("hull_sealant"));
+            Assert.AreEqual(carried + 1, _s.InventoryState.GetQuantity("hull_sealant"));
+            _boot.Ui.Inventory.Close(); yield return FixedSteps(8);
+            AuxiliaryContinuationState("one_earned_sealant_retrieved_from_home");
+        }
+
+        IEnumerator AuxiliaryWitnessReviewedProfileWork()
+        {
+            Assert.IsTrue(_s.CurrentShip.Hull.Compartments.GetDictOrEmpty("cargo").GetBool("breach_open"), "authentic runtime cargo breach materialized");
+            Assert.Greater(_s.GetBreachZoneCollisionEnabledCount(), 0, "ordinary breach hazard zone materialized");
+            var living = _s.ThreatManager.Threats.Where(threat => threat.ArchetypeId == "biomatter_swarm" && threat.Health > 0).ToArray();
+            Assert.Greater(living.Length, 0, "normal biomatter_lurker resolves to actual living swarm");
+            foreach (var threat in living)
+            {
+                Assert.IsTrue(_boot.Host.Threats.Nodes.ContainsKey(threat.InstanceId), "actual threat scene object exists");
+                Assert.IsNotNull(SpawnClearance.FloorUnder(Frame.ToUnity(Vec3.FromArray(threat.WorldPosition))), "real floor supports threat anchor");
+            }
+            var boardedLoader = _s.CurrentShip.SceneRoot as IShipLoaderView; Assert.IsNotNull(boardedLoader);
+            var dockLanding = _s.CurrentShip.SceneRoot.GlobalTransform * boardedLoader.GetStartTransform().Origin;
+            yield return WalkTo(dockLanding, 1.1f);
+            Assert.IsNotNull(SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position));
+            Assert.IsTrue(_boot.Host.SceneState.Player.GetComponent<CharacterController>().isGrounded);
+            foreach (var threat in living)
+            {
+                bool wallSeparates = Physics.Linecast(_boot.Host.SceneState.Player.transform.position + Vector3.up * 1.2f,
+                    Frame.ToUnity(Vec3.FromArray(threat.WorldPosition)) + Vector3.up, SpawnClearance.BlockingMask, QueryTriggerInteraction.Ignore);
+                Debug.Log("[AuxiliaryQuietEntrySightLine] threat=" + threat.InstanceId + " structural_occlusion=" + wallSeparates);
+                Assert.IsTrue(wallSeparates, "observed dock approach is occluded from current living threat poses; initial arrival poses logged separately");
+            }
+            AuxiliaryContinuationState("reviewed_profile_live_hazard_and_threat");
+            var cache = _s.LootContainers.Single(container => container.ContainerId.EndsWith("/common_cache", System.StringComparison.Ordinal));
+            yield return WalkTo(cache, 1.1f);
+            Assert.IsTrue(_s.CanFocusInteractable(cache), "safe cache real range and LOS");
+            Assert.IsNotNull(cache.FiniteSource, "ordinary cache owns finite stock");
+            var remaining = cache.FiniteSource.GetDictOrEmpty("remaining").DeepCopy();
+            long scrapAward = V.I64(remaining.Get("scrap_metal", 0L)), wiringAward = V.I64(remaining.Get("wiring_spool", 0L));
+            Assert.AreEqual(1, scrapAward); Assert.That(wiringAward, Is.InRange(0L, 2L));
+            Assert.IsTrue(remaining.Keys.All(key => V.Str(key) == "scrap_metal" || V.Str(key) == "wiring_spool"), "ordinary common cache contains only reviewed stacks");
+            long scrapBefore = _s.InventoryState.GetQuantity("scrap_metal"), wiringBefore = _s.InventoryState.GetQuantity("wiring_spool");
+            _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+            Assert.IsTrue(cache.Searched);
+            Assert.AreEqual(scrapBefore + scrapAward, _s.InventoryState.GetQuantity("scrap_metal"));
+            Assert.AreEqual(wiringBefore + wiringAward, _s.InventoryState.GetQuantity("wiring_spool"));
+            Assert.IsTrue(SynapticSea.Core.Systems.FiniteLootState.Depleted(cache.FiniteSource), "actual finite cache stock depleted");
+            _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+            Assert.AreEqual(scrapBefore + scrapAward, _s.InventoryState.GetQuantity("scrap_metal"), "repeat ordinary interaction grants no extra scrap");
+            Assert.AreEqual(wiringBefore + wiringAward, _s.InventoryState.GetQuantity("wiring_spool"), "repeat ordinary interaction grants no extra wiring");
+            AuxiliaryContinuationState("reviewed_profile_common_cache_acquired");
+            var seal = _s.BreachSealPoints.Single(point => point.CompartmentId == "cargo" && !point.Sealed);
+            yield return WalkTo(seal, 1.1f);
+            Assert.AreSame(_s.CurrentShip.Hull, seal.HullState, "semantic seal belongs to actual boarded ship hull");
+            Assert.IsTrue(_s.CanFocusInteractable(seal), "actual work standing range and LOS");
+            var floor = SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position); Assert.IsNotNull(floor);
+            Assert.IsTrue(_boot.Host.SceneState.Player.GetComponent<CharacterController>().isGrounded);
+            long sealant = _s.InventoryState.GetQuantity("hull_sealant"), xp = _s.PlayerProgression.GetSkillXp("repair");
+            Assert.AreEqual(1, sealant);
+            AuxiliaryOpenWorkPickerFromInventory(); AuxiliarySelectWorkRow(seal);
+            AuxiliarySubmit(_boot.Ui.NearbyWorkPicker.List.RowAt(_boot.Ui.NearbyWorkPicker.List.SelectedIndex));
+            Assert.IsTrue(seal.Channeling, "ordinary paid breach seal starts through exact actual choice");
+            float deadline = Time.realtimeSinceStartup + 45f;
+            while (seal.Channeling && !_s.SliceComplete && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.IsFalse(_s.SliceComplete); Assert.IsTrue(seal.Sealed);
+            Assert.AreEqual(sealant - 1, _s.InventoryState.GetQuantity("hull_sealant"));
+            Assert.AreEqual(xp + 12, _s.PlayerProgression.GetSkillXp("repair"));
+            Assert.IsTrue(living.Any(original => _s.ThreatManager.Threats.Any(threat => threat.InstanceId == original.InstanceId && threat.Health > 0)), "required normal threat survives actual acquisition and sealing interval");
+            AuxiliaryContinuationState("reviewed_profile_paid_seal_and_live_threat");
         }
 
         [UnityTest, Explicit("Pinned immutable post-seal checkpoint; isolated first-away generation diagnosis"), Timeout(120000)]

@@ -85,6 +85,32 @@ namespace SynapticSea.Core.Procgen
             return new GdDict();
         }
 
+        /// <summary>Explicit isolated first-away profile. Ordinary generation never selects this entry point.</summary>
+        internal GdDict GenerateFirstAway(FirstAwayGenerationInputs inputs, FirstAwaySalvageGeometry.Choices choices = null)
+        {
+            if (inputs == null) return new GdDict();
+            var grid = FirstAwaySalvageGeometry.Compose(inputs, choices ?? FirstAwaySalvageGeometry.Project(inputs), out var plan);
+            foreach (GdDict row in plan) row["variant"] = row.GetString("role") == "cargo" ? "breached" : "standard";
+            var geometry = WallDoorResolverStage.Resolve(grid, plan);
+            var layout = LayoutSerializerStage.Serialize(grid, geometry, plan, FirstAwayGenerationInputs.Profile, inputs.CandidateSeed, "First-away service salvage");
+            if (!StampExplicitStructuralLayout(layout, grid)) return new GdDict();
+            FirstAwaySalvageProfile.StampAuthoring(layout, grid, inputs);
+            layout = new EncounterInjector().Inject(layout, BiomeProfile.FromDict(ResolveBiome(inputs.Biome)),
+                DifficultyProfile.FromDict(ResolveDifficulty(inputs.Difficulty)), inputs.CandidateSeed);
+            // IDs belong to the authored room, never the emitter's traversal ordinal. Counts/table rolls stay ordinary.
+            foreach (GdDict encounter in layout.GetArrayOrEmpty("encounters"))
+                encounter["id"] = encounter.GetString("room_id") + "/encounter";
+            var blueprint = new ShipBlueprint(inputs.Size, inputs.Condition, inputs.CandidateSeed);
+            ApplyConditionMutators(layout, blueprint);
+            if (!StampStructuralPlan(layout)) return new GdDict();
+            if (!FirstAwaySalvageProfile.UniqueFreshDamagePool(layout)) { CoreServices.Log.Error("First-away duplicate/invalid fresh damage pool"); return new GdDict(); }
+            ApplyWreckToCompiledPlan(layout, blueprint); // null map is a fresh ordinary integrity map, full compiled pool.
+            if (!LayoutIsConnected(layout)) { CoreServices.Log.Error("First-away disconnected layout"); return new GdDict(); }
+            var encounterVerdict = EncounterInjector.Validate(layout);
+            if (!encounterVerdict.GetBool("valid")) { CoreServices.Log.Error("First-away encounters: " + GdJson.Stringify(encounterVerdict)); return new GdDict(); }
+            return layout;
+        }
+
         GdDict GenerateOnce(ShipBlueprint blueprint, GdDict archetype, string biomeId, string difficultyId, bool extendedTemplates)
         {
             // Stage 1: select topology template.

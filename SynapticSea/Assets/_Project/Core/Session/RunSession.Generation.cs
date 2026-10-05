@@ -38,7 +38,8 @@ namespace SynapticSea.Core.Session
             if (!CompleteGenerationEnabled || (PaidCraftingEnabled ? _paidRestoreOperation?.Selection : Deps.SelectedSaveGeneration) == null) return true;
             if (PaidCraftingEnabled) RequirePaidRestoreOperation(_paidRestoreOperation);
             GdDict requested = (PaidCraftingEnabled ? _paidRestoreOperation.Selection : Deps.SelectedSaveGeneration).DeepCopy();
-            var service = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled);
+            var service = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled)
+            { FirstAwaySalvageProfileEnabled = ReviewedFirstAwayProfileEnabled };
             GdDict exact = service.ReadGeneration(requested.GetString("run_id"), requested.GetString("slot_id"), requested.GetString("generation_id"), requested.GetString("manifest_sha256"));
             if (!exact.GetBool("ok") || !(PaidCraftingEnabled ? PaidSnapshotCodec.Same(requested.Get("payloads"), exact.Get("payloads")) : V.VariantEquals(requested.Get("payloads"), exact.Get("payloads"))))
             {
@@ -252,6 +253,17 @@ namespace SynapticSea.Core.Session
                         KitPath = r.GetString("kit_path"), LayoutJson = archive[r.GetString("layout_path")].GetString("text"), GameplaySlice = boat ? new GdDict() : ParseGenerationDocument(slice),
                         GameplaySliceJson = boat ? "" : slice.GetString("text"), IsAway = !boat, Name = boat ? "LifeBoat" : "GeneratedDerelict",
                         RuntimeGeneratedGameplay = !boat && slice.GetString("document_kind") == "runtime_generated_gameplay_slice" };
+                    if (!boat && owner != "ship_start")
+                    {
+                        var row = world.VisitedShips
+                            .Single(pair => pair.Value is GdDict ship && ship.GetString("ship_id") == owner);
+                        var summary = (GdDict)row.Value;
+                        ShipBlueprint blueprint = ShipBlueprint.FromDict(summary.GetDictOrEmpty("blueprint"));
+                        if (!ValidateFirstAwayDocuments(docs, blueprint, V.Str(row.Key), owner,
+                            world.WorldSummary.GetInt("world_seed"), out ShipDocuments admitted, archive[r.GetString("kit_path")].GetString("text"))) return false;
+                        if (blueprint.GenerationProfile == FirstAwayGenerationInputs.Profile)
+                        { docs = admitted; }
+                    }
                     IShipSceneRoot root = boat ? ShipHost?.BuildLifeboatScene(RetainedLifeboatBuild(docs.Layout, docs.KitPath)) : ShipHost?.BuildShipScene(docs);
                     if (root == null || !RootValid(root))
                     {
@@ -313,6 +325,10 @@ namespace SynapticSea.Core.Session
             if (!_generationShipDocuments.TryGetValue(ship.ShipId, out GdDict d) || d.GetBool("fixed_lifeboat")) return null;
             var docs = new ShipDocuments { Layout = GdJson.ParseString(d.GetString("layout_text")) as GdDict, GameplaySlice = GdJson.ParseString(d.GetString("slice_text")) as GdDict,
                 Kit = GdJson.ParseString(d.GetString("kit_text")) as GdDict, KitPath = d.GetString("kit_path"), LayoutJson = d.GetString("layout_text"), GameplaySliceJson = d.GetString("slice_text"), IsAway = true, RuntimeGeneratedGameplay = d.GetBool("runtime_gameplay") };
+            if (!ValidateFirstAwayDocuments(docs, ship.Blueprint, ship.MarkerId, ship.ShipId,
+                SynapticSeaWorld.WorldSeed, out ShipDocuments admitted, d.GetString("kit_text"))) return null;
+            if (ship.Blueprint.GenerationProfile == FirstAwayGenerationInputs.Profile)
+            { docs = admitted; }
             IShipLoaderView staged = TakeStagedGenerationRoot(ship.ShipId) as IShipLoaderView;
             if (staged == null) return _paidRestoreOperation != null ? null : BuildShipSceneFromDocuments(docs);
             RecordKitPath(staged, docs.KitPath); RememberGeneratedDocuments(staged, docs); return staged;

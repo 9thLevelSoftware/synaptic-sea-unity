@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using SynapticSea.Core.Services;
@@ -42,12 +43,34 @@ namespace SynapticSea.Core.Systems
             foreach (string p in relative.Split('/')) if (p.Length == 0 || p == "." || p == "..") return false;
             return true;
         }
-        sealed class Reader : IResourceReader
+        sealed class Reader : IResourceReader, IResourceDirectoryReader
         {
             readonly Dictionary<string, string> _texts; readonly IResourceReader _fallback;
             public Reader(Dictionary<string, string> texts, IResourceReader fallback) { _texts = texts; _fallback = fallback; }
             public bool Exists(string path) => _texts.ContainsKey(path) || _fallback?.Exists(path) == true;
             public string ReadText(string path) => _texts.TryGetValue(path, out string text) ? text : _fallback?.ReadText(path);
+            public bool DirExists(string path)
+            {
+                if (string.IsNullOrEmpty(path)) return false;
+                string prefix = path.EndsWith("/", StringComparison.Ordinal) ? path : path + "/";
+                return _texts.Keys.Any(key => key.StartsWith(prefix, StringComparison.Ordinal))
+                    || _fallback is IResourceDirectoryReader directories && directories.DirExists(path);
+            }
+            public IReadOnlyList<string> ListFiles(string dir)
+            {
+                if (string.IsNullOrEmpty(dir)) return Array.Empty<string>();
+                var names = new HashSet<string>(StringComparer.Ordinal);
+                if (_fallback is IResourceDirectoryReader directories)
+                    foreach (string name in directories.ListFiles(dir)) names.Add(name);
+                string prefix = dir.EndsWith("/", StringComparison.Ordinal) ? dir : dir + "/";
+                foreach (string key in _texts.Keys)
+                {
+                    if (!key.StartsWith(prefix, StringComparison.Ordinal)) continue;
+                    string name = key.Substring(prefix.Length);
+                    if (name.Length > 0 && name.IndexOf('/') < 0) names.Add(name);
+                }
+                return names.OrderBy(name => name, StringComparer.Ordinal).ToArray();
+            }
         }
     }
 }

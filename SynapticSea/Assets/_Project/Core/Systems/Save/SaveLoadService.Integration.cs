@@ -14,6 +14,8 @@ namespace SynapticSea.Core.Systems
         public bool ComponentIntegrationEnabled { get; }
         public const string PaidGenerationRoot = "user://saves/.paid-craft-generations";
         public bool PaidCraftingEnabled { get; }
+        /// <summary>Explicit reviewed profile capability; off preserves the prior compatibility catalog.</summary>
+        public bool FirstAwaySalvageProfileEnabled { get; set; }
         public bool CompleteGenerationEnabled => ComponentIntegrationEnabled || PaidCraftingEnabled;
         string GenerationRoot => ComponentIntegrationEnabled ? ComponentGenerationRoot : PaidGenerationRoot;
         string AdmissionVersion => ComponentIntegrationEnabled ? "component-run-admission-1" : "paid-run-admission-1";
@@ -32,12 +34,17 @@ namespace SynapticSea.Core.Systems
         public GdDict LastGenerationResult { get; private set; } = new GdDict();
         static readonly string[] ComponentSlotsIds = { "world", "autosave_active", "autosave_a", "autosave_b", "autosave_c", "quicksave", "slot_01", "slot_02", "slot_03", "slot_04", "slot_05", "slot_06" };
         internal static string ComponentSlotKind(string id) => id == "world" ? "world" : id == "quicksave" ? "quick" : id != null && id.StartsWith("autosave_", StringComparison.Ordinal) ? "auto" : "manual";
-        internal GdDict ComponentCompatibility() => new GdDict
+        internal GdDict ComponentCompatibility()
+        {
+            var compatibility = new GdDict
         {
             { "engine_version", EngineVersionString }, { "catalog_id", ComponentIntegrationEnabled ? "component-live-diagnostic" : "paid-crafting-ordinary" }, { "catalog_version", "1" },
             { "library_id", "" }, { "library_version", "" },
             { "profiles", new GdDict { { ConstrainedExpedition.Profile, ConstrainedExpedition.Profile }, { ConstrainedExpedition.LegacyProfile, ConstrainedExpedition.LegacyProfile } } }
         };
+            if (FirstAwaySalvageProfileEnabled) compatibility.GetDictOrEmpty("profiles")[FirstAwayGenerationInputs.Profile] = FirstAwayGenerationInputs.Profile;
+            return compatibility;
+        }
         internal SaveCommitCoordinator ComponentCoordinator(Action<string> fault = null)
             => new SaveCommitCoordinator(Storage, GenerationRoot, new ComponentTerminalAuthority(this), ComponentCompatibility(), fault, ComponentIntegrationEnabled, PaidCraftingEnabled);
         internal GdDict ReadComponentCommitParent(string run, string slot) => ComponentCoordinator().ReadCommitParent(run, slot);

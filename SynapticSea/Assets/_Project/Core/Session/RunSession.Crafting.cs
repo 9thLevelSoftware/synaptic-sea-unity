@@ -97,6 +97,11 @@ namespace SynapticSea.Core.Session
                         if (raw is GdDict slot && slot.GetString("room_id") == roomId && slot.Get("position") is Vec3 anchor)
                         { pos = anchor; break; }
                 }
+                if (AwayFromStart && cid == "cargo" && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.FirstAwayGenerationInputs.Profile)
+                {
+                    if (!(CurrentShip.SceneRoot is IShipLoaderView profileView) || !TryFirstAwayCargoWorkPosition(profileView, out pos))
+                        throw new System.InvalidOperationException("first_away_cargo_work_anchor_missing");
+                }
                 idx += 1;
                 var sp = new BreachSealPoint();
                 sp.Configure(cid, hull, InventoryState, PlayerProgression, pos, 4.0, "hull_sealant", 1.0, 1.8);

@@ -145,7 +145,7 @@ namespace SynapticSea.Core.Session
         /// <summary><see cref="IShipSceneHost.BuildShipScene"/> + the kit-path record.</summary>
         IShipLoaderView BuildShipSceneFromDocuments(ShipDocuments docs)
         {
-            if (docs == null)
+            if (docs == null || !ValidateFirstAwayBuild(docs))
                 return null;
             IShipLoaderView root = ShipHost?.BuildShipScene(docs);
             RecordKitPath(root, docs.KitPath);

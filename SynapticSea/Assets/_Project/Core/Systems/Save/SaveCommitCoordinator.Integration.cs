@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Session;
+using SynapticSea.Core.Services;
 using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Core.Systems
@@ -235,6 +236,7 @@ namespace SynapticSea.Core.Systems
                 artifacts.Add(a.GetString("logical_path"), a);
             }
             var used = new HashSet<string>(StringComparer.Ordinal);
+            var authenticatedFirstAwayOwners = new HashSet<string>(StringComparer.Ordinal);
             GdDict legacy = request.DeepCopy(), oldActive = LegacyRun(active), oldWorld = world.DeepCopy();
             oldWorld["slice_version"] = WorldSnapshot.WorldSliceVersion; oldWorld["home_ship"] = LegacyRun(home);
             oldWorld.Erase("component_domain"); oldWorld.Erase("generation_id"); oldWorld.Erase("capture_revision");
@@ -279,7 +281,15 @@ namespace SynapticSea.Core.Systems
                 {
                     if (sa.GetString("schema_version") != "component-runtime-gameplay-1") throw new Refusal("unsupported_schema");
                     GdDict gameplay = ParseObject(sa.GetString("text"));
-                    if (!ValidRuntimeGameplay(layout, gameplay, bp)) throw new Refusal("invalid_runtime_gameplay");
+                    if (reference.GetString("profile_id") == FirstAwayGenerationInputs.Profile)
+                    {
+                        if (_compatibility?.GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile ||
+                            request.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile ||
+                            !ValidateFirstAwayProfile(owner, world, active, bp, la.GetString("text"), sa.GetString("text"), kitPath, ka.GetString("text")))
+                            throw new Refusal("invalid_first_away_profile");
+                        authenticatedFirstAwayOwners.Add(owner);
+                    }
+                    else if (!ValidRuntimeGameplay(layout, gameplay, bp)) throw new Refusal("invalid_runtime_gameplay");
                     // Deep validation adapter only: published artifacts retain their original bytes and distinct envelope.
                     GdDict adapterSlice = legacy.GetArrayOrEmpty("artifacts").OfType<GdDict>().Single(a => a.GetString("logical_path") == slicePath);
                     GdDict normalized = gameplay.DeepCopy(); normalized["document_kind"] = "ship_gameplay_slice"; normalized["schema_version"] = "1.1.0";
@@ -299,7 +309,7 @@ namespace SynapticSea.Core.Systems
             GdDict oldBinding = legacy.GetDictOrEmpty("binding"); oldBinding.Erase("binding_version"); oldBinding.Erase("component_revision"); oldBinding.Erase("player_pose_owner_id"); oldBinding.Erase("save_mode"); oldBinding["ship_references"] = oldRefs;
             var needed = new HashSet<string>(); foreach (GdDict r in oldRefs.Values.OfType<GdDict>()) if (r.GetBool("present")) { needed.Add(r.GetString("layout_path")); needed.Add(r.GetString("gameplay_slice_path")); needed.Add(r.GetString("kit_path")); }
             legacy["artifacts"] = new GdArray(legacy.GetArrayOrEmpty("artifacts").OfType<GdDict>().Where(a => needed.Contains(a.GetString("logical_path"))));
-            ValidateRequest(legacy, run, slot, true, paid); // Structural adapter retains exact paid numeric types and values.
+            ValidateRequest(legacy, run, slot, true, paid, authenticatedFirstAwayOwners); // Structural adapter retains exact paid numeric types and values.
             var candidate = new Candidate(request);
             candidate.Entries.Add(new Entry("run", "", "run_snapshot", runVersion, request.GetString("run_text")));
             candidate.Entries.Add(new Entry("world", "", "world_snapshot", worldVersion, request.GetString("world_text")));
@@ -310,6 +320,33 @@ namespace SynapticSea.Core.Systems
         }
         static GdDict LegacyRun(GdDict run)
         { GdDict old = run.DeepCopy(); old["slice_version"] = SaveLoadService.CURRENT_SLICE_VERSION; old.Erase("component_domain"); old.Erase("generation_id"); old.Erase("capture_revision"); old.GetDictOrEmpty("crafting_summary").Erase("paid_craft"); return old; }
+
+        static bool ValidateFirstAwayProfile(string owner, GdDict world, GdDict active, GdDict blueprint, string layoutText, string gameplayText, string kitPath, string kitText)
+        {
+            try
+            {
+                if (owner == "ship_start" || owner == "lifeboat" || !(blueprint.Get("first_away_descriptor_text") is string descriptorText) || descriptorText.Length == 0) return false;
+                GdDict retained = world.GetDictOrEmpty("visited_ships").Values.OfType<GdDict>().SingleOrDefault(s => s.GetString("ship_id") == owner);
+                GdDict summary = world.GetDictOrEmpty("world_summary");
+                var contract = new FirstRunContract(); if (!contract.LoadContract()) return false;
+                if (retained == null || !JsonInteger(summary.Get("world_seed"), out long worldSeed, true) ||
+                    !JsonInteger(active.Get("world_seed"), out long activeWorldSeed, true) || activeWorldSeed != worldSeed ||
+                    !JsonInteger(blueprint.Get("seed_value"), out long candidateSeed, true) ||
+                    !JsonInteger(blueprint.Get("size"), out long size) || !JsonInteger(blueprint.Get("condition"), out long condition)) return false;
+                var inputs = new FirstAwayGenerationInputs(candidateSeed, worldSeed, size, condition, retained.GetString("marker_id"), owner,
+                    contract.Contract.GetString("biome_id"), contract.Contract.GetString("difficulty_id"));
+                // Bind the production blueprint to the real deterministic marker, not a caller-forged size/condition pair.
+                // CandidateSeed is deliberately the reviewed 42/777 choice, not the marker's original SeedValue.
+                if (owner != "ship_" + inputs.MarkerId || !ReferenceEquals(world.GetDictOrEmpty("visited_ships").Get(inputs.MarkerId), retained)) return false;
+                var marker = new MarkerGenerator().MarkersForCell(worldSeed, new Vec2i((int)inputs.SectorX, (int)inputs.SectorY))[(int)inputs.MarkerIndex];
+                if (marker.MarkerId != inputs.MarkerId || marker.SizeClass != size || marker.Condition != condition) return false;
+                GdDict descriptor = PaidSnapshotCodec.Parse(descriptorText);
+                if (!FirstAwaySalvageProfile.TryRestore(inputs, descriptor, layoutText, gameplayText, out ShipDocuments documents)) return false;
+                // Same kit ID/shape is insufficient: authenticate the archived physical catalog's exact bytes.
+                return documents.KitPath == kitPath && string.Equals(CoreServices.Resources.ReadText(kitPath), kitText, StringComparison.Ordinal);
+            }
+            catch (Exception) { return false; }
+        }
 
         static bool ValidRuntimeGameplay(GdDict layout, GdDict gameplay, GdDict blueprint)
         {

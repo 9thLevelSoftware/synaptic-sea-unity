@@ -40,6 +40,13 @@ namespace SynapticSea.Core.Services
         string ReadText(string resPath);
     }
 
+    /// <summary>Optional read-only directory capability; wrappers forward logical file names without exposing filesystem paths.</summary>
+    public interface IResourceDirectoryReader
+    {
+        bool DirExists(string path);
+        IReadOnlyList<string> ListFiles(string dir);
+    }
+
     /// <summary>Godot path helpers.</summary>
     public static class ResPath
     {
@@ -288,7 +295,7 @@ namespace SynapticSea.Core.Services
     /// at call time. Directory listing (<c>ProcgenCompat</c>, <c>InfraCompat</c>) keeps using <see cref="Root"/> for
     /// <c>res://</c> directories.
     /// </summary>
-    public sealed class FileSystemResourceReader : IResourceReader
+    public sealed class FileSystemResourceReader : IResourceReader, IResourceDirectoryReader
     {
         static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
         readonly string _root;
@@ -314,6 +321,9 @@ namespace SynapticSea.Core.Services
             if (IsUserPath(resPath)) return UserStorage?.FileExists(resPath) ?? false;
             return File.Exists(Full(resPath));
         }
+
+        public bool DirExists(string dir) => IsUserPath(dir)
+            ? UserStorage?.DirExists(dir) == true : Directory.Exists(Full(dir));
 
         /// <summary>File names directly inside a <c>res://</c> or <c>user://</c> directory, sorted ordinally (empty when missing).</summary>
         public IReadOnlyList<string> ListFiles(string dir)

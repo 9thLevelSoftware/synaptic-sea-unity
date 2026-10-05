@@ -184,7 +184,8 @@ namespace SynapticSea.Core.Session
             DeconstructionResolver = new DeconstructionResolver();
             _loot_tables = LootRoller.LoadTables();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
-            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled);
+            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled)
+            { FirstAwaySalvageProfileEnabled = ReviewedFirstAwayProfileEnabled };
             GdDict bootSelection = _selectedGeneration ?? Deps.SelectedSaveGeneration;
             _runId = CompleteGenerationEnabled && bootSelection != null ? bootSelection.GetString("run_id") : GenerateRunId();
             SaveLoadService.SetActiveRunId(_runId);
@@ -224,6 +225,9 @@ namespace SynapticSea.Core.Session
         /// </summary>
         GdDict ApplyFirstRunContractToMarker(ShipMarker marker)
         {
+            _acceptedFirstAwayDocuments = null;
+            if (ReviewedFirstAwayProfileEnabled && !CompleteGenerationEnabled)
+                return new GdDict { { "applicable", true }, { "success", false }, { "reason", "first_away_requires_complete_generation" } };
             if (marker == null || string.IsNullOrEmpty(marker.MarkerId) || VisitedShips.Count > 0)
                 return new GdDict { { "applicable", false }, { "success", true }, { "applied", false } };
             if (FirstRunContract == null || FirstRunContract.Contract.IsEmpty || ShipGenerator == null)
@@ -239,7 +243,9 @@ namespace SynapticSea.Core.Session
             ShipGenerator.ConfigureRunContext(biomeId, difficultyId);
             FirstRunAwayGate.Result pick = FirstRunAwayGate.EvaluateCandidates(
                 FirstRunContract, marker.SizeClass, marker.Condition,
-                (seed, size, condition) => ShipGenerator.GenerateFromSeed(seed, size, condition));
+                (seed, size, condition) => ReviewedFirstAwayProfileEnabled
+                    ? GenerateFirstAwayCandidate(marker, seed, size, condition)
+                    : ShipGenerator.GenerateFromSeed(seed, size, condition));
             if (!pick.Success)
             {
                 return new GdDict

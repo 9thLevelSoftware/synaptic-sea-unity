@@ -54,8 +54,16 @@ namespace SynapticSea.Core.Session
         {
             GdDict detached = ships.DeepCopy();
             foreach (GdDict ship in detached.Values.OfType<GdDict>())
+            {
                 if (ship.Get("component_placement") is GdDict placement)
                     ship["component_placement"] = PaidPlacementSummary(placement);
+                if (ship.Has("objective"))
+                {
+                    if (!(ship.Get("objective") is GdDict objective) || !(objective.Get("progress") is GdDict progress))
+                        throw new PaidSnapshotCodec.ValidationException("$[\"visited_ships\"][\"objective\"][\"progress\"]:invalid_objective_progress");
+                    objective["progress"] = PaidObjectiveSummary(progress);
+                }
+            }
             return detached;
         }
 

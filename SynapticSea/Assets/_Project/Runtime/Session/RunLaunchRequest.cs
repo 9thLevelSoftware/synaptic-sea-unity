@@ -53,6 +53,7 @@ namespace SynapticSea.Runtime.Session
         public bool EnableManualStudy;
         /// <summary>Explicit diagnostic useful utility repairs and finite recovery work.</summary>
         public bool EnableAuxiliaryServices;
+        public bool EnableReviewedFirstAwayProfile;
         GdDict _selectedSaveGeneration;
         /// <summary>Owned exact generation handle; never inferred from the presence of a generation on disk.</summary>
         public GdDict SelectedSaveGeneration
