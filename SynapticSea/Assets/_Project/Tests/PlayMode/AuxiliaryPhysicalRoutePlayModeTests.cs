@@ -655,6 +655,9 @@ namespace SynapticSea.Tests.PlayMode
             var selection = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(AuxiliaryReadVerified(directory,
                 manifest.GetString("selection_file"), manifest.GetString("selection_sha256")));
             var payload = selection.GetDictOrEmpty("payloads");
+            // Paid receipt reconstruction needs the same authoritative catalogs as normal Continue.
+            // SetUp already binds AppServices.StorageOverride to this test's MemoryStorage.
+            SynapticSea.App.AppServices.Ensure();
             var savedWorld = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("world_text"), SynapticSea.Core.Systems.PaidSnapshotCodec.Policy.OrdinaryWorld);
             var savedRun = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("run_text"), SynapticSea.Core.Systems.PaidSnapshotCodec.Policy.OrdinaryRun);
             Assert.IsNotNull(savedWorld, "verified paid world must parse under its ordinary snapshot policy");

@@ -271,3 +271,70 @@ namespace SynapticSea.Tests.Session
         }
     }
 }
+
+
+namespace SynapticSea.Tests.Session
+{
+#if SYNAPTIC_DOTNET_TESTS
+    [NonParallelizable]
+#endif
+    public class PreservedPaidCheckpointCodecDiagnostics
+    {
+        sealed class MissingResources : IResourceReader
+        {
+            public bool Exists(string path) => false;
+            public string ReadText(string path) => null;
+        }
+        static string Sha(byte[] bytes)
+        {
+            using (var sha = SHA256.Create()) return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+        }
+        [Test, Explicit("Read-only exact Mono checkpoint admission; no gameplay boot.")]
+        public void PreservedMonoPaidCheckpointRequiresComposedCatalogsBeforeAdmission()
+        {
+            string root = Environment.GetEnvironmentVariable("SYNAPTIC_PAID_CHECKPOINT_DIAGNOSTIC_DIR");
+            Assert.IsFalse(string.IsNullOrEmpty(root));
+            byte[] manifestBytes = File.ReadAllBytes(Path.Combine(root, "manifest.json"));
+            Assert.AreEqual("6323ed2b3754650abea00ff699797ad2094aa8688188ae8d39dc21cbd57099e6", Sha(manifestBytes));
+            var manifest = PaidSnapshotCodec.Parse(StrictText(manifestBytes));
+            byte[] selectionBytes = File.ReadAllBytes(Path.Combine(root, manifest.GetString("selection_file")));
+            Assert.AreEqual(manifest.GetString("selection_sha256"), Sha(selectionBytes));
+            var selection = PaidSnapshotCodec.Parse(StrictText(selectionBytes)); Assert.IsNotNull(selection);
+            var payloads = selection.GetDictOrEmpty("payloads");
+            var reader = new FileSystemResourceReader(SynapticSea.Tests.Fixtures.StreamingDataRoot);
+            byte[] metadataBytes = File.ReadAllBytes(Path.Combine(root, manifest.GetString("metadata_file")));
+            Assert.AreEqual(manifest.GetString("metadata_sha256"), Sha(metadataBytes));
+            var metadata = PaidSnapshotCodec.Parse(StrictText(metadataBytes));
+            Assert.AreEqual(7, metadata.GetArrayOrEmpty("catalog_hashes").Count);
+            foreach (GdDict row in metadata.GetArrayOrEmpty("catalog_hashes"))
+                Assert.AreEqual(row.GetString("sha256"), Sha(new UTF8Encoding(false, true).GetBytes(reader.ReadText(row.GetString("logical_path")))));
+            var previous = CoreServices.Resources;
+            try
+            {
+                foreach (string role in new[] { "run", "world" })
+                {
+                    string text = payloads.GetString(role + "_text");
+                    var graph = GdJson.Parse(text, true) as GdDict;
+                    var home = role == "run" ? graph : graph.GetDictOrEmpty("home_ship");
+                    Assert.IsTrue(ComponentDomainCodec.TryDecode(home.GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft").GetDictOrEmpty("domain"), out GdDict owner, out _));
+                    var effect = owner.GetDictOrEmpty("receipts").GetDictOrEmpty("manual_study:complete:52ed8dcc7e0d019c305b3627e68fda2a7a570b9f38ca87335860028ce831a399").GetDictOrEmpty("result");
+                    var before = owner.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting").GetDictOrEmpty("reward_history").GetDictOrEmpty("progression_nodes").GetDictOrEmpty(effect.GetString("progression_before_hash")).GetDictOrEmpty("summary");
+                    Assert.AreEqual("cook", before.GetString("class_id")); Assert.AreEqual("fabrication_schematic_basic", effect.GetString("book_id"));
+                    var policy = role == "run" ? PaidSnapshotCodec.Policy.OrdinaryRun : PaidSnapshotCodec.Policy.OrdinaryWorld;
+                    CoreServices.Resources = new MissingResources(); CatalogRegistry.Clear();
+                    Assert.IsFalse(ClassDefinition.LoadAll().ContainsKey("cook"));
+                    Assert.IsFalse(DomainBundle.TryCreate(owner, out _, out string reason)); Assert.AreEqual("invalid_receipt", reason);
+                    Assert.IsNull(PaidSnapshotCodec.Parse(text, policy));
+                    CoreServices.Resources = reader; CatalogRegistry.Clear();
+                    Assert.IsTrue(ClassDefinition.LoadAll().ContainsKey("cook"));
+                    Assert.IsTrue(DomainBundle.TryCreate(owner, out _, out reason), reason);
+                    Assert.IsNotNull(PaidSnapshotCodec.Parse(text, policy));
+                    TestContext.WriteLine("EXACT_CHECKPOINT_ADMISSION=" + role + " unchanged_payload_sha256=" + Sha(new UTF8Encoding(false, true).GetBytes(text)) + " missing_catalog_refused=true composed_catalog_admitted=true");
+                }
+            }
+            finally { CoreServices.Resources = previous; CatalogRegistry.Clear(); }
+            Assert.AreEqual(manifest.GetString("selection_sha256"), Sha(File.ReadAllBytes(Path.Combine(root, manifest.GetString("selection_file")))));
+        }
+        static string StrictText(byte[] bytes) => new UTF8Encoding(false, true).GetString(bytes);
+    }
+}
