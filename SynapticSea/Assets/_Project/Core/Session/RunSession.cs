@@ -325,6 +325,8 @@ namespace SynapticSea.Core.Session
             BlueprintPath = Deps.BlueprintPath;
             StartingClassId = Deps.StartingClassId;
             AchievementState = Deps.AchievementState;
+            _continuousDiagnosticRequested = Deps.EnableContinuousAuxiliaryDiagnostic && Deps.EnableComponentIntegration
+                && Deps.EnablePaidCrafting && Deps.EnableBitExactPaidCompatibility && Deps.EnableAuxiliaryServices;
         }
 
         /// <summary>

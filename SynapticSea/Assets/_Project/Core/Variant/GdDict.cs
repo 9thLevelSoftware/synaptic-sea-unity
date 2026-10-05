@@ -4,148 +4,182 @@ using System.Collections.Generic;
 
 namespace SynapticSea.Core.Variant
 {
-    /// <summary>
-    /// C# equivalent of a GDScript <c>Dictionary</c>: insertion-ordered, Variant-keyed.
-    /// Values are restricted to the Variant leaf set (see <see cref="V.Normalize"/>):
-    /// null, bool, long, double, string, <see cref="GdDict"/>, <see cref="GdArray"/>, <see cref="Vec2i"/>, <see cref="Vec3"/>.
-    /// Removal preserves the order of the remaining keys, like Godot.
-    /// </summary>
+    /// <summary>Insertion-ordered Variant dictionary. Protection is diagnostic and opt-in from birth.</summary>
     public sealed class GdDict : IEnumerable<KeyValuePair<object, object>>
     {
-        readonly List<object> _keys = new List<object>();
-        readonly List<object> _values = new List<object>();
-        readonly Dictionary<object, int> _index = new Dictionary<object, int>(VariantKeyComparer.Instance);
-
-        public GdDict() { }
-
-        public int Count => _keys.Count;
-        public bool IsEmpty => _keys.Count == 0;
-
-        /// <summary>Keys in insertion order, like <c>Dictionary.keys()</c>.</summary>
-        public IReadOnlyList<object> Keys => _keys;
-
-        /// <summary>Values in insertion order, like <c>Dictionary.values()</c>.</summary>
-        public IReadOnlyList<object> Values => _values;
-
-        public object this[object key]
+        internal sealed class Storage
         {
-            get
+            internal readonly List<object> Keys = new List<object>();
+            internal readonly List<object> Values = new List<object>();
+            internal readonly Dictionary<object, int> Index = new Dictionary<object, int>(VariantKeyComparer.Instance);
+            internal Storage Clone()
             {
-                key = V.NormalizeKey(key);
-                if (_index.TryGetValue(key, out int i)) return _values[i];
-                throw new KeyNotFoundException($"GdDict has no key '{key}'.");
+                var copy = new Storage();
+                for (int i = 0; i < Keys.Count; i++) copy.Set(Keys[i], Values[i]);
+                return copy;
             }
-            set => Set(key, value);
-        }
-
-        public object this[string key]
-        {
-            get => this[(object)key];
-            set => Set(key, value);
-        }
-
-        public void Set(object key, object value)
-        {
-            key = V.NormalizeKey(key);
-            value = V.Normalize(value);
-            if (_index.TryGetValue(key, out int i))
+            internal void Set(object key, object value)
             {
-                _values[i] = value;
-                return;
+                if (Index.TryGetValue(key, out int at)) { Values[at] = value; return; }
+                Index[key] = Keys.Count; Keys.Add(key); Values.Add(value);
             }
-            _index[key] = _keys.Count;
-            _keys.Add(key);
-            _values.Add(value);
-        }
-
-        /// <summary><c>dict.get(key, default)</c>.</summary>
-        public object Get(object key, object fallback = null)
-        {
-            key = V.NormalizeKey(key);
-            return _index.TryGetValue(key, out int i) ? _values[i] : fallback;
-        }
-
-        public bool TryGetValue(object key, out object value)
-        {
-            key = V.NormalizeKey(key);
-            if (_index.TryGetValue(key, out int i))
+            internal bool Erase(object key)
             {
-                value = _values[i];
+                if (!Index.TryGetValue(key, out int at)) return false;
+                Keys.RemoveAt(at); Values.RemoveAt(at); Index.Remove(key);
+                for (int j = at; j < Keys.Count; j++) Index[Keys[j]] = j;
                 return true;
             }
-            value = null;
-            return false;
         }
-
-        /// <summary><c>dict.has(key)</c>.</summary>
-        public bool Has(object key) => _index.ContainsKey(V.NormalizeKey(key));
-
-        /// <summary><c>dict.erase(key)</c>; returns true when the key existed.</summary>
+        internal readonly TrackedParticipantOwner Owner;
+        internal EnrolledProjectionNode ProjectionNode;
+        internal Storage RawStorage = new Storage();
+        readonly ProtectedView _keyView, _valueView;
+        public GdDict() { }
+        internal GdDict(TrackedParticipantOwner owner)
+        { Owner = owner; _keyView = new ProtectedView(this, true); _valueView = new ProtectedView(this, false); }
+        public int Count { get { if (Owner == null) return RawStorage.Keys.Count; lock (CommonParticipantGate.SyncRoot) return RawStorage.Keys.Count; } }
+        public bool IsEmpty => Count == 0;
+        public IReadOnlyList<object> Keys => Owner == null ? (IReadOnlyList<object>)RawStorage.Keys : _keyView;
+        public IReadOnlyList<object> Values => Owner == null ? (IReadOnlyList<object>)RawStorage.Values : _valueView;
+        public object this[object key]
+        {
+            get { if (Owner == null) return GetRequired(key); lock (CommonParticipantGate.SyncRoot) return GetRequired(key); }
+            set => Set(key, value);
+        }
+        object GetRequired(object key)
+        {
+            key = Owner == null ? V.NormalizeKey(key) : TrackedParticipantOwner.NormalizeProtected(key, true);
+            if (RawStorage.Index.TryGetValue(key, out int at)) return RawStorage.Values[at];
+            throw new KeyNotFoundException($"GdDict has no key '{key}'.");
+        }
+        public object this[string key] { get => this[(object)key]; set => Set(key, value); }
+        public void Set(object key, object value)
+        {
+            key = Owner == null ? V.NormalizeKey(key) : TrackedParticipantOwner.NormalizeProtected(key, true); value = Owner == null ? V.Normalize(value) : TrackedParticipantOwner.NormalizeProtected(value);
+            if (Owner == null) { RawStorage.Set(key, value); return; }
+            if (Owner.TryProjectedDictionarySet(this, key, value)) return;
+            lock (CommonParticipantGate.SyncRoot)
+            {
+                var next = RawStorage.Clone(); next.Set(key, value);
+                bool touch = Owner.PrepareMutationUnderGate(this, next);
+                RawStorage = next; Owner.FinishMutationUnderGate(touch);
+            }
+        }
+        public object Get(object key, object fallback = null)
+        {
+            if (Owner == null) return GetRaw(key, fallback);
+            lock (CommonParticipantGate.SyncRoot) return GetRaw(key, fallback);
+        }
+        object NormalizeLookupKey(object key) => Owner == null ? V.NormalizeKey(key) : TrackedParticipantOwner.NormalizeProtected(key, true);
+        object GetRaw(object key, object fallback)
+        { return RawStorage.Index.TryGetValue(NormalizeLookupKey(key), out int at) ? RawStorage.Values[at] : fallback; }
+        public bool TryGetValue(object key, out object value)
+        {
+            if (Owner == null) return TryGetRaw(key, out value);
+            lock (CommonParticipantGate.SyncRoot) return TryGetRaw(key, out value);
+        }
+        bool TryGetRaw(object key, out object value)
+        {
+            if (RawStorage.Index.TryGetValue(NormalizeLookupKey(key), out int at)) { value = RawStorage.Values[at]; return true; }
+            value = null; return false;
+        }
+        public bool Has(object key)
+        {
+            if (Owner == null) return RawStorage.Index.ContainsKey(NormalizeLookupKey(key));
+            lock (CommonParticipantGate.SyncRoot) return RawStorage.Index.ContainsKey(NormalizeLookupKey(key));
+        }
         public bool Erase(object key)
         {
-            key = V.NormalizeKey(key);
-            if (!_index.TryGetValue(key, out int i)) return false;
-            _keys.RemoveAt(i);
-            _values.RemoveAt(i);
-            _index.Remove(key);
-            for (int j = i; j < _keys.Count; j++) _index[_keys[j]] = j;
-            return true;
+            key = Owner == null ? V.NormalizeKey(key) : TrackedParticipantOwner.NormalizeProtected(key, true);
+            if (Owner == null) return RawStorage.Erase(key);
+            lock (CommonParticipantGate.SyncRoot)
+            {
+                if (!RawStorage.Index.ContainsKey(key)) return false;
+                var next = RawStorage.Clone(); next.Erase(key);
+                bool touch = Owner.PrepareMutationUnderGate(this, next);
+                RawStorage = next; Owner.FinishMutationUnderGate(touch); return true;
+            }
         }
-
         public void Clear()
         {
-            _keys.Clear();
-            _values.Clear();
-            _index.Clear();
+            if (Owner == null) { RawStorage.Keys.Clear(); RawStorage.Values.Clear(); RawStorage.Index.Clear(); return; }
+            lock (CommonParticipantGate.SyncRoot)
+            {
+                var next = new Storage(); bool touch = Owner.PrepareMutationUnderGate(this, next);
+                RawStorage = next; Owner.FinishMutationUnderGate(touch);
+            }
         }
-
-        /// <summary><c>dict.merge(other, overwrite)</c>.</summary>
         public void Merge(GdDict other, bool overwrite = false)
         {
             if (other == null) return;
-            for (int i = 0; i < other._keys.Count; i++)
+            if (Owner == null && other.Owner == null)
             {
-                if (overwrite || !Has(other._keys[i])) Set(other._keys[i], other._values[i]);
+                for (int i = 0; i < other.RawStorage.Keys.Count; i++)
+                    if (overwrite || !Has(other.RawStorage.Keys[i])) Set(other.RawStorage.Keys[i], other.RawStorage.Values[i]);
+                return;
+            }
+            lock (CommonParticipantGate.SyncRoot)
+            {
+                // Validate the complete merge before any protected write; never partially admit an unsafe child.
+                if (Owner != null)
+                {
+                    var next = RawStorage.Clone(); bool changed = false;
+                    foreach (var kv in other)
+                        if (overwrite || !next.Index.ContainsKey(kv.Key)) { next.Set(kv.Key, kv.Value); changed = true; }
+                    if (!changed) return;
+                    bool touch = Owner.PrepareMutationUnderGate(this, next);
+                    RawStorage = next; Owner.FinishMutationUnderGate(touch);
+                }
+                else foreach (var kv in other) if (overwrite || !Has(kv.Key)) Set(kv.Key, kv.Value);
             }
         }
-
-        /// <summary><c>dict.duplicate(true)</c>.</summary>
         public GdDict DeepCopy()
         {
-            var copy = new GdDict();
-            for (int i = 0; i < _keys.Count; i++) copy.SetRaw(_keys[i], V.DeepCopy(_values[i]));
-            return copy;
+            if (Owner == null) return CopyRaw(true);
+            lock (CommonParticipantGate.SyncRoot) return CopyRaw(true);
         }
-
-        /// <summary><c>dict.duplicate()</c> / <c>duplicate(false)</c>.</summary>
         public GdDict ShallowCopy()
         {
+            if (Owner == null) return CopyRaw(false);
+            lock (CommonParticipantGate.SyncRoot) return CopyRaw(false);
+        }
+        GdDict CopyRaw(bool deep)
+        {
             var copy = new GdDict();
-            for (int i = 0; i < _keys.Count; i++) copy.SetRaw(_keys[i], _values[i]);
+            for (int i = 0; i < RawStorage.Keys.Count; i++)
+                copy.RawStorage.Set(RawStorage.Keys[i], deep ? V.DeepCopy(RawStorage.Values[i]) : RawStorage.Values[i]);
             return copy;
         }
-
-        void SetRaw(object key, object value)
-        {
-            _index[key] = _keys.Count;
-            _keys.Add(key);
-            _values.Add(value);
-        }
-
         public IEnumerator<KeyValuePair<object, object>> GetEnumerator()
         {
-            for (int i = 0; i < _keys.Count; i++) yield return new KeyValuePair<object, object>(_keys[i], _values[i]);
+            if (Owner == null) return LegacyEnumerator();
+            lock (CommonParticipantGate.SyncRoot)
+            {
+                var snapshot = new KeyValuePair<object, object>[RawStorage.Keys.Count];
+                for (int i = 0; i < snapshot.Length; i++) snapshot[i] = new KeyValuePair<object, object>(RawStorage.Keys[i], RawStorage.Values[i]);
+                return ((IEnumerable<KeyValuePair<object, object>>)snapshot).GetEnumerator();
+            }
         }
-
+        IEnumerator<KeyValuePair<object, object>> LegacyEnumerator()
+        { for (int i = 0; i < RawStorage.Keys.Count; i++) yield return new KeyValuePair<object, object>(RawStorage.Keys[i], RawStorage.Values[i]); }
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        /// <summary>Collection-initializer support: <c>new GdDict { { "a", 1 } }</c>.</summary>
         public void Add(object key, object value)
         {
-            if (Has(key)) throw new ArgumentException($"Duplicate key '{key}' in GdDict initializer.");
-            Set(key, value);
+            if (Owner == null) { if (Has(key)) throw new ArgumentException($"Duplicate key '{key}' in GdDict initializer."); Set(key, value); return; }
+            lock (CommonParticipantGate.SyncRoot)
+            { if (Has(key)) throw new ArgumentException($"Duplicate key '{key}' in GdDict initializer."); Set(key, value); }
         }
-
         public override string ToString() => GdJson.Stringify(this);
+        sealed class ProtectedView : IReadOnlyList<object>
+        {
+            readonly GdDict _dict; readonly bool _keys;
+            internal ProtectedView(GdDict dict, bool keys) { _dict = dict; _keys = keys; }
+            public int Count => _dict.Count;
+            public object this[int index] { get { lock (CommonParticipantGate.SyncRoot) return (_keys ? _dict.RawStorage.Keys : _dict.RawStorage.Values)[index]; } }
+            public IEnumerator<object> GetEnumerator()
+            { lock (CommonParticipantGate.SyncRoot) return ((IEnumerable<object>)(_keys ? _dict.RawStorage.Keys : _dict.RawStorage.Values).ToArray()).GetEnumerator(); }
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
     }
 }

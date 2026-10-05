@@ -164,9 +164,9 @@ namespace SynapticSea.Core.Variant
         /// Godot's inexact strtod. Use it only for reading test fixtures (64-bit RNG states and hashes, full-precision
         /// float captures). Game data must use the default Godot-faithful parse.
         /// </summary>
-        public static object Parse(string text, bool exactNumbers)
+        public static object Parse(string text, bool exactNumbers, bool preserveNegativeZero = false)
         {
-            var p = new Parser(text ?? string.Empty) { ExactNumbers = exactNumbers };
+            var p = new Parser(text ?? string.Empty) { ExactNumbers = exactNumbers, PreserveNegativeZero = preserveNegativeZero };
             return p.ParseDocument();
         }
 
@@ -179,6 +179,7 @@ namespace SynapticSea.Core.Variant
             int _i;
             int _line = 1;
             public bool ExactNumbers;
+            public bool PreserveNegativeZero;
 
             public Parser(string s)
             {
@@ -232,7 +233,8 @@ namespace SynapticSea.Core.Variant
                             long.TryParse(lexeme, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out long exactInt))
                             return exactInt;
                         if (double.TryParse(lexeme, NumberStyles.Float, CultureInfo.InvariantCulture, out double exactFloat))
-                            return exactFloat;
+                            return PreserveNegativeZero && exactFloat == 0.0 && lexeme.StartsWith("-", StringComparison.Ordinal)
+                                ? BitConverter.Int64BitsToDouble(long.MinValue) : exactFloat;
                     }
                     return number;
                 }

@@ -1,4 +1,5 @@
 using System.Linq;
+using SynapticSea.Core.Session;
 using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Core.Systems
@@ -6,12 +7,12 @@ namespace SynapticSea.Core.Systems
     /// <summary>Phase-specific recipe policy. Session contexts bind actual owners and independent payment receipts.</summary>
     public sealed class RecipeGateService
     {
-        public GdDict Evaluate(string recipeId, string phase, GdDict context)
+        public GdDict Evaluate(string recipeId, string phase, GdDict context, PaidHashContext hashContext = null)
         {
-            string reason = EvaluateReason(recipeId, phase, context);
+            string reason = EvaluateReason(recipeId, phase, context, hashContext ?? PaidHashContext.Legacy);
             return new GdDict { { "ok", reason == "ready" }, { "reason", reason }, { "phase", phase }, { "recipe_id", recipeId } };
         }
-        string EvaluateReason(string recipeId, string phase, GdDict c)
+        string EvaluateReason(string recipeId, string phase, GdDict c, PaidHashContext hashContext)
         {
             if (c == null || !new[] { "preview", "start", "advance", "complete" }.Contains(phase)) return "invalid_phase";
             GdDict recipe = c.GetDictOrEmpty("recipe");
@@ -35,8 +36,8 @@ namespace SynapticSea.Core.Systems
             }
             GdDict job = c.GetDictOrEmpty("job"), receipt = c.GetDictOrEmpty("payment_receipt");
             if (job.GetString("input_state") != "paid" || job.GetString("recipe_id") != recipeId ||
-                job.GetString("recipe_hash") != PaidCraftingState.Hash(recipe) ||
-                !V.VariantEquals(PaidCraftingState.Payment(job), receipt.GetDictOrEmpty("result").Get("payment"))) return "invalid_paid_receipt";
+                job.GetString("recipe_hash") != hashContext.Hash(recipe) ||
+                !hashContext.Equal(PaidCraftingState.Payment(job), receipt.GetDictOrEmpty("result").Get("payment"))) return "invalid_paid_receipt";
             if (job.GetString("run_id") != c.GetString("run_id") || job.GetString("actor_id") != c.GetString("actor_id") ||
                 job.GetString("station_owner_id") != c.GetString("station_owner_id") || job.GetString("station_id") != c.GetString("station_id")) return "owner_mismatch";
             if (job.GetBool("resume_required")) return "explicit_resume_required";

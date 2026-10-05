@@ -21,20 +21,20 @@ namespace SynapticSea.Core.Systems
         internal static IDisposable Begin() => new AdmissionHashMemo();
         public void Dispose() { _current = _previous; _entries.Clear(); }
         static string Bucket(object value) => value == null ? "null" : value.GetType().FullName + ":" + (value is GdDict d ? d.Count : value is GdArray a ? a.Count : 0);
-        internal static bool TryGet(object input, out string digest)
+        internal static bool TryGet(object input, string algorithm, out string digest)
         {
             digest = null;
-            if (_current == null || !_current._entries.TryGetValue(Bucket(input), out var entries)) return false;
+            if (_current == null || !_current._entries.TryGetValue(algorithm + ":" + Bucket(input), out var entries)) return false;
             foreach (var entry in entries) if (Matches(entry.Input, input)) { digest = entry.Digest; return true; }
             return false;
         }
-        internal static void Record(object input, string digest)
+        internal static void Record(object input, string algorithm, string digest)
         {
             if (_current == null) return;
             Snapshot snapshot;
             snapshot = Capture(input);
             if (snapshot == null) return; // Unsupported values retain the original canonical Hash path.
-            string key = Bucket(input);
+            string key = algorithm + ":" + Bucket(input);
             if (!_current._entries.TryGetValue(key, out var entries)) _current._entries[key] = entries = new List<Entry>();
             entries.Add(new Entry { Input = snapshot, Digest = digest });
         }

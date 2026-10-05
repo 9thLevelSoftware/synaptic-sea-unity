@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="65ff31db-37cc-4020-94ec-4d3e3d5bf1c9" name="@Christophers-Mac-mini 2026-10-05 13:07:20" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-05T13:07:21.0058520-04:00" queuing="2026-10-05T13:07:21.0058520-04:00" start="2026-10-05T13:07:20.1630350-04:00" finish="2026-10-05T13:07:21.0205680-04:00" />
+  <TestSettings name="default" id="b83b7af6-6c04-47e5-9186-cf010cd8d970">
+    <Deployment runDeploymentRoot="_Christophers-Mac-mini_2026-10-05_13_07_20" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5a24a3c4-5319-4f26-a6a7-fe941f1b6877" testId="36af4ae8-60c0-29f6-1abd-382099a59944" testName="FailedMutationDoesNotDestroyReadyButAcceptedSameValueAdvances" computerName="Christophers-Mac-mini" duration="00:00:00.0102860" startTime="2026-10-05T13:07:20.9184080-04:00" endTime="2026-10-05T13:07:20.9286940-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5a24a3c4-5319-4f26-a6a7-fe941f1b6877" />
+    <UnitTestResult executionId="9cc408b7-b46f-4bf9-8cf0-873791d0afaf" testId="61b48719-49f5-7fa5-20ac-0842b4f3449f" testName="OwnerScalarRegistryRejectsForeignCohortsAndForgedDescriptors" computerName="Christophers-Mac-mini" duration="00:00:00.0124169" startTime="2026-10-05T13:07:20.9367880-04:00" endTime="2026-10-05T13:07:20.9492050-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9cc408b7-b46f-4bf9-8cf0-873791d0afaf" />
+    <UnitTestResult executionId="8623a492-97f4-463a-a846-c7529fe968e6" testId="59c11310-0c63-8f03-a7ed-ef0a7951d083" testName="ActualCatalogFactoryRunsInsidePortRefusalAndExposesOnlyPublishedModels" computerName="Christophers-Mac-mini" duration="00:00:00.0368200" startTime="2026-10-05T13:07:20.8526080-04:00" endTime="2026-10-05T13:07:20.8893990-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8623a492-97f4-463a-a846-c7529fe968e6" />
+    <UnitTestResult executionId="9d6829af-075a-465a-92ab-1925a11081ae" testId="5a56735b-dc71-728b-ffb9-6ca3bf26e2f0" testName="LeaseReplacementRefusesPreparedFactoryAndRevokesExistingOutputsWithoutAnotherPin" computerName="Christophers-Mac-mini" duration="00:00:00.0080470" startTime="2026-10-05T13:07:20.9287150-04:00" endTime="2026-10-05T13:07:20.9367590-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9d6829af-075a-465a-92ab-1925a11081ae" />
+    <UnitTestResult executionId="85768ec3-a7e4-452f-b33b-2bf6d04db09c" testId="40e85bc1-8ea7-5d7c-6c40-6c61ebfc01d0" testName="StructuralAndPolicyWritesRevokeBeforeAcceptanceAndStillChangeTheModel" computerName="Christophers-Mac-mini" duration="00:00:00.0149480" startTime="2026-10-05T13:07:20.9674310-04:00" endTime="2026-10-05T13:07:20.9823790-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="85768ec3-a7e4-452f-b33b-2bf6d04db09c" />
+    <UnitTestResult executionId="e0e4311d-c79e-4abc-8e89-8e1a9b2e6dd5" testId="7d43d9a3-05ca-ea09-e46e-1821e064350b" testName="ActualModelCommandsContinueAfterDiagnosticInvalidation" computerName="Christophers-Mac-mini" duration="00:00:00.0110430" startTime="2026-10-05T13:07:20.8900810-04:00" endTime="2026-10-05T13:07:20.9011250-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e0e4311d-c79e-4abc-8e89-8e1a9b2e6dd5" />
+    <UnitTestResult executionId="7f14622d-c76e-4101-bd8c-ad8e9093c037" testId="f1d4e7ea-260a-fa6e-a926-7779814c21cf" testName="FactoryRejectsEarlyLimitsUnknownClassAndInvalidQuantityRows" computerName="Christophers-Mac-mini" duration="00:00:00.0028710" startTime="2026-10-05T13:07:20.9054910-04:00" endTime="2026-10-05T13:07:20.9083620-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7f14622d-c76e-4101-bd8c-ad8e9093c037" />
+    <UnitTestResult executionId="a1145305-862d-4c62-b787-a1073b670602" testId="f491f8c9-21ac-f9a5-f919-2acc0e9f0cde" testName="FactoryUsesExactLegacyCatalogNormalizationAndActualInitialState" computerName="Christophers-Mac-mini" duration="00:00:00.0100040" startTime="2026-10-05T13:07:20.9083810-04:00" endTime="2026-10-05T13:07:20.9183850-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a1145305-862d-4c62-b787-a1073b670602" />
+    <UnitTestResult executionId="067488f1-cd18-4528-a349-7d194da0971d" testId="7bfe0515-a500-7d7f-fe69-5bc01973cfd7" testName="ExplicitNonProjectedTrackingAndLegacyRemainOutsideNewEnrollment" computerName="Christophers-Mac-mini" duration="00:00:00.0043120" startTime="2026-10-05T13:07:20.9011550-04:00" endTime="2026-10-05T13:07:20.9054670-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="067488f1-cd18-4528-a349-7d194da0971d" />
+    <UnitTestResult executionId="9b75a862-ff02-48a5-bea0-8870a88011e2" testId="5378b591-b1ed-c069-0f11-02c7ac9bccce" testName="SupportedPublicScalarWritesKeepHistoricalCutWhileLiveWorldAdvances" computerName="Christophers-Mac-mini" duration="00:00:00.0118080" startTime="2026-10-05T13:07:20.9823940-04:00" endTime="2026-10-05T13:07:20.9942020-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9b75a862-ff02-48a5-bea0-8870a88011e2" />
+    <UnitTestResult executionId="98caa83f-1f8e-44ee-920a-d417436f74fa" testId="de401008-0220-3838-7bd1-6e4651b00fdf" testName="ScalarPolicyAndEligibilityClosureSettersInvalidateTheCohort" computerName="Christophers-Mac-mini" duration="00:00:00.0181650" startTime="2026-10-05T13:07:20.9492360-04:00" endTime="2026-10-05T13:07:20.9674010-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="98caa83f-1f8e-44ee-920a-d417436f74fa" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ActualCatalogFactoryRunsInsidePortRefusalAndExposesOnlyPublishedModels" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="59c11310-0c63-8f03-a7ed-ef0a7951d083">
+      <Execution id="8623a492-97f4-463a-a846-c7529fe968e6" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="ActualCatalogFactoryRunsInsidePortRefusalAndExposesOnlyPublishedModels" />
+    </UnitTest>
+    <UnitTest name="ExplicitNonProjectedTrackingAndLegacyRemainOutsideNewEnrollment" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="7bfe0515-a500-7d7f-fe69-5bc01973cfd7">
+      <Execution id="067488f1-cd18-4528-a349-7d194da0971d" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="ExplicitNonProjectedTrackingAndLegacyRemainOutsideNewEnrollment" />
+    </UnitTest>
+    <UnitTest name="SupportedPublicScalarWritesKeepHistoricalCutWhileLiveWorldAdvances" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="5378b591-b1ed-c069-0f11-02c7ac9bccce">
+      <Execution id="9b75a862-ff02-48a5-bea0-8870a88011e2" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="SupportedPublicScalarWritesKeepHistoricalCutWhileLiveWorldAdvances" />
+    </UnitTest>
+    <UnitTest name="ActualModelCommandsContinueAfterDiagnosticInvalidation" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="7d43d9a3-05ca-ea09-e46e-1821e064350b">
+      <Execution id="e0e4311d-c79e-4abc-8e89-8e1a9b2e6dd5" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="ActualModelCommandsContinueAfterDiagnosticInvalidation" />
+    </UnitTest>
+    <UnitTest name="FailedMutationDoesNotDestroyReadyButAcceptedSameValueAdvances" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="36af4ae8-60c0-29f6-1abd-382099a59944">
+      <Execution id="5a24a3c4-5319-4f26-a6a7-fe941f1b6877" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="FailedMutationDoesNotDestroyReadyButAcceptedSameValueAdvances" />
+    </UnitTest>
+    <UnitTest name="FactoryRejectsEarlyLimitsUnknownClassAndInvalidQuantityRows" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="f1d4e7ea-260a-fa6e-a926-7779814c21cf">
+      <Execution id="7f14622d-c76e-4101-bd8c-ad8e9093c037" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="FactoryRejectsEarlyLimitsUnknownClassAndInvalidQuantityRows" />
+    </UnitTest>
+    <UnitTest name="ScalarPolicyAndEligibilityClosureSettersInvalidateTheCohort" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="de401008-0220-3838-7bd1-6e4651b00fdf">
+      <Execution id="98caa83f-1f8e-44ee-920a-d417436f74fa" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="ScalarPolicyAndEligibilityClosureSettersInvalidateTheCohort" />
+    </UnitTest>
+    <UnitTest name="OwnerScalarRegistryRejectsForeignCohortsAndForgedDescriptors" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="61b48719-49f5-7fa5-20ac-0842b4f3449f">
+      <Execution id="9cc408b7-b46f-4bf9-8cf0-873791d0afaf" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="OwnerScalarRegistryRejectsForeignCohortsAndForgedDescriptors" />
+    </UnitTest>
+    <UnitTest name="LeaseReplacementRefusesPreparedFactoryAndRevokesExistingOutputsWithoutAnotherPin" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="5a56735b-dc71-728b-ffb9-6ca3bf26e2f0">
+      <Execution id="9d6829af-075a-465a-92ab-1925a11081ae" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="LeaseReplacementRefusesPreparedFactoryAndRevokesExistingOutputsWithoutAnotherPin" />
+    </UnitTest>
+    <UnitTest name="FactoryUsesExactLegacyCatalogNormalizationAndActualInitialState" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="f491f8c9-21ac-f9a5-f919-2acc0e9f0cde">
+      <Execution id="a1145305-862d-4c62-b787-a1073b670602" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="FactoryUsesExactLegacyCatalogNormalizationAndActualInitialState" />
+    </UnitTest>
+    <UnitTest name="StructuralAndPolicyWritesRevokeBeforeAcceptanceAndStillChangeTheModel" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="40e85bc1-8ea7-5d7c-6c40-6c61ebfc01d0">
+      <Execution id="85768ec3-a7e4-452f-b33b-2bf6d04db09c" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Systems.ParticipantProjectionEnrollmentTests" name="StructuralAndPolicyWritesRevokeBeforeAcceptanceAndStillChangeTheModel" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="36af4ae8-60c0-29f6-1abd-382099a59944" executionId="5a24a3c4-5319-4f26-a6a7-fe941f1b6877" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="61b48719-49f5-7fa5-20ac-0842b4f3449f" executionId="9cc408b7-b46f-4bf9-8cf0-873791d0afaf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="59c11310-0c63-8f03-a7ed-ef0a7951d083" executionId="8623a492-97f4-463a-a846-c7529fe968e6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5a56735b-dc71-728b-ffb9-6ca3bf26e2f0" executionId="9d6829af-075a-465a-92ab-1925a11081ae" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="40e85bc1-8ea7-5d7c-6c40-6c61ebfc01d0" executionId="85768ec3-a7e4-452f-b33b-2bf6d04db09c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7d43d9a3-05ca-ea09-e46e-1821e064350b" executionId="e0e4311d-c79e-4abc-8e89-8e1a9b2e6dd5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f1d4e7ea-260a-fa6e-a926-7779814c21cf" executionId="7f14622d-c76e-4101-bd8c-ad8e9093c037" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f491f8c9-21ac-f9a5-f919-2acc0e9f0cde" executionId="a1145305-862d-4c62-b787-a1073b670602" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7bfe0515-a500-7d7f-fe69-5bc01973cfd7" executionId="067488f1-cd18-4528-a349-7d194da0971d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5378b591-b1ed-c069-0f11-02c7ac9bccce" executionId="9b75a862-ff02-48a5-bea0-8870a88011e2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="de401008-0220-3838-7bd1-6e4651b00fdf" executionId="98caa83f-1f8e-44ee-920a-d417436f74fa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="11" executed="11" passed="11" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll
+   NUnit3TestExecutor discovered 11 of 11 NUnit test cases using Current Discovery mode, Non-Explicit run
+NUnit Adapter 4.6.0.0: Test execution complete
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

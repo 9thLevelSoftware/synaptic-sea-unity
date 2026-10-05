@@ -1,0 +1,559 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="3f0a341f-b785-46fe-9cf6-2c94b575abad" name="@Christophers-Mac-mini 2026-10-05 15:01:58" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-05T15:01:58.1786640-04:00" queuing="2026-10-05T15:01:58.1786640-04:00" start="2026-10-05T15:01:57.0659310-04:00" finish="2026-10-05T15:02:13.3649000-04:00" />
+  <TestSettings name="default" id="257b3364-d641-47a9-8f8f-ae2f1813af75">
+    <Deployment runDeploymentRoot="_Christophers-Mac-mini_2026-10-05_15_01_58" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="6bc3627b-01f8-4a6d-96e2-ff6b5fb1bbb2" testId="45296435-5786-bb7f-9f5d-15849bdd7b13" testName="SameActualRunSessionModelAndHistoricalCutSurviveRegisteredWrites" computerName="Christophers-Mac-mini" duration="00:00:00.0304280" startTime="2026-10-05T15:01:58.1054500-04:00" endTime="2026-10-05T15:01:58.1358770-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6bc3627b-01f8-4a6d-96e2-ff6b5fb1bbb2" />
+    <UnitTestResult executionId="ac52769e-ee98-46dd-b6ab-aac3240d6267" testId="0452900e-90f2-6a78-8e3a-8a007deb4173" testName="CapacityIsReservedBeforeActualDebit(1,2000,&quot;step_log_full&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.0001970" startTime="2026-10-05T15:01:58.1468700-04:00" endTime="2026-10-05T15:01:58.1470660-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ac52769e-ee98-46dd-b6ab-aac3240d6267" />
+    <UnitTestResult executionId="6e3ebf19-7537-429c-97c2-acf746030775" testId="b7e24616-0380-2acb-7213-b3f4b19a70c8" testName="SameRunSessionModelPairedWorkDebitsOnlyStaminaAndRejectsLaterSurvivalWrite" computerName="Christophers-Mac-mini" duration="00:00:00.0269010" startTime="2026-10-05T15:02:07.3353580-04:00" endTime="2026-10-05T15:02:07.3622580-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6e3ebf19-7537-429c-97c2-acf746030775" />
+    <UnitTestResult executionId="76cb6604-9191-4e72-81dc-b94692fb06da" testId="9bc978f6-1604-66b3-94e3-3058d8fff59c" testName="EvaluatorKeepsActualModelUnchangedAndPreservesOrderedDamage" computerName="Christophers-Mac-mini" duration="00:00:00.0002950" startTime="2026-10-05T15:02:07.3851930-04:00" endTime="2026-10-05T15:02:07.3854880-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="76cb6604-9191-4e72-81dc-b94692fb06da" />
+    <UnitTestResult executionId="e8073a25-958c-4562-b88e-d21a26eda228" testId="94e10313-c6f0-c6ac-c6d9-66da43e8f975" testName="LatestNativeTokenPreemptsOlderAndCancelDoesNotRewindActual" computerName="Christophers-Mac-mini" duration="00:00:00.0217050" startTime="2026-10-05T15:02:07.4902030-04:00" endTime="2026-10-05T15:02:07.5119080-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e8073a25-958c-4562-b88e-d21a26eda228" />
+    <UnitTestResult executionId="108bdc31-c6db-41dd-ba00-92e3b7b03649" testId="1d28dc65-0ef2-5235-f740-10fdc7d4c0dd" testName="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;checkpoint&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.4732430" startTime="2026-10-05T15:02:04.4767340-04:00" endTime="2026-10-05T15:02:04.9499790-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="108bdc31-c6db-41dd-ba00-92e3b7b03649" />
+    <UnitTestResult executionId="8de24173-7895-41b6-a426-2a115d1c6836" testId="d3d32f00-b2fa-7890-52ca-da9d4cd21725" testName="CrossSessionProducerCannotOverlayAnotherActualGenesis" computerName="Christophers-Mac-mini" duration="00:00:00.3567790" startTime="2026-10-05T15:02:07.8894340-04:00" endTime="2026-10-05T15:02:08.2462140-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8de24173-7895-41b6-a426-2a115d1c6836" />
+    <UnitTestResult executionId="3570af29-9898-4994-9581-5196d7366dcf" testId="64c87c66-9430-a95a-a705-5ba864c45ad9" testName="Raw14ConfigChangesInvalidatePreparedProposalBeforeAnyInstall" computerName="Christophers-Mac-mini" duration="00:00:00.0247410" startTime="2026-10-05T15:01:58.0806790-04:00" endTime="2026-10-05T15:01:58.1054200-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3570af29-9898-4994-9581-5196d7366dcf" />
+    <UnitTestResult executionId="6e41ef93-ffa8-453b-8f5f-a3e1acee4301" testId="6f80e18c-1a92-3203-f173-f194227f72ff" testName="RackTakeAdmitsAllocatedRemainingOnceAndRetainsTerminalHistory" computerName="Christophers-Mac-mini" duration="00:00:00.9719050" startTime="2026-10-05T15:02:03.3161280-04:00" endTime="2026-10-05T15:02:04.2880360-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6e41ef93-ffa8-453b-8f5f-a3e1acee4301" />
+    <UnitTestResult executionId="8aa3a10a-e1ee-464d-8ecf-c669a317a183" testId="daba3fe4-ac8b-bc59-4ad5-17f6aa234b2c" testName="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(True,&quot;world&quot;)" computerName="Christophers-Mac-mini" duration="00:00:01.1092960" startTime="2026-10-05T15:02:12.2270360-04:00" endTime="2026-10-05T15:02:13.3363350-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8aa3a10a-e1ee-464d-8ecf-c669a317a183">
+      <Output>
+        <StdOut>PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-81cfe6bf0b454d56b98928aca52d8bcd
+role=world
+mode=component-live-diagnostic
+logical=user://saves/.component-live-generations/g/2002db7c7dbdf41b4fee98106e67483390c9a838080382f138ddb0b3a365d189/world.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-81cfe6bf0b454d56b98928aca52d8bcd/saves/.component-live-generations/g/2002db7c7dbdf41b4fee98106e67483390c9a838080382f138ddb0b3a365d189/world.json
+offset=96707
+original_length=233959
+original_sha256=4ece0509d44d2c2639267e2567a23f5d9f477c12ab359cf160f4ce80e4087df0
+mutated_length=233957
+mutated_sha256=ddfb4a7490f42f1dac71a93bfd76091b232e2f8efd3b3e2d40cf7cc3a46e1d33
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="18fcd208-65de-4ca9-8302-141d671b9f48" testId="d71cf9f0-c419-5370-a99f-8aa0c6367b5c" testName="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;cancelled_adapter&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.0000620" startTime="2026-10-05T15:01:58.1502190-04:00" endTime="2026-10-05T15:01:58.1502810-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="18fcd208-65de-4ca9-8302-141d671b9f48" />
+    <UnitTestResult executionId="e964f0ac-f9f4-413c-834c-618159ffe3c9" testId="905b21c8-8094-636d-7bda-13432167da15" testName="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(True,&quot;run&quot;)" computerName="Christophers-Mac-mini" duration="00:00:01.2515270" startTime="2026-10-05T15:02:10.9754750-04:00" endTime="2026-10-05T15:02:12.2270060-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e964f0ac-f9f4-413c-834c-618159ffe3c9">
+      <Output>
+        <StdOut>PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-9c209c7708ad4ff38f9c3fe2a7841def
+role=run
+mode=component-live-diagnostic
+logical=user://saves/.component-live-generations/g/95b75c8af45314aa757d4f90e8d063ae85d424e44a55064323c43e17f7f10b0b/run.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-9c209c7708ad4ff38f9c3fe2a7841def/saves/.component-live-generations/g/95b75c8af45314aa757d4f90e8d063ae85d424e44a55064323c43e17f7f10b0b/run.json
+offset=96602
+original_length=162711
+original_sha256=215db870f52c6b7555fb8be133b68dc28a9c2ea2e3a49fe5a36305a3b808e35b
+mutated_length=162709
+mutated_sha256=35ff878ff86bfe6921cb329ff8b7e96eaba57d96337b57aad0615f3277018d63
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e5f3177c-cfdd-44dc-80d5-e36c2a65fd30" testId="28534936-2cc6-d4c4-7d55-8648c7e0e86d" testName="AuthenticCheckpointFullyAdmitsAndOrdinaryEnvelopeRoundtrips(False)" computerName="Christophers-Mac-mini" duration="00:00:00.6574060" startTime="2026-10-05T15:01:58.1915330-04:00" endTime="2026-10-05T15:01:58.8489410-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e5f3177c-cfdd-44dc-80d5-e36c2a65fd30" />
+    <UnitTestResult executionId="ae0a0b7d-9df7-43b8-ad8f-e0733811a349" testId="2441fb85-26c7-f7a7-a22e-ddd8c0aade6b" testName="NativeABAWithEqualBitsCannotReuseOldGeneration" computerName="Christophers-Mac-mini" duration="00:00:00.0284920" startTime="2026-10-05T15:02:07.5119610-04:00" endTime="2026-10-05T15:02:07.5404540-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ae0a0b7d-9df7-43b8-ad8f-e0733811a349" />
+    <UnitTestResult executionId="41367173-fe5b-4d0f-8dfe-59164c8cbce1" testId="9f0f6e27-5b24-803d-509f-6088a33a251c" testName="HistoricalActualVitalsOverlaySurvivesRegisteredWritesDuringBoundedCopy" computerName="Christophers-Mac-mini" duration="00:00:00.2610230" startTime="2026-10-05T15:02:08.5054080-04:00" endTime="2026-10-05T15:02:08.7664330-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="41367173-fe5b-4d0f-8dfe-59164c8cbce1" />
+    <UnitTestResult executionId="7a6619dd-6e74-4410-939b-dc502e201c07" testId="2187013f-6da2-6ae0-1e4e-cb8690b400cc" testName="ForeignSnapshotCannotSupersedeCurrentExactPendingPlan" computerName="Christophers-Mac-mini" duration="00:00:00.0482480" startTime="2026-10-05T15:01:58.0044580-04:00" endTime="2026-10-05T15:01:58.0527060-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7a6619dd-6e74-4410-939b-dc502e201c07" />
+    <UnitTestResult executionId="9e75cd0b-1573-4da1-88c0-918de109c17c" testId="02629ff4-8db2-b36f-1b3a-0d5919867a54" testName="CapacityIsReservedBeforeActualDebit(64,1,&quot;complete_history_capacity&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.0001620" startTime="2026-10-05T15:01:58.1470700-04:00" endTime="2026-10-05T15:01:58.1472320-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9e75cd0b-1573-4da1-88c0-918de109c17c" />
+    <UnitTestResult executionId="45156cd4-3833-4cd0-8a7d-84ad207e1038" testId="9866cf07-e8e5-21e1-d692-1084b071eabc" testName="ActualWorldRecoveryThenWorkPublishesOneCoherentPairAndExactProjection" computerName="Christophers-Mac-mini" duration="00:00:00.0020790" startTime="2026-10-05T15:01:58.1447610-04:00" endTime="2026-10-05T15:01:58.1468390-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="45156cd4-3833-4cd0-8a7d-84ad207e1038" />
+    <UnitTestResult executionId="3dcad45b-819e-4375-8e04-1f4898cbd0bb" testId="caade999-6fca-d236-7dcd-008585ea1fc1" testName="ActualHealthDeathRefusesWorkWithoutSyntheticAliveOverride" computerName="Christophers-Mac-mini" duration="00:00:00.0078980" startTime="2026-10-05T15:01:58.1368490-04:00" endTime="2026-10-05T15:01:58.1447470-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3dcad45b-819e-4375-8e04-1f4898cbd0bb" />
+    <UnitTestResult executionId="78207f14-f390-4c2b-ab26-2cc76124fa55" testId="cedcf7d4-e3e8-499d-a5bb-f752be807940" testName="RevokedCaptureDoesNotFreezeSameActualSurvivalOrCombat" computerName="Christophers-Mac-mini" duration="00:00:00.0217740" startTime="2026-10-05T15:02:09.5416690-04:00" endTime="2026-10-05T15:02:09.5634430-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="78207f14-f390-4c2b-ab26-2cc76124fa55" />
+    <UnitTestResult executionId="a4e3ba9a-5bf4-4536-acc7-76a3619d4779" testId="15594dd2-f3fb-926b-7db4-0a3e00740327" testName="RawDriftAfterPreparingNativeProposalRefusesRatherThanApplyingStaleDelta" computerName="Christophers-Mac-mini" duration="00:00:00.0225180" startTime="2026-10-05T15:02:07.5898350-04:00" endTime="2026-10-05T15:02:07.6123530-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a4e3ba9a-5bf4-4536-acc7-76a3619d4779" />
+    <UnitTestResult executionId="6d7cbc7c-7d9f-4969-8d99-907c2f04dbde" testId="91e00e3e-9466-be45-945b-d0c6f2f974cd" testName="ActualRawFieldDriftRefusesAndRevokesCaptureWithoutResynchronizing" computerName="Christophers-Mac-mini" duration="00:00:00.1500440" startTime="2026-10-05T15:01:57.7844520-04:00" endTime="2026-10-05T15:01:57.9344670-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d7cbc7c-7d9f-4969-8d99-907c2f04dbde" />
+    <UnitTestResult executionId="4617c4c4-1da9-4c0d-aa25-51b3f8842697" testId="c313947a-bc97-d887-ef31-453720b1bab0" testName="NextBatchAndClockDriftInvalidateTicketAndForeignThreadCannotObserve" computerName="Christophers-Mac-mini" duration="00:00:00.0002810" startTime="2026-10-05T15:02:09.5642350-04:00" endTime="2026-10-05T15:02:09.5645150-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4617c4c4-1da9-4c0d-aa25-51b3f8842697" />
+    <UnitTestResult executionId="9a130027-0c8e-4504-96fa-7e39b9779c04" testId="faf3a4c5-4cee-d53a-86d1-dd8a125cb9ba" testName="CompletedRackAndUtilityAdmitExactBenefitsAndRejectChangedEffect(False)" computerName="Christophers-Mac-mini" duration="00:00:00.9661480" startTime="2026-10-05T15:01:59.5543930-04:00" endTime="2026-10-05T15:02:00.5205440-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9a130027-0c8e-4504-96fa-7e39b9779c04" />
+    <UnitTestResult executionId="c061f860-8ab3-4700-aac8-9e20f91146d5" testId="604f69ed-4200-d871-1adc-a6eaabd0dd53" testName="CaptureStampSaturationDoesNotStopNativeDamageOrRotateBackToOldSnapshot" computerName="Christophers-Mac-mini" duration="00:00:00.0273890" startTime="2026-10-05T15:02:07.4258290-04:00" endTime="2026-10-05T15:02:07.4532180-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c061f860-8ab3-4700-aac8-9e20f91146d5" />
+    <UnitTestResult executionId="adfb03b1-5116-4c6c-8402-21cc391e2f69" testId="2889aed0-3b14-38ce-551f-20b2a3f0bfda" testName="ResourceReplacementAndReciprocalReceiptTamperingRefuse" computerName="Christophers-Mac-mini" duration="00:00:00.1885750" startTime="2026-10-05T15:02:04.2880690-04:00" endTime="2026-10-05T15:02:04.4766450-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="adfb03b1-5116-4c6c-8402-21cc391e2f69" />
+    <UnitTestResult executionId="c68d5561-aa8c-48a8-b156-6108a5d2fd93" testId="90d174c7-45e6-229a-40d0-5033769fb6f2" testName="InvalidBudgetDoesNoWorkAndRefuses(65)" computerName="Christophers-Mac-mini" duration="00:00:00.2398410" startTime="2026-10-05T15:02:08.9926570-04:00" endTime="2026-10-05T15:02:09.2324990-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c68d5561-aa8c-48a8-b156-6108a5d2fd93" />
+    <UnitTestResult executionId="4e3ed2c9-8622-46b1-8bb5-5916741da6cf" testId="21463e27-f899-80da-31da-43086956c57a" testName="ExistingRestoreEarlyReturnInvalidatesPreviousPhaseTicket" computerName="Christophers-Mac-mini" duration="00:00:00.0004340" startTime="2026-10-05T15:02:07.6393240-04:00" endTime="2026-10-05T15:02:07.6397580-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4e3ed2c9-8622-46b1-8bb5-5916741da6cf" />
+    <UnitTestResult executionId="e3e67e0e-1cfe-4501-a1be-e2c4fcccc32a" testId="5022bd97-9619-a5b2-b386-0829292b1211" testName="PendingCancelAndRepeatedInstallCannotChangeActualTwice" computerName="Christophers-Mac-mini" duration="00:00:00.0279160" startTime="2026-10-05T15:01:58.0527310-04:00" endTime="2026-10-05T15:01:58.0806470-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e3e67e0e-1cfe-4501-a1be-e2c4fcccc32a" />
+    <UnitTestResult executionId="dfffb279-dd5f-4346-b12f-37df10b13749" testId="fcc04dc3-6c1a-59fb-2547-d7fe62500194" testName="StaleCutAndQueuePressureLeaveEarnedStateIntact" computerName="Christophers-Mac-mini" duration="00:00:00.0002930" startTime="2026-10-05T15:02:07.3864350-04:00" endTime="2026-10-05T15:02:07.3867280-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dfffb279-dd5f-4346-b12f-37df10b13749" />
+    <UnitTestResult executionId="e7d0ec1d-6c70-4169-ac65-06e4f418907e" testId="5b84ab23-4156-3b26-e5f6-41818ab5c65e" testName="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(False,&quot;run&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.7072500" startTime="2026-10-05T15:02:09.5690590-04:00" endTime="2026-10-05T15:02:10.2763120-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e7d0ec1d-6c70-4169-ac65-06e4f418907e">
+      <Output>
+        <StdOut>PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-57cba554cb5a4a8aa1bf2af5c5707192
+role=run
+mode=paid_crafting_ordinary
+logical=user://saves/.paid-craft-generations/g/a55b6a503fc59ac1f47e03025ecb61abfac8045988a31324b8b88174a00d8277/run.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-57cba554cb5a4a8aa1bf2af5c5707192/saves/.paid-craft-generations/g/a55b6a503fc59ac1f47e03025ecb61abfac8045988a31324b8b88174a00d8277/run.json
+offset=41656
+original_length=42925
+original_sha256=8fe690a6d760e20d315447703556ae998540d588b965335cceb2d6cf8e175f3d
+mutated_length=42923
+mutated_sha256=6c093942a21a4352f3fee9291e12c94196bc2c7cb7e1f891e1d40143e225be13
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f89514eb-ab04-4dc6-875d-e5441318b3c5" testId="8651a3fc-b7e9-e16d-cf77-01ddda49332c" testName="ExhaustedDamageCounterRevokesCaptureButActualDamageAndSurvivalContinue" computerName="Christophers-Mac-mini" duration="00:00:00.0225440" startTime="2026-10-05T15:02:09.4922000-04:00" endTime="2026-10-05T15:02:09.5147440-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f89514eb-ab04-4dc6-875d-e5441318b3c5" />
+    <UnitTestResult executionId="aaf9a623-45f2-427b-b35c-0b12d491fde2" testId="ecb454bc-9cfa-242a-63be-c957c5e773e3" testName="CrossBridgeSnapshotAndRegisteredABACannotPassFinalGuard" computerName="Christophers-Mac-mini" duration="00:00:00.0431389" startTime="2026-10-05T15:01:57.9351580-04:00" endTime="2026-10-05T15:01:57.9782980-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aaf9a623-45f2-427b-b35c-0b12d491fde2" />
+    <UnitTestResult executionId="a57e0881-2fdf-4efc-9e4d-dc2ad4235773" testId="9b7df4d5-f038-fad2-ad5a-eb2bd6195cd1" testName="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;resource&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.0000699" startTime="2026-10-05T15:01:58.1501460-04:00" endTime="2026-10-05T15:01:58.1502160-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a57e0881-2fdf-4efc-9e4d-dc2ad4235773" />
+    <UnitTestResult executionId="6febc531-5ea1-4287-810b-35cc0f2afc95" testId="72bb51dd-d616-6229-c9c1-042b6808d4d3" testName="AuthenticCheckpointFullyAdmitsAndOrdinaryEnvelopeRoundtrips(True)" computerName="Christophers-Mac-mini" duration="00:00:00.7053350" startTime="2026-10-05T15:01:58.8489760-04:00" endTime="2026-10-05T15:01:59.5543140-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6febc531-5ea1-4287-810b-35cc0f2afc95" />
+    <UnitTestResult executionId="b6fc7596-0f4f-4235-90ed-0716d1af730e" testId="7b6d65da-5539-962c-9211-47dffed43696" testName="OutOfOrderCompleteRefusesBeforeClosingEitherScope" computerName="Christophers-Mac-mini" duration="00:00:00.0038930" startTime="2026-10-05T15:02:09.5646600-04:00" endTime="2026-10-05T15:02:09.5685520-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6fc7596-0f4f-4235-90ed-0716d1af730e" />
+    <UnitTestResult executionId="c5a08ade-5022-423c-a0e2-64694f04b857" testId="6ab12670-bf8a-b462-ca4f-803dd385d55c" testName="RawDriftAfterPinRefusesBeforeNextCopyAndObservation" computerName="Christophers-Mac-mini" duration="00:00:00.2304510" startTime="2026-10-05T15:02:09.2325560-04:00" endTime="2026-10-05T15:02:09.4630080-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c5a08ade-5022-423c-a0e2-64694f04b857" />
+    <UnitTestResult executionId="2790f98f-3234-4231-aaa1-7b0790b29ff7" testId="1fb83f5c-5d83-2265-0eac-94a1f1034f38" testName="ForeignSnapshotOrDifferentBeforeObjectCannotCreateNativeInstaller" computerName="Christophers-Mac-mini" duration="00:00:00.0368890" startTime="2026-10-05T15:02:07.4532730-04:00" endTime="2026-10-05T15:02:07.4901620-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2790f98f-3234-4231-aaa1-7b0790b29ff7" />
+    <UnitTestResult executionId="7f88007e-0375-4438-91ec-ce093961ab7c" testId="bf9d8b88-5242-54c9-2cfb-e213e7a55b04" testName="NativeRevocationOccursBeforeWriteAndHistoricalPinsCannotBeObservedAfterward" computerName="Christophers-Mac-mini" duration="00:00:00.0278500" startTime="2026-10-05T15:02:07.5405020-04:00" endTime="2026-10-05T15:02:07.5683520-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7f88007e-0375-4438-91ec-ce093961ab7c" />
+    <UnitTestResult executionId="52bca196-537b-4f9b-82f2-a4a5e7d49d6e" testId="568f6fbf-014c-6aba-e60b-c53ffc06647f" testName="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(False,&quot;world&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.6990840" startTime="2026-10-05T15:02:10.2763510-04:00" endTime="2026-10-05T15:02:10.9754380-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="52bca196-537b-4f9b-82f2-a4a5e7d49d6e">
+      <Output>
+        <StdOut>PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-fb581f3b4af149d3b1ddcdaca596c7b1
+role=world
+mode=paid_crafting_ordinary
+logical=user://saves/.paid-craft-generations/g/7154f8ce3f343e3619e1f512733ecbfa5a5f81186eba0d232d55bd4b52ffde0e/world.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-fb581f3b4af149d3b1ddcdaca596c7b1/saves/.paid-craft-generations/g/7154f8ce3f343e3619e1f512733ecbfa5a5f81186eba0d232d55bd4b52ffde0e/world.json
+offset=41761
+original_length=49244
+original_sha256=47928fac0378f002063be7724497382a5d0e720e42ad4a3429ca9226d37319a0
+mutated_length=49242
+mutated_sha256=16420c222224fc8fa40326ea666fd3b98871e8a3a83c6312e616976ab690c78d
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b42b6492-af8f-494a-ba81-7d97cadecb26" testId="09a9fff4-505e-c34e-c609-95d2aecedc38" testName="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;context&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.0003200" startTime="2026-10-05T15:01:58.1496640-04:00" endTime="2026-10-05T15:01:58.1499840-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b42b6492-af8f-494a-ba81-7d97cadecb26" />
+    <UnitTestResult executionId="8beea036-1ef5-460a-9d6c-89c8a2dea9e6" testId="0c223e14-1a3f-b63c-4d8b-5c410d37c38f" testName="InvalidBudgetDoesNoWorkAndRefuses(-1)" computerName="Christophers-Mac-mini" duration="00:00:00.2260690" startTime="2026-10-05T15:02:08.7665590-04:00" endTime="2026-10-05T15:02:08.9926290-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8beea036-1ef5-460a-9d6c-89c8a2dea9e6" />
+    <UnitTestResult executionId="00607481-cd01-4cc4-a5ec-9c2106961ea3" testId="f796206e-5b95-d584-f15d-21fe39e87647" testName="UnrelatedCallerCannotMintOrForgeJournalCountAssignment" computerName="Christophers-Mac-mini" duration="00:00:00.0010940" startTime="2026-10-05T15:01:58.1903200-04:00" endTime="2026-10-05T15:01:58.1914150-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="00607481-cd01-4cc4-a5ec-9c2106961ea3" />
+    <UnitTestResult executionId="ec4d6531-d86f-420d-8f9f-1d26fffd05c3" testId="0858d1a0-d546-ca2e-ec49-c587092974d5" testName="ObserverFailureReportsCommittedAndForeignThreadCannotWrite" computerName="Christophers-Mac-mini" duration="00:00:00.0239560" startTime="2026-10-05T15:02:07.3113690-04:00" endTime="2026-10-05T15:02:07.3353250-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ec4d6531-d86f-420d-8f9f-1d26fffd05c3" />
+    <UnitTestResult executionId="66b79687-82ed-475c-b79e-07d090454dc8" testId="00d3ea8e-2434-90a6-1df1-6c3fdb1e974e" testName="ReplacedActualModelCannotUseOldNativeContinuation" computerName="Christophers-Mac-mini" duration="00:00:00.0232589" startTime="2026-10-05T15:02:07.6123830-04:00" endTime="2026-10-05T15:02:07.6356420-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="66b79687-82ed-475c-b79e-07d090454dc8" />
+    <UnitTestResult executionId="4c221768-92c4-49f0-a685-a46e7c96b27e" testId="5204438c-656a-53d9-3866-82acb6b4cd55" testName="OneProducerKeeps720PlusRemainderStepsAcrossRealCustodyWithoutFalseLegacyCap" computerName="Christophers-Mac-mini" duration="00:00:00.0399970" startTime="2026-10-05T15:01:58.1502890-04:00" endTime="2026-10-05T15:01:58.1902850-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4c221768-92c4-49f0-a685-a46e7c96b27e" />
+    <UnitTestResult executionId="86c5cf60-b8a3-4e79-98ae-80570cd0b5fb" testId="90d27268-d296-c2b2-0cc4-8c7906f0e8d0" testName="CompletedRackAndUtilityAdmitExactBenefitsAndRejectChangedEffect(True)" computerName="Christophers-Mac-mini" duration="00:00:00.8611440" startTime="2026-10-05T15:02:00.5205700-04:00" endTime="2026-10-05T15:02:01.3817160-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="86c5cf60-b8a3-4e79-98ae-80570cd0b5fb" />
+    <UnitTestResult executionId="c1d2aabd-858c-406c-bd66-94f2671390a2" testId="cb4bf19f-1819-3110-248a-7ef7a0ba1988" testName="ActualStageObserverFaultCannotIssueEndTicketOrRewindClock" computerName="Christophers-Mac-mini" duration="00:00:00.0023490" startTime="2026-10-05T15:02:07.6359070-04:00" endTime="2026-10-05T15:02:07.6382560-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c1d2aabd-858c-406c-bd66-94f2671390a2" />
+    <UnitTestResult executionId="f7d1be68-5a67-4f87-85a0-441c09656e7f" testId="fb6fdc14-38b8-525d-1379-c9a97109ce97" testName="ForeignSessionSharingActualModelCannotBindWriter" computerName="Christophers-Mac-mini" duration="00:00:00.0289330" startTime="2026-10-05T15:02:09.4631740-04:00" endTime="2026-10-05T15:02:09.4921070-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f7d1be68-5a67-4f87-85a0-441c09656e7f" />
+    <UnitTestResult executionId="57cb37c7-6f51-4556-a3a4-9c6ee697c126" testId="70b21def-ce30-e444-1d2c-ad883134c50d" testName="IndividuallyValidSiblingTakesFromSameBeforeCannotBecomeOneOwnerHistory" computerName="Christophers-Mac-mini" duration="00:00:01.0760100" startTime="2026-10-05T15:02:02.2400620-04:00" endTime="2026-10-05T15:02:03.3160760-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="57cb37c7-6f51-4556-a3a4-9c6ee697c126" />
+    <UnitTestResult executionId="1ab6b921-7eac-4048-a838-3b7fdfa4e5dd" testId="6d9ae9c0-55ff-b144-9f98-5697a2ecca4d" testName="DerivedTerminalIdOverBoundAndMissingHistoricalProofRefuse" computerName="Christophers-Mac-mini" duration="00:00:00.5613310" startTime="2026-10-05T15:02:01.3818150-04:00" endTime="2026-10-05T15:02:01.9431480-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1ab6b921-7eac-4048-a838-3b7fdfa4e5dd" />
+    <UnitTestResult executionId="1b3cb162-94e9-45d3-af51-0a7e6b72936c" testId="5eaeabc2-1df4-35cb-c64e-efcfcdd0afc4" testName="StaleCombatABARefusesWhileFreshRawDriftRevokesCaptureAndContinues" computerName="Christophers-Mac-mini" duration="00:00:00.0227800" startTime="2026-10-05T15:02:07.3622860-04:00" endTime="2026-10-05T15:02:07.3850660-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1b3cb162-94e9-45d3-af51-0a7e6b72936c" />
+    <UnitTestResult executionId="aa056c70-8000-4e4b-ac4a-fb0c7e989cc4" testId="804fa3f3-1299-d4ab-656e-cbaa45fca74d" testName="ForeignClosedAndWrongThreadPlanRefuseBeforeAnyActualWrite" computerName="Christophers-Mac-mini" duration="00:00:00.0024010" startTime="2026-10-05T15:01:58.1472500-04:00" endTime="2026-10-05T15:01:58.1496510-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aa056c70-8000-4e4b-ac4a-fb0c7e989cc4" />
+    <UnitTestResult executionId="d89fd075-5453-426c-b7a5-96427ba9ce0f" testId="fe4c6cf4-5b30-c948-55c0-466fc05b0c0d" testName="ObserverIntentWaitsForOutermostNotificationsAndExactCompletion" computerName="Christophers-Mac-mini" duration="00:00:00.0001280" startTime="2026-10-05T15:02:09.5645290-04:00" endTime="2026-10-05T15:02:09.5646570-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d89fd075-5453-426c-b7a5-96427ba9ce0f" />
+    <UnitTestResult executionId="0be5def8-801d-4b63-b9d9-ba33915be41b" testId="674daa24-0f45-051f-84f6-11352e343046" testName="IndependentlyValidLegacyPaidProgressCannotBeConvertedAtProofCompletion" computerName="Christophers-Mac-mini" duration="00:00:00.2968470" startTime="2026-10-05T15:02:01.9431780-04:00" endTime="2026-10-05T15:02:02.2400260-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0be5def8-801d-4b63-b9d9-ba33915be41b" />
+    <UnitTestResult executionId="7149de44-5f6f-4bf0-8c09-f227cec88359" testId="f1f32168-60d8-a2e1-f25f-8f262bc77958" testName="DriftAfterCompletionRevokesClosedScalarObservation" computerName="Christophers-Mac-mini" duration="00:00:00.2590370" startTime="2026-10-05T15:02:08.2462660-04:00" endTime="2026-10-05T15:02:08.5053040-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7149de44-5f6f-4bf0-8c09-f227cec88359" />
+    <UnitTestResult executionId="d98ad25f-3de4-47af-b67c-45149eaa5e9e" testId="7e6133ef-ee10-6982-0b02-733059a76d19" testName="ActualProjectionCapacityFailureStillAllowsFreshNativeSurvivalAndPermanentCaptureRefusal" computerName="Christophers-Mac-mini" duration="00:00:00.0390010" startTime="2026-10-05T15:02:07.3867890-04:00" endTime="2026-10-05T15:02:07.4257900-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d98ad25f-3de4-47af-b67c-45149eaa5e9e" />
+    <UnitTestResult executionId="0b447448-09ef-4edd-bdf3-e40fedfe31f0" testId="4e6bd862-726f-0c2a-32a0-f8e53871dc08" testName="CurrentSurvivalProposalSupersedesSpeculativeDebitWithoutWaitingOrDoubleDebit" computerName="Christophers-Mac-mini" duration="00:00:00.0261020" startTime="2026-10-05T15:01:57.9783210-04:00" endTime="2026-10-05T15:01:58.0044230-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0b447448-09ef-4edd-bdf3-e40fedfe31f0" />
+    <UnitTestResult executionId="6c93dca2-90ad-4857-9d29-8852a0b599ec" testId="d0ca3b11-1d00-8597-0d09-d28da6dec564" testName="EpochExhaustionRevokesCaptureWithoutFreezingActualTick" computerName="Christophers-Mac-mini" duration="00:00:00.0004770" startTime="2026-10-05T15:02:09.5636170-04:00" endTime="2026-10-05T15:02:09.5640940-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c93dca2-90ad-4857-9d29-8852a0b599ec" />
+    <UnitTestResult executionId="2db48298-cd97-4c12-8555-f3bea89be3ec" testId="4723f28c-a485-7c55-3389-f3d11746183a" testName="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;complete&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.9332010" startTime="2026-10-05T15:02:04.9500030-04:00" endTime="2026-10-05T15:02:05.8832070-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2db48298-cd97-4c12-8555-f3bea89be3ec" />
+    <UnitTestResult executionId="25161868-0534-4cd8-b84f-1ecdd67b9e3d" testId="d2842898-ff83-437e-1f2d-f88af33fc025" testName="CancellationNeverPublishesOrRestoresActualVitals" computerName="Christophers-Mac-mini" duration="00:00:00.2492930" startTime="2026-10-05T15:02:07.6400440-04:00" endTime="2026-10-05T15:02:07.8893370-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="25161868-0534-4cd8-b84f-1ecdd67b9e3d" />
+    <UnitTestResult executionId="958c3984-32fa-4f94-be00-915f67f89046" testId="1e97e15d-8528-4f9e-3682-b7cc68cf2278" testName="ActualTickClosesPhaseAfterClocksAndNeverGrantsWholeWorldAuthority" computerName="Christophers-Mac-mini" duration="00:00:00.0008090" startTime="2026-10-05T15:02:07.6382850-04:00" endTime="2026-10-05T15:02:07.6390940-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="958c3984-32fa-4f94-be00-915f67f89046" />
+    <UnitTestResult executionId="d12b0e43-6c9b-458a-8f1d-0785d08ddc19" testId="d56ee830-128d-e22d-ed94-7df6c2f6fbfe" testName="ActualSurvivalAndDamageKeepModelIdentityAndOrderedObserverPolicy" computerName="Christophers-Mac-mini" duration="00:00:00.0291770" startTime="2026-10-05T15:02:07.2821730-04:00" endTime="2026-10-05T15:02:07.3113500-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d12b0e43-6c9b-458a-8f1d-0785d08ddc19" />
+    <UnitTestResult executionId="85aecdf0-e4b7-4508-bd24-639bb855e8d6" testId="f67db2fb-5db8-8bf4-fdb1-a50da935236b" testName="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;inventory&quot;)" computerName="Christophers-Mac-mini" duration="00:00:00.0001560" startTime="2026-10-05T15:01:58.1499870-04:00" endTime="2026-10-05T15:01:58.1501430-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="85aecdf0-e4b7-4508-bd24-639bb855e8d6" />
+    <UnitTestResult executionId="8f4fd37f-6958-44a4-8862-b3fce67f6f06" testId="12124a91-9296-248f-173f-861e746372e6" testName="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;take&quot;)" computerName="Christophers-Mac-mini" duration="00:00:01.3985610" startTime="2026-10-05T15:02:05.8832460-04:00" endTime="2026-10-05T15:02:07.2818120-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8f4fd37f-6958-44a4-8862-b3fce67f6f06" />
+    <UnitTestResult executionId="e849cb14-9221-4de0-92f3-31a81c29e15b" testId="bf80e5d5-c8c0-6e6e-ec07-92eed47e013b" testName="RequestCutPermanentlySealsPrefixAndEmptyCutIsIdempotent" computerName="Christophers-Mac-mini" duration="00:00:00.0009220" startTime="2026-10-05T15:02:07.3855010-04:00" endTime="2026-10-05T15:02:07.3864240-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e849cb14-9221-4de0-92f3-31a81c29e15b" />
+    <UnitTestResult executionId="b971ebfe-20ab-4ec9-a5cd-c96d13458265" testId="8a52b098-03a7-bc0a-c66e-b463a2781087" testName="NativeGenerationRejectsSameValueDamageABAWithoutRefund" computerName="Christophers-Mac-mini" duration="00:00:00.0268560" startTime="2026-10-05T15:02:09.5147770-04:00" endTime="2026-10-05T15:02:09.5416330-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b971ebfe-20ab-4ec9-a5cd-c96d13458265" />
+    <UnitTestResult executionId="a6757c8d-7f2c-4d99-9d95-ee4a00718785" testId="535c81f5-e1ed-5519-768d-2914ecd6abe9" testName="ProjectedSuccessRotatesGenerationAndCannotFallbackSameOldProposal" computerName="Christophers-Mac-mini" duration="00:00:00.0214230" startTime="2026-10-05T15:02:07.5683800-04:00" endTime="2026-10-05T15:02:07.5898030-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a6757c8d-7f2c-4d99-9d95-ee4a00718785" />
+    <UnitTestResult executionId="85c5eb44-a635-4eb1-9020-171062953b8f" testId="6c8fecc1-4dca-6762-4882-655c0408d70c" testName="FaultedNestedNotificationPreventsTicketButNextTickCanRecover" computerName="Christophers-Mac-mini" duration="00:00:00.0001140" startTime="2026-10-05T15:02:09.5641090-04:00" endTime="2026-10-05T15:02:09.5642230-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="85c5eb44-a635-4eb1-9020-171062953b8f" />
+    <UnitTestResult executionId="14ec27dd-b246-43a2-b773-9063ef8bdb36" testId="2474ba28-00ad-9302-fa4a-e1acce1edc96" testName="DefaultOffTickDoesNotIssueDiagnosticPhaseTicket" computerName="Christophers-Mac-mini" duration="00:00:00.0001630" startTime="2026-10-05T15:02:07.6391250-04:00" endTime="2026-10-05T15:02:07.6392880-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14ec27dd-b246-43a2-b773-9063ef8bdb36" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="DerivedTerminalIdOverBoundAndMissingHistoricalProofRefuse" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="6d9ae9c0-55ff-b144-9f98-5697a2ecca4d">
+      <Execution id="1ab6b921-7eac-4048-a838-3b7fdfa4e5dd" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="DerivedTerminalIdOverBoundAndMissingHistoricalProofRefuse" />
+    </UnitTest>
+    <UnitTest name="ExhaustedDamageCounterRevokesCaptureButActualDamageAndSurvivalContinue" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="8651a3fc-b7e9-e16d-cf77-01ddda49332c">
+      <Execution id="f89514eb-ab04-4dc6-875d-e5441318b3c5" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsWriterFallbackTests" name="ExhaustedDamageCounterRevokesCaptureButActualDamageAndSurvivalContinue" />
+    </UnitTest>
+    <UnitTest name="ForeignSnapshotOrDifferentBeforeObjectCannotCreateNativeInstaller" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="1fb83f5c-5d83-2265-0eac-94a1f1034f38">
+      <Execution id="2790f98f-3234-4231-aaa1-7b0790b29ff7" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="ForeignSnapshotOrDifferentBeforeObjectCannotCreateNativeInstaller" />
+    </UnitTest>
+    <UnitTest name="RawDriftAfterPinRefusesBeforeNextCopyAndObservation" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="6ab12670-bf8a-b462-ca4f-803dd385d55c">
+      <Execution id="c5a08ade-5022-423c-a0e2-64694f04b857" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsOverlayCursorTests" name="RawDriftAfterPinRefusesBeforeNextCopyAndObservation" />
+    </UnitTest>
+    <UnitTest name="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;take&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="12124a91-9296-248f-173f-861e746372e6">
+      <Execution id="8f4fd37f-6958-44a4-8862-b3fce67f6f06" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;take&quot;)" />
+    </UnitTest>
+    <UnitTest name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;context&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="09a9fff4-505e-c34e-c609-95d2aecedc38">
+      <Execution id="b42b6492-af8f-494a-ba81-7d97cadecb26" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;context&quot;)" />
+    </UnitTest>
+    <UnitTest name="CapacityIsReservedBeforeActualDebit(1,2000,&quot;step_log_full&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="0452900e-90f2-6a78-8e3a-8a007deb4173">
+      <Execution id="ac52769e-ee98-46dd-b6ab-aac3240d6267" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="CapacityIsReservedBeforeActualDebit(1,2000,&quot;step_log_full&quot;)" />
+    </UnitTest>
+    <UnitTest name="ActualStageObserverFaultCannotIssueEndTicketOrRewindClock" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="cb4bf19f-1819-3110-248a-7ef7a0ba1988">
+      <Execution id="c1d2aabd-858c-406c-bd66-94f2671390a2" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousTickBoundaryHookTests" name="ActualStageObserverFaultCannotIssueEndTicketOrRewindClock" />
+    </UnitTest>
+    <UnitTest name="NativeABAWithEqualBitsCannotReuseOldGeneration" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="2441fb85-26c7-f7a7-a22e-ddd8c0aade6b">
+      <Execution id="ae0a0b7d-9df7-43b8-ad8f-e0733811a349" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="NativeABAWithEqualBitsCannotReuseOldGeneration" />
+    </UnitTest>
+    <UnitTest name="HistoricalActualVitalsOverlaySurvivesRegisteredWritesDuringBoundedCopy" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="9f0f6e27-5b24-803d-509f-6088a33a251c">
+      <Execution id="41367173-fe5b-4d0f-8dfe-59164c8cbce1" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsOverlayCursorTests" name="HistoricalActualVitalsOverlaySurvivesRegisteredWritesDuringBoundedCopy" />
+    </UnitTest>
+    <UnitTest name="CancellationNeverPublishesOrRestoresActualVitals" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="d2842898-ff83-437e-1f2d-f88af33fc025">
+      <Execution id="25161868-0534-4cd8-b84f-1ecdd67b9e3d" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsOverlayCursorTests" name="CancellationNeverPublishesOrRestoresActualVitals" />
+    </UnitTest>
+    <UnitTest name="ForeignClosedAndWrongThreadPlanRefuseBeforeAnyActualWrite" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="804fa3f3-1299-d4ab-656e-cbaa45fca74d">
+      <Execution id="aa056c70-8000-4e4b-ac4a-fb0c7e989cc4" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="ForeignClosedAndWrongThreadPlanRefuseBeforeAnyActualWrite" />
+    </UnitTest>
+    <UnitTest name="ReplacedActualModelCannotUseOldNativeContinuation" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="00d3ea8e-2434-90a6-1df1-6c3fdb1e974e">
+      <Execution id="66b79687-82ed-475c-b79e-07d090454dc8" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="ReplacedActualModelCannotUseOldNativeContinuation" />
+    </UnitTest>
+    <UnitTest name="FaultedNestedNotificationPreventsTicketButNextTickCanRecover" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="6c8fecc1-4dca-6762-4882-655c0408d70c">
+      <Execution id="85c5eb44-a635-4eb1-9020-171062953b8f" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousWorldBoundaryTests" name="FaultedNestedNotificationPreventsTicketButNextTickCanRecover" />
+    </UnitTest>
+    <UnitTest name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(False,&quot;world&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="568f6fbf-014c-6aba-e60b-c53ffc06647f">
+      <Execution id="52bca196-537b-4f9b-82f2-a4a5e7d49d6e" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.PaidCraftNativeUtf8Tests" name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(False,&quot;world&quot;)" />
+    </UnitTest>
+    <UnitTest name="ResourceReplacementAndReciprocalReceiptTamperingRefuse" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="2889aed0-3b14-38ce-551f-20b2a3f0bfda">
+      <Execution id="adfb03b1-5116-4c6c-8402-21cc391e2f69" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="ResourceReplacementAndReciprocalReceiptTamperingRefuse" />
+    </UnitTest>
+    <UnitTest name="ObserverFailureReportsCommittedAndForeignThreadCannotWrite" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="0858d1a0-d546-ca2e-ec49-c587092974d5">
+      <Execution id="ec4d6531-d86f-420d-8f9f-1d26fffd05c3" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousActualVitalsWriterTests" name="ObserverFailureReportsCommittedAndForeignThreadCannotWrite" />
+    </UnitTest>
+    <UnitTest name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(False,&quot;run&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="5b84ab23-4156-3b26-e5f6-41818ab5c65e">
+      <Execution id="e7d0ec1d-6c70-4169-ac65-06e4f418907e" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.PaidCraftNativeUtf8Tests" name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(False,&quot;run&quot;)" />
+    </UnitTest>
+    <UnitTest name="IndividuallyValidSiblingTakesFromSameBeforeCannotBecomeOneOwnerHistory" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="70b21def-ce30-e444-1d2c-ad883134c50d">
+      <Execution id="57cb37c7-6f51-4556-a3a4-9c6ee697c126" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="IndividuallyValidSiblingTakesFromSameBeforeCannotBecomeOneOwnerHistory" />
+    </UnitTest>
+    <UnitTest name="CapacityIsReservedBeforeActualDebit(64,1,&quot;complete_history_capacity&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="02629ff4-8db2-b36f-1b3a-0d5919867a54">
+      <Execution id="9e75cd0b-1573-4da1-88c0-918de109c17c" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="CapacityIsReservedBeforeActualDebit(64,1,&quot;complete_history_capacity&quot;)" />
+    </UnitTest>
+    <UnitTest name="CrossSessionProducerCannotOverlayAnotherActualGenesis" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="d3d32f00-b2fa-7890-52ca-da9d4cd21725">
+      <Execution id="8de24173-7895-41b6-a426-2a115d1c6836" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsOverlayCursorTests" name="CrossSessionProducerCannotOverlayAnotherActualGenesis" />
+    </UnitTest>
+    <UnitTest name="CrossBridgeSnapshotAndRegisteredABACannotPassFinalGuard" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="ecb454bc-9cfa-242a-63be-c957c5e773e3">
+      <Execution id="aaf9a623-45f2-427b-b35c-0b12d491fde2" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ActualVitalsProjectionBridgeTests" name="CrossBridgeSnapshotAndRegisteredABACannotPassFinalGuard" />
+    </UnitTest>
+    <UnitTest name="DriftAfterCompletionRevokesClosedScalarObservation" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="f1f32168-60d8-a2e1-f25f-8f262bc77958">
+      <Execution id="7149de44-5f6f-4bf0-8c09-f227cec88359" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsOverlayCursorTests" name="DriftAfterCompletionRevokesClosedScalarObservation" />
+    </UnitTest>
+    <UnitTest name="InvalidBudgetDoesNoWorkAndRefuses(-1)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="0c223e14-1a3f-b63c-4d8b-5c410d37c38f">
+      <Execution id="8beea036-1ef5-460a-9d6c-89c8a2dea9e6" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsOverlayCursorTests" name="InvalidBudgetDoesNoWorkAndRefuses(-1)" />
+    </UnitTest>
+    <UnitTest name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;inventory&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="f67db2fb-5db8-8bf4-fdb1-a50da935236b">
+      <Execution id="85aecdf0-e4b7-4508-bd24-639bb855e8d6" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;inventory&quot;)" />
+    </UnitTest>
+    <UnitTest name="EvaluatorKeepsActualModelUnchangedAndPreservesOrderedDamage" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="9bc978f6-1604-66b3-94e3-3058d8fff59c">
+      <Execution id="76cb6604-9191-4e72-81dc-b94692fb06da" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousAuxiliaryPrerequisiteTests" name="EvaluatorKeepsActualModelUnchangedAndPreservesOrderedDamage" />
+    </UnitTest>
+    <UnitTest name="CurrentSurvivalProposalSupersedesSpeculativeDebitWithoutWaitingOrDoubleDebit" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="4e6bd862-726f-0c2a-32a0-f8e53871dc08">
+      <Execution id="0b447448-09ef-4edd-bdf3-e40fedfe31f0" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ActualVitalsProjectionBridgeTests" name="CurrentSurvivalProposalSupersedesSpeculativeDebitWithoutWaitingOrDoubleDebit" />
+    </UnitTest>
+    <UnitTest name="OutOfOrderCompleteRefusesBeforeClosingEitherScope" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="7b6d65da-5539-962c-9211-47dffed43696">
+      <Execution id="b6fc7596-0f4f-4235-90ed-0716d1af730e" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousWorldBoundaryTests" name="OutOfOrderCompleteRefusesBeforeClosingEitherScope" />
+    </UnitTest>
+    <UnitTest name="ObserverIntentWaitsForOutermostNotificationsAndExactCompletion" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="fe4c6cf4-5b30-c948-55c0-466fc05b0c0d">
+      <Execution id="d89fd075-5453-426c-b7a5-96427ba9ce0f" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousWorldBoundaryTests" name="ObserverIntentWaitsForOutermostNotificationsAndExactCompletion" />
+    </UnitTest>
+    <UnitTest name="IndependentlyValidLegacyPaidProgressCannotBeConvertedAtProofCompletion" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="674daa24-0f45-051f-84f6-11352e343046">
+      <Execution id="0be5def8-801d-4b63-b9d9-ba33915be41b" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="IndependentlyValidLegacyPaidProgressCannotBeConvertedAtProofCompletion" />
+    </UnitTest>
+    <UnitTest name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;resource&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="9b7df4d5-f038-fad2-ad5a-eb2bd6195cd1">
+      <Execution id="a57e0881-2fdf-4efc-9e4d-dc2ad4235773" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;resource&quot;)" />
+    </UnitTest>
+    <UnitTest name="LatestNativeTokenPreemptsOlderAndCancelDoesNotRewindActual" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="94e10313-c6f0-c6ac-c6d9-66da43e8f975">
+      <Execution id="e8073a25-958c-4562-b88e-d21a26eda228" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="LatestNativeTokenPreemptsOlderAndCancelDoesNotRewindActual" />
+    </UnitTest>
+    <UnitTest name="AuthenticCheckpointFullyAdmitsAndOrdinaryEnvelopeRoundtrips(True)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="72bb51dd-d616-6229-c9c1-042b6808d4d3">
+      <Execution id="6febc531-5ea1-4287-810b-35cc0f2afc95" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="AuthenticCheckpointFullyAdmitsAndOrdinaryEnvelopeRoundtrips(True)" />
+    </UnitTest>
+    <UnitTest name="StaleCombatABARefusesWhileFreshRawDriftRevokesCaptureAndContinues" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="5eaeabc2-1df4-35cb-c64e-efcfcdd0afc4">
+      <Execution id="1b3cb162-94e9-45d3-af51-0a7e6b72936c" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousActualVitalsWriterTests" name="StaleCombatABARefusesWhileFreshRawDriftRevokesCaptureAndContinues" />
+    </UnitTest>
+    <UnitTest name="StaleCutAndQueuePressureLeaveEarnedStateIntact" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="fcc04dc3-6c1a-59fb-2547-d7fe62500194">
+      <Execution id="dfffb279-dd5f-4346-b12f-37df10b13749" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousAuxiliaryPrerequisiteTests" name="StaleCutAndQueuePressureLeaveEarnedStateIntact" />
+    </UnitTest>
+    <UnitTest name="CaptureStampSaturationDoesNotStopNativeDamageOrRotateBackToOldSnapshot" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="604f69ed-4200-d871-1adc-a6eaabd0dd53">
+      <Execution id="c061f860-8ab3-4700-aac8-9e20f91146d5" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="CaptureStampSaturationDoesNotStopNativeDamageOrRotateBackToOldSnapshot" />
+    </UnitTest>
+    <UnitTest name="ProjectedSuccessRotatesGenerationAndCannotFallbackSameOldProposal" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="535c81f5-e1ed-5519-768d-2914ecd6abe9">
+      <Execution id="a6757c8d-7f2c-4d99-9d95-ee4a00718785" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="ProjectedSuccessRotatesGenerationAndCannotFallbackSameOldProposal" />
+    </UnitTest>
+    <UnitTest name="SameRunSessionModelPairedWorkDebitsOnlyStaminaAndRejectsLaterSurvivalWrite" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="b7e24616-0380-2acb-7213-b3f4b19a70c8">
+      <Execution id="6e3ebf19-7537-429c-97c2-acf746030775" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousActualVitalsWriterTests" name="SameRunSessionModelPairedWorkDebitsOnlyStaminaAndRejectsLaterSurvivalWrite" />
+    </UnitTest>
+    <UnitTest name="RevokedCaptureDoesNotFreezeSameActualSurvivalOrCombat" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="cedcf7d4-e3e8-499d-a5bb-f752be807940">
+      <Execution id="78207f14-f390-4c2b-ab26-2cc76124fa55" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsWriterFallbackTests" name="RevokedCaptureDoesNotFreezeSameActualSurvivalOrCombat" />
+    </UnitTest>
+    <UnitTest name="ActualTickClosesPhaseAfterClocksAndNeverGrantsWholeWorldAuthority" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="1e97e15d-8528-4f9e-3682-b7cc68cf2278">
+      <Execution id="958c3984-32fa-4f94-be00-915f67f89046" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousTickBoundaryHookTests" name="ActualTickClosesPhaseAfterClocksAndNeverGrantsWholeWorldAuthority" />
+    </UnitTest>
+    <UnitTest name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;cancelled_adapter&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="d71cf9f0-c419-5370-a99f-8aa0c6367b5c">
+      <Execution id="18fcd208-65de-4ca9-8302-141d671b9f48" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="GuardRefusalLeavesActualVitalsRuntimeEvidenceAndBudgetUnchanged(&quot;cancelled_adapter&quot;)" />
+    </UnitTest>
+    <UnitTest name="ActualProjectionCapacityFailureStillAllowsFreshNativeSurvivalAndPermanentCaptureRefusal" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="7e6133ef-ee10-6982-0b02-733059a76d19">
+      <Execution id="d98ad25f-3de4-47af-b67c-45149eaa5e9e" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="ActualProjectionCapacityFailureStillAllowsFreshNativeSurvivalAndPermanentCaptureRefusal" />
+    </UnitTest>
+    <UnitTest name="OneProducerKeeps720PlusRemainderStepsAcrossRealCustodyWithoutFalseLegacyCap" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="5204438c-656a-53d9-3866-82acb6b4cd55">
+      <Execution id="4c221768-92c4-49f0-a685-a46e7c96b27e" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="OneProducerKeeps720PlusRemainderStepsAcrossRealCustodyWithoutFalseLegacyCap" />
+    </UnitTest>
+    <UnitTest name="ActualWorldRecoveryThenWorkPublishesOneCoherentPairAndExactProjection" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="9866cf07-e8e5-21e1-d692-1084b071eabc">
+      <Execution id="45156cd4-3833-4cd0-8a7d-84ad207e1038" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="ActualWorldRecoveryThenWorkPublishesOneCoherentPairAndExactProjection" />
+    </UnitTest>
+    <UnitTest name="NextBatchAndClockDriftInvalidateTicketAndForeignThreadCannotObserve" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="c313947a-bc97-d887-ef31-453720b1bab0">
+      <Execution id="4617c4c4-1da9-4c0d-aa25-51b3f8842697" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousWorldBoundaryTests" name="NextBatchAndClockDriftInvalidateTicketAndForeignThreadCannotObserve" />
+    </UnitTest>
+    <UnitTest name="PendingCancelAndRepeatedInstallCannotChangeActualTwice" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="5022bd97-9619-a5b2-b386-0829292b1211">
+      <Execution id="e3e67e0e-1cfe-4501-a1be-e2c4fcccc32a" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ActualVitalsProjectionBridgeTests" name="PendingCancelAndRepeatedInstallCannotChangeActualTwice" />
+    </UnitTest>
+    <UnitTest name="RawDriftAfterPreparingNativeProposalRefusesRatherThanApplyingStaleDelta" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="15594dd2-f3fb-926b-7db4-0a3e00740327">
+      <Execution id="a4e3ba9a-5bf4-4536-acc7-76a3619d4779" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="RawDriftAfterPreparingNativeProposalRefusesRatherThanApplyingStaleDelta" />
+    </UnitTest>
+    <UnitTest name="ActualRawFieldDriftRefusesAndRevokesCaptureWithoutResynchronizing" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="91e00e3e-9466-be45-945b-d0c6f2f974cd">
+      <Execution id="6d7cbc7c-7d9f-4969-8d99-907c2f04dbde" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ActualVitalsProjectionBridgeTests" name="ActualRawFieldDriftRefusesAndRevokesCaptureWithoutResynchronizing" />
+    </UnitTest>
+    <UnitTest name="SameActualRunSessionModelAndHistoricalCutSurviveRegisteredWrites" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="45296435-5786-bb7f-9f5d-15849bdd7b13">
+      <Execution id="6bc3627b-01f8-4a6d-96e2-ff6b5fb1bbb2" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ActualVitalsProjectionBridgeTests" name="SameActualRunSessionModelAndHistoricalCutSurviveRegisteredWrites" />
+    </UnitTest>
+    <UnitTest name="ActualSurvivalAndDamageKeepModelIdentityAndOrderedObserverPolicy" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="d56ee830-128d-e22d-ed94-7df6c2f6fbfe">
+      <Execution id="d12b0e43-6c9b-458a-8f1d-0785d08ddc19" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousActualVitalsWriterTests" name="ActualSurvivalAndDamageKeepModelIdentityAndOrderedObserverPolicy" />
+    </UnitTest>
+    <UnitTest name="EpochExhaustionRevokesCaptureWithoutFreezingActualTick" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="d0ca3b11-1d00-8597-0d09-d28da6dec564">
+      <Execution id="6c93dca2-90ad-4857-9d29-8852a0b599ec" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousWorldBoundaryTests" name="EpochExhaustionRevokesCaptureWithoutFreezingActualTick" />
+    </UnitTest>
+    <UnitTest name="NativeRevocationOccursBeforeWriteAndHistoricalPinsCannotBeObservedAfterward" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="bf9d8b88-5242-54c9-2cfb-e213e7a55b04">
+      <Execution id="7f88007e-0375-4438-91ec-ce093961ab7c" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousSimulationVitalsSnapshotTests" name="NativeRevocationOccursBeforeWriteAndHistoricalPinsCannotBeObservedAfterward" />
+    </UnitTest>
+    <UnitTest name="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;checkpoint&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="1d28dc65-0ef2-5235-f740-10fdc7d4c0dd">
+      <Execution id="108bdc31-c6db-41dd-ba00-92e3b7b03649" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;checkpoint&quot;)" />
+    </UnitTest>
+    <UnitTest name="CompletedRackAndUtilityAdmitExactBenefitsAndRejectChangedEffect(True)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="90d27268-d296-c2b2-0cc4-8c7906f0e8d0">
+      <Execution id="86c5cf60-b8a3-4e79-98ae-80570cd0b5fb" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="CompletedRackAndUtilityAdmitExactBenefitsAndRejectChangedEffect(True)" />
+    </UnitTest>
+    <UnitTest name="ExistingRestoreEarlyReturnInvalidatesPreviousPhaseTicket" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="21463e27-f899-80da-31da-43086956c57a">
+      <Execution id="4e3ed2c9-8622-46b1-8bb5-5916741da6cf" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousTickBoundaryHookTests" name="ExistingRestoreEarlyReturnInvalidatesPreviousPhaseTicket" />
+    </UnitTest>
+    <UnitTest name="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;complete&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="4723f28c-a485-7c55-3389-f3d11746183a">
+      <Execution id="2db48298-cd97-4c12-8555-f3bea89be3ec" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="ShapeValidEconomicDriftCannotEscapeReconstructedOwner(&quot;complete&quot;)" />
+    </UnitTest>
+    <UnitTest name="NativeGenerationRejectsSameValueDamageABAWithoutRefund" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="8a52b098-03a7-bc0a-c66e-b463a2781087">
+      <Execution id="b971ebfe-20ab-4ec9-a5cd-c96d13458265" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsWriterFallbackTests" name="NativeGenerationRejectsSameValueDamageABAWithoutRefund" />
+    </UnitTest>
+    <UnitTest name="ActualHealthDeathRefusesWorkWithoutSyntheticAliveOverride" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="caade999-6fca-d236-7dcd-008585ea1fc1">
+      <Execution id="3dcad45b-819e-4375-8e04-1f4898cbd0bb" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="ActualHealthDeathRefusesWorkWithoutSyntheticAliveOverride" />
+    </UnitTest>
+    <UnitTest name="Raw14ConfigChangesInvalidatePreparedProposalBeforeAnyInstall" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="64c87c66-9430-a95a-a705-5ba864c45ad9">
+      <Execution id="3570af29-9898-4994-9581-5196d7366dcf" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ActualVitalsProjectionBridgeTests" name="Raw14ConfigChangesInvalidatePreparedProposalBeforeAnyInstall" />
+    </UnitTest>
+    <UnitTest name="ForeignSessionSharingActualModelCannotBindWriter" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="fb6fdc14-38b8-525d-1379-c9a97109ce97">
+      <Execution id="f7d1be68-5a67-4f87-85a0-441c09656e7f" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsSessionBindingTests" name="ForeignSessionSharingActualModelCannotBindWriter" />
+    </UnitTest>
+    <UnitTest name="UnrelatedCallerCannotMintOrForgeJournalCountAssignment" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="f796206e-5b95-d584-f15d-21fe39e87647">
+      <Execution id="00607481-cd01-4cc4-a5ec-9c2106961ea3" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.AuxiliaryActualPairTests" name="UnrelatedCallerCannotMintOrForgeJournalCountAssignment" />
+    </UnitTest>
+    <UnitTest name="InvalidBudgetDoesNoWorkAndRefuses(65)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="90d174c7-45e6-229a-40d0-5033769fb6f2">
+      <Execution id="c68d5561-aa8c-48a8-b156-6108a5d2fd93" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousVitalsOverlayCursorTests" name="InvalidBudgetDoesNoWorkAndRefuses(65)" />
+    </UnitTest>
+    <UnitTest name="DefaultOffTickDoesNotIssueDiagnosticPhaseTicket" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="2474ba28-00ad-9302-fa4a-e1acce1edc96">
+      <Execution id="14ec27dd-b246-43a2-b773-9063ef8bdb36" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousTickBoundaryHookTests" name="DefaultOffTickDoesNotIssueDiagnosticPhaseTicket" />
+    </UnitTest>
+    <UnitTest name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(True,&quot;world&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="daba3fe4-ac8b-bc59-4ad5-17f6aa234b2c">
+      <Execution id="8aa3a10a-e1ee-464d-8ecf-c669a317a183" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.PaidCraftNativeUtf8Tests" name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(True,&quot;world&quot;)" />
+    </UnitTest>
+    <UnitTest name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(True,&quot;run&quot;)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="905b21c8-8094-636d-7bda-13432167da15">
+      <Execution id="e964f0ac-f9f4-413c-834c-618159ffe3c9" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.PaidCraftNativeUtf8Tests" name="PaidSelection_RejectsMalformedOriginalUtf8EvenWhenReplacementTextMatches(True,&quot;run&quot;)" />
+    </UnitTest>
+    <UnitTest name="AuthenticCheckpointFullyAdmitsAndOrdinaryEnvelopeRoundtrips(False)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="28534936-2cc6-d4c4-7d55-8648c7e0e86d">
+      <Execution id="e5f3177c-cfdd-44dc-80d5-e36c2a65fd30" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="AuthenticCheckpointFullyAdmitsAndOrdinaryEnvelopeRoundtrips(False)" />
+    </UnitTest>
+    <UnitTest name="RackTakeAdmitsAllocatedRemainingOnceAndRetainsTerminalHistory" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="6f80e18c-1a92-3203-f173-f194227f72ff">
+      <Execution id="6e41ef93-ffa8-453b-8f5f-a3e1acee4301" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="RackTakeAdmitsAllocatedRemainingOnceAndRetainsTerminalHistory" />
+    </UnitTest>
+    <UnitTest name="ForeignSnapshotCannotSupersedeCurrentExactPendingPlan" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="2187013f-6da2-6ae0-1e4e-cb8690b400cc">
+      <Execution id="7a6619dd-6e74-4410-939b-dc502e201c07" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ActualVitalsProjectionBridgeTests" name="ForeignSnapshotCannotSupersedeCurrentExactPendingPlan" />
+    </UnitTest>
+    <UnitTest name="CompletedRackAndUtilityAdmitExactBenefitsAndRejectChangedEffect(False)" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="faf3a4c5-4cee-d53a-86d1-dd8a125cb9ba">
+      <Execution id="9a130027-0c8e-4504-96fa-7e39b9779c04" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.CheckpointProofAdmissionTests" name="CompletedRackAndUtilityAdmitExactBenefitsAndRejectChangedEffect(False)" />
+    </UnitTest>
+    <UnitTest name="RequestCutPermanentlySealsPrefixAndEmptyCutIsIdempotent" storage="/volumes/untitled/synapticseamigration/first-away-profile-prototype/tools/dotnet/synapticsea.core.tests/bin/debug/net8.0/synapticsea.core.tests.dll" id="bf80e5d5-c8c0-6e6e-ec07-92eed47e013b">
+      <Execution id="e849cb14-9221-4de0-92f3-31a81c29e15b" />
+      <TestMethod codeBase="/Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll" adapterTypeName="executor://nunit3testexecutor/" className="SynapticSea.Tests.Session.ContinuousAuxiliaryPrerequisiteTests" name="RequestCutPermanentlySealsPrefixAndEmptyCutIsIdempotent" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="45296435-5786-bb7f-9f5d-15849bdd7b13" executionId="6bc3627b-01f8-4a6d-96e2-ff6b5fb1bbb2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0452900e-90f2-6a78-8e3a-8a007deb4173" executionId="ac52769e-ee98-46dd-b6ab-aac3240d6267" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b7e24616-0380-2acb-7213-b3f4b19a70c8" executionId="6e3ebf19-7537-429c-97c2-acf746030775" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9bc978f6-1604-66b3-94e3-3058d8fff59c" executionId="76cb6604-9191-4e72-81dc-b94692fb06da" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="94e10313-c6f0-c6ac-c6d9-66da43e8f975" executionId="e8073a25-958c-4562-b88e-d21a26eda228" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1d28dc65-0ef2-5235-f740-10fdc7d4c0dd" executionId="108bdc31-c6db-41dd-ba00-92e3b7b03649" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d3d32f00-b2fa-7890-52ca-da9d4cd21725" executionId="8de24173-7895-41b6-a426-2a115d1c6836" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="64c87c66-9430-a95a-a705-5ba864c45ad9" executionId="3570af29-9898-4994-9581-5196d7366dcf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6f80e18c-1a92-3203-f173-f194227f72ff" executionId="6e41ef93-ffa8-453b-8f5f-a3e1acee4301" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="daba3fe4-ac8b-bc59-4ad5-17f6aa234b2c" executionId="8aa3a10a-e1ee-464d-8ecf-c669a317a183" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d71cf9f0-c419-5370-a99f-8aa0c6367b5c" executionId="18fcd208-65de-4ca9-8302-141d671b9f48" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="905b21c8-8094-636d-7bda-13432167da15" executionId="e964f0ac-f9f4-413c-834c-618159ffe3c9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="28534936-2cc6-d4c4-7d55-8648c7e0e86d" executionId="e5f3177c-cfdd-44dc-80d5-e36c2a65fd30" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2441fb85-26c7-f7a7-a22e-ddd8c0aade6b" executionId="ae0a0b7d-9df7-43b8-ad8f-e0733811a349" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9f0f6e27-5b24-803d-509f-6088a33a251c" executionId="41367173-fe5b-4d0f-8dfe-59164c8cbce1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2187013f-6da2-6ae0-1e4e-cb8690b400cc" executionId="7a6619dd-6e74-4410-939b-dc502e201c07" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="02629ff4-8db2-b36f-1b3a-0d5919867a54" executionId="9e75cd0b-1573-4da1-88c0-918de109c17c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9866cf07-e8e5-21e1-d692-1084b071eabc" executionId="45156cd4-3833-4cd0-8a7d-84ad207e1038" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="caade999-6fca-d236-7dcd-008585ea1fc1" executionId="3dcad45b-819e-4375-8e04-1f4898cbd0bb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cedcf7d4-e3e8-499d-a5bb-f752be807940" executionId="78207f14-f390-4c2b-ab26-2cc76124fa55" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="15594dd2-f3fb-926b-7db4-0a3e00740327" executionId="a4e3ba9a-5bf4-4536-acc7-76a3619d4779" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="91e00e3e-9466-be45-945b-d0c6f2f974cd" executionId="6d7cbc7c-7d9f-4969-8d99-907c2f04dbde" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c313947a-bc97-d887-ef31-453720b1bab0" executionId="4617c4c4-1da9-4c0d-aa25-51b3f8842697" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="faf3a4c5-4cee-d53a-86d1-dd8a125cb9ba" executionId="9a130027-0c8e-4504-96fa-7e39b9779c04" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="604f69ed-4200-d871-1adc-a6eaabd0dd53" executionId="c061f860-8ab3-4700-aac8-9e20f91146d5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2889aed0-3b14-38ce-551f-20b2a3f0bfda" executionId="adfb03b1-5116-4c6c-8402-21cc391e2f69" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="90d174c7-45e6-229a-40d0-5033769fb6f2" executionId="c68d5561-aa8c-48a8-b156-6108a5d2fd93" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="21463e27-f899-80da-31da-43086956c57a" executionId="4e3ed2c9-8622-46b1-8bb5-5916741da6cf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5022bd97-9619-a5b2-b386-0829292b1211" executionId="e3e67e0e-1cfe-4501-a1be-e2c4fcccc32a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fcc04dc3-6c1a-59fb-2547-d7fe62500194" executionId="dfffb279-dd5f-4346-b12f-37df10b13749" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5b84ab23-4156-3b26-e5f6-41818ab5c65e" executionId="e7d0ec1d-6c70-4169-ac65-06e4f418907e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8651a3fc-b7e9-e16d-cf77-01ddda49332c" executionId="f89514eb-ab04-4dc6-875d-e5441318b3c5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ecb454bc-9cfa-242a-63be-c957c5e773e3" executionId="aaf9a623-45f2-427b-b35c-0b12d491fde2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9b7df4d5-f038-fad2-ad5a-eb2bd6195cd1" executionId="a57e0881-2fdf-4efc-9e4d-dc2ad4235773" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="72bb51dd-d616-6229-c9c1-042b6808d4d3" executionId="6febc531-5ea1-4287-810b-35cc0f2afc95" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b6d65da-5539-962c-9211-47dffed43696" executionId="b6fc7596-0f4f-4235-90ed-0716d1af730e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6ab12670-bf8a-b462-ca4f-803dd385d55c" executionId="c5a08ade-5022-423c-a0e2-64694f04b857" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1fb83f5c-5d83-2265-0eac-94a1f1034f38" executionId="2790f98f-3234-4231-aaa1-7b0790b29ff7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bf9d8b88-5242-54c9-2cfb-e213e7a55b04" executionId="7f88007e-0375-4438-91ec-ce093961ab7c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="568f6fbf-014c-6aba-e60b-c53ffc06647f" executionId="52bca196-537b-4f9b-82f2-a4a5e7d49d6e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="09a9fff4-505e-c34e-c609-95d2aecedc38" executionId="b42b6492-af8f-494a-ba81-7d97cadecb26" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0c223e14-1a3f-b63c-4d8b-5c410d37c38f" executionId="8beea036-1ef5-460a-9d6c-89c8a2dea9e6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f796206e-5b95-d584-f15d-21fe39e87647" executionId="00607481-cd01-4cc4-a5ec-9c2106961ea3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0858d1a0-d546-ca2e-ec49-c587092974d5" executionId="ec4d6531-d86f-420d-8f9f-1d26fffd05c3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00d3ea8e-2434-90a6-1df1-6c3fdb1e974e" executionId="66b79687-82ed-475c-b79e-07d090454dc8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5204438c-656a-53d9-3866-82acb6b4cd55" executionId="4c221768-92c4-49f0-a685-a46e7c96b27e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="90d27268-d296-c2b2-0cc4-8c7906f0e8d0" executionId="86c5cf60-b8a3-4e79-98ae-80570cd0b5fb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cb4bf19f-1819-3110-248a-7ef7a0ba1988" executionId="c1d2aabd-858c-406c-bd66-94f2671390a2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fb6fdc14-38b8-525d-1379-c9a97109ce97" executionId="f7d1be68-5a67-4f87-85a0-441c09656e7f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="70b21def-ce30-e444-1d2c-ad883134c50d" executionId="57cb37c7-6f51-4556-a3a4-9c6ee697c126" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6d9ae9c0-55ff-b144-9f98-5697a2ecca4d" executionId="1ab6b921-7eac-4048-a838-3b7fdfa4e5dd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5eaeabc2-1df4-35cb-c64e-efcfcdd0afc4" executionId="1b3cb162-94e9-45d3-af51-0a7e6b72936c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="804fa3f3-1299-d4ab-656e-cbaa45fca74d" executionId="aa056c70-8000-4e4b-ac4a-fb0c7e989cc4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fe4c6cf4-5b30-c948-55c0-466fc05b0c0d" executionId="d89fd075-5453-426c-b7a5-96427ba9ce0f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="674daa24-0f45-051f-84f6-11352e343046" executionId="0be5def8-801d-4b63-b9d9-ba33915be41b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f1f32168-60d8-a2e1-f25f-8f262bc77958" executionId="7149de44-5f6f-4bf0-8c09-f227cec88359" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7e6133ef-ee10-6982-0b02-733059a76d19" executionId="d98ad25f-3de4-47af-b67c-45149eaa5e9e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4e6bd862-726f-0c2a-32a0-f8e53871dc08" executionId="0b447448-09ef-4edd-bdf3-e40fedfe31f0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d0ca3b11-1d00-8597-0d09-d28da6dec564" executionId="6c93dca2-90ad-4857-9d29-8852a0b599ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4723f28c-a485-7c55-3389-f3d11746183a" executionId="2db48298-cd97-4c12-8555-f3bea89be3ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d2842898-ff83-437e-1f2d-f88af33fc025" executionId="25161868-0534-4cd8-b84f-1ecdd67b9e3d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e97e15d-8528-4f9e-3682-b7cc68cf2278" executionId="958c3984-32fa-4f94-be00-915f67f89046" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d56ee830-128d-e22d-ed94-7df6c2f6fbfe" executionId="d12b0e43-6c9b-458a-8f1d-0785d08ddc19" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f67db2fb-5db8-8bf4-fdb1-a50da935236b" executionId="85aecdf0-e4b7-4508-bd24-639bb855e8d6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="12124a91-9296-248f-173f-861e746372e6" executionId="8f4fd37f-6958-44a4-8862-b3fce67f6f06" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bf80e5d5-c8c0-6e6e-ec07-92eed47e013b" executionId="e849cb14-9221-4de0-92f3-31a81c29e15b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8a52b098-03a7-bc0a-c66e-b463a2781087" executionId="b971ebfe-20ab-4ec9-a5cd-c96d13458265" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="535c81f5-e1ed-5519-768d-2914ecd6abe9" executionId="a6757c8d-7f2c-4d99-9d95-ee4a00718785" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6c8fecc1-4dca-6762-4882-655c0408d70c" executionId="85c5eb44-a635-4eb1-9020-171062953b8f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2474ba28-00ad-9302-fa4a-e1acce1edc96" executionId="14ec27dd-b246-43a2-b773-9063ef8bdb36" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="70" executed="70" passed="70" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>NUnit Adapter 4.6.0.0: Test execution started
+Running selected tests in /Volumes/Untitled/SynapticSeaMigration/first-away-profile-prototype/tools/dotnet/SynapticSea.Core.Tests/bin/Debug/net8.0/SynapticSea.Core.Tests.dll
+   NUnit3TestExecutor discovered 70 of 70 NUnit test cases using Current Discovery mode, Non-Explicit run
+PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-57cba554cb5a4a8aa1bf2af5c5707192
+role=run
+mode=paid_crafting_ordinary
+logical=user://saves/.paid-craft-generations/g/a55b6a503fc59ac1f47e03025ecb61abfac8045988a31324b8b88174a00d8277/run.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-57cba554cb5a4a8aa1bf2af5c5707192/saves/.paid-craft-generations/g/a55b6a503fc59ac1f47e03025ecb61abfac8045988a31324b8b88174a00d8277/run.json
+offset=41656
+original_length=42925
+original_sha256=8fe690a6d760e20d315447703556ae998540d588b965335cceb2d6cf8e175f3d
+mutated_length=42923
+mutated_sha256=6c093942a21a4352f3fee9291e12c94196bc2c7cb7e1f891e1d40143e225be13
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False
+
+PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-fb581f3b4af149d3b1ddcdaca596c7b1
+role=world
+mode=paid_crafting_ordinary
+logical=user://saves/.paid-craft-generations/g/7154f8ce3f343e3619e1f512733ecbfa5a5f81186eba0d232d55bd4b52ffde0e/world.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-fb581f3b4af149d3b1ddcdaca596c7b1/saves/.paid-craft-generations/g/7154f8ce3f343e3619e1f512733ecbfa5a5f81186eba0d232d55bd4b52ffde0e/world.json
+offset=41761
+original_length=49244
+original_sha256=47928fac0378f002063be7724497382a5d0e720e42ad4a3429ca9226d37319a0
+mutated_length=49242
+mutated_sha256=16420c222224fc8fa40326ea666fd3b98871e8a3a83c6312e616976ab690c78d
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False
+
+PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-9c209c7708ad4ff38f9c3fe2a7841def
+role=run
+mode=component-live-diagnostic
+logical=user://saves/.component-live-generations/g/95b75c8af45314aa757d4f90e8d063ae85d424e44a55064323c43e17f7f10b0b/run.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-9c209c7708ad4ff38f9c3fe2a7841def/saves/.component-live-generations/g/95b75c8af45314aa757d4f90e8d063ae85d424e44a55064323c43e17f7f10b0b/run.json
+offset=96602
+original_length=162711
+original_sha256=215db870f52c6b7555fb8be133b68dc28a9c2ea2e3a49fe5a36305a3b808e35b
+mutated_length=162709
+mutated_sha256=35ff878ff86bfe6921cb329ff8b7e96eaba57d96337b57aad0615f3277018d63
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False
+
+PRESERVED_NATIVE_UTF8_ROOT=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-81cfe6bf0b454d56b98928aca52d8bcd
+role=world
+mode=component-live-diagnostic
+logical=user://saves/.component-live-generations/g/2002db7c7dbdf41b4fee98106e67483390c9a838080382f138ddb0b3a365d189/world.json
+physical=/Volumes/Untitled/SynapticSeaMigration/fa-native/ss-native-81cfe6bf0b454d56b98928aca52d8bcd/saves/.component-live-generations/g/2002db7c7dbdf41b4fee98106e67483390c9a838080382f138ddb0b3a365d189/world.json
+offset=96707
+original_length=233959
+original_sha256=4ece0509d44d2c2639267e2567a23f5d9f477c12ab359cf160f4ce80e4087df0
+mutated_length=233957
+mutated_sha256=ddfb4a7490f42f1dac71a93bfd76091b232e2f8efd3b3e2d40cf7cc3a46e1d33
+
+SELECT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False; EXACT_RESULT=corrupt_generation:SynapticSea.Core.Systems.SaveCommitCoordinator+Refusal; ok=False
+
+NUnit Adapter 4.6.0.0: Test execution complete
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

@@ -1,4 +1,5 @@
 using System;
+using SynapticSea.Core.Session;
 using System.Collections.Generic;
 using System.Linq;
 using SynapticSea.Core.Services;
@@ -12,6 +13,8 @@ namespace SynapticSea.Core.Systems
         // Scoped to one admission/conservation call. No live policy delegates or expanded results are cached.
         internal sealed class ValidationContext
         {
+            internal readonly PaidHashContext HashContext;
+            internal ValidationContext(PaidHashContext context = null) { HashContext=context ?? PaidHashContext.Legacy; }
             Dictionary<string, ClassDefinition> _classes;
             GdDict _skills, _actions;
             InventoryState _inventory;
@@ -77,6 +80,8 @@ namespace SynapticSea.Core.Systems
         // typed encoded trees and JSON strings for previous prefixes are never retained here.
         internal sealed class HistoryValidation
         {
+            readonly PaidHashContext _hashContext;
+            internal HistoryValidation(PaidHashContext context) { _hashContext=context; }
             readonly Dictionary<string, HistoryNode> _nodes = new Dictionary<string, HistoryNode>(StringComparer.Ordinal);
             readonly Dictionary<ReferenceKey, ReferenceFact> _references = new Dictionary<ReferenceKey, ReferenceFact>();
             internal readonly Dictionary<string, GdDict> Progression = new Dictionary<string, GdDict>(StringComparer.Ordinal);
@@ -118,13 +123,14 @@ namespace SynapticSea.Core.Systems
                     // Hash is synchronous and read-only; the shallow path refers only to this private
                     // candidate. Keep just the digest after the existing codec/hash call returns.
                     GdDict summary = Training(path, fact.Key);
-                    if (fact.NeedsHash) fact.Digest = PaidCraftingState.Hash(summary);
-                    if (ReferenceEquals(fact, _current)) _currentMatches = Equal(summary, current);
+                    if (fact.NeedsHash) fact.Digest = _hashContext.Hash(summary);
+                    if (ReferenceEquals(fact, _current)) _currentMatches = _hashContext.Equal(summary, current);
                     foreach (string commit in fact.OwnAbsent.Keys.ToArray()) fact.OwnAbsent[commit] = !occurrences.ContainsKey(commit);
                 }
             }
             internal bool Build(GdDict paid, GdDict training, GdDict domain)
             {
+                if (!ReferenceEquals(_hashContext,PaidHashContext.FromOwner(domain))) return false;
                 GdDict history = PaidCraftRewardProof.History(paid);
                 if (!ExactKeys(history, "schema_version", "training_nodes", "progression_nodes", "current_training_ref") || !Version(history) ||
                     !(history.Get("training_nodes") is GdDict nodes) || !(history.Get("progression_nodes") is GdDict progression)) return false;
@@ -133,7 +139,7 @@ namespace SynapticSea.Core.Systems
                 {
                     if (!(entry.Key is string hash) || !HashText(hash) || !(entry.Value is GdDict node) || !ExactKeys(node, "schema_version", "parent_hash", "count", "row") || !Version(node) ||
                         !(node.Get("parent_hash") is string parent) || !(node.Get("count") is long count) || count <= 0 || count > nodes.Count || !(node.Get("row") is GdDict row) ||
-                        PaidCraftingState.Hash(node) != hash) return false;
+                        _hashContext.Hash(node) != hash) return false;
                     if (row.Has("receipt_owned") || row.Has("commit_id"))
                     {
                         if (!new TrainingEventBus().ApplySummary(new GdDict { { "log", GdArray.Of(row) } })) return false;
@@ -141,13 +147,13 @@ namespace SynapticSea.Core.Systems
                         if (receipt.IsEmpty) return false;
                         GdDict effect = receipt.GetDictOrEmpty("result");
                         if (effect.GetString("operation") == "craft_complete")
-                        { if (!ValidRow(row, count - 1) || !Equal(row, effect.Get("training_record"))) return false; }
-                        else if ((domain.GetInt("schema_version") == 4 || domain.GetInt("schema_version") == 5) && effect.GetString("operation") == "study_complete")
+                        { if (!ValidRow(row, count - 1) || !_hashContext.Equal(row, effect.Get("training_record"))) return false; }
+                        else if ((PaidHashContext.FeatureSchema(domain) == 4 || PaidHashContext.FeatureSchema(domain) == 5) && effect.GetString("operation") == "study_complete")
                         {
-                            if (!ManualStudyState.ValidReceipt(domain, receipt, row.GetString("commit_id")) || !Equal(row, effect.Get("training_record"))) return false;
+                            if (!ManualStudyState.ValidReceipt(domain, receipt, row.GetString("commit_id")) || !_hashContext.Equal(row, effect.Get("training_record"))) return false;
                         }
-                        else if (domain.GetInt("schema_version") == 5 && effect.GetString("operation") == "aux_complete")
-                        { if (!AuxiliaryServiceState.ValidReceipt(domain, receipt, row.GetString("commit_id")) || !Equal(row, effect.Get("training_record"))) return false; }
+                        else if (PaidHashContext.FeatureSchema(domain) == 5 && (effect.GetString("operation") == "aux_complete" || domain.GetInt("schema_version") == 7 && effect.GetString("operation") == "aux_proof_complete_v1"))
+                        { if (!AuxiliaryServiceState.ValidReceipt(domain, receipt, row.GetString("commit_id")) || !_hashContext.Equal(row, effect.Get("training_record"))) return false; }
                         else
                         {
                             if (workCatalog == null) { workCatalog = new WorkActionCatalog(); workCatalog.LoadDefault(); }
@@ -169,7 +175,7 @@ namespace SynapticSea.Core.Systems
                 foreach (var entry in progression)
                 {
                     if (!(entry.Key is string hash) || !HashText(hash) || !(entry.Value is GdDict node) || !ExactKeys(node, "schema_version", "summary") || !Version(node) ||
-                        !(node.Get("summary") is GdDict summary) || !ValidProgression(summary) || PaidCraftingState.Hash(node) != hash) return false;
+                        !(node.Get("summary") is GdDict summary) || !ValidProgression(summary) || _hashContext.Hash(node) != hash) return false;
                     Progression.Add(hash, summary);
                 }
                 if (!Register(history.GetDictOrEmpty("current_training_ref"), false, out _current)) return false;
@@ -227,49 +233,53 @@ namespace SynapticSea.Core.Systems
         internal static bool Version(GdDict value) => value.Get("schema_version") is long version && version == 1;
         static bool Count(GdDict value, string key) => value.Get(key) is long number && number >= 0;
         static bool HashText(string text) => text.Length == 64 && text.All(c => c >= '0' && c <= '9' || c >= 'a' && c <= 'f');
-        static bool Equal(object left, object right) => V.VariantEquals(left, right);
         internal static GdDict NewHistory() => new GdDict { { "schema_version", 1L }, { "training_nodes", new GdDict() }, { "progression_nodes", new GdDict() },
             { "current_training_ref", new GdDict { { "schema_version", 1L }, { "tip_hash", "" }, { "count", 0L }, { "dropped", 0L }, { "xp_total", 0L }, { "event_count", 0L } } } };
         internal static GdDict History(GdDict paid) => paid.GetDictOrEmpty("reward_history");
-        internal static void RefreshCurrent(GdDict paid, GdDict training)
+        internal static void RefreshCurrent(GdDict paid, GdDict training, PaidHashContext hashContext = null)
         {
+            hashContext = hashContext ?? PaidHashContext.Legacy;
             GdDict history = History(paid);
             if (history.IsEmpty) { history = NewHistory(); paid["reward_history"] = history; }
-            history["current_training_ref"] = InternTraining(history, training);
+            history["current_training_ref"] = InternTraining(history, training, hashContext);
         }
-        static GdDict InternTraining(GdDict history, GdDict training)
+        static GdDict InternTraining(GdDict history, GdDict training, PaidHashContext hashContext = null)
         {
+            hashContext = hashContext ?? PaidHashContext.Legacy;
             string parent = ""; long count = 0;
             foreach (object raw in training.GetArrayOrEmpty("log"))
             {
                 var node = new GdDict { { "schema_version", 1L }, { "parent_hash", parent }, { "count", ++count }, { "row", V.DeepCopy(raw) } };
-                parent = PaidCraftingState.Hash(node);
+                parent = hashContext.Hash(node);
                 if (!history.GetDictOrEmpty("training_nodes").Has(parent)) history.GetDictOrEmpty("training_nodes")[parent] = node;
             }
             return new GdDict { { "schema_version", 1L }, { "tip_hash", parent }, { "count", count }, { "dropped", training.Get("dropped") },
                 { "xp_total", training.Get("xp_total") }, { "event_count", training.Get("event_count") } };
         }
-        static string InternProgression(GdDict history, GdDict progression)
+        static string InternProgression(GdDict history, GdDict progression, PaidHashContext hashContext = null)
         {
-            var node = new GdDict { { "schema_version", 1L }, { "summary", progression.DeepCopy() } }; string hash = PaidCraftingState.Hash(node);
+            hashContext = hashContext ?? PaidHashContext.Legacy;
+            var node = new GdDict { { "schema_version", 1L }, { "summary", progression.DeepCopy() } }; string hash = hashContext.Hash(node);
             if (!history.GetDictOrEmpty("progression_nodes").Has(hash)) history.GetDictOrEmpty("progression_nodes")[hash] = node;
             return hash;
         }
-        internal static void Compact(GdDict paid, GdDict effect)
+        internal static void Compact(GdDict paid, GdDict effect, PaidHashContext hashContext = null)
         {
-            GdDict history = History(paid); effect["reward_proof"] = MakeProof(history, effect);
+            hashContext = hashContext ?? PaidHashContext.Legacy;
+            GdDict history = History(paid); effect["reward_proof"] = MakeProof(history, effect, hashContext);
             foreach (string key in Expanded) effect.Erase(key);
         }
-        static GdDict MakeProof(GdDict history, GdDict expanded)
+        static GdDict MakeProof(GdDict history, GdDict expanded, PaidHashContext hashContext = null)
         {
+            hashContext = hashContext ?? PaidHashContext.Legacy;
             GdDict record = expanded.Get("training_record") as GdDict;
             return new GdDict { { "schema_version", 1L },
-                { "progression_before_hash", InternProgression(history, expanded.GetDictOrEmpty("progression_before")) },
-                { "progression_after_hash", InternProgression(history, expanded.GetDictOrEmpty("progression_after")) },
-                { "training_before_ref", InternTraining(history, expanded.GetDictOrEmpty("training_before")) },
-                { "training_after_ref", InternTraining(history, expanded.GetDictOrEmpty("training_after")) },
-                { "training_before_hash", PaidCraftingState.Hash(expanded.GetDictOrEmpty("training_before")) },
-                { "training_after_hash", PaidCraftingState.Hash(expanded.GetDictOrEmpty("training_after")) },
+                { "progression_before_hash", InternProgression(history, expanded.GetDictOrEmpty("progression_before"), hashContext) },
+                { "progression_after_hash", InternProgression(history, expanded.GetDictOrEmpty("progression_after"), hashContext) },
+                { "training_before_ref", InternTraining(history, expanded.GetDictOrEmpty("training_before"), hashContext) },
+                { "training_after_ref", InternTraining(history, expanded.GetDictOrEmpty("training_after"), hashContext) },
+                { "training_before_hash", hashContext.Hash(expanded.GetDictOrEmpty("training_before")) },
+                { "training_after_hash", hashContext.Hash(expanded.GetDictOrEmpty("training_after")) },
                 { "training_outcome", expanded.GetString("training_event").Length == 0 ? "none" : record == null ? "filtered" : record.GetBool("gated") ? "gated" : "accepted" } };
         }
         static bool TryTraining(GdDict history, GdDict reference, out GdDict training)
@@ -306,8 +316,9 @@ namespace SynapticSea.Core.Systems
             }
             return result;
         }
-        internal static bool Conserved(GdDict beforeParticipants, GdDict afterParticipants, GdDict effect = null)
+        internal static bool Conserved(GdDict beforeParticipants, GdDict afterParticipants, GdDict effect = null, PaidHashContext hashContext = null)
         {
+            hashContext = hashContext ?? PaidHashContext.Legacy;
             GdDict beforePaid = beforeParticipants.GetDictOrEmpty("paid_crafting"), afterPaid = afterParticipants.GetDictOrEmpty("paid_crafting");
             GdDict expected = beforePaid.DeepCopy();
             if (effect != null && effect.GetString("operation") == "craft_complete")
@@ -319,10 +330,10 @@ namespace SynapticSea.Core.Systems
                     facts["progression_" + side] = participant.GetDictOrEmpty("progression").DeepCopy();
                     facts["training_" + side] = participant.GetDictOrEmpty("training").DeepCopy();
                 }
-                if (!Equal(MakeProof(History(expected), facts), effect.Get("reward_proof"))) return false;
+                if (!hashContext.Equal(MakeProof(History(expected), facts, hashContext), effect.Get("reward_proof"))) return false;
             }
-            RefreshCurrent(expected, afterParticipants.GetDictOrEmpty("training"));
-            return Equal(History(expected), History(afterPaid));
+            RefreshCurrent(expected, afterParticipants.GetDictOrEmpty("training"), hashContext);
+            return hashContext.Equal(History(expected), History(afterPaid));
         }
         static bool ValidRow(GdDict row, long sequence)
         {
@@ -355,8 +366,9 @@ namespace SynapticSea.Core.Systems
             target.BooksRead = summary.GetDictOrEmpty("books_read").DeepCopy();
             return true;
         }
-        internal static bool ValidAppend(GdDict before, GdDict after, GdDict record, string commit)
+        internal static bool ValidAppend(GdDict before, GdDict after, GdDict record, string commit, PaidHashContext hashContext = null)
         {
+            hashContext = hashContext ?? PaidHashContext.Legacy;
             if (!(before.Get("log") is GdArray prefix) || !(after.Get("log") is GdArray actual) ||
                 !(before.Get("event_count") is long beforeCount) || beforeCount != prefix.Count ||
                 !(after.Get("event_count") is long afterCount) || afterCount != actual.Count ||
@@ -367,11 +379,11 @@ namespace SynapticSea.Core.Systems
                 if (!ValidRow(record, beforeCount) || !record.GetBool("receipt_owned") || record.GetString("commit_id") != commit) return false;
                 expected.Add(record.DeepCopy());
             }
-            return afterCount == beforeCount + (record == null ? 0 : 1) && PaidCraftingState.Hash(expected) == PaidCraftingState.Hash(actual);
+            return afterCount == beforeCount + (record == null ? 0 : 1) && hashContext.Hash(expected) == hashContext.Hash(actual);
         }
         internal static bool ValidateHistory(GdDict paid, GdDict training, GdDict domain, ValidationContext context)
         {
-            var history = new HistoryValidation();
+            var history = new HistoryValidation(context.HashContext);
             if (!history.Build(paid, training, domain)) return false;
             context.History = history; return true;
         }
@@ -391,7 +403,7 @@ namespace SynapticSea.Core.Systems
             if (record != null)
             {
                 if (!ValidRow(record, before.Key.Count) || !record.GetBool("receipt_owned") || record.GetString("commit_id") != commit ||
-                    before.Key.Count == long.MaxValue || after.Key.Count != before.Key.Count + 1 || after.Node.Parent != before.Key.Tip || !Equal(after.Node.Row, record)) return false;
+                    before.Key.Count == long.MaxValue || after.Key.Count != before.Key.Count + 1 || after.Node.Parent != before.Key.Tip || !context.HashContext.Equal(after.Node.Row, record)) return false;
             }
             else if (after.Key.Count != before.Key.Count || after.Key.Tip != before.Key.Tip) return false;
             string outcome = effect.GetString("training_event").Length == 0 ? "none" : record == null ? "filtered" : record.GetBool("gated") ? "gated" : "accepted";
@@ -426,9 +438,9 @@ namespace SynapticSea.Core.Systems
             {
                 var recorded = new TrainingEventBus(); recorded.RecordApplied(generated, job.GetString("completion_commit_id"));
                 GdDict tagged = (GdDict)recorded.GetLog()[0]; tagged["sequence"] = sequence;
-                if (!Equal(tagged, record)) return false;
+                if (!context.HashContext.Equal(tagged, record)) return false;
             }
-            return Equal(progression.GetSummary(), after) && emitter.GetDroppedCount() == afterDropped && emitter.GetTotalXpDelivered() == afterXp;
+            return context.HashContext.Equal(progression.GetSummary(), after) && emitter.GetDroppedCount() == afterDropped && emitter.GetTotalXpDelivered() == afterXp;
         }
     }
 }

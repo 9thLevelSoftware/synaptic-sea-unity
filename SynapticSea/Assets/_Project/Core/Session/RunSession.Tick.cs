@@ -26,34 +26,43 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public void Tick(in TickContext ctx)
         {
-            if (ComponentGenerationRestoreInProgress || CompleteGenerationEnabled && ComponentTerminalPending) return;
-            _frame = ctx;
-            _inTick = true;
-            try
+            using (var continuousBatch = _continuousDiagnosticRequested ? BeginContinuousWorldMutationBatch() : null)
             {
-                if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
-                    || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.FirstAwayGenerationInputs.Profile)) RecomputeOccupancy();
-                double delta = ctx.Delta;
-                WorldTime += delta;
-                if (PlayableStarted && !SliceComplete)
-                    RunPlayTimeSeconds += delta;
-                SessionLocation location = AwayFromStart ? SessionLocation.Away : SessionLocation.Home;
-                bool run = PlayableStarted && !SliceComplete && (location == SessionLocation.Away || OxygenState != null);
-                if (run)
+                CloseContinuousDiagnosticBootstrapForTick();
+                if (ComponentGenerationRestoreInProgress || CompleteGenerationEnabled && ComponentTerminalPending) return;
+                _frame = ctx;
+                _inTick = true;
+                try
                 {
-                    foreach (string id in TickOrder.OrderFor(location))
+                    if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                        || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.FirstAwayGenerationInputs.Profile)) RecomputeOccupancy();
+                    double delta = ctx.Delta;
+                    WorldTime += delta;
+                    if (PlayableStarted && !SliceComplete)
+                        RunPlayTimeSeconds += delta;
+                    SessionLocation location = AwayFromStart ? SessionLocation.Away : SessionLocation.Home;
+                    bool run = PlayableStarted && !SliceComplete && (location == SessionLocation.Away || OxygenState != null);
+                    bool continuousHandled = run && TryTickContinuousRestricted(delta);
+                    if (run && !continuousHandled)
                     {
-                        TickOrder.Get(id).Run(this, location, delta);
-                        StageRan?.Invoke(id, location);
+                        foreach (string id in TickOrder.OrderFor(location))
+                        {
+                            TickOrder.Get(id).Run(this, location, delta);
+                            StageRan?.Invoke(id, location);
+                        }
                     }
+                    ProcessInteractableNodes(delta);
+                    if (run) TickManualStudy(delta);
                 }
-                ProcessInteractableNodes(delta);
-                if (run) TickManualStudy(delta);
+                finally
+                {
+                    _inTick = false;
+                }
+                continuousBatch?.Complete();
             }
-            finally
-            {
-                _inTick = false;
-            }
+            // All nested mutation scopes and transitive notifications have unwound. This pump
+            // may poll owned preparation and capture queued intent; it never pauses world Tick.
+            ProcessContinuousSaveAtSafeEndTick();
         }
 
         // ------------------------------------------------------------------ stage entry points (TickOrder)
@@ -322,7 +331,7 @@ namespace SynapticSea.Core.Session
             double encumbDrain = 0.0;
             if (InventoryState != null)
                 encumbDrain = Encumbrance.HealthDrainPerSecond(InventoryState.GetLoadRatio());
-            VitalsState.Tick(delta, new GdDict
+            var survivalContext = new GdDict
             {
                 { "temperature_thirst_mult", tempMult },
                 { SimKeys.TemperatureHungerMult, hungerMult },
@@ -337,7 +346,17 @@ namespace SynapticSea.Core.Session
                 { SimKeys.WoundHealthDrain, WoundState != null ? WoundState.TotalBleedRate() : 0.0 },
                 { SimKeys.WoundThirstMult, WoundState != null ? WoundState.ThirstDrainMultiplier() : 1.0 },
                 { "moving", HasPlayer && PlayerMoving },
-            });
+            };
+            if(ContinuousAuxiliaryRuntimeActive)
+            {
+                var input=new DiagnosticVitalsTickInput(moving:HasPlayer&&PlayerMoving,statusRecovery:statusMult,
+                    sanityRecovery:V.F64(hteeth["stamina_recovery_mult"]),radiation:radDrain,atmosphere:atmoDrain+oxygenHealthDrain,
+                    fire:FIRE_HEALTH_DRAIN_PER_SECOND*PlayerFireIntensity(),sanityDrain:V.F64(hteeth["health_drain_per_second"]),
+                    encumbrance:encumbDrain,woundDrain:WoundState?.TotalBleedRate()??0,temperatureHunger:hungerMult,
+                    temperatureThirst:tempMult,woundThirst:WoundState?.ThirstDrainMultiplier()??1);
+                if(!_continuousActualVitalsWriter.TryTick(delta,input,out var reason))throw new InvalidOperationException(reason);
+            }
+            else VitalsState.Tick(delta,survivalContext);
             ApplyVitalsActionGating();
             CheckVitalsDeath();
             if (RadiationState != null)

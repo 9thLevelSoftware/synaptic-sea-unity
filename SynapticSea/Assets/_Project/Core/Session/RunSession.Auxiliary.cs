@@ -16,14 +16,14 @@ namespace SynapticSea.Core.Session
         double _auxHealth;
         Action _auxPublicationGate;
         double? _auxStaminaAfter;
-        public GdDict GetAuxiliaryServiceState() => AuxiliaryServicesEnabled && _componentDomain?.SchemaVersion == 5 ? _componentDomain.GetParticipantProjection("auxiliary_services") : new GdDict();
-        public bool AuxiliaryWorkRunning => GetAuxiliaryServiceState().GetDictOrEmpty("job").GetString("status") == "running";
+        public GdDict GetAuxiliaryServiceState() => ContinuousAuxiliaryRuntimeActive ? GetContinuousAuxiliaryPresentation() : AuxiliaryServicesEnabled && CurrentPaidFeatureSchema == 5 ? _componentDomain.GetParticipantProjection("auxiliary_services") : new GdDict();
+        public bool AuxiliaryWorkRunning => ContinuousAuxiliaryRuntimeActive ? ContinuousAuxiliaryWorkRunning : GetAuxiliaryServiceState().GetDictOrEmpty("job").GetString("status") == "running";
         public bool IsAuxiliaryHardwareReady(string ownerId, string id) => ownerId == HomeShip?.ShipId && GetAuxiliaryServiceState().GetDictOrEmpty("services").GetDictOrEmpty(id).GetBool("hardware_ready");
         public GdDict GetAuxRackRemaining(string id) => GetAuxiliaryServiceState().GetDictOrEmpty("services").GetDictOrEmpty(id).GetDictOrEmpty("remaining").DeepCopy();
         GdDict AuxiliaryDescriptors(IShipLoaderView loader) => AuxiliaryServiceState.Descriptors(loader?.GameplayDoc.GetArrayOrEmpty("auxiliary_services") ?? new GdArray());
         void InitializeAuxiliaryServices()
         {
-            if (!AuxiliaryServicesEnabled || _componentDomain?.SchemaVersion != 4) return;
+            if (!AuxiliaryServicesEnabled || CurrentPaidFeatureSchema != 4 || _componentDomain.SchemaVersion == 6) return;
             var candidate = _componentDomain.GetSummary(); candidate["schema_version"] = 5L;
             candidate.GetDictOrEmpty("participating_state")["auxiliary_services"] = AuxiliaryServiceState.New(RunId, PLAYER_LOCAL_ID, AuxiliaryDescriptors(Loader));
             _componentDomain = NewComponentOwner(candidate); BuildAuxiliaryServicePoints();
@@ -43,7 +43,7 @@ namespace SynapticSea.Core.Session
         }
         string AuxiliaryGate(string id, bool take = false, bool publication = false)
         {
-            if (!AuxiliaryServicesEnabled || _componentDomain?.SchemaVersion != 5) return "auxiliary_inactive";
+            if (!AuxiliaryServicesEnabled || CurrentPaidFeatureSchema != 5) return "auxiliary_inactive";
             if (!publication && DomainPublicationInProgress || ComponentGenerationRestoreInProgress || ComponentTerminalPending || SliceComplete) return "auxiliary_unavailable";
             if (!PlayableStarted || !HasPlayer || VitalsState?.IsIncapacitated() == true || AwayFromStart) return "actor_unavailable";
             var point = AuxiliaryServicePoints.FirstOrDefault(p => p.ServiceId == id && p.IsValid && p.IsInsideTree && p.OwnerId == HomeShip?.ShipId);
@@ -80,6 +80,7 @@ namespace SynapticSea.Core.Session
         }
         public GdDict RequestAuxiliaryService(string id)
         {
+            if(ContinuousAuxiliaryRuntimeActive)return RequestContinuousAuxiliaryIntent("start",id);
             if (!AuxiliaryServicesEnabled || !EnsurePaidOwner()) return PaidFailure("auxiliary_inactive");
             string reason = AuxiliaryGate(id); if (reason != "ready") return PaidFailure(reason);
             if (AuxiliaryWorkRunning) return PaidFailure("auxiliary_busy");
@@ -89,12 +90,14 @@ namespace SynapticSea.Core.Session
         }
         public GdDict PauseAuxiliaryService(string reason = "paused")
         {
+            if(ContinuousAuxiliaryRuntimeActive){PauseContinuousAuxiliaryIntent(reason);return new GdDict{{"ok",true},{"committed",false},{"presentation_only",true}};}
             _auxConsent = false; var job = GetAuxiliaryServiceState().GetDictOrEmpty("job");
             if (job.GetString("status") != "running" || ComponentGenerationRestoreInProgress) return PaidFailure("auxiliary_not_running");
             return ExecuteAuxiliary("aux_pause", job.GetString("service_id"), reason: reason);
         }
         public GdDict RequestTakeAuxRack(string id)
         {
+            if(ContinuousAuxiliaryRuntimeActive)return RequestContinuousAuxiliaryIntent("take",id);
             string reason = AuxiliaryGate(id, true); if (reason != "ready") return PaidFailure(reason);
             if (AuxiliaryWorkRunning) return PaidFailure("auxiliary_busy");
             return ExecuteAuxiliary("aux_take", id);
@@ -126,12 +129,22 @@ namespace SynapticSea.Core.Session
         }
         void RefreshAuxiliaryHud()
         {
+            if(ContinuousAuxiliaryRuntimeActive){RefreshContinuousAuxiliaryHud();return;}
             var state = GetAuxiliaryServiceState(); var job = state.GetDictOrEmpty("job"); if (job.IsEmpty) return;
             Events.RaiseWorkActionHudState(new GdDict { { "action_id", "auxiliary_service" }, { "target_id", job.GetString("service_id") }, { "verb", "Service" }, { "progress", job.GetFloat("progress_seconds") / state.GetDictOrEmpty("descriptors").GetDictOrEmpty(job.GetString("service_id")).GetFloat("required_seconds") }, { "status", job.GetString("status") == "running" ? "active" : job.GetString("status") }, { "block_reason", job.GetString("reason") }, { "noise", 0.0 } });
         }
         internal bool TryAuxiliaryServices(Vec3 position)
         {
-            foreach (var point in NearestInteractables(AuxiliaryServicePoints, position)) if (point.TryInteract(position)) return true;
+            foreach (var point in NearestInteractables(AuxiliaryServicePoints, position))
+            {
+                if(ContinuousAuxiliaryRuntimeActive)
+                {
+                    if(!point.IsValid||!point.IsInsideTree||!point.IsPlayerInDirectRangeStrict(position)||point.Actionable?.Invoke(point.ServiceId)==false)continue;
+                    var queued=point.Interact?.Invoke(point.ServiceId);
+                    if(queued?.GetBool("ok")==true&&queued.GetBool("queued"))return true;
+                }
+                else if(point.TryInteract(position))return true;
+            }
             return false;
         }
     }

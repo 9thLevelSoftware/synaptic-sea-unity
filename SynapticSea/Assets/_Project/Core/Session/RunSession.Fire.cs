@@ -836,7 +836,8 @@ namespace SynapticSea.Core.Session
                 InterruptWorkOnDamage();
                 PlaySfx(AudioEventSeam.SFX_COMBAT_HIT);
                 // Unity port (E1): combat damage opens wounds (Godot never applied WoundState.suggest_from_damage).
-                ApplyWoundFromCombatDamage(damage, ev);
+                if(ContinuousAuxiliaryRuntimeActive)ApplyContinuousCombatWound(damage,ev);
+                else ApplyWoundFromCombatDamage(damage, ev);
             }
         }
 

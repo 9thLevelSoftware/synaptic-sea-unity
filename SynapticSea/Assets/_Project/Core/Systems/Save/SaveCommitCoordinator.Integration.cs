@@ -104,12 +104,21 @@ namespace SynapticSea.Core.Systems
             }
         }
 
+        void RequireContinuousReaderCurrent(Candidate candidate)
+        {
+            if (candidate.ContinuousAdmission != null &&
+                (_continuousReadPolicy == null || !_continuousReadPolicy.MatchesCurrentBinding(_continuousBinding) ||
+                 !candidate.ContinuousAdmission.Lease.IsCurrent)) throw new Refusal("resource_epoch_changed");
+        }
+
         GdDict Selection(Candidate candidate, string pointerHash)
         {
+            RequireContinuousReaderCurrent(candidate);
             GdDict result = Success(candidate, "selected");
             result["manifest_sha256"] = Hash(candidate.ManifestText); result["selected_pointer_sha256"] = pointerHash;
             result["payloads_sha256"] = SaveGenerationArtifacts.Hash(_allowPaidCrafting ? PaidSnapshotCodec.Stringify(candidate.Request) : GdJson.Stringify(candidate.Request));
             if (_allowPaidCrafting) result["save_mode"] = candidate.Request.GetDictOrEmpty("binding").GetString("save_mode");
+            RequireContinuousReaderCurrent(candidate);
             return result;
         }
 
@@ -160,9 +169,12 @@ namespace SynapticSea.Core.Systems
                     try { RequireLive(candidate.Run, candidate.Slot); }
                     catch (Refusal r) { if (r.Reason != "run_terminal" && r.Reason != "legacy_death") throw; frozen = true; }
                     GdDict terminal = ReadTerminal(candidate.Run);
+                    RequireContinuousReaderCurrent(candidate);
                     if (terminal == null && _storage.FileExists(TerminalIntent(candidate.Run))) terminal = ParseMetadata(_storage.ReadText(TerminalIntent(candidate.Run)));
-                    return new GdDict { { "ok", true }, { "run_id", candidate.Run }, { "slot_id", candidate.Slot }, { "frozen", frozen },
-                        { "epitaph", terminal?.GetString("epitaph") ?? "" }, { "run_snapshot", (_allowPaidCrafting ? PaidSnapshotCodec.Parse(candidate.Request.GetString("run_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, false)) : ParseObject(candidate.Request.GetString("run_text"))) } };
+                    GdDict metadata = new GdDict { { "ok", true }, { "run_id", candidate.Run }, { "slot_id", candidate.Slot }, { "frozen", frozen },
+                        { "epitaph", terminal?.GetString("epitaph") ?? "" }, { "run_snapshot", (candidate.ContinuousAdmission != null ? candidate.ContinuousAdmission.CopyRun() : _allowPaidCrafting ? PaidSnapshotCodec.Parse(candidate.Request.GetString("run_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, false)) : ParseObject(candidate.Request.GetString("run_text"))) } };
+                    RequireContinuousReaderCurrent(candidate);
+                    return metadata;
                 }
                 catch (Exception e) { return Failure(e, "", slotId); }
             }
@@ -175,30 +187,63 @@ namespace SynapticSea.Core.Systems
             GdDict binding = request.GetDictOrEmpty("binding");
             string mode = _allowComponentIntegration ? PaidSnapshotCodec.DiagnosticMode : PaidSnapshotCodec.OrdinaryMode;
             if (paid && binding.GetString("save_mode") != mode) throw new Refusal("binding_mismatch");
-            GdDict active = paid ? PaidSnapshotCodec.Parse(request.GetString("run_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, false)) : ParseObject(request.GetString("run_text"));
-            GdDict world = paid ? PaidSnapshotCodec.Parse(request.GetString("world_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, true)) : ParseObject(request.GetString("world_text"));
+            AdmittedContinuousSnapshots continuous = null;
+            GdDict active, world;
+            bool continuousRequested = request.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").Has(AuxiliaryProofOwnerProfile.OuterSchema);
+            if (continuousRequested)
+            {
+                if (!paid || !_allowComponentIntegration || _continuousReadPolicy == null ||
+                    !ContinuousSnapshotAdmission.TryRead(request.GetString("run_text"), request.GetString("world_text"),
+                        _continuousBinding, _continuousReadPolicy, out continuous, out string continuousReason))
+                    throw new Refusal("continuous_snapshot_not_admitted");
+                active = continuous.CopyRun(); world = continuous.CopyWorld();
+            }
+            else
+            {
+                active = paid ? PaidSnapshotCodec.Parse(request.GetString("run_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, false)) : ParseObject(request.GetString("run_text"));
+                world = paid ? PaidSnapshotCodec.Parse(request.GetString("world_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, true)) : ParseObject(request.GetString("world_text"));
+            }
             string runVersion = _allowComponentIntegration ? RunSnapshot.ComponentIntegrationVersion : SaveLoadService.CURRENT_SLICE_VERSION;
             string worldVersion = _allowComponentIntegration ? WorldSnapshot.ComponentIntegrationVersion : WorldSnapshot.WorldSliceVersion;
             if (active == null || world == null || active.GetString("slice_version") != runVersion ||
                 world.GetString("slice_version") != worldVersion) throw new Refusal("unsupported_schema");
             GdDict home = world.GetDictOrEmpty("home_ship");
-            if (home.GetString("slice_version") != runVersion || binding.Count != (paid ? 11 : 10) ||
+            if (home.GetString("slice_version") != runVersion || binding.Count != (paid ? (binding.Has("hash_algorithm") ? 12 : 11) : 10) ||
                 binding.GetString("binding_version") != "component-generation-binding-1" ||
                 !(request.Get("domain_revision") is long capture) || capture < 0) throw new Refusal("binding_mismatch");
             GdDict domain;
             if (paid)
             {
                 GdDict envelope = active.GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft");
-                if (envelope.Count != 3 || !(envelope.Get("schema_version") is long version) || version != 1L ||
+                long version;
+                if (continuous != null)
+                {
+                    domain = continuous.CopyOwner(); version = 3L;
+                    if (envelope.Get("schema_version") is not long actualVersion || actualVersion != version ||
+                        envelope.GetString("save_mode") != mode || domain.GetString("domain_mode") != "components_and_craft")
+                        throw new Refusal("binding_mismatch");
+                }
+                else
+                {
+                if (envelope.Count != 3 || !(envelope.Get("schema_version") is long legacyVersion) || (legacyVersion != 1L && legacyVersion != 2L) ||
                     envelope.GetString("save_mode") != mode || !PaidSnapshotCodec.Same(envelope, home.GetDictOrEmpty("crafting_summary").Get("paid_craft")) ||
-                    !ComponentDomainCodec.TryDecode(envelope.GetDictOrEmpty("domain"), out domain, out _) ||
-                    !DomainBundle.TryCreate(domain, out _, out _) || (domain.GetInt("schema_version") != 3 && domain.GetInt("schema_version") != 4 && domain.GetInt("schema_version") != 5) ||
+                    !PaidSnapshotCodec.TryDecodeOwner(envelope.GetDictOrEmpty("domain"), out domain, out _) ||
+                    !DomainBundle.TryCreate(domain, out _, out _) || (PaidHashContext.FeatureSchema(domain) < 3 || PaidHashContext.FeatureSchema(domain) > 5) ||
                     domain.GetString("domain_mode") != (_allowComponentIntegration ? "components_and_craft" : "craft_only") ||
-                    !RunSession.ValidatePaidMirrors(domain.GetDictOrEmpty("participating_state"))) throw new Refusal("binding_mismatch");
+                    !RunSession.ValidatePaidMirrors(domain.GetDictOrEmpty("participating_state"), PaidHashContext.FromOwner(domain))) throw new Refusal("binding_mismatch");
+                version = legacyVersion;
+                }
+                PaidHashContext context = continuous != null ? PaidHashContext.BitsV2 : PaidHashContext.FromOwner(domain);
+                bool bits = ReferenceEquals(context, PaidHashContext.BitsV2);
+                if (version != (continuous != null ? 3L : bits ? 2L : 1L) || binding.Has("hash_algorithm") != bits ||
+                    bits && (binding.GetString("hash_algorithm") != context.Algorithm ||
+                        _compatibility?.GetDictOrEmpty("profiles").GetString(ComponentDomainCodec.BitExactSchema) != context.Algorithm ||
+                        request.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").GetString(ComponentDomainCodec.BitExactSchema) != context.Algorithm))
+                    throw new Refusal("unsupported_paid_hash_binding");
                 GdDict paidState = domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting");
                 if (paidState.GetString("run_id") != run || paidState.GetString("actor_id") != RunSession.PLAYER_LOCAL_ID)
                     throw new Refusal("binding_mismatch");
-                if (_allowComponentIntegration && (!PaidSnapshotCodec.Same(envelope.Get("domain"), active.Get("component_domain")) ||
+                if (_allowComponentIntegration && continuous == null && (!PaidSnapshotCodec.Same(envelope.Get("domain"), active.Get("component_domain")) ||
                     !PaidSnapshotCodec.Same(envelope.Get("domain"), home.Get("component_domain")) ||
                     !PaidSnapshotCodec.Same(envelope.Get("domain"), world.Get("component_domain")))) throw new Refusal("binding_mismatch");
                 if (!_allowComponentIntegration && (active.Has("component_domain") || home.Has("component_domain") || world.Has("component_domain") ||
@@ -226,7 +271,17 @@ namespace SynapticSea.Core.Systems
                 if (holder.GetString("kind") != "player" && !registered.Contains(holder.GetString("owner_id"))) throw new Refusal("binding_mismatch");
             foreach (GdDict machine in domain.GetDictOrEmpty("machinery").Values.OfType<GdDict>())
                 if (!registered.Contains(machine.GetString("owner_id"))) throw new Refusal("binding_mismatch");
-            ValidateComponentMirrors(domain, active, world, home, paid);
+            ValidateComponentMirrors(domain, active, world, home, paid, continuous != null ? PaidHashContext.BitsV2 : null);
+            if (continuous != null)
+            {
+                long enclosingTextBytes = continuous.WireBytes;
+                foreach (object value in request.GetArrayOrEmpty("artifacts"))
+                {
+                    if (!(value is GdDict artifact) || !(artifact.Get("text") is string text)) throw new Refusal("invalid_reference");
+                    enclosingTextBytes = checked(enclosingTextBytes + Utf8.GetByteCount(text));
+                    if (enclosingTextBytes > 4 * 1024 * 1024) throw new Refusal("continuous_enclosing_payload_bound");
+                }
+            }
             var artifacts = new Dictionary<string, GdDict>(StringComparer.Ordinal);
             var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (object value in request.GetArrayOrEmpty("artifacts"))
@@ -253,7 +308,14 @@ namespace SynapticSea.Core.Systems
                     kit.GetString("document_kind") != ka.GetString("document_kind") || kit.GetString("schema_version") != ka.GetString("schema_version") ||
                     !ValidLayout(layout) || !ValidKit(kit) || !KitJoin(layout, kit)) throw new Refusal("invalid_reference");
                 used.Add(layoutPath); used.Add(kitPath);
-                if (_allowComponentIntegration && !RunSession.ValidateComponentPhysicalLayout(domain, owner, layout, out string physicalReason)) throw new Refusal(physicalReason);
+                if (_allowComponentIntegration)
+                {
+                    string physicalReason;
+                    bool physicalValid=continuous!=null
+                        ? RunSession.ValidateComponentPhysicalLayout(continuous.PaidAdmission,domain,owner,layout,out physicalReason)
+                        : RunSession.ValidateComponentPhysicalLayout(domain,owner,layout,out physicalReason);
+                    if(!physicalValid)throw new Refusal(physicalReason);
+                }
                 if (kind == "fixed_lifeboat")
                 {
                     GdDict life = world.GetDictOrEmpty("mobile_home_state").GetDictOrEmpty("lifeboat");
@@ -308,17 +370,31 @@ namespace SynapticSea.Core.Systems
                 || request.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile
                 || mobile.Has("home_location") || !WorldSnapshotAssembler.ValidStartingHomeAnchor(mobile.Get("starting_home_anchor") as GdDict))) throw new Refusal("invalid_payload");
             oldWorld.Erase("mobile_home_state");
-            legacy["run_text"] = paid ? PaidSnapshotCodec.Stringify(oldActive) : GdJson.Stringify(oldActive); legacy["world_text"] = paid ? PaidSnapshotCodec.Stringify(oldWorld) : GdJson.Stringify(oldWorld);
-            GdDict oldBinding = legacy.GetDictOrEmpty("binding"); oldBinding.Erase("binding_version"); oldBinding.Erase("component_revision"); oldBinding.Erase("player_pose_owner_id"); oldBinding.Erase("save_mode"); oldBinding["ship_references"] = oldRefs;
+            legacy["run_text"] = paid ? PaidSnapshotCodec.Stringify(oldActive, PaidSnapshotCodec.Policy.Raw, (continuous != null ? PaidHashContext.BitsV2 : PaidHashContext.FromOwner(domain))) : GdJson.Stringify(oldActive); legacy["world_text"] = paid ? PaidSnapshotCodec.Stringify(oldWorld, PaidSnapshotCodec.Policy.Raw, (continuous != null ? PaidHashContext.BitsV2 : PaidHashContext.FromOwner(domain))) : GdJson.Stringify(oldWorld);
+            GdDict oldBinding = legacy.GetDictOrEmpty("binding"); oldBinding.Erase("binding_version"); oldBinding.Erase("component_revision"); oldBinding.Erase("player_pose_owner_id"); oldBinding.Erase("save_mode"); oldBinding.Erase("hash_algorithm"); oldBinding["ship_references"] = oldRefs;
             var needed = new HashSet<string>(); foreach (GdDict r in oldRefs.Values.OfType<GdDict>()) if (r.GetBool("present")) { needed.Add(r.GetString("layout_path")); needed.Add(r.GetString("gameplay_slice_path")); needed.Add(r.GetString("kit_path")); }
             legacy["artifacts"] = new GdArray(legacy.GetArrayOrEmpty("artifacts").OfType<GdDict>().Where(a => needed.Contains(a.GetString("logical_path"))));
-            ValidateRequest(legacy, run, slot, true, paid, authenticatedFirstAwayOwners); // Structural adapter retains exact paid numeric types and values.
-            var candidate = new Candidate(request);
+            ValidateRequest(legacy, run, slot, true, paid, authenticatedFirstAwayOwners, paid ? (continuous != null ? PaidHashContext.BitsV2 : PaidHashContext.FromOwner(domain)) : null); // Structural adapter retains exact paid numeric types and values.
+            if (continuous != null)
+            {
+                // Continue the same semantic budget; do not restart it for artifacts or metadata.
+                GdDict additional = request.DeepCopy(); additional["run_text"] = null; additional["world_text"] = null;
+                foreach (GdDict artifact in additional.GetArrayOrEmpty("artifacts").OfType<GdDict>())
+                {
+                    if (!(GdJson.Parse(artifact.GetString("text"),true,true) is GdDict document)) throw new Refusal("invalid_reference");
+                    artifact["text"] = document;
+                }
+                if (!ContinuousWholeSnapshotBudget.TryPreflightAdditional(additional,continuous.SemanticNodes,continuous.JsonUpperBytes,
+                        out _,out _,out string budgetReason)) throw new Refusal(budgetReason);
+                if (Utf8.GetByteCount(Encode(request)) > 4 * 1024 * 1024) throw new Refusal("continuous_enclosing_payload_bound");
+            }
+            var candidate = new Candidate(request) { ContinuousAdmission = continuous };
             candidate.Entries.Add(new Entry("run", "", "run_snapshot", runVersion, request.GetString("run_text")));
             candidate.Entries.Add(new Entry("world", "", "world_snapshot", worldVersion, request.GetString("world_text")));
             int ordinal = 0;
             foreach (GdDict a in request.GetArrayOrEmpty("artifacts").OfType<GdDict>().OrderBy(a => a.GetString("logical_path"), StringComparer.Ordinal))
             { var entry = new Entry("artifact", a.GetString("logical_path"), a.GetString("document_kind"), a.GetString("schema_version"), a.GetString("text")); entry.File = ArtifactFile(ordinal++); candidate.Entries.Add(entry); }
+            RequireContinuousReaderCurrent(candidate);
             return candidate;
         }
         static GdDict LegacyRun(GdDict run)
@@ -450,9 +526,9 @@ namespace SynapticSea.Core.Systems
             }
             return V.VariantEquals(owned, wire);
         }
-        static void ValidateComponentMirrors(GdDict domain, GdDict active, GdDict world, GdDict home, bool paid = false)
+        static void ValidateComponentMirrors(GdDict domain, GdDict active, GdDict world, GdDict home, bool paid = false, PaidHashContext admittedContext = null)
         {
-            bool Equal(object owned, object wire) => paid ? PaidSnapshotCodec.Same(owned, wire) : SameComponentMirror(owned, wire);
+            bool Equal(object owned, object wire) => paid ? PaidSnapshotCodec.Same(owned, wire, admittedContext ?? PaidHashContext.FromOwner(domain)) : SameComponentMirror(owned, wire);
             string mismatch = "", context = "active";
             string Difference(object owned, object wire, string path)
             {

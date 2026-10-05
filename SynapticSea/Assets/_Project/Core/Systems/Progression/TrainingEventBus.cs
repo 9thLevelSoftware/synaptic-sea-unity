@@ -12,25 +12,28 @@ namespace SynapticSea.Core.Systems
     /// Receipt-owned records log effects already applied elsewhere and never grant or replay XP.
     /// No RNG; ordinary events are processed and replayed in insertion order.
     /// </summary>
-    public class TrainingEventBus
+    public partial class TrainingEventBus
     {
         public const string DEFAULT_TRAINING_ACTIONS_PATH = "res://data/player/training_actions.json";
 
         /// <summary>Optional signal-like callback (GDScript Callable <c>on_event_resolved(event)</c>).</summary>
-        public Action<GdDict> OnEventResolved;
+        Action<GdDict> _onEventResolved;
+        public Action<GdDict> OnEventResolved { get { if (_trackedOwner == null) return _onEventResolved; lock (CommonParticipantGate.SyncRoot) return _onEventResolved; } set => SetDelegate(ref _onEventResolved, value); }
 
         /// <summary>
         /// Optional per-event suppression (<c>event_filter(event_id, target_id)</c>).
         /// Convention: returning true SUPPRESSES/DROPS the event (opposite of <see cref="SkillGate"/>).
         /// </summary>
-        public Func<string, string, bool> EventFilter;
+        Func<string, string, bool> _eventFilter;
+        public Func<string, string, bool> EventFilter { get { if (_trackedOwner == null) return _eventFilter; lock (CommonParticipantGate.SyncRoot) return _eventFilter; } set => SetDelegate(ref _eventFilter, value); }
 
         /// <summary>
         /// Optional Domain 6 skill gate (<c>skill_gate(skill_id)</c>).
         /// Convention: returning true means the skill is ALLOWED to train; false drops the XP grant
         /// (opposite of <see cref="EventFilter"/>).
         /// </summary>
-        public Func<string, bool> SkillGate;
+        Func<string, bool> _skillGate;
+        public Func<string, bool> SkillGate { get { if (_trackedOwner == null) return _skillGate; lock (CommonParticipantGate.SyncRoot) return _skillGate; } set => SetDelegate(ref _skillGate, value); }
 
         readonly GdDict _actionsById = new GdDict(); // event_id -> {target_skill, base_xp, category}
         GdArray _log = new GdArray();               // sole ordered authority, including already-applied receipts
@@ -38,7 +41,7 @@ namespace SynapticSea.Core.Systems
         long _xpTotal = 0;
 
         /// <summary>Loads the training-actions catalog. Returns false on parse error.</summary>
-        public bool Configure(GdDict actionsCatalog = null)
+        bool ConfigureLegacy(GdDict actionsCatalog = null)
         {
             _actionsById.Clear();
             object variant;
@@ -64,30 +67,30 @@ namespace SynapticSea.Core.Systems
                 string eid = V.Str(e.Get("event_id", ""));
                 if (eid.Length == 0)
                     continue;
-                _actionsById[eid] = new GdDict
+                _actionsById[eid] = ProtectRecord(new GdDict
                 {
                     { "target_skill", V.Str(e.Get("target_skill", "")) },
                     { "base_xp", V.I64(e.Get("base_xp", 0L)) },
                     { "category", V.Str(e.Get("category", "")) },
-                };
+                });
             }
             return true;
         }
 
-        public bool IsKnown(string eventId) => _actionsById.Has(eventId);
+        public bool IsKnown(string eventId) { if (_trackedOwner == null) return _actionsById.Has(eventId); lock (CommonParticipantGate.SyncRoot) return _actionsById.Has(eventId); }
 
-        public long GetEventCount() => _log.Count;
+        public long GetEventCount() { if (_trackedOwner == null) return _log.Count; lock (CommonParticipantGate.SyncRoot) return _log.Count; }
 
-        public long GetDroppedCount() => _dropped;
+        public long GetDroppedCount() { if (_trackedOwner == null) return _dropped; lock (CommonParticipantGate.SyncRoot) return _dropped; }
 
-        public long GetTotalXpDelivered() => _xpTotal;
+        public long GetTotalXpDelivered() { if (_trackedOwner == null) return _xpTotal; lock (CommonParticipantGate.SyncRoot) return _xpTotal; }
 
         /// <summary>
         /// Emits a training event. Returns the resolved record on success; null on unknown id,
         /// EventFilter-suppressed event, or empty target skill. A SkillGate-rejected event is still logged
         /// (with <c>"gated": true</c>) but grants no XP and does not count as dropped.
         /// </summary>
-        public GdDict Emit(string eventId, string targetId, PlayerProgressionState progression)
+        GdDict EmitLegacy(string eventId, string targetId, PlayerProgressionState progression)
         {
             if (!_actionsById.Has(eventId))
             {
@@ -127,8 +130,9 @@ namespace SynapticSea.Core.Systems
                 { "sequence", (long)_log.Count },
                 { "gated", gated },
             };
+            record = ProtectRecord(record);
             _log.Append(record);
-            OnEventResolved?.Invoke(record);
+            if (_trackedOwner == null) OnEventResolved?.Invoke(record);
             return record;
         }
 
@@ -136,7 +140,7 @@ namespace SynapticSea.Core.Systems
         /// Record an already-applied receipt-owned event without delivering progression effects.
         /// Malformed input throws ArgumentException; a conflicting retained receipt throws InvalidOperationException.
         /// </summary>
-        public void RecordApplied(GdDict eventRecord, string commitId)
+        void RecordAppliedLegacy(GdDict eventRecord, string commitId)
         {
             if (string.IsNullOrWhiteSpace(commitId) || eventRecord == null || !IsSafeSnapshot(eventRecord) ||
                 !ValidResolvedEvent(eventRecord) ||
@@ -156,11 +160,11 @@ namespace SynapticSea.Core.Systems
                     throw new InvalidOperationException("Conflicting already-applied receipt payload.");
                 return;
             }
-            _log.Append(candidate);
+            _log.Append(ProtectRecord(candidate));
         }
 
         /// <summary>Replays ordinary log rows; receipt-owned rows already have their progression effect.</summary>
-        public long ReplayInto(PlayerProgressionState progression)
+        long ReplayIntoLegacy(PlayerProgressionState progression)
         {
             if (progression == null)
                 return 0;
@@ -184,10 +188,10 @@ namespace SynapticSea.Core.Systems
         }
 
         /// <summary>Returns a copy of the log.</summary>
-        public GdArray GetLog() => _log.DeepCopy();
+        public GdArray GetLog() { if (_trackedOwner == null) return _log.DeepCopy(); lock (CommonParticipantGate.SyncRoot) return _log.DeepCopy(); }
 
         /// <summary>Empties the log and counters (start_new_run).</summary>
-        public void Reset()
+        void ResetLegacy()
         {
             _log.Clear();
             _dropped = 0;
@@ -230,7 +234,7 @@ namespace SynapticSea.Core.Systems
         }
 
         /// <summary>Deterministic summary for save/load.</summary>
-        public GdDict ToDict()
+        GdDict ToDictLegacy()
         {
             return new GdDict
             {
@@ -242,7 +246,7 @@ namespace SynapticSea.Core.Systems
         }
 
         /// <summary>Validate receipt rows and preserve retained receipt identities before replacing the log/counters.</summary>
-        public bool ApplySummary(GdDict summary)
+        bool ApplySummaryLegacy(GdDict summary)
         {
             if (summary == null || !IsSafeSnapshot(summary))
                 return false;

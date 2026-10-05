@@ -11,7 +11,7 @@ namespace SynapticSea.Core.Session
         bool _studyConsent;
         Vec3 _studyPosition;
         double _studyHealth;
-        public GdDict GetManualStudyState() => ManualStudyEnabled && (_componentDomain?.SchemaVersion == 4 || _componentDomain?.SchemaVersion == 5)
+        public GdDict GetManualStudyState() => ManualStudyEnabled && (CurrentPaidFeatureSchema == 4 || CurrentPaidFeatureSchema == 5)
             ? _componentDomain.GetParticipantProjection("manual_study") : new GdDict();
         public bool ManualStudyRunning => GetManualStudyState().GetDictOrEmpty("job").GetString("status") == "running";
         bool OtherManualWork(GdDict domain) => AuxiliaryWorkRunning || WorkActionDriver?.IsWorking() == true ||
@@ -20,7 +20,7 @@ namespace SynapticSea.Core.Session
             PaidState(domain).GetDictOrEmpty("jobs").Values.OfType<GdDict>().Any(j => j.GetString("input_state") == "paid" && !PaidCraftingState.Terminal(j));
         string StudyGate(GdDict domain, string book)
         {
-            if (!ManualStudyEnabled || (domain.GetInt("schema_version") != 4 && domain.GetInt("schema_version") != 5)) return "manual_study_inactive";
+            if (!ManualStudyEnabled || (PaidFeatureSchema(domain) != 4 && PaidFeatureSchema(domain) != 5)) return "manual_study_inactive";
             if (DomainPublicationInProgress) return "reentrant_mutation";
             if (ComponentTerminalPending || SliceComplete || !PlayableStarted || VitalsState?.IsIncapacitated() == true || !HasPlayer) return "actor_unavailable";
             if (!PlayerProgression.GetBooksCatalog().Has(book) || InventoryState.GetDefinition(book).GetString("category") != "book") return "manual_missing";
@@ -85,7 +85,7 @@ namespace SynapticSea.Core.Session
         public GdDict PauseManualStudy(string reason = "paused")
         {
             _studyConsent = false;
-            if (ComponentGenerationRestoreInProgress || !ManualStudyEnabled || (_componentDomain?.SchemaVersion != 4 && _componentDomain?.SchemaVersion != 5)) return PaidFailure("manual_study_inactive");
+            if (ComponentGenerationRestoreInProgress || !ManualStudyEnabled || (CurrentPaidFeatureSchema != 4 && CurrentPaidFeatureSchema != 5)) return PaidFailure("manual_study_inactive");
             GdDict domain = CapturePaidCraftingDomain(), job = ManualStudyState.State(domain).GetDictOrEmpty("job");
             if (job.IsEmpty || job.GetString("status") != "running") return PaidFailure("study_not_running");
             string book = job.GetString("book_id");
@@ -123,7 +123,7 @@ namespace SynapticSea.Core.Session
             if (job.GetFloat("progress_seconds") == ManualStudyState.RequiredSeconds)
             {
                 GdDict result = ExecuteStudy(StudyCommand(domain, "complete", book), candidate => {
-                    GdDict state = ManualStudyState.State(candidate); string commit = ManualStudyState.CompletionId(state, book);
+                    GdDict state = ManualStudyState.State(candidate); string commit = ManualStudyState.CompletionId(state, book, OwnerHashContext(candidate));
                     GdDict effect = ManualStudyState.Reward(candidate, book, commit);
                     state.GetDictOrEmpty("job")["status"] = "completed"; state.GetDictOrEmpty("job")["resume_required"] = false;
                     state.GetDictOrEmpty("completed")[book] = commit;

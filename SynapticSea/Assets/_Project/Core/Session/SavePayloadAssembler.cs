@@ -7,7 +7,7 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Core.Session
 {
     /// <summary>Explicit capability-gated complete-world capture.</summary>
-    public static class SavePayloadAssembler
+    public static partial class SavePayloadAssembler
     {
         static GdDict PaidCraftingSummary(GdDict summary, GdDict participants)
         {
@@ -121,7 +121,7 @@ namespace SynapticSea.Core.Session
                 if (!(session.PaidCraftingEnabled ? session.ValidatePaidCraftingRestore(domain, out reason) : session.ValidateComponentDomainRestore(domain, out reason))) return Fail(reason);
                 foreach (object value in domain.GetDictOrEmpty("registry").GetDictOrEmpty("instances").Values)
                     if (!(value is GdDict row) || row.GetString("condition_state") != "known") return Fail("legacy_condition_unresolved");
-                GdDict encoded = ComponentDomainCodec.Encode(domain);
+                GdDict encoded = session.PaidCraftingEnabled ? PaidSnapshotCodec.EncodeOwner(domain) : ComponentDomainCodec.Encode(domain);
                 RunSnapshot active = RunSnapshotAssembler.Build(session); WorldSnapshot world = WorldSnapshotAssembler.Build(session);
                 if (active == null || world == null || session.HomeShip == null || session.LifeboatShip == null) return Fail("complete_world_unavailable");
                 if (session.PaidCraftingEnabled) active.ObjectiveProgressSummary = PaidObjectiveSummary(active.ObjectiveProgressSummary);
@@ -188,7 +188,7 @@ namespace SynapticSea.Core.Session
                 }
                 world.HomeShip = home; world.RunId = session.RunIdInternal;
                 if (session.ComponentIntegrationEnabled) { world.SliceVersion = WorldSnapshot.ComponentIntegrationVersion; world.GenerationId = generation; world.CaptureRevision = captureText; world.ComponentDomain = encoded.DeepCopy(); }
-                if (session.PaidCraftingEnabled && (!session.ValidatePaidCraftingRestore(domain, out reason) || !PaidSnapshotCodec.Same(domain, session.CapturePaidCraftingDomain()))) return Fail("capture_owner_changed");
+                if (session.PaidCraftingEnabled && (!session.ValidatePaidCraftingRestore(domain, out reason) || !PaidSnapshotCodec.Same(domain, session.CapturePaidCraftingDomain(), PaidHashContext.FromOwner(domain)))) return Fail("capture_owner_changed");
                 var revisions = new GdDict(); foreach (object id in references.Keys) revisions[id] = capture;
                 var payloads = new GdDict
                 {
@@ -200,6 +200,7 @@ namespace SynapticSea.Core.Session
                     { "run_text", session.PaidCraftingEnabled ? PaidSnapshotCodec.Stringify(active.ToDict(), PaidSnapshotCodec.SnapshotPolicy(session.ComponentIntegrationEnabled, false)) : GdJson.Stringify(active.ToDict(), "  ") }, { "world_text", session.PaidCraftingEnabled ? PaidSnapshotCodec.Stringify(world.ToDict(), PaidSnapshotCodec.SnapshotPolicy(session.ComponentIntegrationEnabled, true)) : GdJson.Stringify(world.ToDict(), "  ") }, { "artifacts", artifacts }
                 };
                 if (session.PaidCraftingEnabled) payloads.GetDictOrEmpty("binding")["save_mode"] = session.ComponentIntegrationEnabled ? PaidSnapshotCodec.DiagnosticMode : PaidSnapshotCodec.OrdinaryMode;
+                if (session.PaidCraftingEnabled && domain.GetInt("schema_version") == 6) payloads.GetDictOrEmpty("binding")["hash_algorithm"] = PaidHashContext.FromOwner(domain).Algorithm;
                 return new GdDict { { "ok", true }, { "reason", "captured" }, { "payloads", payloads } };
             }
             catch (Exception e) { return new GdDict { { "ok", false }, { "reason", "capture_failed" }, { "detail", e is PaidSnapshotCodec.ValidationException invalid ? invalid.Diagnostic : e.GetType().Name }, { "payloads", null } }; }

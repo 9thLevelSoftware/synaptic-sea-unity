@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Session;
@@ -16,6 +17,7 @@ namespace SynapticSea.Core.Systems
         public bool PaidCraftingEnabled { get; }
         /// <summary>Explicit reviewed profile capability; off preserves the prior compatibility catalog.</summary>
         public bool FirstAwaySalvageProfileEnabled { get; set; }
+        public bool BitExactPaidCompatibilityEnabled { get; set; }
         public bool CompleteGenerationEnabled => ComponentIntegrationEnabled || PaidCraftingEnabled;
         string GenerationRoot => ComponentIntegrationEnabled ? ComponentGenerationRoot : PaidGenerationRoot;
         string AdmissionVersion => ComponentIntegrationEnabled ? "component-run-admission-1" : "paid-run-admission-1";
@@ -24,6 +26,13 @@ namespace SynapticSea.Core.Systems
         {
             if (role != "run" && role != "world") return null;
             string text = selected.GetDictOrEmpty("payloads").GetString(role + "_text");
+            if (_continuousReaderPolicy != null)
+            {
+                GdDict payload = selected.GetDictOrEmpty("payloads");
+                if (!ContinuousSnapshotAdmission.TryRead(payload.GetString("run_text"), payload.GetString("world_text"),
+                    _continuousReaderBinding, _continuousReaderPolicy, out AdmittedContinuousSnapshots admitted, out _)) return null;
+                return role == "run" ? admitted.CopyRun() : admitted.CopyWorld();
+            }
             return PaidCraftingEnabled ? PaidSnapshotCodec.Parse(text, PaidSnapshotCodec.SnapshotPolicy(ComponentIntegrationEnabled, role == "world")) : GdJson.ParseString(text) as GdDict;
         }
         Func<string, string, string, bool> _componentSave;
@@ -42,11 +51,38 @@ namespace SynapticSea.Core.Systems
             { "library_id", "" }, { "library_version", "" },
             { "profiles", new GdDict { { ConstrainedExpedition.Profile, ConstrainedExpedition.Profile }, { ConstrainedExpedition.LegacyProfile, ConstrainedExpedition.LegacyProfile } } }
         };
+            if (_continuousReaderPolicy != null) compatibility.GetDictOrEmpty("profiles")[AuxiliaryProofOwnerProfile.OuterSchema] = AuxiliaryProofOwnerProfile.Profile;
             if (FirstAwaySalvageProfileEnabled) compatibility.GetDictOrEmpty("profiles")[FirstAwayGenerationInputs.Profile] = FirstAwayGenerationInputs.Profile;
+            if (BitExactPaidCompatibilityEnabled) compatibility.GetDictOrEmpty("profiles")["component_domain_codec_v2"] = PaidHashContext.BitsV2.Algorithm;
             return compatibility;
         }
+        ProofResourceBinding _continuousReaderBinding;
+        ContinuousSaveReadPolicy _continuousReaderPolicy;
+        internal bool TryEnableContinuousDiagnosticReader(out string reason)
+        {
+            reason = "continuous_reader_requires_component_paid_mode";
+            if (!ComponentIntegrationEnabled || !PaidCraftingEnabled) return false;
+            reason = "continuous_reader_requires_bit_exact_capability";
+            if (!BitExactPaidCompatibilityEnabled) return false;
+            if (!ResourceAuthorityPublication.TryAcquire(out ResourceAuthorityLease lease, out reason) ||
+                !ProofResourceBinding.TryCapture(lease, out ProofResourceBinding binding, out reason) ||
+                !ContinuousSaveReadPolicy.TrySelectExplicitReader(binding, out ContinuousSaveReadPolicy policy, out reason)) return false;
+            _continuousReaderBinding = binding; _continuousReaderPolicy = policy;
+            reason = ""; return true;
+        }
+        internal bool TryReadContinuousSelection(GdDict selected, out AdmittedContinuousSnapshots admitted, out string reason)
+        {
+            admitted = null; reason = "explicit_continuous_reader_required";
+            if (_continuousReaderPolicy == null || selected == null || !selected.GetBool("ok")) return false;
+            GdDict payload = selected.GetDictOrEmpty("payloads");
+            return ContinuousSnapshotAdmission.TryRead(payload.GetString("run_text"), payload.GetString("world_text"),
+                _continuousReaderBinding, _continuousReaderPolicy, out admitted, out reason);
+        }
+        internal bool ContinuousReaderSelected => _continuousReaderPolicy != null;
         internal SaveCommitCoordinator ComponentCoordinator(Action<string> fault = null)
-            => new SaveCommitCoordinator(Storage, GenerationRoot, new ComponentTerminalAuthority(this), ComponentCompatibility(), fault, ComponentIntegrationEnabled, PaidCraftingEnabled);
+            => _continuousReaderPolicy != null
+                ? SaveCommitCoordinator.CreateContinuousReader(Storage, GenerationRoot, new ComponentTerminalAuthority(this), ComponentCompatibility(), _continuousReaderBinding, _continuousReaderPolicy, fault)
+                : new SaveCommitCoordinator(Storage, GenerationRoot, new ComponentTerminalAuthority(this), ComponentCompatibility(), fault, ComponentIntegrationEnabled, PaidCraftingEnabled);
         internal GdDict ReadComponentCommitParent(string run, string slot) => ComponentCoordinator().ReadCommitParent(run, slot);
         public string GetComponentEpitaph(string slotId)
         {
@@ -78,10 +114,11 @@ namespace SynapticSea.Core.Systems
             static GdDict Answer(bool ok, string status, string run, string slot) => new GdDict { { "ok", ok }, { "run_id", run }, { "slot_id", slot }, { "status", status }, { "legacy_witnesses", new GdArray() } };
         }
         string Admission(string run) => GenerationRoot + "/r/" + SaveGenerationArtifacts.Hash(run) + "/admission.json";
-        string OriginalRunAuthority(string run)
+        string OriginalRunAuthority(string run) => OriginalRunAuthorityFromStorage(Storage, run);
+        static string OriginalRunAuthorityFromStorage(IStorage storage, string run)
         {
-            bool indexPresent = Storage.FileExists(INDEX_PATH);
-            GdDict index = indexPresent ? GdJson.ParseString(Storage.ReadText(INDEX_PATH)) as GdDict : null;
+            bool indexPresent = storage.FileExists(INDEX_PATH);
+            GdDict index = indexPresent ? GdJson.ParseString(storage.ReadText(INDEX_PATH)) as GdDict : null;
             bool indexValid = !indexPresent || index != null && index.Get("slots") is GdArray;
             var rows = new List<GdDict>();
             if (index != null && index.Get("slots") is GdArray slots)
@@ -96,10 +133,10 @@ namespace SynapticSea.Core.Systems
             bool ambiguous = false;
             foreach (string id in ComponentSlotsIds)
             {
-                if (!NewResolver().HasDiedIn(id)) continue;
+                if (!storage.FileExists("user://saves/" + id + PermadeathResolver.DeathKindSuffix)) continue;
                 string path = id == "world" ? WORLD_SLOT_FILE : id == ACTIVE_AUTOSAVE_SLOT_ID ? SAVE_PATH : SAVES_DIR + "/" + id + ".json";
-                bool payloadPresent = Storage.FileExists(path);
-                GdDict old = payloadPresent ? GdJson.ParseString(Storage.ReadText(path)) as GdDict : null;
+                bool payloadPresent = storage.FileExists(path);
+                GdDict old = payloadPresent ? GdJson.ParseString(storage.ReadText(path)) as GdDict : null;
                 string payloadOwner = old?.Get("run_id") is string owner ? owner : "";
                 if (payloadOwner == run) return "terminal";
                 List<GdDict> members = rows.Where(row => row.GetString("slot_id") == id).ToList();
@@ -169,6 +206,7 @@ namespace SynapticSea.Core.Systems
         }
         internal GdDict FreezeComponentRun(string run, string cause, string epitaph)
         {
+            RetireContinuousWorkerRun(run);
             _componentTerminalRuns.Add(run);
             GdDict terminal = new GdDict { { "schema_version", SaveCommitCoordinator.TerminalVersion }, { "run_id", run }, { "state", "terminal" },
                 { "reason", "death" }, { "cause", cause ?? "death" }, { "epitaph", epitaph ?? "" }, { "terminal_revision", 1L }, { "legacy_witnesses", new GdArray() } };

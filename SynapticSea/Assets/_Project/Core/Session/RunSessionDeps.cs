@@ -91,12 +91,16 @@ namespace SynapticSea.Core.Session
         public bool EnableComponentIntegration = false;
         /// <summary>Explicit paid-craft/full-generation composition, independent of equipment activation.</summary>
         public bool EnablePaidCrafting = false;
+        /// <summary>Default-off admission of bit-exact paid owners; fresh sessions alone create schema6.</summary>
+        public bool EnableBitExactPaidCompatibility = false;
         /// <summary>Diagnostic retained-manual study; requires paid crafting. Ordinary launches remain unchanged.</summary>
         public bool EnableManualStudy = false;
         /// <summary>Explicit diagnostic F08 utilities and finite F02 recovery racks.</summary>
         public bool EnableAuxiliaryServices = false;
         /// <summary>Explicit reviewed first-away diagnostic profile; default generation remains unchanged.</summary>
         public bool EnableReviewedFirstAwayProfile = false;
+        /// <summary>Default-off closed continuous auxiliary diagnostic bootstrap request; not an activation capability.</summary>
+        public bool EnableContinuousAuxiliaryDiagnostic = false;
         public GdDict SelectedSaveGeneration;
 
         // ---- the @export vars

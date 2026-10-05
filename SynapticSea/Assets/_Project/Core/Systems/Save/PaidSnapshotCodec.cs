@@ -27,7 +27,9 @@ namespace SynapticSea.Core.Systems
         public static GdDict Parse(string text, Policy policy) => SaveCommitCoordinator.ParsePaidObject(text, policy);
         public static string Stringify(GdDict value) => Stringify(value, Policy.Raw);
 
-        public static string Stringify(GdDict value, Policy policy)
+        public static string Stringify(GdDict value, Policy policy) => Stringify(value, policy, null);
+
+        internal static string Stringify(GdDict value, Policy policy, PaidHashContext context)
         {
             if (value == null) throw new ValidationException("$:null:root_null");
             if (!IsValidGraph(value, policy))
@@ -37,7 +39,7 @@ namespace SynapticSea.Core.Systems
                 else if (policy == Policy.Raw) Diagnose(value, out diagnostic);
                 throw new ValidationException(diagnostic);
             }
-            var output = new StringBuilder(); Write(output, value); return output.ToString();
+            var output = new StringBuilder(); Write(output, value, IsBitExactRecord(value) || ReferenceEquals(context, PaidHashContext.BitsV2)); return output.ToString();
         }
 
         public sealed class ValidationException : ArgumentException
@@ -105,6 +107,7 @@ namespace SynapticSea.Core.Systems
                 if (!ValidOwnerWire(value, ancestors, 0, ref wireNodes) || !(value is GdDict envelope) ||
                     !ComponentDomainCodec.TryDecode(envelope, out GdDict owner, out _)) return false;
                 if (policy == Policy.TypedOwner) return true;
+                if (!OwnerCodecMatches(envelope, owner)) return false;
                 return owner.Get("schema_version") is long version && PaidCraftingState.IsDomainVersion(version) &&
                     owner.GetString("domain_mode") == (Diagnostic(policy) ? "components_and_craft" : "craft_only") &&
                     DomainBundle.TryCreate(owner, out _, out _);
@@ -165,7 +168,8 @@ namespace SynapticSea.Core.Systems
             GdDict home = world ? snapshot.GetDictOrEmpty("home_ship") : snapshot;
             if (home.GetString("slice_version") != runVersion) return false;
             GdDict envelope = home.GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft");
-            if (envelope.Count != 3 || !(envelope.Get("schema_version") is long schema) || schema != 1L ||
+            if (envelope.Count != 3 || !(envelope.Get("schema_version") is long schema) ||
+                schema != (envelope.GetDictOrEmpty("domain").GetString("schema") == ComponentDomainCodec.BitExactSchema ? 2L : 1L) ||
                 envelope.GetString("save_mode") != (diagnostic ? DiagnosticMode : OrdinaryMode) ||
                 !(envelope.Get("domain") is GdDict owner)) return false;
             if (diagnostic)
@@ -244,7 +248,7 @@ namespace SynapticSea.Core.Systems
             return value == null || value is bool || value is long || Reject(value, path, "type", out diagnostic);
         }
 
-        static void Write(StringBuilder output, object value)
+        static void Write(StringBuilder output, object value, bool bitExact)
         {
             if (value == null) { output.Append("null"); return; }
             if (value is string text) { WriteString(output, text); return; }
@@ -252,7 +256,7 @@ namespace SynapticSea.Core.Systems
             if (value is long integer) { output.Append(integer.ToString(CultureInfo.InvariantCulture)); return; }
             if (value is double real)
             {
-                string token = real == 0.0 ? "0.0" : real.ToString("R", CultureInfo.InvariantCulture);
+                string token = real == 0.0 ? (bitExact && BitConverter.DoubleToInt64Bits(real) < 0 ? "-0.0" : "0.0") : real.ToString("R", CultureInfo.InvariantCulture);
                 if (token.IndexOf('.') < 0 && token.IndexOf('e') < 0 && token.IndexOf('E') < 0) token += ".0";
                 output.Append(token); return;
             }
@@ -263,13 +267,13 @@ namespace SynapticSea.Core.Systems
                 foreach (var pair in dict)
                 {
                     if (!first) output.Append(','); first = false;
-                    WriteString(output, (string)pair.Key); output.Append(':'); Write(output, pair.Value);
+                    WriteString(output, (string)pair.Key); output.Append(':'); Write(output, pair.Value, bitExact);
                 }
                 output.Append('}'); return;
             }
             output.Append('[');
             foreach (object item in (GdArray)value)
-            { if (!first) output.Append(','); first = false; Write(output, item); }
+            { if (!first) output.Append(','); first = false; Write(output, item, bitExact); }
             output.Append(']');
         }
 
@@ -297,26 +301,69 @@ namespace SynapticSea.Core.Systems
             output.Append('"');
         }
 
+        public static GdDict EncodeOwner(GdDict domain)
+        {
+            var context = PaidHashContext.FromOwner(domain);
+            return ComponentDomainCodec.Encode(domain, ReferenceEquals(context, PaidHashContext.BitsV2) ? ComponentDomainCodec.BitExactSchema : ComponentDomainCodec.LegacySchema);
+        }
+        static bool OwnerCodecMatches(GdDict encoded, GdDict owner) => PaidHashContext.TryFromOwner(owner, out var context, out _) &&
+            encoded.GetString("schema") == (ReferenceEquals(context, PaidHashContext.BitsV2) ? ComponentDomainCodec.BitExactSchema : ComponentDomainCodec.LegacySchema);
+        public static bool TryDecodeOwner(GdDict encoded, out GdDict owner, out string reason)
+        {
+            if (!ComponentDomainCodec.TryDecode(encoded, out owner, out reason)) return false;
+            if (!OwnerCodecMatches(encoded, owner)) { owner = null; reason = "unsupported_paid_hash_binding"; return false; }
+            reason = "ok"; return true;
+        }
+        internal static bool IsBitExactRecord(GdDict record)
+        {
+            if (record == null) return false;
+            if (record.GetDictOrEmpty("binding").GetString("hash_algorithm") == PaidCraftingState.BitExactHashAlgorithm) return true;
+            GdDict home = record.Has("home_ship") ? record.GetDictOrEmpty("home_ship") : record;
+            return home.GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft").GetDictOrEmpty("domain").GetString("schema") == ComponentDomainCodec.BitExactSchema;
+        }
+
         public static GdDict Envelope(GdDict domain, bool components) => new GdDict
         {
-            { "schema_version", 1L }, { "save_mode", components ? DiagnosticMode : OrdinaryMode },
-            { "domain", ComponentDomainCodec.Encode(domain) }
+            { "schema_version", ReferenceEquals(PaidHashContext.FromOwner(domain), PaidHashContext.BitsV2) ? 2L : 1L }, { "save_mode", components ? DiagnosticMode : OrdinaryMode },
+            { "domain", EncodeOwner(domain) }
         };
 
-        internal static bool Same(object owned, object wire)
+        // Explicit new-profile dispatch. Legacy decoders do not infer or reinterpret this envelope.
+        internal static bool TryDecodeProofEnvelope(GdDict envelope, ProofResourceBinding callerBinding, bool components,
+            out CheckpointProofAdmission.Result admitted, out string reason)
+        {
+            admitted=null;reason="unsupported_proof_paid_envelope";
+            if(!AuxiliaryProofOwnerProfile.Exact(envelope,"schema_version","save_mode","domain")||!(envelope.Get("schema_version") is long version)||version!=3||
+                envelope.Get("save_mode") as string!=(components?DiagnosticMode:OrdinaryMode)||!(envelope.Get("domain") is GdDict packageEnvelope))return false;
+            if(!ProofPackageCodec.TryOwnPaidEnvelope(envelope,out var input,out reason)||!CheckpointProofAdmission.TryAdmit(input,callerBinding,out var result,out reason))return false;
+            var owner=result.CopyOwner();if(owner.Get("domain_mode") as string!=(components?"components_and_craft":"craft_only")){reason="proof_owner_mode_mismatch";return false;}
+            admitted=result;reason="proof_paid_envelope_admitted";return true;
+        }
+        internal static bool TryCreateProofEnvelope(CheckpointProofAdmission.Result admitted,bool components,out GdDict envelope,out string reason)
+        {
+            envelope=null;reason="proof_admission_required";if(admitted==null||!admitted.Lease.IsCurrent)return false;
+            var owner=admitted.CopyOwner();if(owner.Get("domain_mode") as string!=(components?"components_and_craft":"craft_only"))return false;
+            var package=admitted.CopyPackage();var encoded=new GdDict{{"schema",AuxiliaryProofOwnerProfile.OuterSchema},{"codec",ComponentDomainCodec.Encode(package,ComponentDomainCodec.BitExactSchema)}};
+            // Apply the actual closed transport bounds before handing bytes to the ordinary save owner.
+            var prepared=new GdDict{{"schema_version",3L},{"save_mode",components?DiagnosticMode:OrdinaryMode},{"domain",encoded}};
+            if(!ProofPackageCodec.TryOwnPaidEnvelope(prepared,out _,out reason))return false;
+            envelope=prepared;reason="proof_paid_envelope_prepared";return true;
+        }
+        internal static bool Same(object owned, object wire) => Same(owned, wire, PaidHashContext.Legacy);
+        internal static bool Same(object owned, object wire, PaidHashContext context)
         {
             if (owned is long integer) return wire is long otherInteger && integer == otherInteger;
-            if (owned is double real) return wire is double otherReal && !double.IsNaN(real) && !double.IsInfinity(real) && real == otherReal;
+            if (owned is double real) return wire is double otherReal && !double.IsNaN(real) && !double.IsInfinity(real) && (ReferenceEquals(context, PaidHashContext.BitsV2) ? BitConverter.DoubleToInt64Bits(real) == BitConverter.DoubleToInt64Bits(otherReal) : real == otherReal);
             if (owned is GdDict dict)
             {
                 if (!(wire is GdDict other) || dict.Count != other.Count) return false;
-                foreach (var pair in dict) if (!other.Has(pair.Key) || !Same(pair.Value, other.Get(pair.Key))) return false;
+                foreach (var pair in dict) if (!other.Has(pair.Key) || !Same(pair.Value, other.Get(pair.Key), context)) return false;
                 return true;
             }
             if (owned is GdArray array)
             {
                 if (!(wire is GdArray other) || array.Count != other.Count) return false;
-                for (int i = 0; i < array.Count; i++) if (!Same(array[i], other[i])) return false;
+                for (int i = 0; i < array.Count; i++) if (!Same(array[i], other[i], context)) return false;
                 return true;
             }
             return owned == null ? wire == null : owned.GetType() == wire?.GetType() && owned.Equals(wire);

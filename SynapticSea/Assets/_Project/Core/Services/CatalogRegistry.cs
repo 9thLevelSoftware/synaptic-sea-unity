@@ -17,12 +17,14 @@ namespace SynapticSea.Core.Services
         /// <summary>Parsed document or null when missing/malformed (Godot returned null / pushed an error).</summary>
         public static object Load(string resPath, bool copy = true)
         {
+            // Opt-in sealed publication never exposes a mutable cached alias, even for legacy copy:false callers.
+            var reader = CoreServices.Resources;
+            if (reader is ImmutableResourceAuthority authority) return authority.Load(resPath);
             object parsed;
             lock (Gate)
             {
                 if (!Cache.TryGetValue(resPath, out parsed))
                 {
-                    var reader = CoreServices.Resources;
                     string text = reader?.ReadText(resPath);
                     if (text == null)
                     {
@@ -48,6 +50,8 @@ namespace SynapticSea.Core.Services
         /// <summary>Drops cached documents (tests, DataSync hot reload).</summary>
         public static void Clear()
         {
+            PinnedAdmissionResourceScope.RefusePort("CatalogRegistry.Clear");
+            ResourceAuthorityPublication.Invalidate();
             lock (Gate) Cache.Clear();
         }
     }

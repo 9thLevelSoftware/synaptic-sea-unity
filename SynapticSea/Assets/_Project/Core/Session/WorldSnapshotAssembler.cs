@@ -26,10 +26,19 @@ namespace SynapticSea.Core.Session
             return BuildCore(s, operation);
         }
 
-        static WorldSnapshot BuildCore(RunSession s, RunSession.PaidRestoreOperation operation)
+        internal static WorldSnapshot BuildContinuousCut(RunSession s, RunSession.ContinuousSafeEndTick ticket, SaveLoadService.ContinuousCommitParent metadata)
         {
-            if (operation == null && s.ComponentGenerationRestoreInProgress) return null;
-            if (operation == null)
+            if (metadata == null) throw new System.InvalidOperationException("continuous_capture_metadata_required");
+            s.RequireContinuousClosedCut(ticket);
+            WorldSnapshot snapshot = BuildCore(s, null, ticket, metadata);
+            s.RequireContinuousClosedCut(ticket);
+            return snapshot;
+        }
+
+        static WorldSnapshot BuildCore(RunSession s, RunSession.PaidRestoreOperation operation, RunSession.ContinuousSafeEndTick cut = null, SaveLoadService.ContinuousCommitParent metadata = null)
+        {
+            if (operation == null && cut == null && s.ComponentGenerationRestoreInProgress) return null;
+            if (operation == null && cut == null)
             {
                 s.SyncCombatSummaryForSave(); s.SyncArcSummaryForSave();
                 s.SyncBreachEnvironmentForSave(); s.SyncPillarSummariesForSave();
@@ -41,7 +50,7 @@ namespace SynapticSea.Core.Session
                 ws.MetaProgressionSummary = s.MetaProgressionState.ToDict();
             if (s.UniqueItemState != null)
                 ws.UniqueItemSummary = s.UniqueItemState.GetSummary();
-            RunSnapshot homeSnap = operation == null ? RunSnapshotAssembler.Build(s, s.AwayFromStart) : RunSnapshotAssembler.BuildDetached(s, operation, s.AwayFromStart);
+            RunSnapshot homeSnap = cut != null ? RunSnapshotAssembler.BuildContinuousCut(s, cut, metadata, s.AwayFromStart) : operation == null ? RunSnapshotAssembler.Build(s, s.AwayFromStart) : RunSnapshotAssembler.BuildDetached(s, operation, s.AwayFromStart);
             if (homeSnap != null)
             {
                 if (s.AwayFromStart)
@@ -70,7 +79,7 @@ namespace SynapticSea.Core.Session
                 Vec3 p = s.Scene.PlayerPosition;
                 ws.PlayerPositionInShip = GdArray.Of((double)p.X, (double)p.Y, (double)p.Z);
             }
-            if (!s.CompleteGenerationEnabled && !s.LifeboatCommissioned && s.LifeboatShip?.SystemsManager != null && s.ShipSystemsManager != null)
+            if (cut == null && !s.CompleteGenerationEnabled && !s.LifeboatCommissioned && s.LifeboatShip?.SystemsManager != null && s.ShipSystemsManager != null)
                 s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
             ws.MobileHomeState = new GdDict { { "version", 1L }, { "lifeboat_commissioned", s.LifeboatCommissioned },
                 { "lifeboat", s.LifeboatShip?.GetSummary() ?? new GdDict() }, { "home_mobility", s.HomeShip?.Mobility.DeepCopy() ?? new GdDict() } };
@@ -97,10 +106,19 @@ namespace SynapticSea.Core.Session
                     ws.VisitedShips[s.CurrentShip.MarkerId] = s.DetachedCurrentShipSummaryForRestore(operation);
                 ws.HomeBreachEnvironment = s.HomeBreachEnvironmentForSave();
             }
+            if (cut != null)
+            {
+                // Replace formerly Sync-derived caches only in the detached cut.
+                GdDict current = s.DetachedCurrentShipSummaryForContinuousCut(cut);
+                if (s.CurrentShip?.MarkerId.Length > 0 && ws.VisitedShips.Has(s.CurrentShip.MarkerId))
+                    ws.VisitedShips[s.CurrentShip.MarkerId] = current;
+                if (s.CurrentShip == s.LifeboatShip) ws.MobileHomeState["lifeboat"] = current;
+                ws.HomeBreachEnvironment = s.HomeBreachEnvironmentForSave();
+            }
             ws.RunId = s.RunIdInternal;
             ws.SliceVersion = WorldSnapshot.WorldSliceVersion;
-            ws.GodotVersion = s.Deps.Engine.VersionString;
-            ws.SavedAt = s.Clock.DateTimeString(true);
+            ws.GodotVersion = metadata != null ? metadata.GodotVersion : s.Deps.Engine.VersionString;
+            ws.SavedAt = metadata != null ? metadata.SavedAt : s.Clock.DateTimeString(true);
             return ws;
         }
 

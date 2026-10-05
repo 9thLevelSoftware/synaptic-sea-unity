@@ -22,6 +22,7 @@ namespace SynapticSea.Core.Session
             internal readonly Dictionary<string, GdDict> TerminalResults = new Dictionary<string, GdDict>(StringComparer.Ordinal);
             internal IShipLoaderView HomeToInstall;
             internal GdDict Selection;
+            internal CheckpointProofAdmission.Result ContinuousAdmission;
             internal GdDict TerminalMeta;
             internal bool RollingBack, Destructive, Committed, ManualViewsFailed;
             internal readonly RunSession Owner;
@@ -66,7 +67,7 @@ namespace SynapticSea.Core.Session
             if (world.HomeShip.Has("home_finite_loot") && !(world.HomeShip.Get("home_finite_loot") is GdDict) ||
                 !ManualStudyEnabled && !finiteHome.IsEmpty || !FiniteLootState.ValidateSources(finiteHome, "ship_start", loader.GetLootContainerSpecsCopy(), out _))
                 throw new InvalidOperationException("invalid_home_finite_loot");
-            if (domain.GetInt("schema_version") == 5 && (!AuxiliaryServicesEnabled || !V.VariantEquals(AuxiliaryServiceState.State(domain).Get("descriptors"), AuxiliaryDescriptors(loader)))) throw new InvalidOperationException("auxiliary_source_mismatch");
+            if (PaidFeatureSchema(domain) == 5 && (!AuxiliaryServicesEnabled || !PaidEqual(OwnerHashContext(domain), AuxiliaryServiceState.State(domain).Get("descriptors"), AuxiliaryDescriptors(loader)))) throw new InvalidOperationException("auxiliary_source_mismatch");
             var crafting = new CraftingState();
             var materials = new MaterialState(); var inventory = new InventoryState();
             var deconstruction = new DeconstructionResolver(); var progression = new PlayerProgressionState();
@@ -132,7 +133,11 @@ namespace SynapticSea.Core.Session
                 string id = V.Str(owner);
                 if (!context.Ships.TryGetValue(id, out ShipInstance ship)) throw new InvalidOperationException("component_owner_missing");
                 GdDict layout = ship.SceneRoot is IShipLoaderView view ? view.GetLayoutCopy() : ship.BuiltLayout;
-                if (!ValidateComponentPhysicalLayout(domain, id, layout, out string reason)) throw new InvalidOperationException(reason);
+                string reason;
+                bool valid=domain.GetInt("schema_version")==7
+                    ? ValidateComponentPhysicalLayout(CurrentContinuousRestoreAdmission,domain,id,layout,out reason)
+                    : ValidateComponentPhysicalLayout(domain,id,layout,out reason);
+                if(!valid)throw new InvalidOperationException(reason);
             }
         }
 
@@ -204,7 +209,7 @@ namespace SynapticSea.Core.Session
                 context.Ships.Any(pair => !ReferenceEquals(pair.Value, FindShipByIdInternal(pair.Key))) ||
                 context.Models.Any(pair => !ReferenceEquals(context.Crafting.GetStation(pair.Key), pair.Value)))
                 throw new InvalidOperationException("stale_restore_context");
-            if (!ValidatePaidCraftingRestoreInContext(candidate, context, out string reason)) throw new InvalidOperationException(reason);
+            if (!ValidatePaidCraftingRestoreInContext(candidate, context, out string reason, CurrentContinuousRestoreAdmission)) throw new InvalidOperationException(reason);
             ValidatePaidRestoreTargets(context, candidate);
             CheckPaidRestoreAuthority(operation);
         }
@@ -254,7 +259,7 @@ namespace SynapticSea.Core.Session
         PaidRestoreBefore CapturePaidRestoreBefore(PaidRestoreOperation operation)
         {
             RequirePaidRestoreOperation(operation);
-            if (_componentDomain == null || !PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion)) throw new InvalidOperationException("paid_owner_missing");
+            if (_componentDomain == null || !(PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) || _componentDomain.SchemaVersion == 7 && Deps.EnableContinuousAuxiliaryDiagnostic && BitExactPaidCompatibilityEnabled)) throw new InvalidOperationException("paid_owner_missing");
             var before = new PaidRestoreBefore
             {
                 Coordinator = _componentDomain, Owner = _componentDomain.GetSummary(),
@@ -275,13 +280,13 @@ namespace SynapticSea.Core.Session
                 ShipCaches = AllKnownShips().Where(s => s != null).GroupBy(s => s.ShipId).ToDictionary(g => g.Key, g => g.First().GetSummary().DeepCopy(), StringComparer.Ordinal)
             };
             // This read mutates only its supplied detached paid state. The committed owner is never refreshed.
-            before.Participants = ReadComponentParticipants(PaidState(before.Owner).DeepCopy()).DeepCopy();
+            before.Participants = ReadComponentParticipants(PaidState(before.Owner).DeepCopy(), OwnerHashContext(before.Owner)).DeepCopy();
             before.World = SavePayloadAssembler.CaptureBeforeWorld(this, operation, out GdDict documents);
             before.Documents = documents;
             var privateReader = new GdDict { { "ok", true }, { "payloads", documents }, { "payloads_sha256", SaveGenerationArtifacts.Hash(GdJson.Stringify(documents)) } };
             if (!SaveGenerationArtifacts.TryCreateReader(privateReader, CoreServices.Resources, out before.Reader, out string reason))
                 throw new InvalidOperationException(reason);
-            if (!ReferenceEquals(_componentDomain, before.Coordinator) || !PaidSnapshotCodec.Same(before.Owner, _componentDomain.GetSummary()))
+            if (!ReferenceEquals(_componentDomain, before.Coordinator) || !PaidSnapshotCodec.Same(before.Owner, _componentDomain.GetSummary(), OwnerHashContext(before.Owner)))
                 throw new InvalidOperationException("before_owner_changed");
             return before;
         }
@@ -365,7 +370,7 @@ namespace SynapticSea.Core.Session
             try
             {
                 _workHoldInput = false; _studyConsent = false; _auxConsent = false;
-                if (AuxiliaryServicesEnabled && _componentDomain?.SchemaVersion == 5) BuildAuxiliaryServicePoints();
+                if (AuxiliaryServicesEnabled && CurrentPaidFeatureSchema == 5) BuildAuxiliaryServicePoints();
                 RefreshStudyHud(); RefreshAuxiliaryHud();
             }
             catch { operation.ManualViewsFailed = true; throw; }
@@ -381,14 +386,23 @@ namespace SynapticSea.Core.Session
                 BlueprintPath = payload.GetDictOrEmpty("binding").GetDictOrEmpty("ship_references").GetDictOrEmpty("ship_start").GetString("blueprint_path");
                 if (!WorldSnapshotAssembler.ApplyOwned(this, world, operation)) throw new InvalidOperationException("generation_apply_failed");
                 GdDict candidate = owner.DeepCopy();
-                PauseSavedManualJobs(candidate);
+                if (CurrentContinuousRestoreAdmission == null) PauseSavedManualJobs(candidate);
                 foreach (GdDict job in PaidState(candidate).GetDictOrEmpty("jobs").Values.OfType<GdDict>())
-                    if (!PaidCraftingState.Terminal(job)) { job["resume_required"] = true; if (job.GetString("status") == "running") job["status"] = "paused"; }
-                PauseSavedPaidMirrors(candidate.GetDictOrEmpty("participating_state"));
+                    if (CurrentContinuousRestoreAdmission == null && !PaidCraftingState.Terminal(job)) { job["resume_required"] = true; if (job.GetString("status") == "running") job["status"] = "paused"; }
+                if (CurrentContinuousRestoreAdmission == null) PauseSavedPaidMirrors(candidate.GetDictOrEmpty("participating_state"));
                 GdDict work = candidate.GetDictOrEmpty("component_work");
-                if (!work.IsEmpty && work.GetString("status") != "committed") { work["status"] = "paused_restore"; work["resume_required"] = true; work["reason"] = "explicit_resume_required"; }
+                if (CurrentContinuousRestoreAdmission == null && !work.IsEmpty && work.GetString("status") != "committed") { work["status"] = "paused_restore"; work["resume_required"] = true; work["reason"] = "explicit_resume_required"; }
                 _paidRestoreFinalContext = CurrentPaidRestoreContext();
-                DomainTransactionCoordinator next = NewComponentOwner(candidate);
+                DomainTransactionCoordinator next;
+                if (CurrentContinuousRestoreAdmission != null)
+                {
+                    if (!MatchesAdmittedContinuousOwner(candidate, CurrentContinuousRestoreAdmission)) throw new InvalidOperationException("continuous_restore_owner_changed");
+                    ValidateFinalPaidRestore(candidate);
+                    next = DomainTransactionCoordinator.CreateFromAdmittedCheckpoint(CurrentContinuousRestoreAdmission,
+                        stage => ComponentStageHook?.Invoke(stage), result => NotifyComponentPublication(result), ApplyComponentViews);
+                    if (!SaveLoadService.TryEnableContinuousDiagnosticReader(out string continuousReason)) throw new InvalidOperationException(continuousReason);
+                }
+                else next = NewComponentOwner(candidate);
                 ApplyComponentViews(candidate); _componentDomain = next;
                 if (ComponentIntegrationEnabled) BindComponentReadViews();
                 BindPaidCraftingModels(); _workHoldInput = false; _studyConsent = false; _auxConsent = false;
@@ -414,10 +428,22 @@ namespace SynapticSea.Core.Session
                 if (!SaveGenerationArtifacts.TryCreateReader(exact, CoreServices.Resources, out IResourceReader reader, out string reason, true, mode))
                     throw new InvalidOperationException(reason);
                 GdDict payload = exact.GetDictOrEmpty("payloads");
-                GdDict worldDict = PaidSnapshotCodec.Parse(payload.GetString("world_text"), PaidSnapshotCodec.SnapshotPolicy(ComponentIntegrationEnabled, true));
-                GdDict envelope = worldDict?.GetDictOrEmpty("home_ship").GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft");
-                if (envelope == null || !ComponentDomainCodec.TryDecode(envelope.GetDictOrEmpty("domain"), out GdDict owner, out reason))
-                    throw new InvalidOperationException(reason ?? "invalid_paid_world");
+                GdDict worldDict; GdDict owner;
+                CheckpointProofAdmission.Result continuousAdmission = null;
+                if (Deps.EnableContinuousAuxiliaryDiagnostic)
+                {
+                    if (!TryReadContinuousRestoreSelection(exact, out AdmittedContinuousSnapshots continuous, out reason)) throw new InvalidOperationException(reason);
+                    continuousAdmission = continuous.PaidAdmission;
+                    worldDict = continuous.CopyWorld(); owner = continuous.CopyOwner();
+                }
+                else
+                {
+                    worldDict = PaidSnapshotCodec.Parse(payload.GetString("world_text"), PaidSnapshotCodec.SnapshotPolicy(ComponentIntegrationEnabled, true));
+                    GdDict envelope = worldDict?.GetDictOrEmpty("home_ship").GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft");
+                    if (envelope == null || !PaidSnapshotCodec.TryDecodeOwner(envelope.GetDictOrEmpty("domain"), out owner, out reason))
+                        throw new InvalidOperationException(reason ?? "invalid_paid_world");
+                }
+                operation.ContinuousAdmission = continuousAdmission;
                 WorldSnapshot world = WorldSnapshot.FromDict(worldDict, ComponentIntegrationEnabled ? WorldSnapshot.ComponentIntegrationVersion : WorldSnapshot.WorldSliceVersion, Deps.Engine.VersionString);
                 if (world == null || !WorldSnapshotAssembler.ValidateConnectionSnapshot(world, "ship_start", "lifeboat", out _, out reason))
                     throw new InvalidOperationException(reason ?? "invalid_world");
@@ -429,7 +455,7 @@ namespace SynapticSea.Core.Session
                 selectedOwned.AddRange(operation.SelectedRoots.Values);
                 if (!staged) throw new InvalidOperationException("required_ship_host_failed");
                 PaidRestoreContext prospective = WithArtifactReader(reader, () => PreparePaidRestoreContext(world.RunId, prepared.PreparedLoader, world, operation.SelectedRoots, owner, payload));
-                if (!ValidatePaidCraftingRestoreInContext(owner, prospective, out reason)) throw new InvalidOperationException(reason);
+                if (!ValidatePaidCraftingRestoreInContext(owner, prospective, out reason, CurrentContinuousRestoreAdmission)) throw new InvalidOperationException(reason);
                 CheckPaidRestoreAuthority(operation);
                 if (!prepared.TryAdopt(out reason)) throw new InvalidOperationException(reason);
                 CheckPaidRestoreAuthority(operation);
@@ -485,6 +511,7 @@ namespace SynapticSea.Core.Session
             }
             finally
             {
+                if (operation.Committed) _continuousRestoreAdmission = operation.ContinuousAdmission;
                 _paidRestoreFinalContext = null;
                 if (release) { _paidRestoreOperation = null; ComponentGenerationRestoreInProgress = false; }
             }
@@ -498,16 +525,27 @@ namespace SynapticSea.Core.Session
             if (selection == null || !selection.GetBool("ok")) return Fail(selection?.GetString("reason", "invalid_selection") ?? "invalid_selection");
             GdDict exact = SaveLoadService.ReadGeneration(selection.GetString("run_id"), selection.GetString("slot_id"), selection.GetString("generation_id"), selection.GetString("manifest_sha256"));
             if (!exact.GetBool("ok")) { LastSaveResult = exact; return false; }
-            if (!PaidSnapshotCodec.Same(selection.Get("payloads"), exact.Get("payloads"))) return Fail("selection_mismatch");
+            if (!(Deps.EnableContinuousAuxiliaryDiagnostic ? PaidSnapshotCodec.Same(selection.Get("payloads"), exact.Get("payloads"), PaidHashContext.BitsV2) : PaidSnapshotCodec.Same(selection.Get("payloads"), exact.Get("payloads")))) return Fail("selection_mismatch");
             string mode = ComponentIntegrationEnabled ? PaidSnapshotCodec.DiagnosticMode : PaidSnapshotCodec.OrdinaryMode;
             if (!SaveGenerationArtifacts.TryCreateReader(exact, CoreServices.Resources, out IResourceReader reader, out string reason, true, mode)) return Fail(reason);
             GdDict payload = exact.GetDictOrEmpty("payloads");
-            GdDict worldDict = PaidSnapshotCodec.Parse(payload.GetString("world_text"), PaidSnapshotCodec.SnapshotPolicy(ComponentIntegrationEnabled, true));
-            GdDict envelope = worldDict?.GetDictOrEmpty("home_ship").GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft");
-            if (envelope == null || !ComponentDomainCodec.TryDecode(envelope.GetDictOrEmpty("domain"), out GdDict owner, out reason)) return Fail(reason ?? "invalid_paid_world");
+            GdDict worldDict; GdDict owner;
+            CheckpointProofAdmission.Result continuousAdmission = null;
+            if (Deps.EnableContinuousAuxiliaryDiagnostic)
+            {
+                if (!TryReadContinuousRestoreSelection(exact, out AdmittedContinuousSnapshots continuous, out reason)) return Fail(reason);
+                continuousAdmission = continuous.PaidAdmission;
+                worldDict = continuous.CopyWorld(); owner = continuous.CopyOwner();
+            }
+            else
+            {
+                worldDict = PaidSnapshotCodec.Parse(payload.GetString("world_text"), PaidSnapshotCodec.SnapshotPolicy(ComponentIntegrationEnabled, true));
+                GdDict envelope = worldDict?.GetDictOrEmpty("home_ship").GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft");
+                if (envelope == null || !PaidSnapshotCodec.TryDecodeOwner(envelope.GetDictOrEmpty("domain"), out owner, out reason)) return Fail(reason ?? "invalid_paid_world");
+            }
             WorldSnapshot world = WorldSnapshot.FromDict(worldDict, ComponentIntegrationEnabled ? WorldSnapshot.ComponentIntegrationVersion : WorldSnapshot.WorldSliceVersion, Deps.Engine.VersionString);
             if (world == null || !WorldSnapshotAssembler.ValidateConnectionSnapshot(world, "ship_start", "lifeboat", out _, out reason)) return Fail(reason ?? "invalid_world");
-            var operation = new PaidRestoreOperation(this) { Selection = exact.DeepCopy() };
+            var operation = new PaidRestoreOperation(this) { Selection = exact.DeepCopy(), ContinuousAdmission = continuousAdmission };
             _paidRestoreOperation = operation; ComponentGenerationRestoreInProgress = true;
             PaidRestoreBefore before = null; IPreparedHome prepared = null;
             var selectedOwned = new List<IShipSceneRoot>(); var beforeOwned = new List<IShipSceneRoot>();
@@ -524,9 +562,9 @@ namespace SynapticSea.Core.Session
                 beforeOwned.AddRange(operation.BeforeRoots.Values);
                 if (!staged) throw new InvalidOperationException("rollback_ship_host_failed");
                 PaidRestoreContext prospective = WithArtifactReader(reader, () => PreparePaidRestoreContext(world.RunId, prepared.PreparedLoader, world, operation.SelectedRoots, owner, payload));
-                if (!ValidatePaidCraftingRestoreInContext(owner, prospective, out reason)) throw new InvalidOperationException(reason);
+                if (!ValidatePaidCraftingRestoreInContext(owner, prospective, out reason, CurrentContinuousRestoreAdmission)) throw new InvalidOperationException(reason);
                 CheckPaidRestoreAuthority(operation);
-                if (!ReferenceEquals(_componentDomain, before.Coordinator) || !PaidSnapshotCodec.Same(before.Owner, _componentDomain.GetSummary())) throw new InvalidOperationException("before_owner_changed");
+                if (!ReferenceEquals(_componentDomain, before.Coordinator) || !PaidSnapshotCodec.Same(before.Owner, _componentDomain.GetSummary(), OwnerHashContext(before.Owner))) throw new InvalidOperationException("before_owner_changed");
                 if (!prepared.TryAdopt(out reason)) throw new InvalidOperationException(reason);
                 CheckPaidRestoreAuthority(operation);
                 operation.Destructive = true;
@@ -624,6 +662,7 @@ namespace SynapticSea.Core.Session
             }
             finally
             {
+                if (operation.Committed) _continuousRestoreAdmission = operation.ContinuousAdmission;
                 _paidRestoreFinalContext = null;
                 if (release) { _paidRestoreOperation = null; ComponentGenerationRestoreInProgress = false; }
             }

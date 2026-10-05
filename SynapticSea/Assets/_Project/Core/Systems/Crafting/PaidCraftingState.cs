@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,7 +13,7 @@ namespace SynapticSea.Core.Systems
     {
         static readonly string[] Operations = { "craft_start", "craft_enqueue", "craft_progress", "craft_resume", "craft_block", "craft_complete", "craft_cancel", "craft_legacy_import", "craft_legacy_decision" };
         static readonly string[] PaymentFields = { "job_id", "recipe_id", "recipe_hash", "recipe_definition", "run_id", "actor_id", "inventory_owner_id", "station_owner_id", "station_id", "station_kind", "channel", "consumed", "start_skill", "start_tier", "start_level", "start_known", "start_powered", "material_quality", "quality_score", "quality_tier", "quality_multiplier", "required_seconds", "payment_commit_id", "completion_commit_id" };
-        internal static bool IsDomainVersion(long version) => version == 3 || version == 4 || version == 5;
+        internal static bool IsDomainVersion(long version) => version == 3 || version == 4 || version == 5 || version == 6 || version == 7 && CheckpointProofAdmission.HasClosedContext;
         public static GdDict State(GdDict domain) => domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting");
         public static bool IsOperation(string operation) => Operations.Contains(operation);
         public const string InternalCommandPrefix = "$paid-internal:";
@@ -40,24 +41,51 @@ namespace SynapticSea.Core.Systems
             foreach (string key in PaymentFields) result[key] = V.DeepCopy(job.Get(key));
             return result;
         }
-        public static string Hash(object value)
+        public const string LegacyHashAlgorithm = "component-json-sha256-v1";
+        public const string BitExactHashAlgorithm = "component-bits-json-sha256-v2";
+        public static string Hash(object value) => Hash(value, LegacyHashAlgorithm);
+        public static string Hash(object value, string algorithm)
         {
-            if (AdmissionHashMemo.TryGet(value, out string cached)) return cached;
-            string digest = CanonicalHash(value); AdmissionHashMemo.Record(value, digest); return digest;
+            if (algorithm != LegacyHashAlgorithm && algorithm != BitExactHashAlgorithm) throw new ArgumentException("Unsupported paid hash algorithm.");
+            if (AdmissionHashMemo.TryGet(value, algorithm, out string cached)) return cached;
+            string digest = CanonicalHash(value, algorithm); AdmissionHashMemo.Record(value, algorithm, digest); return digest;
         }
-        static string CanonicalHash(object value)
+        static string CanonicalHash(object value, string algorithm)
         {
             using (var sha = SHA256.Create())
             {
                 GdDict envelope;
-                envelope = ComponentDomainCodec.Encode(new GdDict { { "value", Sorted(value) } });
+                bool bitExact = algorithm == BitExactHashAlgorithm;
+                if (bitExact && !ItemInstanceState.IsSafeSnapshot(new GdDict { { "value", value } })) throw new ArgumentException("Unsafe paid hash input.");
+                envelope = ComponentDomainCodec.Encode(new GdDict { { "value", bitExact ? SortedBitExact(value) : Sorted(value) } },
+                    bitExact ? ComponentDomainCodec.BitExactSchema : ComponentDomainCodec.LegacySchema);
                 byte[] input;
-                input = Encoding.UTF8.GetBytes(GdJson.Stringify(envelope));
+                input = (bitExact ? new UTF8Encoding(false, true) : Encoding.UTF8).GetBytes(bitExact
+                    ? PaidSnapshotCodec.Stringify(envelope, PaidSnapshotCodec.Policy.TypedOwner) : GdJson.Stringify(envelope));
                 byte[] bytes;
                 bytes = sha.ComputeHash(input);
                 string digest = string.Concat(bytes.Select(b => b.ToString("x2")));
                 return digest;
             }
+        }
+        static object SortedBitExact(object value)
+        {
+            if (value is GdDict dictionary)
+            {
+                var entries = new SortedDictionary<string, KeyValuePair<object, object>>(StringComparer.Ordinal);
+                foreach (var row in dictionary)
+                {
+                    if (row.Key == null || row.Key is GdArray || row.Key is GdDict) throw new ArgumentException("Unsupported canonical key.");
+                    string key = PaidSnapshotCodec.Stringify(ComponentDomainCodec.Encode(new GdDict { { "key", row.Key } }, ComponentDomainCodec.BitExactSchema), PaidSnapshotCodec.Policy.TypedOwner);
+                    if (entries.ContainsKey(key)) throw new ArgumentException("Canonical key collision.");
+                    entries.Add(key, new KeyValuePair<object, object>(row.Key, row.Value));
+                }
+                var sorted = new GdDict();
+                foreach (var entry in entries.Values) sorted[entry.Key] = SortedBitExact(entry.Value);
+                return sorted;
+            }
+            if (value is GdArray array) return new GdArray(array.Select(SortedBitExact));
+            return value;
         }
         static object Sorted(object value)
         {
@@ -93,19 +121,18 @@ namespace SynapticSea.Core.Systems
         }
         static bool Text(GdDict row, string key) => row.Get(key) is string s && !string.IsNullOrWhiteSpace(s);
         static bool Integer(GdDict row, string key) => row.Get(key) is long n && n >= 0;
-        static bool Equal(object a, object b) => V.VariantEquals(a, b);
         static bool Keys(GdDict row, params string[] allowed) => row.Keys.All(k => k is string s && allowed.Contains(s));
-        public static bool ValidReceipt(GdDict receipt, string id, long revision)
+        public static bool ValidReceipt(GdDict receipt, string id, long revision, PaidHashContext context = null)
         {
-            try { return ValidReceiptCore(receipt, id, revision); }
+            try { return ValidReceiptCore(receipt, id, revision, context ?? PaidHashContext.Legacy); }
             catch (ArgumentException) { return false; }
             catch (OverflowException) { return false; }
         }
-        static bool ValidReceiptCore(GdDict receipt, string id, long revision)
+        static bool ValidReceiptCore(GdDict receipt, string id, long revision, PaidHashContext hashContext)
         {
             if (receipt == null || !PaidCraftRewardProof.ExactKeys(receipt, "schema_version", "transaction_id", "commit_id", "command_id", "command", "command_hash", "revision", "result") || !PaidCraftRewardProof.Version(receipt) || receipt.GetString("transaction_id") != id || receipt.GetString("commit_id") != id ||
                 !Text(receipt, "command_id") || !Integer(receipt, "revision") || receipt.GetInt("revision") <= 0 || receipt.GetInt("revision") > revision ||
-                !(receipt.Get("command") is GdDict command) || receipt.GetString("command_hash") != Hash(command) || command.GetString("command_id") != receipt.GetString("command_id") ||
+                !(receipt.Get("command") is GdDict command) || receipt.GetString("command_hash") != hashContext.Hash(command) || command.GetString("command_id") != receipt.GetString("command_id") ||
                 !(receipt.Get("result") is GdDict effect) || !IsOperation(effect.GetString("operation"))) return false;
             string op = effect.GetString("operation"), action = command.GetString("action");
             string[] commandKeys = { "command_id", "internal", "action", "station_kind", "recipe_id", "job_id", "reconciliation_id", "decision" };
@@ -177,6 +204,7 @@ namespace SynapticSea.Core.Systems
         }
         static bool ValidateCore(GdDict domain, out string reason)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             reason = "invalid_paid_crafting";
             string mode = domain.GetString("domain_mode");
             if (mode != "craft_only" && mode != "components_and_craft") return false;
@@ -218,8 +246,8 @@ namespace SynapticSea.Core.Systems
                     !(job.Get("quality_score") is double quality) || !Finite(quality) || quality < 0 || quality > 1 ||
                     !(job.Get("quality_multiplier") is double multiplier) || !Finite(multiplier) || multiplier <= 0 || !Integer(job, "start_skill") || !Integer(job, "start_tier") || !(job.Get("start_known") is bool startKnown) || !startKnown) return false;
                 GdDict definition = job.GetDictOrEmpty("recipe_definition");
-                if (definition.GetString("recipe_id") != job.GetString("recipe_id") || Hash(definition) != job.GetString("recipe_hash") ||
-                    !TryRecipeIngredients(definition, out GdDict ingredients) || !Equal(ingredients, job.Get("consumed")) ||
+                if (definition.GetString("recipe_id") != job.GetString("recipe_id") || hashContext.Hash(definition) != job.GetString("recipe_hash") ||
+                    !TryRecipeIngredients(definition, out GdDict ingredients) || !hashContext.Equal(ingredients, job.Get("consumed")) ||
                     job.GetDictOrEmpty("consumed").Values.Any(value => !(value is long quantity) || quantity <= 0) ||
                     !TryPositiveWholeQuantity(definition.GetDictOrEmpty("produces").Get("quantity"), out _) || definition.GetFloat("craft_time_seconds") != duration) return false;
                 if (!Integer(job, "start_level") || !(job.Get("start_powered") is bool) || !(job.Get("material_quality") is double material) || !Finite(material) ||
@@ -228,7 +256,7 @@ namespace SynapticSea.Core.Systems
                 if (qualityResult.GetFloat("score") != quality || qualityResult.GetString("tier") != job.GetString("quality_tier") || qualityResult.GetFloat("multiplier") != multiplier) return false;
                 if (job.GetString("station_kind") == "field_crafting" && (job.GetInt("start_level") != 0 || job.GetBool("start_powered"))) return false;
                 GdDict receipt = receipts.Get(job.GetString("payment_commit_id")) as GdDict;
-                if (receipt == null || !IsPayment(receipt.GetDictOrEmpty("result")) || !Equal(receipt.GetDictOrEmpty("result").Get("payment"), Payment(job))) { reason = "invalid_paid_payment_binding"; return false; }
+                if (receipt == null || !IsPayment(receipt.GetDictOrEmpty("result")) || !hashContext.Equal(receipt.GetDictOrEmpty("result").Get("payment"), Payment(job))) { reason = "invalid_paid_payment_binding"; return false; }
                 GdDict latestStep = receipts.Values.OfType<GdDict>().FirstOrDefault(row => InternalReceipt(row, job.GetString("job_id")));
                 if (progress != (latestStep?.GetDictOrEmpty("result").GetFloat("progress_seconds") ?? 0.0)) { reason = "invalid_paid_progress_binding"; return false; }
                 string completion = job.GetString("completion_commit_id");
@@ -237,7 +265,7 @@ namespace SynapticSea.Core.Systems
                 if (status == "completed_delivered")
                 {
                     GdDict done = receipts.GetDictOrEmpty(completion).GetDictOrEmpty("result");
-                    if (done.GetString("operation") != "craft_complete" || done.GetString("job_id") != job.GetString("job_id") || !Equal(done.Get("output"), definition.Get("produces"))) return false;
+                    if (done.GetString("operation") != "craft_complete" || done.GetString("job_id") != job.GetString("job_id") || !hashContext.Equal(done.Get("output"), definition.Get("produces"))) return false;
                 }
                 else if (receipts.Has(completion)) return false;
                 if (status == "cancelled")
@@ -256,11 +284,11 @@ namespace SynapticSea.Core.Systems
             {
                 if (!(entry.Value is GdDict row) || row.GetString("reconciliation_id") != V.Str(entry.Key) || row.GetString("payment_state") != "unverified" || row.GetString("status") != "paused_unverified" ||
                     !Text(row, "source_id") || !Text(row, "source_hash") || !Text(row, "source_path") || !row.Has("original_record") || !(row.Get("original_context") is GdDict) ||
-                    row.GetString("original_hash") != Hash(row.Get("original_record")) || row.GetString("reconciliation_id") != LegacyId(row.GetString("source_id"), row.GetString("source_hash"), row.GetString("source_path"))) return false;
+                    row.GetString("original_hash") != hashContext.Hash(row.Get("original_record")) || row.GetString("reconciliation_id") != LegacyId(row.GetString("source_id"), row.GetString("source_hash"), row.GetString("source_path"), hashContext)) return false;
                 if (!new[] { "", "keep_paused", "abandoned", "started_fresh" }.Contains(row.GetString("disposition"))) return false;
                 GdDict imported = receipts.GetDictOrEmpty(row.GetString("import_commit_id")).GetDictOrEmpty("result").GetDictOrEmpty("legacy_records").GetDictOrEmpty(entry.Key);
                 foreach (string key in new[] { "original_record", "original_context", "original_hash", "source_id", "source_hash", "source_path", "recipe_id", "station_kind", "import_commit_id" })
-                    if (!Equal(imported.Get(key), row.Get(key))) return false;
+                    if (!hashContext.Equal(imported.Get(key), row.Get(key))) return false;
                 if (row.GetString("decision_commit_id").Length > 0)
                 {
                     GdDict effect = receipts.GetDictOrEmpty(row.GetString("decision_commit_id")).GetDictOrEmpty("result");
@@ -271,7 +299,7 @@ namespace SynapticSea.Core.Systems
                 else if (row.GetString("disposition").Length > 0) return false;
             }
             if (!ReceiptTargets(domain)) { reason = "invalid_paid_receipt_target"; return false; }
-            var rewardContext = new PaidCraftRewardProof.ValidationContext();
+            var rewardContext = new PaidCraftRewardProof.ValidationContext(hashContext);
             if (!PaidCraftRewardProof.ValidateHistory(state, domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("training"), domain, rewardContext)) { reason = "invalid_reward_history"; return false; }
             foreach (GdDict receipt in receipts.Values.OfType<GdDict>())
                 if (receipt.GetDictOrEmpty("result").GetString("operation") == "craft_complete" && !PaidCraftRewardProof.ValidateReward(state, jobs.GetDictOrEmpty(receipt.GetDictOrEmpty("result").GetString("job_id")), receipt.GetDictOrEmpty("result"), rewardContext))
@@ -279,11 +307,12 @@ namespace SynapticSea.Core.Systems
             if (!RunSession.ValidatePaidMirrors(domain.GetDictOrEmpty("participating_state"))) { reason = "paid_projection_mismatch"; return false; }
             reason = "ok"; return true;
         }
-        public static string LegacyId(string source, string hash, string path) => "legacy:" + Hash(GdArray.Of(source, hash, path));
+        public static string LegacyId(string source, string hash, string path, PaidHashContext context = null) => "legacy:" + (context ?? PaidHashContext.Legacy).Hash(GdArray.Of(source, hash, path));
 
         static bool IsPayment(GdDict effect) => effect.GetString("operation") == "craft_start" || effect.GetString("operation") == "craft_legacy_decision" && effect.GetString("decision") == "start_fresh";
         static bool ReceiptTargets(GdDict domain)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             GdDict state = State(domain), jobs = state.GetDictOrEmpty("jobs"), legacy = state.GetDictOrEmpty("legacy");
             foreach (var entry in domain.GetDictOrEmpty("receipts"))
             {
@@ -296,7 +325,7 @@ namespace SynapticSea.Core.Systems
                     GdDict job = jobs.GetDictOrEmpty(effect.GetString("job_id"));
                     if (job.IsEmpty || effect.Has("recipe_id") && effect.GetString("recipe_id") != job.GetString("recipe_id")) return false;
                     if ((action == "start" || action == "enqueue") && (command.GetString("recipe_id") != job.GetString("recipe_id") || command.GetString("station_kind") != job.GetString("station_kind"))) return false;
-                    if (IsPayment(effect) && (job.GetString("input_state") != "paid" || job.GetString("payment_commit_id") != id || !Equal(effect.Get("payment"), Payment(job)))) return false;
+                    if (IsPayment(effect) && (job.GetString("input_state") != "paid" || job.GetString("payment_commit_id") != id || !hashContext.Equal(effect.Get("payment"), Payment(job)))) return false;
                     if (op == "craft_cancel" && (job.GetString("status") != "cancelled" || job.GetString("terminal_commit_id") != id)) return false;
                     if (op == "craft_complete" && (job.GetString("status") != "completed_delivered" || job.GetString("completion_commit_id") != id)) return false;
                     if ((op == "craft_resume" || op == "craft_progress") && job.GetString("input_state") != "paid") return false;
@@ -318,7 +347,7 @@ namespace SynapticSea.Core.Systems
                         GdDict row = legacy.GetDictOrEmpty(imported.Key);
                         if (row.IsEmpty || row.GetString("import_commit_id") != id || original.GetString("source_id") != command.GetString("source_id") || original.GetString("source_hash") != command.GetString("source_hash")) return false;
                         GdDict expected = row.DeepCopy(); expected["disposition"] = ""; expected["decision_commit_id"] = "";
-                        if (!Equal(expected, original)) return false;
+                        if (!hashContext.Equal(expected, original)) return false;
                     }
             }
             return true;
@@ -326,31 +355,33 @@ namespace SynapticSea.Core.Systems
 
         public static bool Conserved(GdDict before, GdDict after, GdDict effect)
         {
+            var hashContext = PaidHashContext.FromOwner(before);
+            if (!PaidHashContext.SameBinding(before,after)) return false;
             string op = effect.GetString("operation"), id = effect.GetString("job_id");
             if (!IsOperation(op) || after.GetInt("revision") != before.GetInt("revision") + 1) return false;
             bool internalStep = (op == "craft_progress" || op == "craft_block") && effect.GetBool("internal");
             int removed = 0;
             foreach (var receipt in before.GetDictOrEmpty("receipts"))
             {
-                if (Equal(receipt.Value, after.GetDictOrEmpty("receipts").Get(receipt.Key))) continue;
+                if (hashContext.Equal(receipt.Value, after.GetDictOrEmpty("receipts").Get(receipt.Key))) continue;
                 if (!internalStep || after.GetDictOrEmpty("receipts").Has(receipt.Key) || !(receipt.Value is GdDict row) || !InternalReceipt(row, id)) return false;
                 removed++;
             }
             int retained = before.GetDictOrEmpty("receipts").Count - removed;
             if (after.GetDictOrEmpty("receipts").Count < retained || after.GetDictOrEmpty("receipts").Count > retained + 1) return false;
             foreach (string key in new[] { "schema_version", "domain_mode", "registry", "holders", "machinery", "physical_slots", "component_work", "registered_owners" })
-                if (!Equal(before.Get(key), after.Get(key))) return false;
+                if (!hashContext.Equal(before.Get(key), after.Get(key))) return false;
             GdDict a = before.GetDictOrEmpty("participating_state"), b = after.GetDictOrEmpty("participating_state"), old = State(before), next = State(after);
-            if (!Equal(old.Get("run_id"), next.Get("run_id")) || !Equal(old.Get("actor_id"), next.Get("actor_id")) ||
+            if (!hashContext.Equal(old.Get("run_id"), next.Get("run_id")) || !hashContext.Equal(old.Get("actor_id"), next.Get("actor_id")) ||
                 after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
-            if (!Equal(a.Get("manual_study"), b.Get("manual_study")) || !Equal(a.Get("auxiliary_services"), b.Get("auxiliary_services"))) return false;
-            if (!Equal(a.Get("stacks"), b.Get("stacks")) || !Equal(old.Get("knowledge"), next.Get("knowledge"))) return false;
+            if (!hashContext.Equal(a.Get("manual_study"), b.Get("manual_study")) || !hashContext.Equal(a.Get("auxiliary_services"), b.Get("auxiliary_services"))) return false;
+            if (!hashContext.Equal(a.Get("stacks"), b.Get("stacks")) || !hashContext.Equal(old.Get("knowledge"), next.Get("knowledge"))) return false;
             GdDict job = next.GetDictOrEmpty("jobs").GetDictOrEmpty(id), prior = old.GetDictOrEmpty("jobs").GetDictOrEmpty(id);
             bool start = op == "craft_start" || op == "craft_legacy_decision" && effect.GetString("decision") == "start_fresh";
             GdDict expectedItems = a.GetDictOrEmpty("inventory").GetDictOrEmpty("items").DeepCopy();
             if (start)
             {
-                if (!prior.IsEmpty && prior.GetString("input_state") != "unpaid" || job.GetString("input_state") != "paid" || job.GetFloat("progress_seconds") != 0 || !Equal(Payment(job), effect.Get("payment"))) return false;
+                if (!prior.IsEmpty && prior.GetString("input_state") != "unpaid" || job.GetString("input_state") != "paid" || job.GetFloat("progress_seconds") != 0 || !hashContext.Equal(Payment(job), effect.Get("payment"))) return false;
                 foreach (var item in job.GetDictOrEmpty("consumed"))
                 {
                     if (!(item.Value is long count) || count <= 0 || expectedItems.GetInt(item.Key) < count) return false;
@@ -362,23 +393,23 @@ namespace SynapticSea.Core.Systems
             {
                 if (prior.IsEmpty || Terminal(prior) || prior.GetBool("resume_required") || prior.GetFloat("progress_seconds") != prior.GetFloat("required_seconds") || job.GetString("status") != "completed_delivered") return false;
                 GdDict output = job.GetDictOrEmpty("recipe_definition").GetDictOrEmpty("produces");
-                if (!Equal(output, effect.Get("output"))) return false;
+                if (!hashContext.Equal(output, effect.Get("output"))) return false;
                 string item = output.GetString("item_id"); long count = output.GetInt("quantity");
                 if (count <= 0 || expectedItems.GetInt(item) > long.MaxValue - count) return false;
                 expectedItems[item] = expectedItems.GetInt(item) + count;
             }
-            if (!Equal(expectedItems, b.GetDictOrEmpty("inventory").Get("items"))) return false;
+            if (!hashContext.Equal(expectedItems, b.GetDictOrEmpty("inventory").Get("items"))) return false;
             var expectedInventory = new InventoryState(); expectedInventory.ApplySummary(a.GetDictOrEmpty("inventory"));
             double equipmentMass = a.GetDictOrEmpty("inventory").GetFloat("total_weight") - expectedInventory.GetTotalWeight();
             expectedInventory.ComponentMass = () => equipmentMass; expectedInventory.Items.Clear();
             foreach (var item in expectedItems) expectedInventory.Items[item.Key] = item.Value;
-            if (!Equal(expectedInventory.GetSummary(), b.Get("inventory"))) return false;
-            if (op != "craft_complete" && (!Equal(a.Get("progression"), b.Get("progression")) || !Equal(a.Get("training"), b.Get("training")))) return false;
-            if (op != "craft_complete" && !Equal(a.Get("spoilage"), b.Get("spoilage"))) return false;
-            if (op == "craft_complete" && !ValidReward(a, b, job, effect)) return false;
-            if (!PaidCraftRewardProof.Conserved(a, b, effect)) return false;
+            if (!hashContext.Equal(expectedInventory.GetSummary(), b.Get("inventory"))) return false;
+            if (op != "craft_complete" && (!hashContext.Equal(a.Get("progression"), b.Get("progression")) || !hashContext.Equal(a.Get("training"), b.Get("training")))) return false;
+            if (op != "craft_complete" && !hashContext.Equal(a.Get("spoilage"), b.Get("spoilage"))) return false;
+            if (op == "craft_complete" && !ValidReward(a, b, job, effect, context: new PaidCraftRewardProof.ValidationContext(hashContext))) return false;
+            if (!PaidCraftRewardProof.Conserved(a, b, effect, hashContext)) return false;
             if (!start && op != "craft_enqueue" && op != "craft_legacy_import" && op != "craft_legacy_decision" && prior.IsEmpty) return false;
-            if (!prior.IsEmpty && prior.GetString("input_state") == "paid" && !Equal(Payment(prior), Payment(job))) return false;
+            if (!prior.IsEmpty && prior.GetString("input_state") == "paid" && !hashContext.Equal(Payment(prior), Payment(job))) return false;
             if (op == "craft_progress" && (Terminal(prior) || prior.GetBool("resume_required") || job.GetFloat("progress_seconds") < prior.GetFloat("progress_seconds"))) return false;
             if (internalStep && effect.GetFloat("progress_seconds") != job.GetFloat("progress_seconds")) return false;
             if (op == "craft_cancel" && (Terminal(prior) || job.GetString("status") != "cancelled")) return false;
@@ -397,7 +428,7 @@ namespace SynapticSea.Core.Systems
                 if (op == "craft_block") { expectedJob["blocked_reason"] = effect.Get("reason"); if (prior.GetString("input_state") == "paid") expectedJob["status"] = "paused"; }
                 if (op == "craft_cancel") { expectedJob["status"] = "cancelled"; expectedJob["resume_required"] = false; expectedJob["blocked_reason"] = "cancelled"; expectedJob["terminal_commit_id"] = job.Get("terminal_commit_id"); }
                 if (op == "craft_complete") { expectedJob["status"] = "completed_delivered"; expectedJob["resume_required"] = false; expectedJob["blocked_reason"] = ""; }
-                if (!Equal(expectedJob, job)) return false;
+                if (!hashContext.Equal(expectedJob, job)) return false;
             }
             foreach (var entry in old.GetDictOrEmpty("jobs"))
             {
@@ -405,22 +436,22 @@ namespace SynapticSea.Core.Systems
                 if (V.Str(entry.Key) == id) continue;
                 var expected = ((GdDict)entry.Value).DeepCopy();
                 if (op == "craft_cancel" && expected.GetString("input_state") == "unpaid" && expected.GetString("channel") == job.GetString("channel")) expected["resume_required"] = true;
-                if (!Equal(expected, next.GetDictOrEmpty("jobs").Get(entry.Key))) return false;
+                if (!hashContext.Equal(expected, next.GetDictOrEmpty("jobs").Get(entry.Key))) return false;
             }
             if (next.GetDictOrEmpty("jobs").Count != old.GetDictOrEmpty("jobs").Count + ((start || op == "craft_enqueue") && prior.IsEmpty ? 1 : 0)) return false;
             GdDict expectedQueues = old.GetDictOrEmpty("queues").DeepCopy();
             if (op == "craft_enqueue") expectedQueues.GetArrayOrEmpty(job.GetString("channel")).Add(id);
             if (start && !prior.IsEmpty) expectedQueues.GetArrayOrEmpty(job.GetString("channel")).Remove(id);
-            if (!Equal(expectedQueues, next.Get("queues"))) return false;
+            if (!hashContext.Equal(expectedQueues, next.Get("queues"))) return false;
             foreach (var entry in old.GetDictOrEmpty("legacy"))
             {
                 GdDict original = (GdDict)entry.Value, changed = next.GetDictOrEmpty("legacy").GetDictOrEmpty(entry.Key);
                 if (op == "craft_legacy_decision" && V.Str(entry.Key) == effect.GetString("reconciliation_id"))
                 {
                     foreach (string key in new[] { "original_record", "original_context", "original_hash", "source_id", "source_hash", "source_path", "reconciliation_id", "status", "payment_state" })
-                        if (!Equal(original.Get(key), changed.Get(key))) return false;
+                        if (!hashContext.Equal(original.Get(key), changed.Get(key))) return false;
                 }
-                else if (!Equal(original, changed)) return false;
+                else if (!hashContext.Equal(original, changed)) return false;
             }
             if (op != "craft_legacy_import" && next.GetDictOrEmpty("legacy").Count != old.GetDictOrEmpty("legacy").Count) return false;
             return true;
@@ -429,9 +460,10 @@ namespace SynapticSea.Core.Systems
         internal static bool ValidReward(GdDict before, GdDict after, GdDict job, GdDict effect, bool checkSpoilage = true, PaidCraftRewardProof.ValidationContext context = null)
         {
             context = context ?? new PaidCraftRewardProof.ValidationContext();
+            var hashContext = context.HashContext;
             GdDict record = effect.Get("training_record") as GdDict;
             GdDict beforeTraining = before.GetDictOrEmpty("training"), afterTraining = after.GetDictOrEmpty("training");
-            if (!PaidCraftRewardProof.ValidAppend(beforeTraining, afterTraining, record, job.GetString("completion_commit_id")) ||
+            if (!PaidCraftRewardProof.ValidAppend(beforeTraining, afterTraining, record, job.GetString("completion_commit_id"), hashContext) ||
                 !new TrainingEventBus().ApplySummary(beforeTraining) || !PaidCraftRewardProof.ExactKeys(afterTraining, "log", "dropped", "xp_total", "event_count") ||
                 !(beforeTraining.Get("dropped") is long dropped) || dropped < 0 || !(beforeTraining.Get("xp_total") is long xp) || xp < 0 ||
                 !(afterTraining.Get("dropped") is long afterDropped) || afterDropped < 0 || !(afterTraining.Get("xp_total") is long afterXp) || afterXp < 0 ||
@@ -448,7 +480,7 @@ namespace SynapticSea.Core.Systems
                 expectedSpoilage.GetDictOrEmpty("foods")[output] = food.GetSummary();
                 expectedSpoilage["rotten_present"] = expectedSpoilage.GetDictOrEmpty("foods").Values.OfType<GdDict>().Any(row => row.GetInt("stage") == (long)FoodState.Stage.ROTTEN);
             }
-            return Equal(expectedSpoilage, newSpoilage);
+            return hashContext.Equal(expectedSpoilage, newSpoilage);
         }
     }
 }

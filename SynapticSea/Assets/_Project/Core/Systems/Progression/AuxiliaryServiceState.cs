@@ -16,29 +16,30 @@ namespace SynapticSea.Core.Systems
             internal GdDict Receipt;
             internal bool Valid;
         }
-        static bool ExactReceipt(object left, object right)
+        static bool ExactReceipt(object left, object right, PaidHashContext context = null)
         {
             if (left == null || right == null) return left == null && right == null;
             if (left.GetType() != right.GetType()) return false;
             if (left is GdDict ld && right is GdDict rd)
             {
                 if (ld.Count != rd.Count) return false;
-                foreach (var row in ld) if (!rd.TryGetValue(row.Key, out object value) || !ExactReceipt(row.Value, value)) return false;
+                foreach (var row in ld) if (!rd.TryGetValue(row.Key, out object value) || !ExactReceipt(row.Value, value, context)) return false;
                 return true;
             }
             if (left is GdArray la && right is GdArray ra)
             {
                 if (la.Count != ra.Count) return false;
-                for (int i = 0; i < la.Count; i++) if (!ExactReceipt(la[i], ra[i])) return false;
+                for (int i = 0; i < la.Count; i++) if (!ExactReceipt(la[i], ra[i], context)) return false;
                 return true;
             }
-            return left.Equals(right);
+            return context == null || ReferenceEquals(context,PaidHashContext.Legacy) ? left.Equals(right) : context.Equal(left,right);
         }
         internal sealed class ValidationContext : IDisposable
         {
             readonly ValidationContext _previous;
             internal readonly Dictionary<string, ReceiptProof> Receipts = new Dictionary<string, ReceiptProof>(StringComparer.Ordinal);
             internal GdDict Domain;
+            internal PaidHashContext HashContext;
             internal GdDict Descriptors;
             internal GdDict InventoryDefinitions;
             internal ValidationContext() { _previous = _validation; _validation = this; }
@@ -93,21 +94,22 @@ namespace SynapticSea.Core.Systems
             if (_validation != null) _validation.Descriptors = descriptors;
             return descriptors;
         }
-        public static GdDict New(string run, string actor, GdDict descriptors)
+        public static GdDict New(string run, string actor, GdDict descriptors, PaidHashContext context = null)
         {
-            if (!Eq(descriptors, TrustedDescriptors()) || descriptors.Count != 6) throw new ArgumentException("aux_source_mismatch");
+            var hashContext = context ?? PaidHashContext.Legacy;
+            if (!hashContext.Equal(descriptors, TrustedDescriptors()) || descriptors.Count != 6) throw new ArgumentException("aux_source_mismatch");
             var services = new GdDict();
             foreach (var pair in descriptors)
             {
                 var d = (GdDict)pair.Value;
-                var row = new GdDict { { "kind", d.GetString("kind") }, { "descriptor_sha256", PaidCraftingState.Hash(d) }, { "hardware_ready", false }, { "completion_commit_id", "" } };
+                var row = new GdDict { { "kind", d.GetString("kind") }, { "descriptor_sha256", hashContext.Hash(d) }, { "hardware_ready", false }, { "completion_commit_id", "" } };
                 if (d.GetString("kind") == "recovery_rack") { row["released"] = false; row["remaining"] = new GdDict(); row["accepted"] = new GdDict(); }
                 services[pair.Key] = row;
             }
-            return new GdDict { { "schema_version", 1L }, { "run_id", run }, { "actor_id", actor }, { "source_sha256", PaidCraftingState.Hash(descriptors) }, { "descriptors", descriptors.DeepCopy() }, { "services", services }, { "job", new GdDict() } };
+            return new GdDict { { "schema_version", 1L }, { "run_id", run }, { "actor_id", actor }, { "source_sha256", hashContext.Hash(descriptors) }, { "descriptors", descriptors.DeepCopy() }, { "services", services }, { "job", new GdDict() } };
         }
         public static bool IsOperation(string op) => new[] { "aux_start", "aux_progress", "aux_pause", "aux_complete", "aux_take" }.Contains(op);
-        internal static string CompletionId(GdDict state, string id) => "auxiliary:complete:" + PaidCraftingState.Hash(GdArray.Of(state.GetString("run_id"), state.GetString("actor_id"), id));
+        internal static string CompletionId(GdDict state, string id, PaidHashContext context = null) => "auxiliary:complete:" + (context ?? PaidHashContext.Legacy).Hash(GdArray.Of(state.GetString("run_id"), state.GetString("actor_id"), id));
         internal static GdDict Latest(GdDict domain, string id, string operation = "") => domain.GetDictOrEmpty("receipts").Values.OfType<GdDict>()
             .Where(r => r.GetDictOrEmpty("result").GetString("service_id") == id && IsOperation(r.GetDictOrEmpty("result").GetString("operation")) && (operation == "" || r.GetDictOrEmpty("result").GetString("operation") == operation))
             .OrderByDescending(r => r.GetInt("revision")).FirstOrDefault() ?? new GdDict();
@@ -119,12 +121,13 @@ namespace SynapticSea.Core.Systems
             var model = new PlayerProgressionState(); model.Configure(definition, PlayerProgressionState.LoadSkillsCatalog(), PlayerProgressionState.LoadBooksCatalog());
             if (!PaidCraftRewardProof.CopyProgressionExact(model, before)) throw new ArgumentException("invalid_aux_progression"); return model;
         }
-        internal static GdDict Apply(GdDict domain, string operation, string id, double delta = 0, double elapsed = 0, double speed = 1, double staminaBefore = 0, double staminaAfter = 0, string reason = "")
+        internal static GdDict Apply(GdDict domain, string operation, string id, double delta = 0, double elapsed = 0, double speed = 1, double staminaBefore = 0, double staminaAfter = 0, string reason = "", string proofTrainingReceipt = null)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             var state = State(domain); var descriptor = state.GetDictOrEmpty("descriptors").GetDictOrEmpty(id);
             if (descriptor.IsEmpty) throw new ArgumentException("unknown_aux_service");
             var p = domain.GetDictOrEmpty("participating_state");
-            var effect = new GdDict { { "operation", operation }, { "reason", reason }, { "service_id", id }, { "descriptor_sha256", PaidCraftingState.Hash(descriptor) },
+            var effect = new GdDict { { "operation", operation }, { "reason", reason }, { "service_id", id }, { "descriptor_sha256", hashContext.Hash(descriptor) },
                 { "job_before", state.GetDictOrEmpty("job").DeepCopy() }, { "service_before", state.GetDictOrEmpty("services").GetDictOrEmpty(id).DeepCopy() },
                 { "inventory_before", p.GetDictOrEmpty("inventory").DeepCopy() }, { "progression_before", p.GetDictOrEmpty("progression").DeepCopy() }, { "training_before", p.GetDictOrEmpty("training").DeepCopy() },
                 { "delta_seconds", delta }, { "elapsed_seconds", elapsed }, { "speed", speed }, { "stamina_before", staminaBefore }, { "stamina_after", staminaAfter },
@@ -150,7 +153,7 @@ namespace SynapticSea.Core.Systems
             else if (operation == "aux_complete")
             {
                 if (job.GetString("service_id") != id || job.GetString("status") != "running" || job.GetBool("resume_required") || job.GetFloat("progress_seconds") != duration || service.GetString("completion_commit_id") != "" || inventory.GetQuantity("crowbar") < 1) throw new ArgumentException("aux_incomplete");
-                string commit = CompletionId(state, id); service["completion_commit_id"] = commit;
+                string commit = CompletionId(state, id, hashContext); service["completion_commit_id"] = commit;
                 job["status"] = "completed";
                 if (descriptor.GetString("kind") == "utility")
                 {
@@ -161,9 +164,9 @@ namespace SynapticSea.Core.Systems
                     TrainingEventBus bus;
                     { bus = new TrainingEventBus(); bus.Configure(); if (!bus.ApplySummary(p.GetDictOrEmpty("training"))) throw new ArgumentException("invalid_aux_training"); }
                     var row = new GdDict { { "event_id", "auxiliary_utility_repair" }, { "target_id", id }, { "skill_id", "repair" }, { "base_xp", 60L }, { "category", "technical" }, { "is_cross_training", false }, { "sequence", bus.GetEventCount() }, { "gated", false } };
-                    bus.RecordApplied(row, commit); effect["training_record"] = bus.GetLog()[bus.GetLog().Count - 1]; p["training"] = bus.ToDict();
+                    bus.RecordApplied(row, proofTrainingReceipt ?? commit); effect["training_record"] = bus.GetLog()[bus.GetLog().Count - 1]; p["training"] = bus.ToDict();
                     ManualStudyState.Intern(domain, effect.GetDictOrEmpty("progression_before")); ManualStudyState.Intern(domain, progression.GetSummary());
-                    PaidCraftRewardProof.RefreshCurrent(PaidCraftingState.State(domain), bus.ToDict());
+                    PaidCraftRewardProof.RefreshCurrent(PaidCraftingState.State(domain), bus.ToDict(), hashContext);
                 }
                 else { service["released"] = true; service["remaining"] = descriptor.GetDictOrEmpty("reward").GetDictOrEmpty("items").DeepCopy(); service["accepted"] = new GdDict { { "scrap_metal", 0L }, { "wiring_bundle", 0L } }; }
             }
@@ -187,33 +190,39 @@ namespace SynapticSea.Core.Systems
         }
         internal static void PruneProgress(GdDict domain, string id)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             foreach (var row in domain.GetDictOrEmpty("receipts").ToArray()) if (row.Value is GdDict receipt && receipt.GetDictOrEmpty("result").GetString("operation") == "aux_progress" && receipt.GetDictOrEmpty("result").GetString("service_id") == id) domain.GetDictOrEmpty("receipts").Erase(row.Key);
         }
         internal static bool ValidReceipt(GdDict domain, GdDict receipt, string key)
         {
+            if(domain.GetInt("schema_version")==7 && AuxiliaryProofOwnerProfile.IsNewReceipt(receipt?.GetDictOrEmpty("result").GetString("operation")))
+                return CheckpointProofAdmission.ValidateReceipt(domain,receipt,key);
+            var hashContext = PaidHashContext.FromOwner(domain);
             // One private immutable admission only. Bind the domain identity, then
             // compare detached exact typed receipt bytes without repeatedly serializing
             // the same large proof. No result survives post-hook/new-domain admission.
-            if (_validation != null && !ReferenceEquals(_validation.Domain, domain))
+            if (_validation != null && (!ReferenceEquals(_validation.Domain, domain) || !ReferenceEquals(_validation.HashContext,hashContext)))
             {
                 _validation.Receipts.Clear();
                 _validation.Domain = domain;
+                _validation.HashContext = hashContext;
             }
-                if (_validation != null && _validation.Receipts.TryGetValue(key, out var admitted) && ExactReceipt(admitted.Receipt, receipt)) return admitted.Valid;
+                if (_validation != null && _validation.Receipts.TryGetValue(key, out var admitted) && ExactReceipt(admitted.Receipt, receipt, hashContext)) return admitted.Valid;
             bool valid = ValidReceiptBody(domain, receipt, key);
             if (_validation != null) _validation.Receipts[key] = new ReceiptProof { Receipt = receipt.DeepCopy(), Valid = valid };
             return valid;
         }
         static bool ValidReceiptBody(GdDict domain, GdDict receipt, string key)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             try
             {
                 if (!Keys(receipt, "schema_version", "transaction_id", "commit_id", "command_id", "command", "command_hash", "revision", "result") || !(receipt.Get("schema_version") is long v) || v != 1 || receipt.GetString("transaction_id") != key || receipt.GetString("commit_id") != key || !(receipt.Get("revision") is long revision) || revision <= 0 || revision > domain.GetInt("revision")) return false;
                 var command = receipt.GetDictOrEmpty("command"); var e = receipt.GetDictOrEmpty("result"); string op = e.GetString("operation"), id = e.GetString("service_id");
-                if (!Keys(command, "command_id", "operation", "run_id", "actor_id", "service_id", "delta_seconds", "elapsed_seconds", "speed", "stamina_before", "stamina_after", "reason") || command.GetString("command_id") != receipt.GetString("command_id") || receipt.GetString("command_hash") != PaidCraftingState.Hash(command) || command.GetString("operation") != op || command.GetString("service_id") != id || command.GetString("run_id") != State(domain).GetString("run_id") || command.GetString("actor_id") != State(domain).GetString("actor_id") || !IsOperation(op)) return false;
-                string expectedId = op == "aux_complete" ? CompletionId(State(domain), id) : "auxiliary:" + command.GetString("command_id"); if (key != expectedId) return false;
+                if (!Keys(command, "command_id", "operation", "run_id", "actor_id", "service_id", "delta_seconds", "elapsed_seconds", "speed", "stamina_before", "stamina_after", "reason") || command.GetString("command_id") != receipt.GetString("command_id") || receipt.GetString("command_hash") != hashContext.Hash(command) || command.GetString("operation") != op || command.GetString("service_id") != id || command.GetString("run_id") != State(domain).GetString("run_id") || command.GetString("actor_id") != State(domain).GetString("actor_id") || !IsOperation(op)) return false;
+                string expectedId = op == "aux_complete" ? CompletionId(State(domain), id, hashContext) : "auxiliary:" + command.GetString("command_id"); if (key != expectedId) return false;
                 if (!Keys(e, "operation", "reason", "service_id", "descriptor_sha256", "job_before", "service_before", "inventory_before", "progression_before", "training_before", "delta_seconds", "elapsed_seconds", "speed", "stamina_before", "stamina_after", "origin_receipt_id", "work_receipt_id", "eligible_steps", "accepted", "training_record", "job_after", "service_after", "inventory_after", "progression_after", "training_after")) return false;
-                foreach (string field in new[] { "delta_seconds", "elapsed_seconds", "speed", "stamina_before", "stamina_after" }) if (!Finite(e.Get(field), out _) || !Eq(e.Get(field), command.Get(field))) return false;
+                foreach (string field in new[] { "delta_seconds", "elapsed_seconds", "speed", "stamina_before", "stamina_after" }) if (!Finite(e.Get(field), out _) || !hashContext.Equal(e.Get(field), command.Get(field))) return false;
                 // Reconstruct the complete effect without copying unrelated historical receipts.
                 // Apply only reads descriptors/receipts (Origin/Latest); all targets it writes below
                 // are fresh. The caller's immutable admission copy is never mutated.
@@ -224,18 +233,20 @@ namespace SynapticSea.Core.Systems
                 var p = new GdDict { { "auxiliary_services", proofState },
                     { "paid_crafting", new GdDict { { "reward_history", PaidCraftRewardProof.NewHistory() } } } };
                 foreach (string field in new[] { "inventory", "progression", "training" }) p[field] = e.GetDictOrEmpty(field + "_before").DeepCopy();
-                var proof = new GdDict { { "participating_state", p }, { "receipts", domain.Get("receipts") } };
+                var proof = new GdDict { { "schema_version", domain.Get("schema_version") }, { "participating_state", p }, { "receipts", domain.Get("receipts") } };
+                if (domain.GetInt("schema_version") == 6 || domain.GetInt("schema_version") == 7)
+                { proof["feature_schema"] = domain.Get("feature_schema"); proof["hash_algorithm"] = domain.Get("hash_algorithm"); if(domain.GetInt("schema_version")==7)proof["auxiliary_proof_format"]=1L; }
                 GdDict computed;
                 { computed = Apply(proof, op, id, command.GetFloat("delta_seconds"), command.GetFloat("elapsed_seconds"), command.GetFloat("speed"), command.GetFloat("stamina_before"), command.GetFloat("stamina_after"), command.GetString("reason")); }
                 // The cumulative count is validated against the retained origin and current proof below.
                 computed["origin_receipt_id"] = e.Get("origin_receipt_id"); computed["eligible_steps"] = e.Get("eligible_steps"); computed["work_receipt_id"] = e.Get("work_receipt_id");
-                { if (!Eq(computed, e)) return false; }
+                { if (!hashContext.Equal(computed, e)) return false; }
                 if (op == "aux_complete" || op == "aux_take")
                 {
                     var prior = domain.GetDictOrEmpty("receipts").GetDictOrEmpty(e.GetString("work_receipt_id")); var priorEffect = prior.GetDictOrEmpty("result");
                     if (prior.IsEmpty || prior.GetInt("revision") >= revision || priorEffect.GetString("service_id") != id) return false;
-                    if (op == "aux_complete" && (!new[] { "aux_start", "aux_progress" }.Contains(priorEffect.GetString("operation")) || !Eq(priorEffect.Get("job_after"), e.Get("job_before")))) return false;
-                    if (op == "aux_take" && (!new[] { "aux_complete", "aux_take" }.Contains(priorEffect.GetString("operation")) || !Eq(priorEffect.Get("service_after"), e.Get("service_before")))) return false;
+                    if (op == "aux_complete" && (!new[] { "aux_start", "aux_progress" }.Contains(priorEffect.GetString("operation")) || !hashContext.Equal(priorEffect.Get("job_after"), e.Get("job_before")))) return false;
+                    if (op == "aux_take" && (!new[] { "aux_complete", "aux_take" }.Contains(priorEffect.GetString("operation")) || !hashContext.Equal(priorEffect.Get("service_after"), e.Get("service_before")))) return false;
                 }
                 if (op == "aux_progress" || op == "aux_complete")
                 {
@@ -248,46 +259,55 @@ namespace SynapticSea.Core.Systems
         }
         internal static bool Conserved(GdDict before, GdDict after, GdDict effect)
         {
+            var hashContext = PaidHashContext.FromOwner(before);
+            if (!PaidHashContext.SameBinding(before,after)) return false;
             try
             {
-                if (before.GetInt("schema_version") != 5 || after.GetInt("schema_version") != 5 || after.GetInt("revision") != before.GetInt("revision") + 1 || after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
+                if (PaidHashContext.FeatureSchema(before) != 5 || PaidHashContext.FeatureSchema(after) != 5 || after.GetInt("revision") != before.GetInt("revision") + 1 || after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
                 var expected = before.DeepCopy(); var computed = Apply(expected, effect.GetString("operation"), effect.GetString("service_id"), effect.GetFloat("delta_seconds"), effect.GetFloat("elapsed_seconds"), effect.GetFloat("speed"), effect.GetFloat("stamina_before"), effect.GetFloat("stamina_after"), effect.GetString("reason"));
-                if (!Eq(computed, effect)) return false;
-                foreach (string key in new[] { "participating_state", "registry", "holders", "machinery", "physical_slots", "component_work", "registered_owners", "domain_mode" }) if (!Eq(expected.Get(key), after.Get(key))) return false;
+                if (!hashContext.Equal(computed, effect)) return false;
+                foreach (string key in new[] { "participating_state", "registry", "holders", "machinery", "physical_slots", "component_work", "registered_owners", "domain_mode" }) if (!hashContext.Equal(expected.Get(key), after.Get(key))) return false;
                 return true;
             }
             catch (ArgumentException) { return false; }
         }
         internal static bool Validate(GdDict domain, out string reason)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             reason = "invalid_auxiliary_services";
             try
             {
                 var s = State(domain); var p = domain.GetDictOrEmpty("participating_state"); var paid = PaidCraftingState.State(domain);
-                if (!Keys(s, "schema_version", "run_id", "actor_id", "source_sha256", "descriptors", "services", "job") || !(s.Get("schema_version") is long v) || v != 1 || s.GetString("run_id") != paid.GetString("run_id") || s.GetString("actor_id") != paid.GetString("actor_id") || !Eq(s.Get("descriptors"), TrustedDescriptors()) || s.GetString("source_sha256") != PaidCraftingState.Hash(s.Get("descriptors"))) return false;
+                if (!Keys(s, "schema_version", "run_id", "actor_id", "source_sha256", "descriptors", "services", "job") || !(s.Get("schema_version") is long v) || v != 1 || s.GetString("run_id") != paid.GetString("run_id") || s.GetString("actor_id") != paid.GetString("actor_id") || !hashContext.Equal(s.Get("descriptors"), TrustedDescriptors()) || s.GetString("source_sha256") != hashContext.Hash(s.Get("descriptors"))) return false;
                 GdDict services = s.GetDictOrEmpty("services"), descriptors = s.GetDictOrEmpty("descriptors"); if (services.Count != descriptors.Count) return false;
                 foreach (var pair in descriptors)
                 {
                     string id = V.Str(pair.Key); var d = (GdDict)pair.Value; var row = services.GetDictOrEmpty(id); bool rack = d.GetString("kind") == "recovery_rack";
-                    if (!Keys(row, rack ? new[] { "kind", "descriptor_sha256", "hardware_ready", "completion_commit_id", "released", "remaining", "accepted" } : new[] { "kind", "descriptor_sha256", "hardware_ready", "completion_commit_id" }) || row.GetString("kind") != d.GetString("kind") || row.GetString("descriptor_sha256") != PaidCraftingState.Hash(d) || !(row.Get("hardware_ready") is bool)) return false;
+                    if (!Keys(row, rack ? new[] { "kind", "descriptor_sha256", "hardware_ready", "completion_commit_id", "released", "remaining", "accepted" } : new[] { "kind", "descriptor_sha256", "hardware_ready", "completion_commit_id" }) || row.GetString("kind") != d.GetString("kind") || row.GetString("descriptor_sha256") != hashContext.Hash(d) || !(row.Get("hardware_ready") is bool)) return false;
                     string commit = row.GetString("completion_commit_id");
                     if (commit == "") { if (row.GetBool("hardware_ready") || rack && (row.GetBool("released") || !row.GetDictOrEmpty("remaining").IsEmpty || !row.GetDictOrEmpty("accepted").IsEmpty)) return false; }
                     else
                     {
-                        var receipt = domain.GetDictOrEmpty("receipts").GetDictOrEmpty(commit); if (!ValidReceipt(domain, receipt, commit) || receipt.GetDictOrEmpty("result").GetString("operation") != "aux_complete" || receipt.GetDictOrEmpty("result").GetString("service_id") != id || commit != CompletionId(s, id)) return false;
+                        var receipt = domain.GetDictOrEmpty("receipts").GetDictOrEmpty(commit);
+                        string receiptId=commit;
+                        if(domain.GetInt("schema_version")==7 && receipt.IsEmpty)
+                        { receipt=CheckpointProofAdmission.CompletionReceipt(domain,id,commit);receiptId=receipt.GetString("commit_id"); }
+                        string completionOperation=receipt.GetDictOrEmpty("result").GetString("operation");
+                        if (!ValidReceipt(domain, receipt, receiptId) || !(completionOperation=="aux_complete" || domain.GetInt("schema_version")==7 && completionOperation=="aux_proof_complete_v1") || receipt.GetDictOrEmpty("result").GetString("service_id") != id || commit != CompletionId(s, id, hashContext)) return false;
+                        if(domain.GetInt("schema_version")==7 && completionOperation=="aux_proof_complete_v1" && domain.GetDictOrEmpty("receipts").Has(commit))return false;
                         if (!rack && !row.GetBool("hardware_ready") || rack && (!row.GetBool("released") || row.GetBool("hardware_ready"))) return false;
                         if (rack) foreach (var item in d.GetDictOrEmpty("reward").GetDictOrEmpty("items")) if (!(row.GetDictOrEmpty("remaining").Get(item.Key) is long n) || !(row.GetDictOrEmpty("accepted").Get(item.Key) is long a) || n < 0 || a < 0 || n + a != V.I64(item.Value)) return false;
-                        var latest = Latest(domain, id, "aux_take"); if (rack && !Eq(row, latest.IsEmpty ? receipt.GetDictOrEmpty("result").Get("service_after") : latest.GetDictOrEmpty("result").Get("service_after"))) return false;
+                        var latest = domain.GetInt("schema_version")==7 ? domain.GetDictOrEmpty("receipts").Values.OfType<GdDict>().Where(r=>r.GetDictOrEmpty("result").GetString("service_id")==id && (r.GetDictOrEmpty("result").GetString("operation")=="aux_take" || r.GetDictOrEmpty("result").GetString("operation")=="aux_proof_take_v1")).OrderByDescending(r=>r.GetInt("revision")).FirstOrDefault() ?? new GdDict() : Latest(domain, id, "aux_take"); if (rack && !hashContext.Equal(row, latest.IsEmpty ? receipt.GetDictOrEmpty("result").Get("service_after") : latest.GetDictOrEmpty("result").Get("service_after"))) return false;
                     }
                 }
-                foreach (var pair in domain.GetDictOrEmpty("receipts")) if (pair.Value is GdDict receipt && IsOperation(receipt.GetDictOrEmpty("result").GetString("operation")) && !ValidReceipt(domain, receipt, V.Str(pair.Key))) return false;
+                foreach (var pair in domain.GetDictOrEmpty("receipts")) if (pair.Value is GdDict receipt && (IsOperation(receipt.GetDictOrEmpty("result").GetString("operation")) || domain.GetInt("schema_version")==7 && AuxiliaryProofOwnerProfile.IsNewReceipt(receipt.GetDictOrEmpty("result").GetString("operation"))) && !ValidReceipt(domain, receipt, V.Str(pair.Key))) return false;
                 var job = s.GetDictOrEmpty("job");
                 if (!job.IsEmpty)
                 {
                     if (!Keys(job, "service_id", "progress_seconds", "eligible_seconds", "status", "resume_required", "reason") || !descriptors.Has(job.GetString("service_id")) || !Finite(job.Get("progress_seconds"), out double progress) || !Finite(job.Get("eligible_seconds"), out double elapsed) || progress < 0 || elapsed < progress || progress > descriptors.GetDictOrEmpty(job.GetString("service_id")).GetFloat("required_seconds") || !(job.Get("resume_required") is bool) || !(job.Get("reason") is string) || !new[] { "running", "paused", "completed" }.Contains(job.GetString("status"))) return false;
-                    var latest = domain.GetDictOrEmpty("receipts").Values.OfType<GdDict>().Where(r => r.GetDictOrEmpty("result").GetString("service_id") == job.GetString("service_id") && IsOperation(r.GetDictOrEmpty("result").GetString("operation")) && r.GetDictOrEmpty("result").GetString("operation") != "aux_take").OrderByDescending(r => r.GetInt("revision")).FirstOrDefault();
+                    var latest = domain.GetDictOrEmpty("receipts").Values.OfType<GdDict>().Where(r => r.GetDictOrEmpty("result").GetString("service_id") == job.GetString("service_id") && (IsOperation(r.GetDictOrEmpty("result").GetString("operation")) || domain.GetInt("schema_version")==7 && AuxiliaryProofOwnerProfile.IsNewReceipt(r.GetDictOrEmpty("result").GetString("operation"))) && r.GetDictOrEmpty("result").GetString("operation") != "aux_take" && r.GetDictOrEmpty("result").GetString("operation") != "aux_proof_take_v1").OrderByDescending(r => r.GetInt("revision")).FirstOrDefault();
                     if (latest == null) return false; var expected = latest.GetDictOrEmpty("result").GetDictOrEmpty("job_after").DeepCopy();
-                    if (!Eq(expected, job)) { if (expected.GetString("status") == "completed") return false; expected["status"] = "paused"; expected["resume_required"] = true; expected["reason"] = "explicit_resume_required"; if (!Eq(expected, job)) return false; }
+                    if (!hashContext.Equal(expected, job)) { if (expected.GetString("status") == "completed") return false; expected["status"] = "paused"; expected["resume_required"] = true; expected["reason"] = "explicit_resume_required"; if (!hashContext.Equal(expected, job)) return false; }
                 }
                 else if (domain.GetDictOrEmpty("receipts").Values.OfType<GdDict>().Any(r => IsOperation(r.GetDictOrEmpty("result").GetString("operation")))) return false;
                 reason = "ok"; return true;

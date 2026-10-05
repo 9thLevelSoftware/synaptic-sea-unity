@@ -102,11 +102,35 @@ namespace SynapticSea.Core.Services
     /// </summary>
     public static class CoreServices
     {
-        public static IClock Clock { get; set; } = new SystemClock();
-        public static ILog Log { get; set; } = NullLog.Instance;
-        public static IResourceReader Resources { get; set; }
-        public static IStorage UserStorage { get; set; } = new MemoryStorage();
-        public static IEngineInfo Engine { get; set; } = new FixedEngineInfo("unity-port");
+        static IClock _clock = new SystemClock();
+        public static IClock Clock
+        {
+            get { PinnedAdmissionResourceScope.RefusePort("Clock"); return _clock; }
+            set { PinnedAdmissionResourceScope.RefusePort("Clock"); _clock = value; }
+        }
+        static ILog _log = NullLog.Instance;
+        public static ILog Log
+        {
+            get { PinnedAdmissionResourceScope.RefusePort("Log"); return _log; }
+            set { PinnedAdmissionResourceScope.RefusePort("Log"); _log = value; }
+        }
+        public static IResourceReader Resources
+        {
+            get => PinnedAdmissionResourceScope.ReaderOrNull ?? ResourceAuthorityPublication.Reader;
+            set { PinnedAdmissionResourceScope.RefusePort("Resources.set"); ResourceAuthorityPublication.ReplaceReader(value); }
+        }
+        static IStorage _userStorage = new MemoryStorage();
+        public static IStorage UserStorage
+        {
+            get { PinnedAdmissionResourceScope.RefusePort("UserStorage"); return _userStorage; }
+            set { PinnedAdmissionResourceScope.RefusePort("UserStorage"); _userStorage = value; }
+        }
+        static IEngineInfo _engine = new FixedEngineInfo("unity-port");
+        public static IEngineInfo Engine
+        {
+            get { PinnedAdmissionResourceScope.RefusePort("Engine"); return _engine; }
+            set { PinnedAdmissionResourceScope.RefusePort("Engine"); _engine = value; }
+        }
 
         /// <summary>
         /// Godot <c>ProjectSettings application/config/version</c> (stamped into cloud manifests as <c>build_id</c>). The
@@ -114,8 +138,8 @@ namespace SynapticSea.Core.Services
         /// </summary>
         public static string ProjectVersion
         {
-            get => Systems.InfraCompat.ProjectVersion;
-            set => Systems.InfraCompat.ProjectVersion = value ?? "";
+            get { PinnedAdmissionResourceScope.RefusePort("ProjectVersion"); return Systems.InfraCompat.ProjectVersion; }
+            set { PinnedAdmissionResourceScope.RefusePort("ProjectVersion"); Systems.InfraCompat.ProjectVersion = value ?? ""; }
         }
     }
 }

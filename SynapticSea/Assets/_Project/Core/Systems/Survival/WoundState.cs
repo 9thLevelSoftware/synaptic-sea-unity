@@ -54,6 +54,17 @@ namespace SynapticSea.Core.Systems
             _nextId = 1;
         }
 
+        // Diagnostic exact scratch data only; never installs/restores a live model.
+        internal long ReadContinuousNextId() => _nextId;
+        internal void InstallContinuousNextId(long nextId) => _nextId = nextId;
+        internal static WoundState CreateContinuousExactScratch(long nextId, GdArray ownedRows)
+        {
+            var scratch = new WoundState();
+            scratch._nextId = nextId;
+            scratch.Wounds = ownedRows.DeepCopy();
+            return scratch;
+        }
+
         public long WoundCount() => Wounds.Count;
 
         public long ActiveCount()

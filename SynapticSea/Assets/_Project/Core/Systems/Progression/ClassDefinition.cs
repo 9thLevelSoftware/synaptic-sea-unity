@@ -41,8 +41,11 @@ namespace SynapticSea.Core.Systems
         /// <summary>Returns { class_id -> ClassDefinition } (insertion-ordered; never removed from). Empty on a malformed file.</summary>
         public static Dictionary<string, ClassDefinition> LoadAll(string path = DefaultClassesPath)
         {
+            return ParseAll(CatalogRegistry.Load(path));
+        }
+        internal static Dictionary<string, ClassDefinition> ParseAll(object parsed)
+        {
             var output = new Dictionary<string, ClassDefinition>();
-            object parsed = CatalogRegistry.Load(path);
             if (!(parsed is GdDict root)) return output;
             object classesVariant = root.Get("classes", new GdArray());
             if (!(classesVariant is GdArray classes)) return output;

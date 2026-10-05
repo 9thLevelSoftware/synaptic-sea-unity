@@ -23,11 +23,22 @@ namespace SynapticSea.Core.Session
             return BuildCore(s, useHomeArcSummary, false);
         }
 
+        internal static RunSnapshot BuildContinuousCut(RunSession s, RunSession.ContinuousSafeEndTick ticket, SaveLoadService.ContinuousCommitParent metadata, bool useHomeArcSummary = false)
+        {
+            if (metadata == null) throw new System.InvalidOperationException("continuous_capture_metadata_required");
+            s.RequireContinuousClosedCut(ticket);
+            RunSnapshot snapshot = BuildCore(s, useHomeArcSummary, false, false, metadata);
+            if (snapshot != null && s.CurrentShip?.MarkerId.Length > 0 && snapshot.VisitedShips.Has(s.CurrentShip.MarkerId))
+                snapshot.VisitedShips[s.CurrentShip.MarkerId] = s.DetachedCurrentShipSummaryForContinuousCut(ticket);
+            s.RequireContinuousClosedCut(ticket);
+            return snapshot;
+        }
+
         // Diagnostic observation only: no synchronization and no save admission for a terminal run.
         internal static RunSnapshot ObserveTerminalHome(RunSession s, bool useHomeArcSummary = false)
             => BuildCore(s, useHomeArcSummary, false, true);
 
-        static RunSnapshot BuildCore(RunSession s, bool useHomeArcSummary, bool synchronize, bool observeTerminal = false)
+        static RunSnapshot BuildCore(RunSession s, bool useHomeArcSummary, bool synchronize, bool observeTerminal = false, SaveLoadService.ContinuousCommitParent metadata = null)
         {
             if (synchronize && s.ComponentGenerationRestoreInProgress) return null;
             if (!s.PlayableStarted || s.SliceComplete && !observeTerminal)
@@ -186,8 +197,8 @@ namespace SynapticSea.Core.Session
             if (s.SynapticSeaWorld != null)
                 snapshot.WorldSeed = s.SynapticSeaWorld.WorldSeed;
             snapshot.SliceVersion = SaveLoadService.CURRENT_SLICE_VERSION;
-            snapshot.GodotVersion = s.Deps.Engine.VersionString;
-            snapshot.SavedAt = s.Clock.DateTimeString(true);
+            snapshot.GodotVersion = metadata != null ? metadata.GodotVersion : s.Deps.Engine.VersionString;
+            snapshot.SavedAt = metadata != null ? metadata.SavedAt : s.Clock.DateTimeString(true);
             return snapshot;
         }
 

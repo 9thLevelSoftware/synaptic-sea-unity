@@ -41,6 +41,25 @@ namespace SynapticSea.Core.Session
             _paidInitializing = true;
             try
             {
+                if (_componentDomain == null && BitExactPaidCompatibilityEnabled && Deps.SelectedSaveGeneration == null)
+                {
+                    long feature = AuxiliaryServicesEnabled ? 5L : ManualStudyEnabled ? 4L : 3L;
+                    var initial = new GdDict { { "schema_version", 6L }, { "feature_schema", feature },
+                        { "hash_algorithm", PaidHashContext.BitsV2.Algorithm }, { "domain_mode", ComponentIntegrationEnabled ? "components_and_craft" : "craft_only" },
+                        { "revision", 0L }, { "registry", new GdDict { { "schema_version", 1L }, { "instances", new GdDict() } } },
+                        { "holders", new GdDict() }, { "machinery", new GdDict() }, { "receipts", new GdDict() },
+                        { "physical_slots", new GdDict() }, { "component_work", new GdDict() }, { "command_sequence", 0L }, { "registered_owners", new GdArray() },
+                        { "participating_state", ReadComponentParticipants(NewPaidState(), PaidHashContext.BitsV2) } };
+                    if (ComponentIntegrationEnabled)
+                    {
+                        initial.GetDictOrEmpty("holders")[ComponentPlayerHolder] = NewHolder(ComponentPlayerHolder, "player", PLAYER_LOCAL_ID);
+                        foreach (ShipInstance ship in AllKnownShips()) RegisterComponentShip(initial, ship);
+                    }
+                    if (feature >= 4) initial.GetDictOrEmpty("participating_state")["manual_study"] = ManualStudyState.New(RunId, PLAYER_LOCAL_ID);
+                    if (feature == 5) initial.GetDictOrEmpty("participating_state")["auxiliary_services"] = AuxiliaryServiceState.New(RunId, PLAYER_LOCAL_ID, AuxiliaryDescriptors(Loader), PaidHashContext.BitsV2);
+                    SetPaidProjections(initial); _componentDomain = NewComponentOwner(initial);
+                    if (feature == 5) BuildAuxiliaryServicePoints();
+                }
                 if (ComponentIntegrationEnabled && _componentDomain == null) InitializeComponentIntegration();
                 if (_componentDomain == null)
                 {
@@ -102,11 +121,15 @@ namespace SynapticSea.Core.Session
                 return ComponentIntegrationEnabled ? "diagnostic_component_crafting_unavailable" : "component_crafting_unavailable";
             return "";
         }
+        bool BitExactPaidTopologyMatches(long feature)
+            => BitExactPaidCompatibilityEnabled && feature == (AuxiliaryServicesEnabled ? 5L : ManualStudyEnabled ? 4L : 3L);
+
         bool EnsurePaidOwner()
         {
             if (ComponentGenerationRestoreInProgress || !PaidCraftingEnabled) return false;
-            if (_componentDomain == null || !PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) || ManualStudyEnabled && _componentDomain.SchemaVersion == 3) InitializePaidCrafting();
-            return _componentDomain != null && PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) && (_componentDomain.SchemaVersion != 4 || ManualStudyEnabled) && (_componentDomain.SchemaVersion != 5 || AuxiliaryServicesEnabled);
+            if (_componentDomain?.SchemaVersion == 6 && !BitExactPaidTopologyMatches(CurrentPaidFeatureSchema)) return false;
+            if (_componentDomain == null || !(PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) || _componentDomain.SchemaVersion == 7 && Deps.EnableContinuousAuxiliaryDiagnostic && BitExactPaidCompatibilityEnabled) || ManualStudyEnabled && _componentDomain.SchemaVersion == 3) InitializePaidCrafting();
+            return _componentDomain != null && PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) && (CurrentPaidFeatureSchema != 4 || ManualStudyEnabled) && (CurrentPaidFeatureSchema != 5 || AuxiliaryServicesEnabled);
         }
         public GdDict CapturePaidCraftingDomain()
         {
@@ -115,7 +138,7 @@ namespace SynapticSea.Core.Session
             if (!DomainPublicationInProgress) RefreshComponentParticipants();
             return _componentDomain.GetSummary();
         }
-        GdDict ReadPaidParticipants(GdDict participants, GdDict detachedPaidState = null)
+        GdDict ReadPaidParticipants(GdDict participants, GdDict detachedPaidState = null, PaidHashContext hashContext = null)
         {
             if (!PaidCraftingEnabled) return participants;
             // A capture caller may supply its already-owned candidate state. Other callers (including
@@ -127,14 +150,14 @@ namespace SynapticSea.Core.Session
             foreach (var book in PlayerProgression.BooksRead)
                 if (book.Value is bool read && read && PlayerProgression.GetBooksCatalog().Has(book.Key)) knowledge.LearnFromBook(V.Str(book.Key), recipes);
             state["knowledge"] = knowledge.GetSummary();
-            PaidCraftRewardProof.RefreshCurrent(state, participants.GetDictOrEmpty("training"));
+            PaidCraftRewardProof.RefreshCurrent(state, participants.GetDictOrEmpty("training"), hashContext ?? CurrentPaidHashContext);
             participants["paid_crafting"] = state;
             participants["crafting"] = PaidProjection(state, false);
             participants["field_crafting"] = new GdDict { { "field_crafting", PaidProjection(state, true) } };
             participants["spoilage"] = SpoilageState?.GetSummary() ?? new GdDict();
-            if (ManualStudyEnabled && (_componentDomain?.SchemaVersion == 4 || _componentDomain?.SchemaVersion == 5))
+            if (ManualStudyEnabled && (CurrentPaidFeatureSchema == 4 || CurrentPaidFeatureSchema == 5))
                 participants["manual_study"] = ManualStudyState.State(_componentDomain.GetSummary()).DeepCopy();
-            if (AuxiliaryServicesEnabled && _componentDomain?.SchemaVersion == 5) participants["auxiliary_services"] = AuxiliaryServiceState.State(_componentDomain.GetSummary()).DeepCopy();
+            if (AuxiliaryServicesEnabled && CurrentPaidFeatureSchema == 5) participants["auxiliary_services"] = AuxiliaryServiceState.State(_componentDomain.GetSummary()).DeepCopy();
             return participants;
         }
         GdDict PaidProjection(GdDict state, bool field)
@@ -171,7 +194,7 @@ namespace SynapticSea.Core.Session
         void SetPaidProjections(GdDict domain)
         {
             GdDict participants = domain.GetDictOrEmpty("participating_state"), state = PaidState(domain);
-            PaidCraftRewardProof.RefreshCurrent(state, participants.GetDictOrEmpty("training"));
+            PaidCraftRewardProof.RefreshCurrent(state, participants.GetDictOrEmpty("training"), OwnerHashContext(domain));
             participants["crafting"] = PaidProjection(state, false);
             participants["field_crafting"] = new GdDict { { "field_crafting", PaidProjection(state, true) } };
         }
@@ -221,7 +244,7 @@ namespace SynapticSea.Core.Session
                 { "payment_receipt", domain.GetDictOrEmpty("receipts").GetDictOrEmpty(job?.GetString("payment_commit_id") ?? "").DeepCopy() } };
         }
         string Gate(GdDict domain, string kind, string recipe, string phase, GdDict job = null)
-            => new RecipeGateService().Evaluate(recipe, phase, GateContext(domain, kind, recipe, job)).GetString("reason");
+            => new RecipeGateService().Evaluate(recipe, phase, GateContext(domain, kind, recipe, job), OwnerHashContext(domain)).GetString("reason");
         string PaidAvailability(string kind, string recipe)
         {
             if (!EnsurePaidOwner()) return "paid_crafting_inactive";
@@ -243,8 +266,8 @@ namespace SynapticSea.Core.Session
         void ValidateFinalPaidPublication(GdDict before)
         {
             if (ComponentTerminalPending || SliceComplete || !PlayableStarted || VitalsState?.IsIncapacitated() == true ||
-                !V.VariantEquals(before.Get("participating_state"), ReadComponentParticipants()) ||
-                !V.VariantEquals(_paidPublicationContext, PaidContextFingerprint())) throw new InvalidOperationException("stale_context");
+                !PaidEqual(OwnerHashContext(before), before.Get("participating_state"), ReadComponentParticipants()) ||
+                !PaidEqual(OwnerHashContext(before), _paidPublicationContext, PaidContextFingerprint())) throw new InvalidOperationException("stale_context");
             _studyPublicationGate?.Invoke(); _auxPublicationGate?.Invoke();
             if (_paidRewardContext && (!ReferenceEquals(_paidRewardFilter, TrainingEventBus.EventFilter) || !ReferenceEquals(_paidRewardGate, TrainingEventBus.SkillGate))) throw new InvalidOperationException("stale_training_policy");
             if (_paidMaterialInputs != null)
@@ -262,7 +285,7 @@ namespace SynapticSea.Core.Session
             if (!command.GetBool("internal") && command.GetString("command_id").StartsWith(PaidCraftingState.InternalCommandPrefix, StringComparison.Ordinal)) return PaidFailure("reserved_command_id");
             foreach (GdDict receipt in domain.GetDictOrEmpty("receipts").Values.OfType<GdDict>())
                 if (receipt.GetString("command_id") == command.GetString("command_id"))
-                    return receipt.GetString("command_hash") == PaidCraftingState.Hash(command) ? _componentDomain.Commit(receipt.GetString("commit_id")) : PaidFailure("command_collision");
+                    return receipt.GetString("command_hash") == OwnerHashContext(domain).Hash(command) ? _componentDomain.Commit(receipt.GetString("commit_id")) : PaidFailure("command_collision");
             return null;
         }
         GdDict ExecutePaid(GdDict command, Func<GdDict, GdDict> effect)
@@ -305,7 +328,7 @@ namespace SynapticSea.Core.Session
             foreach (object ingredient in ingredients.Keys) _paidMaterialInputs[ingredient] = MaterialState.GetQuality(V.Str(ingredient));
             GdDict quality = new QualityTierResolver().Resolve(material, skill, level, station?.Powered ?? false);
             job["input_state"] = "paid"; job["status"] = station == null || station.Powered ? "running" : "paused";
-            job["recipe_definition"] = recipe; job["recipe_hash"] = PaidCraftingState.Hash(recipe); job["consumed"] = ingredients;
+            job["recipe_definition"] = recipe; job["recipe_hash"] = OwnerHashContext(candidate).Hash(recipe); job["consumed"] = ingredients;
             job["start_skill"] = skill; job["start_level"] = level; job["start_tier"] = station?.EffectiveTier() ?? 0L; job["start_known"] = true; job["start_powered"] = station?.Powered ?? false;
             job["material_quality"] = material; job["quality_score"] = quality.Get("score"); job["quality_tier"] = quality.Get("tier"); job["quality_multiplier"] = quality.Get("multiplier");
             job["required_seconds"] = recipe.GetFloat("craft_time_seconds"); job["progress_seconds"] = 0.0; job["payment_commit_id"] = commitId;
@@ -464,7 +487,7 @@ namespace SynapticSea.Core.Session
             else effect["training_record"] = null;
             effect["progression_after"] = participants.GetDictOrEmpty("progression").DeepCopy();
             effect["training_after"] = participants.GetDictOrEmpty("training").DeepCopy();
-            PaidCraftRewardProof.Compact(PaidState(candidate), effect);
+            PaidCraftRewardProof.Compact(PaidState(candidate), effect, OwnerHashContext(candidate));
         }
         GdDict DeliverPaid(string jobId, GdDict suppliedCommand)
         {
@@ -525,13 +548,20 @@ namespace SynapticSea.Core.Session
             return ValidatePaidCraftingRestoreInContext(summary, CurrentPaidRestoreContext(), out reason);
         }
 
-        bool ValidatePaidCraftingRestoreInContext(GdDict summary, PaidRestoreContext context, out string reason)
+        bool ValidatePaidCraftingRestoreInContext(GdDict summary, PaidRestoreContext context, out string reason, CheckpointProofAdmission.Result admitted = null)
         {
             reason = "paid_crafting_inactive";
             if (!PaidCraftingEnabled) return false;
-            if (!DomainBundle.TryCreate(summary, out _, out reason) || !PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")) || summary.GetInt("schema_version") == 4 && !ManualStudyEnabled || summary.GetInt("schema_version") == 5 && !AuxiliaryServicesEnabled) return false;
+            if (summary?.GetInt("schema_version") == 6 && !BitExactPaidCompatibilityEnabled) { reason = "bit_exact_paid_capability_required"; return false; }
+            bool continuous = MatchesAdmittedContinuousOwner(summary, admitted);
+            if (summary?.GetInt("schema_version") == 7 && (!continuous || !Deps.EnableContinuousAuxiliaryDiagnostic || !BitExactPaidCompatibilityEnabled))
+            { reason = "typed_continuous_admission_required"; return false; }
+            if (!continuous && (!DomainBundle.TryCreate(summary, out _, out reason) || !PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")))) return false;
+            if ((summary.GetInt("schema_version") == 6 || continuous) && !BitExactPaidTopologyMatches(PaidFeatureSchema(summary)))
+            { reason = "bit_exact_paid_feature_mismatch"; return false; }
+            if (PaidFeatureSchema(summary) == 4 && !ManualStudyEnabled || PaidFeatureSchema(summary) == 5 && !AuxiliaryServicesEnabled) return false;
             if (summary.GetString("domain_mode") != (ComponentIntegrationEnabled ? "components_and_craft" : "craft_only")) { reason = "domain_mode_mismatch"; return false; }
-            if (ComponentIntegrationEnabled && !ValidateComponentDomainRestore(summary, out reason)) return false;
+            if (ComponentIntegrationEnabled && !ValidateComponentDomainRestore(summary, admitted, out reason)) return false;
             GdDict state = PaidState(summary), participants = summary.GetDictOrEmpty("participating_state");
             if (context == null || state.GetString("run_id") != context.RunId || state.GetString("actor_id") != PLAYER_LOCAL_ID) { reason = "paid_owner_mismatch"; return false; }
             foreach (GdDict job in state.GetDictOrEmpty("jobs").Values.OfType<GdDict>())
@@ -540,10 +570,10 @@ namespace SynapticSea.Core.Session
                 if (job.GetString("station_id") != context.StationId(kind) || job.GetString("station_owner_id") != context.StationOwner(kind) ||
                     job.GetString("inventory_owner_id") != "player:" + PLAYER_LOCAL_ID || !context.StationExists(kind)) { reason = "paid_station_owner_mismatch"; return false; }
                 if (!PaidCraftingState.Terminal(job) && (!context.Crafting.HasRecipe(recipe) || context.Crafting.GetStationKind(recipe) != kind ||
-                    job.GetString("input_state") == "paid" && PaidCraftingState.Hash(context.Crafting.GetRecipe(recipe)) != job.GetString("recipe_hash")))
+                    job.GetString("input_state") == "paid" && OwnerHashContext(summary).Hash(context.Crafting.GetRecipe(recipe)) != job.GetString("recipe_hash")))
                 { reason = "recipe_definition_mismatch"; return false; }
             }
-            if (!ValidatePaidMirrors(participants)) { reason = "paid_projection_mismatch"; return false; }
+            if (!ValidatePaidMirrors(participants, OwnerHashContext(summary))) { reason = "paid_projection_mismatch"; return false; }
             foreach (var entry in participants.GetDictOrEmpty("inventory").GetDictOrEmpty("items"))
                 if (!(entry.Key is string) || !(entry.Value is long amount) || amount <= 0) { reason = "invalid_paid_inventory"; return false; }
             var training = new TrainingEventBus(); training.Configure();
@@ -552,12 +582,12 @@ namespace SynapticSea.Core.Session
             try
             {
                 var exact = new SpoilageState(); RestoreExactSpoilage(exact, spoilage);
-                if (!V.VariantEquals(spoilage, exact.GetSummary())) { reason = "invalid_paid_spoilage"; return false; }
+                if (!PaidEqual(OwnerHashContext(summary), spoilage, exact.GetSummary())) { reason = "invalid_paid_spoilage"; return false; }
             }
             catch { reason = "invalid_paid_spoilage"; return false; }
             reason = "ok"; return true;
         }
-        internal static bool ValidatePaidMirrors(GdDict participants)
+        internal static bool ValidatePaidMirrors(GdDict participants, PaidHashContext hashContext = null)
         {
             GdDict state = participants.GetDictOrEmpty("paid_crafting");
             foreach (string channel in new[] { "station", "field" })
@@ -568,10 +598,10 @@ namespace SynapticSea.Core.Session
                 if (job == null) { if (!active.IsEmpty) return false; }
                 else
                 {
-                    foreach (string key in new[] { "recipe_id", "station_kind", "quality_score", "quality_tier", "quality_multiplier" }) if (!V.VariantEquals(job.Get(key), active.Get(key))) return false;
+                    foreach (string key in new[] { "recipe_id", "station_kind", "quality_score", "quality_tier", "quality_multiplier" }) if (!PaidEqual(hashContext, job.Get(key), active.Get(key))) return false;
                     GdDict station = summary.GetDictOrEmpty("station_summaries").GetDictOrEmpty(job.GetString("station_kind"));
-                    if (station.GetString("active_recipe_id") != job.GetString("recipe_id") || !V.VariantEquals(station.Get("progress_seconds"), job.Get("progress_seconds")) ||
-                        !V.VariantEquals(station.Get("required_seconds"), job.Get("required_seconds"))) return false;
+                    if (station.GetString("active_recipe_id") != job.GetString("recipe_id") || !PaidEqual(hashContext, station.Get("progress_seconds"), job.Get("progress_seconds")) ||
+                        !PaidEqual(hashContext, station.Get("required_seconds"), job.Get("required_seconds"))) return false;
                     long status = job.GetString("status") == "completed_pending_delivery" ? 3L : job.GetBool("resume_required") || job.GetString("status") == "paused" ? 2L : 1L;
                     if (station.GetInt("status") != status || station.GetBool("resume_required") != job.GetBool("resume_required")) return false;
                 }
@@ -582,7 +612,7 @@ namespace SynapticSea.Core.Session
                     var expectedQueue = new GdArray();
                     foreach (object id in state.GetDictOrEmpty("queues").GetArrayOrEmpty(channel))
                     { GdDict queued = state.GetDictOrEmpty("jobs").GetDictOrEmpty(id); if (queued.GetString("station_kind") == V.Str(entry.Key)) expectedQueue.Add(queued.Get("recipe_id")); }
-                    if (!(entry.Value is GdDict station) || !V.VariantEquals(expectedQueue, station.Get("queue"))) return false;
+                    if (!(entry.Value is GdDict station) || !PaidEqual(hashContext, expectedQueue, station.Get("queue"))) return false;
                     if ((job == null || job.GetString("station_kind") != V.Str(entry.Key)) && station.GetString("active_recipe_id").Length != 0) return false;
                 }
             }
@@ -633,7 +663,7 @@ namespace SynapticSea.Core.Session
 
         GdDict LegacyImportCommand(GdDict domain, GdDict stationSummary, GdDict fieldSummary, string sourceId, string sourceHash)
         {
-            GdDict command = CraftCommand(domain, "legacy_import", "legacy-import:" + PaidCraftingState.Hash(GdArray.Of(sourceId, sourceHash)));
+            GdDict command = CraftCommand(domain, "legacy_import", "legacy-import:" + OwnerHashContext(domain).Hash(GdArray.Of(sourceId, sourceHash)));
             command["source_id"] = sourceId; command["source_hash"] = sourceHash;
             command["station_summary"] = stationSummary.DeepCopy(); command["field_summary"] = fieldSummary.DeepCopy();
             return command;
@@ -645,10 +675,10 @@ namespace SynapticSea.Core.Session
             GdDict added = new GdDict();
             void Add(object original, GdDict station, string kind, string path, string channel)
             {
-                string id = PaidCraftingState.LegacyId(source, hash, path);
+                string id = PaidCraftingState.LegacyId(source, hash, path, OwnerHashContext(candidate));
                 string recipe = original is GdDict row ? row.GetString("recipe_id", row.GetString("active_recipe_id")) : V.Str(original);
                 var record = new GdDict { { "reconciliation_id", id }, { "source_id", source }, { "source_hash", hash }, { "source_path", path },
-                    { "original_record", V.DeepCopy(original) }, { "original_hash", PaidCraftingState.Hash(original) },
+                    { "original_record", V.DeepCopy(original) }, { "original_hash", OwnerHashContext(candidate).Hash(original) },
                     { "original_context", new GdDict { { "station_summary", station.DeepCopy() }, { "station_kind", kind }, { "channel", channel } } },
                     { "recipe_id", recipe }, { "station_kind", kind }, { "payment_state", "unverified" }, { "status", "paused_unverified" },
                     { "disposition", "" }, { "decision_commit_id", "" }, { "import_commit_id", commit } };

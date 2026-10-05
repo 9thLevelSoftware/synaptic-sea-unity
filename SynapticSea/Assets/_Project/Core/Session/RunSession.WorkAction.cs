@@ -119,6 +119,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_refresh_work_action_hud()</c> -> <see cref="SessionEvents.WorkActionHudState"/>.</summary>
         internal void RefreshWorkActionHud()
         {
+            if(ContinuousAuxiliaryRuntimeActive){RefreshContinuousAuxiliaryHud();return;}
             if (AuxiliaryWorkRunning) { RefreshAuxiliaryHud(); return; }
             if (WorkActionDriver == null)
                 return;
@@ -181,6 +182,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public bool BeginWorkHold()
         {
+            if(ContinuousAuxiliaryRuntimeActive)return BeginContinuousWorkHoldIntent();
             if (ComponentGenerationRestoreInProgress) return false;
             if (AuxiliaryWorkRunning) { _workHoldInput = true; return true; }
             if (ManualStudyEnabled && GetManualStudyState().GetDictOrEmpty("job").GetString("status") == "paused")
@@ -204,6 +206,7 @@ namespace SynapticSea.Core.Session
         /// <summary>The input layer calls this on interact release: in hold mode progress pauses until the next hold.</summary>
         public void EndWorkHold()
         {
+            if(ContinuousAuxiliaryRuntimeActive){if(HoldToWorkEnabled)PauseContinuousAuxiliaryIntent("released");_workHoldInput=false;return;}
             if (ComponentGenerationRestoreInProgress) return;
             if (AuxiliaryWorkRunning && HoldToWorkEnabled) PauseAuxiliaryService("released");
             if (ManualStudyRunning) PauseManualStudy("released");
@@ -213,6 +216,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Cancels the in-progress work action (interrupt; progress is lost). False when nothing was in progress.</summary>
         public bool CancelWorkAction()
         {
+            if(ContinuousAuxiliaryRuntimeActive){bool had=ContinuousAuxiliaryWorkRunning;PauseContinuousAuxiliaryIntent("cancelled");return had;}
             if (ComponentGenerationRestoreInProgress) return false;
             if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
             { PauseComponentWork("cancelled"); RefreshWorkActionHud(); return true; }
@@ -1233,6 +1237,7 @@ namespace SynapticSea.Core.Session
 
         void InterruptWorkOnDamage(string reason="damage")
         {
+            if(ContinuousAuxiliaryRuntimeActive){PauseContinuousAuxiliaryIntent(reason);return;}
             if (AuxiliaryWorkRunning) { PauseAuxiliaryService(reason); return; }
             if (ManualStudyRunning) { PauseManualStudy(reason); return; }
             if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")

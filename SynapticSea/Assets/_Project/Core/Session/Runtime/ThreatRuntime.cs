@@ -242,7 +242,7 @@ namespace SynapticSea.Core.Session
         static Vec3 ThreatPos(ThreatAIState threat) =>
             new Vec3(V.F64(threat.WorldPosition[0]), V.F64(threat.WorldPosition[1]), V.F64(threat.WorldPosition[2]));
 
-        public void TickThreats(double delta, VitalsState vitalsState, StatusEffectsState statusEffectsState, GdDict playerArmorProfile, Vec3 playerPosition)
+        public void TickThreats(double delta, IDamageVitalsTarget vitalsState, StatusEffectsState statusEffectsState, GdDict playerArmorProfile, Vec3 playerPosition)
         {
             _weaponCooldown = Math.Max(0.0, _weaponCooldown - Math.Max(0.0, delta));
             DetectionState.UpdateInputs(PlayerNoiseValue, PlayerLightValue, PlayerSightValue, PlayerCrouchingValue, PlayerRoomIdValue);

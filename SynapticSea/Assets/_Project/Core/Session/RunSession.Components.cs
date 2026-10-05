@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SynapticSea.Core.Procgen;
+using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 
@@ -30,6 +31,8 @@ namespace SynapticSea.Core.Session
         internal void InitializeComponentIntegration()
         {
             if (!ComponentIntegrationEnabled || ComponentGenerationRestoreInProgress || HomeShip == null || ComponentCatalog == null) return;
+            if (_componentDomain == null && BitExactPaidCompatibilityEnabled && PaidCraftingEnabled)
+            { InitializePaidCrafting(); BindComponentReadViews(); ProjectComponentPlacement(_componentDomain.GetSummary()); return; }
             if (_componentDomain == null)
             {
                 var initial = new GdDict { { "schema_version", 2L }, { "revision", 0L },
@@ -80,8 +83,24 @@ namespace SynapticSea.Core.Session
         {
             reason = "invalid_component_physical_layout";
             if (domain == null || layout == null || string.IsNullOrWhiteSpace(owner) ||
-                !(domain.Get("schema_version") is long schema) || (schema != 2 && schema != 3 && schema != 4 && schema != 5) ||
+                !(domain.Get("schema_version") is long schema) || (schema != 2 && schema != 3 && schema != 4 && schema != 5 && schema != 6) ||
                 !domain.GetArrayOrEmpty("registered_owners").Contains(owner)) return false;
+            return ValidateComponentPhysicalLayoutBody(domain,owner,layout,out reason);
+        }
+        // Only a private-issued globally admitted result may cross the schema7 boundary.
+        internal static bool ValidateComponentPhysicalLayout(CheckpointProofAdmission.Result admitted,GdDict domain,string owner,GdDict layout,out string reason)
+        {
+            reason="invalid_admitted_component_physical_layout";
+            if(admitted==null||!admitted.Lease.IsCurrent||domain==null||domain.GetInt("schema_version")!=7||layout==null||string.IsNullOrWhiteSpace(owner)||
+                !domain.GetArrayOrEmpty("registered_owners").Contains(owner)||!PaidHashContext.BitsV2.Equal(admitted.CopyOwner(),domain))return false;
+            using(new PinnedAdmissionResourceScope(admitted.Lease))
+                if(!ValidateComponentPhysicalLayoutBody(domain,owner,layout,out reason))return false;
+            if(!admitted.Lease.IsCurrent){reason="resource_epoch_changed";return false;}
+            return true;
+        }
+        static bool ValidateComponentPhysicalLayoutBody(GdDict domain,string owner,GdDict layout,out string reason)
+        {
+            reason="invalid_component_physical_layout";
             var catalog = new ComponentCatalog();
             if (!catalog.LoadDefault()) { reason = "component_content_missing"; return false; }
             if (!TryDescribeComponentPhysicalLayout(owner, layout, catalog, out GdDict expected)) return false;
@@ -239,12 +258,12 @@ namespace SynapticSea.Core.Session
             if (_componentDomain == null || _componentMutating) return;
             GdDict before = _componentDomain.GetSummary(), candidate = before.DeepCopy();
             foreach (ShipInstance ship in AllKnownShips()) RegisterComponentShip(candidate, ship);
-            if (V.VariantEquals(before, candidate)) return;
+            if (PaidEqual(OwnerHashContext(before), before, candidate)) return;
             candidate["revision"] = checked(before.GetInt("revision") + 1);
             if (!_componentDomain.ApplySummary(candidate)) throw new InvalidOperationException("component_owner_registration_failed");
         }
 
-        GdDict ReadComponentParticipants(GdDict detachedPaidState = null)
+        GdDict ReadComponentParticipants(GdDict detachedPaidState = null, PaidHashContext hashContext = null)
         {
             var stacks = new GdDict();
             foreach (ShipInstance ship in AllKnownShips())
@@ -256,7 +275,7 @@ namespace SynapticSea.Core.Session
                 { "progression", PlayerProgression?.GetSummary() ?? new GdDict() }, { "training", TrainingEventBus?.ToDict() ?? new GdDict() },
                 { "crafting", CraftingState?.GetSummary() ?? new GdDict() }, { "field_crafting", FieldCraftingState?.GetSummary() ?? new GdDict() },
                 { "stacks", stacks } };
-            return PaidCraftingEnabled ? ReadPaidParticipants(participants, detachedPaidState) : participants;
+            return PaidCraftingEnabled ? ReadPaidParticipants(participants, detachedPaidState, hashContext ?? CurrentPaidHashContext) : participants;
         }
 
         void RefreshComponentParticipants()
@@ -264,7 +283,7 @@ namespace SynapticSea.Core.Session
             if (ComponentGenerationRestoreInProgress || _componentMutating || _componentPublishing || _componentDomain == null) return;
             RegisterNewComponentOwners();
             GdDict before = _componentDomain.GetSummary(), candidate = before.DeepCopy();
-            candidate["participating_state"] = ReadComponentParticipants(PaidCraftingEnabled ? PaidState(candidate) : null);
+            candidate["participating_state"] = ReadComponentParticipants(PaidCraftingEnabled ? PaidState(candidate) : null, OwnerHashContext(candidate));
             foreach (ShipInstance ship in AllKnownShips())
             {
                 RefreshComponentCapacity(candidate, CargoHolder(ship.ShipId), ship.GetInventory().MaxWeight);
@@ -275,7 +294,7 @@ namespace SynapticSea.Core.Session
                 ShipSubcomponent sub = FindShipById(machine.GetString("owner_id"))?.SystemsManager?.GetSystem(machine.GetString("system_id"))?.GetSubcomponent(machine.GetString("subcomponent_id"));
                 if (sub != null) machine["health"] = sub.Health;
             }
-            if (V.VariantEquals(before, candidate)) return;
+            if (PaidEqual(OwnerHashContext(before), before, candidate)) return;
             candidate["revision"] = checked(before.GetInt("revision") + 1);
             if (!_componentDomain.ApplySummary(candidate)) throw new InvalidOperationException("component_capture_invalid");
             if (PaidCraftingEnabled && RecipeKnowledge != null) RecipeKnowledge.ApplySummary(PaidState(candidate).GetDictOrEmpty("knowledge"));
@@ -303,10 +322,14 @@ namespace SynapticSea.Core.Session
         }
 
         public bool ValidateComponentDomainRestore(GdDict summary, out string reason)
+            => ValidateComponentDomainRestore(summary, null, out reason);
+        bool ValidateComponentDomainRestore(GdDict summary, CheckpointProofAdmission.Result admitted, out string reason)
         {
             reason = "component_integration_inactive";
-            if (!ComponentIntegrationEnabled || summary?.GetInt("schema_version") == 4 && !ManualStudyEnabled || summary?.GetInt("schema_version") == 5 && !AuxiliaryServicesEnabled) return false;
-            if (!DomainBundle.TryCreate(summary, out _, out reason) || (summary.GetInt("schema_version") != 2 && !(PaidCraftingEnabled && PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")) && summary.GetString("domain_mode") == "components_and_craft"))) return false;
+            if (!ComponentIntegrationEnabled || summary != null && PaidFeatureSchema(summary) == 4 && !ManualStudyEnabled || summary != null && PaidFeatureSchema(summary) == 5 && !AuxiliaryServicesEnabled) return false;
+            bool continuous = MatchesAdmittedContinuousOwner(summary, admitted);
+            if (summary?.GetInt("schema_version") == 7 && !continuous) { reason = "typed_continuous_admission_required"; return false; }
+            if ((!continuous && !DomainBundle.TryCreate(summary, out _, out reason)) || (summary.GetInt("schema_version") != 2 && !(PaidCraftingEnabled && (continuous || PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version"))) && summary.GetString("domain_mode") == "components_and_craft"))) return false;
             foreach (GdDict row in Instances(summary).Values.OfType<GdDict>())
             {
                 if (row.GetString("condition_state") != "known") { reason = "legacy_resolution_required"; return false; }
@@ -879,7 +902,7 @@ namespace SynapticSea.Core.Session
                 if (_paidRestoreOperation != null) ValidateFinalPaidRestore(candidate);
                 else if (_componentMutating && _paidPublicationContext != null) ValidateFinalPaidPublication(before);
                 else if (_componentMutating) ValidateFinalComponentPublication(before, candidate);
-                else if (!V.VariantEquals(beforeParticipants, ReadComponentParticipants())) throw new InvalidOperationException("stale_context");
+                else if (!PaidEqual(OwnerHashContext(before), beforeParticipants, ReadComponentParticipants())) throw new InvalidOperationException("stale_context");
                 foreach (var pair in beforeMachines) if (pair.Key.Health != pair.Value) throw new InvalidOperationException("stale_context");
                 // No hooks, notifications, gate/filter or resource calls between these assignments and coordinator publication.
                 writing = true;
@@ -931,7 +954,7 @@ namespace SynapticSea.Core.Session
                 if (gate == "ok") gate = ComponentCapacity(before, destination, Instances(before).GetDictOrEmpty(effect.GetString("instance_id")));
             }
             if (ComponentTerminalPending) throw new InvalidOperationException("terminal_pending");
-            if (gate != "ok" || position != PlayerPos || !V.VariantEquals(before.Get("participating_state"), ReadComponentParticipants()))
+            if (gate != "ok" || position != PlayerPos || !PaidEqual(OwnerHashContext(before), before.Get("participating_state"), ReadComponentParticipants()))
                 throw new InvalidOperationException("stale_context");
             foreach (GdDict machine in before.GetDictOrEmpty("machinery").Values.OfType<GdDict>())
             {

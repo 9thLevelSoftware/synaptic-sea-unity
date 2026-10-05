@@ -174,6 +174,34 @@ namespace SynapticSea.Core.Systems
         double ComputeFieldDrainMultiplier() =>
             SummaryDrainMult(_inventorySummary) * SummaryDrainMult(_equipmentSummary);
 
+        // Diagnostic exact-source readset only; cache dictionaries never escape.
+        internal void ReadContinuousDrainCacheMultipliers(out double inventory,out double equipment)
+        {inventory=SummaryDrainMult(_inventorySummary);equipment=SummaryDrainMult(_equipmentSummary);}
+
+        // Prepared backing data only: caller must supply separately authenticated producer/readset guards.
+        internal sealed class ContinuousDrainCacheBacking
+        {
+            internal readonly double InventoryMultiplier, EquipmentMultiplier;
+            readonly GdDict _inventory, _equipment;
+            internal ContinuousDrainCacheBacking(double inventory, double equipment)
+            {
+                if(double.IsNaN(inventory)||double.IsInfinity(inventory)||double.IsNaN(equipment)||double.IsInfinity(equipment))
+                    throw new ArgumentException("continuous_oxygen_cache_nonfinite");
+                InventoryMultiplier=inventory;EquipmentMultiplier=equipment;
+                _inventory=new GdDict{{"drain_multiplier",inventory}};
+                _equipment=new GdDict{{"drain_multiplier",equipment}};
+            }
+            internal void InstallOn(OxygenState target)
+            {target._inventorySummary=_inventory;target._equipmentSummary=_equipment;}
+        }
+        internal static ContinuousDrainCacheBacking PrepareContinuousDrainCaches(double inventory,double equipment)
+            => new ContinuousDrainCacheBacking(inventory,equipment);
+        internal void InstallContinuousDrainCaches(ContinuousDrainCacheBacking prepared)
+        {
+            // Two backing swaps, no allocation/callback. This internal seam grants no transition authority.
+            prepared.InstallOn(this);
+        }
+
         static double SummaryDrainMult(GdDict summary)
         {
             object value = summary.Get("drain_multiplier", 1.0);

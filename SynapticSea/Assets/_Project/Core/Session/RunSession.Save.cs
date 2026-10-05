@@ -21,6 +21,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public long EndRun(string reason = "extraction")
         {
+            RetireContinuousSourceAuthority("terminal:"+reason);
             if (ComponentGenerationRestoreInProgress)
             {
                 if (reason != "death") return 0;
@@ -658,6 +659,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         void ResetRuntimeForReload()
         {
+            RetireContinuousSourceAuthority("restore");
             _woundRollCounter = 0;
             if (AwayFromStart)
             {

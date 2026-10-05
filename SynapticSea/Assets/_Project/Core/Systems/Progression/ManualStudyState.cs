@@ -12,7 +12,6 @@ namespace SynapticSea.Core.Systems
         public static GdDict State(GdDict domain) => domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("manual_study");
         public static GdDict New(string run, string actor) => new GdDict { { "schema_version", 1L }, { "run_id", run }, { "actor_id", actor }, { "job", new GdDict() }, { "completed", new GdDict() } };
         public static bool IsOperation(string op) => new[] { "study_start", "study_progress", "study_pause", "study_complete" }.Contains(op);
-        static bool Eq(object a, object b) => V.VariantEquals(a, b);
         static bool Text(GdDict d, string k) => d.Get(k) is string s && !string.IsNullOrWhiteSpace(s);
         static bool Finite(object o, out double value) { value = o is double d ? d : double.NaN; return !double.IsNaN(value) && !double.IsInfinity(value); }
         static bool Keys(GdDict d, params string[] k) => PaidCraftRewardProof.ExactKeys(d, k);
@@ -36,13 +35,15 @@ namespace SynapticSea.Core.Systems
             => PaidCraftRewardProof.History(PaidCraftingState.State(domain)).GetDictOrEmpty("progression_nodes").GetDictOrEmpty(hash).GetDictOrEmpty("summary");
         internal static string Intern(GdDict domain, GdDict summary)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             var node = new GdDict { { "schema_version", 1L }, { "summary", summary.DeepCopy() } };
-            string hash = PaidCraftingState.Hash(node);
+            string hash = hashContext.Hash(node);
             PaidCraftRewardProof.History(PaidCraftingState.State(domain)).GetDictOrEmpty("progression_nodes")[hash] = node;
             return hash;
         }
         internal static GdDict Reward(GdDict domain, string book, string commit)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             GdDict p = domain.GetDictOrEmpty("participating_state"), before = p.GetDictOrEmpty("progression");
             GdDict jobBefore = State(domain).GetDictOrEmpty("job").DeepCopy();
             if (jobBefore.GetString("book_id") != book || jobBefore.GetString("status") != "running" || jobBefore.GetBool("resume_required") || jobBefore.GetFloat("progress_seconds") != RequiredSeconds || p.GetDictOrEmpty("inventory").GetDictOrEmpty("items").GetInt(book) < 1) throw new ArgumentException("study_incomplete");
@@ -75,27 +76,28 @@ namespace SynapticSea.Core.Systems
                 { "job_before", jobBefore }, { "job_after", jobAfter }, { "inventory_before", p.GetDictOrEmpty("inventory").DeepCopy() }, { "inventory_after", p.GetDictOrEmpty("inventory").DeepCopy() }, { "progress_receipt_id", progressReceipt } };
             p["progression"] = progression.GetSummary(); p["training"] = log.ToDict();
             PaidCraftingState.State(domain)["knowledge"] = knowledge.GetSummary();
-            PaidCraftRewardProof.RefreshCurrent(PaidCraftingState.State(domain), log.ToDict());
+            PaidCraftRewardProof.RefreshCurrent(PaidCraftingState.State(domain), log.ToDict(), hashContext);
             return effect;
         }
         internal static bool ValidReward(GdDict domain, GdDict effect, string commit)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             if (!Keys(effect, "operation", "reason", "book_id", "progression_before_hash", "progression_after_hash", "knowledge_before", "knowledge_after", "book_definition", "training_before", "training_after", "training_record", "job_before", "job_after", "inventory_before", "inventory_after", "progress_receipt_id") ||
                 effect.GetString("operation") != "study_complete" || effect.GetString("reason") != "studied") return false;
             string book = effect.GetString("book_id");
             GdDict jobBefore = effect.GetDictOrEmpty("job_before"), jobAfter = effect.GetDictOrEmpty("job_after"), expectedJob = jobBefore.DeepCopy(); expectedJob["status"] = "completed";
             GdDict progressReceipt = domain.GetDictOrEmpty("receipts").GetDictOrEmpty(effect.GetString("progress_receipt_id"));
             if (!ValidJob(jobBefore) || jobBefore.IsEmpty || jobBefore.GetString("book_id") != book || jobBefore.GetString("status") != "running" || jobBefore.GetBool("resume_required") || jobBefore.GetFloat("progress_seconds") != RequiredSeconds ||
-                !Eq(expectedJob, jobAfter) || !Eq(effect.Get("inventory_before"), effect.Get("inventory_after")) || effect.GetDictOrEmpty("inventory_before").GetDictOrEmpty("items").GetInt(book) < 1 ||
-                !ValidReceipt(domain, progressReceipt, effect.GetString("progress_receipt_id")) || progressReceipt.GetDictOrEmpty("result").GetString("operation") != "study_progress" || !Eq(progressReceipt.GetDictOrEmpty("result").Get("job_after"), jobBefore)) return false;
+                !hashContext.Equal(expectedJob, jobAfter) || !hashContext.Equal(effect.Get("inventory_before"), effect.Get("inventory_after")) || effect.GetDictOrEmpty("inventory_before").GetDictOrEmpty("items").GetInt(book) < 1 ||
+                !ValidReceipt(domain, progressReceipt, effect.GetString("progress_receipt_id")) || progressReceipt.GetDictOrEmpty("result").GetString("operation") != "study_progress" || !hashContext.Equal(progressReceipt.GetDictOrEmpty("result").Get("job_after"), jobBefore)) return false;
             GdDict before = Progression(domain, effect.GetString("progression_before_hash")), after = Progression(domain, effect.GetString("progression_after_hash"));
             if (!PaidCraftRewardProof.ValidProgression(before) || !PaidCraftRewardProof.ValidProgression(after)) return false;
             var classes = ClassDefinition.LoadAll(); if (!classes.TryGetValue(before.GetString("class_id"), out ClassDefinition definition)) return false;
             var progression = new PlayerProgressionState(); progression.Configure(definition, PlayerProgressionState.LoadSkillsCatalog(), PlayerProgressionState.LoadBooksCatalog());
             if (!PaidCraftRewardProof.CopyProgressionExact(progression, before) || progression.HasReadBook(book) ||
-                !Eq(progression.GetBooksCatalog().Get(book), effect.Get("book_definition")) || !progression.GrantXpFromBook(book) || !Eq(progression.GetSummary(), after)) return false;
+                !hashContext.Equal(progression.GetBooksCatalog().Get(book), effect.Get("book_definition")) || !progression.GrantXpFromBook(book) || !hashContext.Equal(progression.GetSummary(), after)) return false;
             var knowledge = new RecipeKnowledgeState(); knowledge.ApplySummary(effect.GetDictOrEmpty("knowledge_before")); knowledge.LearnFromBook(book, Recipes());
-            if (!Eq(knowledge.GetSummary(), effect.Get("knowledge_after"))) return false;
+            if (!hashContext.Equal(knowledge.GetSummary(), effect.Get("knowledge_after"))) return false;
             var log = new TrainingEventBus(); log.Configure(); if (!log.ApplySummary(effect.GetDictOrEmpty("training_before"))) return false;
             GdDict expected = null, bookDefinition = progression.GetBooksCatalog().GetDictOrEmpty(book);
             if (bookDefinition.GetInt("book_xp") > 0)
@@ -105,20 +107,21 @@ namespace SynapticSea.Core.Systems
                     { "is_cross_training", false }, { "sequence", log.GetEventCount() }, { "gated", false } };
                 log.RecordApplied(expected, commit); expected = (GdDict)log.GetLog()[log.GetLog().Count - 1];
             }
-            return Eq(expected, effect.Get("training_record")) && Eq(log.ToDict(), effect.Get("training_after"));
+            return hashContext.Equal(expected, effect.Get("training_record")) && hashContext.Equal(log.ToDict(), effect.Get("training_after"));
         }
         internal static bool ValidReceipt(GdDict domain, GdDict receipt, string id)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             if (!Keys(receipt, "schema_version", "transaction_id", "commit_id", "command_id", "command", "command_hash", "revision", "result") || !PaidCraftRewardProof.Version(receipt) ||
                 receipt.GetString("commit_id") != id || receipt.GetString("transaction_id") != id || !Text(receipt, "command_id") || !(receipt.Get("revision") is long rev) || rev <= 0 || rev > domain.GetInt("revision")) return false;
             GdDict c = receipt.GetDictOrEmpty("command"), e = receipt.GetDictOrEmpty("result"), s = State(domain);
             if (!Keys(c, "command_id", "action", "run_id", "actor_id", "book_id", "delta_seconds", "reason") ||
-                c.GetString("command_id") != receipt.GetString("command_id") || PaidCraftingState.Hash(c) != receipt.GetString("command_hash") ||
+                c.GetString("command_id") != receipt.GetString("command_id") || hashContext.Hash(c) != receipt.GetString("command_hash") ||
                 c.GetString("run_id") != s.GetString("run_id") || c.GetString("actor_id") != s.GetString("actor_id") || !Text(c, "book_id") ||
                 !Finite(c.Get("delta_seconds"), out double delta) || !(c.Get("reason") is string) || e.GetString("book_id") != c.GetString("book_id")) return false;
             string op = e.GetString("operation"), action = c.GetString("action");
             if (op != "study_" + action || !IsOperation(op)) return false;
-            if (op == "study_complete") return id == CompletionId(s, c.GetString("book_id")) && delta == 0 && ValidReward(domain, e, id);
+            if (op == "study_complete") return id == CompletionId(s, c.GetString("book_id"), hashContext) && delta == 0 && ValidReward(domain, e, id);
             string[] effectKeys = action == "progress"
                 ? new[] { "operation", "reason", "book_id", "job_before", "job_after", "origin_receipt_id", "eligible_steps" }
                 : new[] { "operation", "reason", "book_id", "job_before", "job_after" };
@@ -134,7 +137,7 @@ namespace SynapticSea.Core.Systems
                     origin.GetDictOrEmpty("result").GetDictOrEmpty("job_after").GetFloat("progress_seconds") != 0) return false;
                 return delta > 0 && delta <= RequiredSeconds && a.GetString("status") == "running" && !a.GetBool("resume_required") &&
                 b.GetFloat("progress_seconds") == Math.Min(RequiredSeconds, a.GetFloat("progress_seconds") + delta) &&
-                Eq(a.Get("book_id"), b.Get("book_id")) && b.GetString("status") == "running" && !b.GetBool("resume_required") && b.GetString("reason") == "";
+                hashContext.Equal(a.Get("book_id"), b.Get("book_id")) && b.GetString("status") == "running" && !b.GetBool("resume_required") && b.GetString("reason") == "";
             }
             if (action == "pause") return delta == 0 && a.GetString("book_id") == b.GetString("book_id") && a.GetString("status") != "completed" &&
                 b.GetFloat("progress_seconds") == a.GetFloat("progress_seconds") && b.GetString("status") == "paused" && b.GetBool("resume_required") && b.GetString("reason") == c.GetString("reason");
@@ -159,19 +162,21 @@ namespace SynapticSea.Core.Systems
         }
         internal static bool Conserved(GdDict before, GdDict after, GdDict effect)
         {
-            if ((before.GetInt("schema_version") != 4 && before.GetInt("schema_version") != 5) || after.GetInt("schema_version") != before.GetInt("schema_version") || after.GetInt("revision") != before.GetInt("revision") + 1 || after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
+            var hashContext = PaidHashContext.FromOwner(before);
+            if (!PaidHashContext.SameBinding(before,after)) return false;
+            if ((PaidHashContext.FeatureSchema(before) != 4 && PaidHashContext.FeatureSchema(before) != 5) || after.GetInt("schema_version") != before.GetInt("schema_version") || after.GetInt("revision") != before.GetInt("revision") + 1 || after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
             GdDict expected = before.DeepCopy(), a = State(before), b = State(after); string op = effect.GetString("operation"), book = effect.GetString("book_id");
             if (!IsOperation(op)) return false;
             if (op == "study_complete")
             {
-                if (!Eq(a.Get("job"), effect.Get("job_before")) || !Eq(before.GetDictOrEmpty("participating_state").Get("inventory"), effect.Get("inventory_before")) || a.GetDictOrEmpty("completed").Has(book)) return false;
-                string commit = CompletionId(a, book);
-                if (!Eq(Reward(expected, book, commit), effect)) return false;
+                if (!hashContext.Equal(a.Get("job"), effect.Get("job_before")) || !hashContext.Equal(before.GetDictOrEmpty("participating_state").Get("inventory"), effect.Get("inventory_before")) || a.GetDictOrEmpty("completed").Has(book)) return false;
+                string commit = CompletionId(a, book, hashContext);
+                if (!hashContext.Equal(Reward(expected, book, commit), effect)) return false;
                 State(expected)["job"] = effect.GetDictOrEmpty("job_after").DeepCopy(); State(expected).GetDictOrEmpty("completed")[book] = commit;
             }
             else
             {
-                if (!Eq(a.Get("job"), effect.Get("job_before")) || a.GetDictOrEmpty("completed").Has(book)) return false;
+                if (!hashContext.Equal(a.Get("job"), effect.Get("job_before")) || a.GetDictOrEmpty("completed").Has(book)) return false;
                 if (op == "study_progress" && (effect.GetString("origin_receipt_id") != OriginReceipt(before, book) ||
                     effect.GetInt("eligible_steps") != LatestProgress(before, book).GetDictOrEmpty("result").GetInt("eligible_steps") + 1)) return false;
                 State(expected)["job"] = effect.GetDictOrEmpty("job_after").DeepCopy();
@@ -179,7 +184,7 @@ namespace SynapticSea.Core.Systems
             // The coordinator may replace only this book's prior internal progress proof, retaining completed proofs.
             foreach (var entry in before.GetDictOrEmpty("receipts"))
             {
-                if (Eq(entry.Value, after.GetDictOrEmpty("receipts").Get(entry.Key))) continue;
+                if (hashContext.Equal(entry.Value, after.GetDictOrEmpty("receipts").Get(entry.Key))) continue;
                 GdDict prior = entry.Value as GdDict, oldEffect = prior?.GetDictOrEmpty("result");
                 if (op != "study_progress" || after.GetDictOrEmpty("receipts").Has(entry.Key) || oldEffect?.GetString("operation") != "study_progress" || oldEffect.GetString("book_id") != book) return false;
             }
@@ -187,23 +192,24 @@ namespace SynapticSea.Core.Systems
             if (added > 1) return false;
             // Projections have no study mirrors; study rewards leave every craft job and station untouched.
             GdDict expectedParticipants = expected.GetDictOrEmpty("participating_state"), actualParticipants = after.GetDictOrEmpty("participating_state");
-            if (!Eq(expectedParticipants, actualParticipants)) return false;
+            if (!hashContext.Equal(expectedParticipants, actualParticipants)) return false;
             foreach (string key in new[] { "schema_version", "domain_mode", "registry", "holders", "machinery", "physical_slots", "component_work", "registered_owners" })
-                if (!Eq(expected.Get(key), after.Get(key))) return false;
-            return Eq(a.Get("run_id"), b.Get("run_id")) && Eq(a.Get("actor_id"), b.Get("actor_id"));
+                if (!hashContext.Equal(expected.Get(key), after.Get(key))) return false;
+            return hashContext.Equal(a.Get("run_id"), b.Get("run_id")) && hashContext.Equal(a.Get("actor_id"), b.Get("actor_id"));
         }
-        internal static string CompletionId(GdDict state, string book) => "manual_study:complete:" + PaidCraftingState.Hash(GdArray.Of(state.GetString("run_id"), state.GetString("actor_id"), book));
+        internal static string CompletionId(GdDict state, string book, PaidHashContext context = null) => "manual_study:complete:" + (context ?? PaidHashContext.Legacy).Hash(GdArray.Of(state.GetString("run_id"), state.GetString("actor_id"), book));
         public static bool Validate(GdDict domain, out string reason)
         {
+            var hashContext = PaidHashContext.FromOwner(domain);
             reason = "invalid_manual_study"; GdDict s = State(domain), paid = PaidCraftingState.State(domain), p = domain.GetDictOrEmpty("participating_state");
-            if (!Keys(p, domain.GetInt("schema_version") == 5 ? new[] { "inventory", "progression", "training", "crafting", "field_crafting", "stacks", "paid_crafting", "spoilage", "manual_study", "auxiliary_services" } : new[] { "inventory", "progression", "training", "crafting", "field_crafting", "stacks", "paid_crafting", "spoilage", "manual_study" })) return false;
+            if (!Keys(p, PaidHashContext.FeatureSchema(domain) == 5 ? new[] { "inventory", "progression", "training", "crafting", "field_crafting", "stacks", "paid_crafting", "spoilage", "manual_study", "auxiliary_services" } : new[] { "inventory", "progression", "training", "crafting", "field_crafting", "stacks", "paid_crafting", "spoilage", "manual_study" })) return false;
             if (!Keys(s, "schema_version", "run_id", "actor_id", "job", "completed") || !PaidCraftRewardProof.Version(s) || !Text(s, "run_id") || !Text(s, "actor_id") ||
                 s.GetString("run_id") != paid.GetString("run_id") || s.GetString("actor_id") != paid.GetString("actor_id") || !(s.Get("job") is GdDict job) || !ValidJob(job) || !(s.Get("completed") is GdDict completed)) return false;
             GdDict books = PlayerProgressionState.LoadBooksCatalog();
             if (!job.IsEmpty && !books.Has(job.GetString("book_id"))) return false;
             foreach (var entry in completed)
             {
-                if (!(entry.Key is string book) || !(entry.Value is string id) || id != CompletionId(s, book) || !p.GetDictOrEmpty("progression").GetDictOrEmpty("books_read").GetBool(book)) return false;
+                if (!(entry.Key is string book) || !(entry.Value is string id) || id != CompletionId(s, book, hashContext) || !p.GetDictOrEmpty("progression").GetDictOrEmpty("books_read").GetBool(book)) return false;
                 GdDict receipt = domain.GetDictOrEmpty("receipts").GetDictOrEmpty(id);
                 if (!ValidReceipt(domain, receipt, id) || receipt.GetDictOrEmpty("result").GetString("operation") != "study_complete" || receipt.GetDictOrEmpty("result").GetString("book_id") != book) return false;
                 GdDict after = Progression(domain, receipt.GetDictOrEmpty("result").GetString("progression_after_hash")), current = p.GetDictOrEmpty("progression");
@@ -227,10 +233,10 @@ namespace SynapticSea.Core.Systems
                     .OrderByDescending(row => row.GetInt("revision")).FirstOrDefault();
                 if (latest == null) return false;
                 GdDict witnessed = latest.GetDictOrEmpty("result").GetDictOrEmpty("job_after");
-                if (!Eq(job, witnessed))
+                if (!hashContext.Equal(job, witnessed))
                 {
                     GdDict paused = witnessed.DeepCopy(); paused["status"] = "paused"; paused["resume_required"] = true; paused["reason"] = "explicit_resume_required";
-                    if (witnessed.GetString("status") == "completed" || !Eq(job, paused)) return false;
+                    if (witnessed.GetString("status") == "completed" || !hashContext.Equal(job, paused)) return false;
                 }
             }
             else if (domain.GetDictOrEmpty("receipts").Values.OfType<GdDict>().Any(row => IsOperation(row.GetDictOrEmpty("result").GetString("operation")) && !completed.Has(row.GetDictOrEmpty("result").GetString("book_id")))) return false;

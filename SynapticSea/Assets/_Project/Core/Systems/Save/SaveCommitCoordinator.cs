@@ -44,17 +44,32 @@ namespace SynapticSea.Core.Systems
         readonly bool _allowPaidCrafting;
         bool CompleteGenerationEnabled => _allowComponentIntegration || _allowPaidCrafting;
         bool _explicitReclaim;
+        readonly ProofResourceBinding _continuousBinding;
+        readonly ContinuousSaveReadPolicy _continuousReadPolicy;
+        internal static SaveCommitCoordinator CreateContinuousReader(IStorage storage, string root,
+            ISaveGenerationTerminalAuthority authority, GdDict compatibility, ProofResourceBinding binding,
+            ContinuousSaveReadPolicy policy, Action<string> fault = null)
+        {
+            if (policy == null || !policy.MatchesCurrentBinding(binding)) throw new ArgumentException("explicit_continuous_reader_required");
+            return new SaveCommitCoordinator(storage, root, authority, compatibility, fault, true, true, binding, policy);
+        }
 
         public SaveCommitCoordinator(IStorage storage, string root,
             ISaveGenerationTerminalAuthority terminalAuthority, GdDict compatibility,
             Action<string> fault = null, bool allowComponentIntegration = false, bool allowPaidCrafting = false)
+            : this(storage, root, terminalAuthority, compatibility, fault, allowComponentIntegration, allowPaidCrafting, null, null) { }
+
+        SaveCommitCoordinator(IStorage storage, string root, ISaveGenerationTerminalAuthority terminalAuthority,
+            GdDict compatibility, Action<string> fault, bool allowComponentIntegration, bool allowPaidCrafting,
+            ProofResourceBinding continuousBinding, ContinuousSaveReadPolicy continuousReadPolicy)
         {
+            _continuousBinding = continuousBinding; _continuousReadPolicy = continuousReadPolicy;
             _storage = storage;
             _root = root;
             _validRoot = (ValidRoot(root) || allowComponentIntegration && ValidComponentRoot(root) ||
                 allowPaidCrafting && !allowComponentIntegration && root == SaveLoadService.PaidGenerationRoot) && storage != null;
             _authority = terminalAuthority;
-            _compatibility = SafeGraph(compatibility) && ValidCompatibility(compatibility) ? compatibility.DeepCopy() : null;
+            _compatibility = SafeGraph(compatibility) && ValidCompatibility(compatibility, continuousReadPolicy != null && continuousReadPolicy.MatchesCurrentBinding(continuousBinding)) ? compatibility.DeepCopy() : null;
             _fault = fault;
             _allowComponentIntegration = allowComponentIntegration;
             _allowPaidCrafting = allowPaidCrafting;
@@ -104,6 +119,7 @@ namespace SynapticSea.Core.Systems
                 {
                     Guard(runId, slotId);
                     candidate = ValidateRequest(payloads, runId, slotId);
+                    if (candidate.ContinuousAdmission != null && _continuousOutputTicket == null) throw new Refusal("continuous_output_authority_required");
                     CheckCandidatePaths(candidate);
                     GdDict terminalWitness = RequireLive(runId, slotId);
                     Candidate current = CurrentForCommit(runId, slotId, out string oldPointer);
@@ -462,6 +478,8 @@ namespace SynapticSea.Core.Systems
             }
             if (candidate.Parent != current.Id || candidate.Request.GetString("expected_pointer_sha256") != Hash(pointer)) throw new Refusal("stale_parent");
             if (candidate.Revision <= current.Revision || !OwnerRevisionsAdvance(candidate.Request, current.Request)) throw new Refusal("stale_revision");
+            if (candidate.ContinuousAdmission != null || current.ContinuousAdmission != null)
+                RequireContinuousGenerationAdvance(candidate, current);
         }
 
         void CheckSelection(Candidate candidate, string originalPointer)
@@ -522,6 +540,11 @@ namespace SynapticSea.Core.Systems
             if (!ancestors.Add(candidate.Id)) return false;
             if (candidate.Parent.Length == 0) return candidate.ParentPointer.Length == 0;
             if (!candidates.TryGetValue(candidate.Parent, out Candidate parent) || candidate.Revision <= parent.Revision || !OwnerRevisionsAdvance(candidate.Request, parent.Request)) return false;
+            if (candidate.ContinuousAdmission != null || parent.ContinuousAdmission != null)
+            {
+                try { RequireContinuousGenerationAdvance(candidate,parent); }
+                catch (Refusal) { return false; }
+            }
             GdDict pointer = TryPointer(candidate.ParentPointer, candidate.Slot);
             return pointer != null && pointer.GetString("run_id") == candidate.Run && pointer.GetString("generation_id") == parent.Id &&
                 pointer.GetString("manifest_sha256") == Hash(parent.ManifestText) && Resolved(parent, candidates, ancestors);
@@ -627,7 +650,7 @@ namespace SynapticSea.Core.Systems
             if (candidate.Id != id || manifest.GetString("slot_kind") != request.GetString("slot_kind") || manifest.GetString("parent_generation_id") != candidate.Parent ||
                 manifest.GetString("expected_pointer_sha256") != request.GetString("expected_pointer_sha256") ||
                 !WireLong(manifest.Get("domain_revision"), out long revision) || revision != candidate.Revision ||
-                !(_allowPaidCrafting ? PaidSnapshotCodec.Same(manifest.Get("binding"), WireBinding(request.GetDictOrEmpty("binding"))) : V.VariantEquals(manifest.Get("binding"), WireBinding(request.GetDictOrEmpty("binding")))) ||
+                !(_allowPaidCrafting ? PaidSnapshotCodec.Same(manifest.Get("binding"), WireBinding(request.GetDictOrEmpty("binding")), BindingContext(request)) : V.VariantEquals(manifest.Get("binding"), WireBinding(request.GetDictOrEmpty("binding")))) ||
                 !V.VariantEquals(manifest.Get("compatibility"), request.Get("compatibility"))) throw new Refusal("corrupt_generation");
             foreach (Entry entry in candidate.Entries)
             {
@@ -706,7 +729,7 @@ namespace SynapticSea.Core.Systems
             return copy;
         }
 
-        Candidate ValidateRequest(GdDict supplied, string run, string slot, bool componentAdapter = false, bool exactPaidAdapter = false, HashSet<string> authenticatedFirstAwayOwners = null)
+        Candidate ValidateRequest(GdDict supplied, string run, string slot, bool componentAdapter = false, bool exactPaidAdapter = false, HashSet<string> authenticatedFirstAwayOwners = null, PaidHashContext paidContext = null)
         {
             if (_allowPaidCrafting && !componentAdapter) return ValidateIntegrationRequest(supplied, run, slot, true);
             if (_allowComponentIntegration && !componentAdapter && supplied != null && ParseObject(supplied.GetString("run_text"))?.GetString("slice_version") == RunSnapshot.ComponentIntegrationVersion)
@@ -743,8 +766,8 @@ namespace SynapticSea.Core.Systems
                 artifacts.Add(path, new Artifact(kind, document));
                 candidate.Entries.Add(new Entry("artifact", path, kind, version, text));
             }
-            GdDict active = exactPaidAdapter ? PaidSnapshotCodec.Parse(request.GetString("run_text")) : ParseObject(request.GetString("run_text"));
-            GdDict world = exactPaidAdapter ? PaidSnapshotCodec.Parse(request.GetString("world_text")) : ParseObject(request.GetString("world_text"));
+            GdDict active = exactPaidAdapter ? ParsePaidObject(request.GetString("run_text"), PaidSnapshotCodec.Policy.Raw, ReferenceEquals(paidContext, PaidHashContext.BitsV2)) : ParseObject(request.GetString("run_text"));
+            GdDict world = exactPaidAdapter ? ParsePaidObject(request.GetString("world_text"), PaidSnapshotCodec.Policy.Raw, ReferenceEquals(paidContext, PaidHashContext.BitsV2)) : ParseObject(request.GetString("world_text"));
             if (active == null || world == null) throw new Refusal("invalid_payload");
             if (active.GetString("slice_version") != "gate2-current-run-6" || world.GetString("slice_version") != "world-4") throw new Refusal("unsupported_schema");
             if (!ValidRun(active, exactPaidAdapter) || !Shape(world, new WorldSnapshot().ToDict(), exactPaidAdapter) || world.GetString("godot_version") != _compatibility.GetString("engine_version") ||
@@ -757,7 +780,7 @@ namespace SynapticSea.Core.Systems
                 !JsonInteger(summary.Get("world_seed"), out long worldSeed, true, exactPaidAdapter) || activeSeed != homeSeed || activeSeed != worldSeed ||
                 !Position(summary.Get("player_position")) || !(summary.Get("generated_marker_ids") is GdArray)) throw new Refusal("binding_mismatch");
             GdDict visited = world.GetDictOrEmpty("visited_ships");
-            if (!(exactPaidAdapter ? PaidSnapshotCodec.Same(active.Get("visited_ships"), visited) : V.VariantEquals(active.Get("visited_ships"), visited))) throw new Refusal("binding_mismatch");
+            if (!(exactPaidAdapter ? PaidSnapshotCodec.Same(active.Get("visited_ships"), visited, paidContext ?? PaidHashContext.Legacy) : V.VariantEquals(active.Get("visited_ships"), visited))) throw new Refusal("binding_mismatch");
             GdDict binding = request.GetDictOrEmpty("binding");
             if (binding.Count != 7 || !StringFields(binding, "home_ship_id", "lifeboat_ship_id", "current_owner_id", "current_location") ||
                 binding.GetString("home_ship_id") != "ship_start" || binding.GetString("lifeboat_ship_id") != "lifeboat" ||
@@ -765,8 +788,8 @@ namespace SynapticSea.Core.Systems
                 !(binding.Get("owner_revisions") is GdDict) || !(binding.Get("ship_references") is GdDict)) throw new Refusal("binding_mismatch");
             string location = world.GetString("current_location");
             if (location != binding.GetString("current_location") || location != active.GetString("current_location") ||
-                !(exactPaidAdapter ? PaidSnapshotCodec.Same(active.Get("player_position"), binding.Get("player_local_pose")) : componentAdapter ? SamePoseWire(active.Get("player_position"), binding.Get("player_local_pose")) : V.VariantEquals(active.Get("player_position"), binding.Get("player_local_pose"))) ||
-                !(exactPaidAdapter ? PaidSnapshotCodec.Same(world.Get("player_position_in_ship"), binding.Get("player_local_pose")) : componentAdapter ? SamePoseWire(world.Get("player_position_in_ship"), binding.Get("player_local_pose")) : V.VariantEquals(world.Get("player_position_in_ship"), binding.Get("player_local_pose")))) throw new Refusal("binding_mismatch");
+                !(exactPaidAdapter ? PaidSnapshotCodec.Same(active.Get("player_position"), binding.Get("player_local_pose"), paidContext ?? PaidHashContext.Legacy) : componentAdapter ? SamePoseWire(active.Get("player_position"), binding.Get("player_local_pose")) : V.VariantEquals(active.Get("player_position"), binding.Get("player_local_pose"))) ||
+                !(exactPaidAdapter ? PaidSnapshotCodec.Same(world.Get("player_position_in_ship"), binding.Get("player_local_pose"), paidContext ?? PaidHashContext.Legacy) : componentAdapter ? SamePoseWire(world.Get("player_position_in_ship"), binding.Get("player_local_pose")) : V.VariantEquals(world.Get("player_position_in_ship"), binding.Get("player_local_pose")))) throw new Refusal("binding_mismatch");
             var owners = new HashSet<string>(StringComparer.Ordinal) { "ship_start", "lifeboat" };
             var used = new HashSet<string>(StringComparer.Ordinal);
             GdDict refs = binding.GetDictOrEmpty("ship_references");
@@ -782,7 +805,7 @@ namespace SynapticSea.Core.Systems
             string owner = location.Length == 0 ? "ship_start" : visited.GetDictOrEmpty(location).GetString("ship_id");
             if (!Identity(owner) || owner != binding.GetString("current_owner_id")) throw new Refusal("binding_mismatch");
             ValidateReference(refs.Get(owner) as GdDict, artifacts, used, active, location.Length == 0 ? null : visited.GetDictOrEmpty(location).GetDictOrEmpty("blueprint"), authenticatedFirstAwayOwners?.Contains(owner) == true);
-            if (location.Length == 0 && !(exactPaidAdapter ? PaidSnapshotCodec.Same(home.Get("player_position"), active.Get("player_position")) : V.VariantEquals(home.Get("player_position"), active.Get("player_position")))) throw new Refusal("binding_mismatch");
+            if (location.Length == 0 && !(exactPaidAdapter ? PaidSnapshotCodec.Same(home.Get("player_position"), active.Get("player_position"), paidContext ?? PaidHashContext.Legacy) : V.VariantEquals(home.Get("player_position"), active.Get("player_position")))) throw new Refusal("binding_mismatch");
             GdDict lifeRef = refs.Get("lifeboat") as GdDict;
             if (world.Has("mobile_home_state"))
             {
@@ -905,6 +928,8 @@ namespace SynapticSea.Core.Systems
 
         GdDict RequireLive(string run, string slot)
         {
+            if (_continuousOutputTicket != null && _continuousOutputTicket.RunId == run && _continuousOutputTicket.SlotId == slot &&
+                !_continuousOutputTicket.IsCurrentForOutput(out string cutReason)) throw new Refusal(cutReason);
             if (_authority == null) throw new Refusal("terminal_unbound");
             if (CompleteGenerationEnabled && _storage.FileExists(TerminalIntent(run))) throw new Refusal("run_terminal");
             GdDict status;
@@ -1160,27 +1185,38 @@ namespace SynapticSea.Core.Systems
         {
             if (_compatibility == null || supplied == null) return false;
             if (V.VariantEquals(supplied, _compatibility)) return true;
-            // Only the exact old catalog is readable by this explicit extension, never arbitrary subsets or revisions.
-            if (_compatibility.GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile) return false;
-            var prior = _compatibility.DeepCopy(); prior.GetDictOrEmpty("profiles").Erase(FirstAwayGenerationInputs.Profile);
+            // Permit only omission of the two explicitly supported optional capabilities.
+            // Required legacy content profiles and all catalog identities remain exact.
+            var prior = _compatibility.DeepCopy();
+            GdDict suppliedProfiles = supplied.GetDictOrEmpty("profiles"), supported = prior.GetDictOrEmpty("profiles");
+            foreach (string extension in new[] { FirstAwayGenerationInputs.Profile, ComponentDomainCodec.BitExactSchema })
+                if (!suppliedProfiles.Has(extension)) supported.Erase(extension);
             return V.VariantEquals(supplied, prior);
         }
 
-        static bool ValidCompatibility(GdDict compatibility)
+        static bool ValidCompatibility(GdDict compatibility, bool allowContinuousProfile = false)
         {
             if (compatibility == null || compatibility.Count != 6 || !StringFields(compatibility, "engine_version", "catalog_id", "catalog_version", "library_id", "library_version") ||
                 !Identity(compatibility.GetString("engine_version")) || !Identity(compatibility.GetString("catalog_id")) ||
                 !Identity(compatibility.GetString("catalog_version")) || !(compatibility.Get("library_id") is string) || !(compatibility.Get("library_version") is string) || !(compatibility.Get("profiles") is GdDict)) return false;
-            foreach (var profile in compatibility.GetDictOrEmpty("profiles")) if (!(profile.Key is string key) || !(ConstrainedExpedition.Supported(key) || key == FirstAwayGenerationInputs.Profile) || !(profile.Value is string version) || version != key) return false;
+            foreach (var profile in compatibility.GetDictOrEmpty("profiles"))
+                if (!(profile.Key is string key) || !(profile.Value is string version) ||
+                    (key == AuxiliaryProofOwnerProfile.OuterSchema ? !allowContinuousProfile || version != AuxiliaryProofOwnerProfile.Profile :
+                    key == ComponentDomainCodec.BitExactSchema ? version != PaidCraftingState.BitExactHashAlgorithm :
+                    !(ConstrainedExpedition.Supported(key) || key == FirstAwayGenerationInputs.Profile) || version != key)) return false;
             return true;
         }
         static bool OwnerRevisionsAdvance(GdDict child, GdDict parent)
         {
+            if (child.GetDictOrEmpty("binding").GetString("hash_algorithm") != parent.GetDictOrEmpty("binding").GetString("hash_algorithm")) return false;
             GdDict newer = child.GetDictOrEmpty("binding").GetDictOrEmpty("owner_revisions"), older = parent.GetDictOrEmpty("binding").GetDictOrEmpty("owner_revisions");
             foreach (var revision in older) if (newer.Get(revision.Key) is long value && value < (long)revision.Value) return false;
             return true;
         }
-        bool Equivalent(GdDict left, GdDict right) => _allowPaidCrafting ? PaidSnapshotCodec.Same(left, right) : V.VariantEquals(left, right);
+        bool Equivalent(GdDict left, GdDict right) => _allowPaidCrafting ? PaidSnapshotCodec.Same(left, right, BindingContext(left)) : V.VariantEquals(left, right);
+
+        static PaidHashContext BindingContext(GdDict request) => request.GetDictOrEmpty("binding").GetString("hash_algorithm") == PaidCraftingState.BitExactHashAlgorithm
+            ? PaidHashContext.BitsV2 : PaidHashContext.Legacy;
 
         static bool SafeGraph(object value) => SafeGraph(value, new HashSet<object>(), 0);
         static bool SafeGraph(object value, HashSet<object> ancestors, int depth)
@@ -1203,7 +1239,7 @@ namespace SynapticSea.Core.Systems
         }
 
         internal static GdDict ParsePaidObject(string text) => ParsePaidObject(text, PaidSnapshotCodec.Policy.Raw);
-        internal static GdDict ParsePaidObject(string text, PaidSnapshotCodec.Policy policy)
+        internal static GdDict ParsePaidObject(string text, PaidSnapshotCodec.Policy policy, bool preserveNegativeZero = false)
         {
             if (text == null || !PaidSnapshotCodec.KnownPolicy(policy)) return null;
             try
@@ -1211,6 +1247,7 @@ namespace SynapticSea.Core.Systems
                 Utf8.GetByteCount(text);
                 if (!new JsonGuard(text, policy).Valid()) return null;
                 GdDict dictionary = GdJson.Parse(text, true) as GdDict;
+                if (preserveNegativeZero || PaidSnapshotCodec.IsBitExactRecord(dictionary)) dictionary = GdJson.Parse(text, true, true) as GdDict;
                 return PaidSnapshotCodec.IsValidGraph(dictionary, policy) ? dictionary : null;
             }
             catch (Exception) { return null; }
@@ -1355,12 +1392,20 @@ namespace SynapticSea.Core.Systems
             public readonly GdDict Request; public readonly List<Entry> Entries = new List<Entry>();
             public readonly string Run, Slot, Id, Parent; public readonly long Revision;
             public GdDict Manifest; public string ManifestText, ParentPointer;
+            internal AdmittedContinuousSnapshots ContinuousAdmission;
             public Candidate(GdDict request) { Request = request; Run = request.GetString("run_id"); Slot = request.GetString("slot_id"); Id = request.GetString("generation_id"); Parent = request.GetString("parent_generation_id"); Revision = (long)request.Get("domain_revision"); }
         }
         sealed class Refusal : Exception { public readonly string Reason, Diagnostic; public Refusal(string reason, string diagnostic = null) { Reason = reason; Diagnostic = diagnostic; } }
         static bool TerminalRefusal(string reason) => reason == "run_terminal" || reason == "terminal_unbound" || reason == "terminal_authority_error" ||
             reason == "terminal_ambiguous" || reason == "legacy_death" || reason == "legacy_ownership_ambiguous";
-        static string Description(Exception error) => error is Refusal refusal && refusal.Diagnostic != null ? refusal.Diagnostic : error.GetType().FullName;
+        static string Description(Exception error)
+        {
+#if SYNAPTIC_DOTNET_TESTS
+            return error is Refusal refusal && refusal.Diagnostic != null ? refusal.Diagnostic : error.ToString();
+#else
+            return error is Refusal refusal && refusal.Diagnostic != null ? refusal.Diagnostic : error.GetType().FullName;
+#endif
+        }
         static GdDict Failure(Exception error, string run, string slot)
         { GdDict result = Result(false, error is Refusal refusal ? refusal.Reason : "storage_failure", run, slot); result["detail"] = Description(error); return result; }
         static GdDict Unknown(string run, string slot, string id, Exception error)

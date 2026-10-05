@@ -185,7 +185,7 @@ namespace SynapticSea.Core.Session
             _loot_tables = LootRoller.LoadTables();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
             SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled)
-            { FirstAwaySalvageProfileEnabled = ReviewedFirstAwayProfileEnabled };
+            { FirstAwaySalvageProfileEnabled = ReviewedFirstAwayProfileEnabled, BitExactPaidCompatibilityEnabled = BitExactPaidCompatibilityEnabled };
             GdDict bootSelection = _selectedGeneration ?? Deps.SelectedSaveGeneration;
             _runId = CompleteGenerationEnabled && bootSelection != null ? bootSelection.GetString("run_id") : GenerateRunId();
             SaveLoadService.SetActiveRunId(_runId);
@@ -551,6 +551,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_break_ship_instance_cycles()</c> (NOTIFICATION_PREDELETE): sever dock back-pointers.</summary>
         public void Dispose()
         {
+            RetireContinuousSourceAuthority("disposed");
             if (LifeboatShip != null)
             {
                 LifeboatShip.ParentShip = null;

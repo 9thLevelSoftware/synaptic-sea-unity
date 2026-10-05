@@ -41,10 +41,18 @@ namespace SynapticSea.Core.Systems
         /// tool defs get a synthetic 'tool' category + default weight while preserving
         /// their 'effect' field.
         /// </summary>
-        public static GdDict LoadDefinitions()
+        public static GdDict LoadDefinitions() => NormalizeDefinitions(ReadJsonDict);
+
+        // Explicit pinned preparation; never called from final participant publication.
+        internal static GdDict LoadDefinitionsFromAuthority(SynapticSea.Core.Services.ImmutableResourceAuthority authority)
+        {
+            if (authority == null) throw new System.ArgumentNullException(nameof(authority));
+            return NormalizeDefinitions(path => authority.Load(path) as GdDict ?? new GdDict());
+        }
+        static GdDict NormalizeDefinitions(System.Func<string,GdDict> read)
         {
             var defs = new GdDict();
-            GdDict toolDefs = ReadJsonDict(TOOL_DEFINITIONS_PATH);
+            GdDict toolDefs = read(TOOL_DEFINITIONS_PATH);
             foreach (var kv in toolDefs)
             {
                 if (!(kv.Value is GdDict rawDef)) continue; // skip malformed/corrupt tool entries
@@ -53,7 +61,7 @@ namespace SynapticSea.Core.Systems
                 if (!def.Has("weight")) def["weight"] = DEFAULT_TOOL_WEIGHT;
                 defs[kv.Key] = def;
             }
-            GdDict itemDefs = ReadJsonDict(ITEM_DEFINITIONS_PATH);
+            GdDict itemDefs = read(ITEM_DEFINITIONS_PATH);
             foreach (var kv in itemDefs)
             {
                 if (!(kv.Value is GdDict)) continue; // skip malformed/corrupt item entries
@@ -61,7 +69,7 @@ namespace SynapticSea.Core.Systems
             }
             foreach (string extraPath in ExtraPaths)
             {
-                GdDict extraDefs = ReadJsonDict(extraPath);
+                GdDict extraDefs = read(extraPath);
                 foreach (var kv in extraDefs)
                 {
                     if (!(kv.Value is GdDict extra)) continue;
@@ -81,7 +89,7 @@ namespace SynapticSea.Core.Systems
             }
             // Crafting materials (wrapped in a "materials" root key). FILL-ONLY: an id already
             // defined above keeps its live-balance definition.
-            GdDict materialRoot = ReadJsonDict(MATERIAL_DEFINITIONS_PATH);
+            GdDict materialRoot = read(MATERIAL_DEFINITIONS_PATH);
             if (materialRoot.Get("materials", new GdDict()) is GdDict materialDefs)
             {
                 foreach (var kv in materialDefs)
@@ -90,13 +98,13 @@ namespace SynapticSea.Core.Systems
                     if (!defs.Has(kv.Key)) defs[kv.Key] = kv.Value;
                 }
             }
-            GdDict equipDefs = ReadJsonDict(EQUIPMENT_DEFINITIONS_PATH);
+            GdDict equipDefs = read(EQUIPMENT_DEFINITIONS_PATH);
             foreach (var kv in equipDefs)
             {
                 if (!(kv.Value is GdDict)) continue; // skip malformed entries
                 defs[kv.Key] = kv.Value;
             }
-            GdDict junkRoot = ReadJsonDict(JUNK_ITEMS_PATH);
+            GdDict junkRoot = read(JUNK_ITEMS_PATH);
             if (junkRoot.Get("items", new GdDict()) is GdDict junkDefs)
             {
                 foreach (var kv in junkDefs)
@@ -114,7 +122,7 @@ namespace SynapticSea.Core.Systems
                     }
                 }
             }
-            GdDict uniqueRoot = ReadJsonDict(UNIQUE_ITEMS_PATH);
+            GdDict uniqueRoot = read(UNIQUE_ITEMS_PATH);
             if (uniqueRoot.Get("items", new GdDict()) is GdDict uniqueDefs)
             {
                 foreach (var kv in uniqueDefs)

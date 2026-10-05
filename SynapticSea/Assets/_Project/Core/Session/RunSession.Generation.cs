@@ -39,9 +39,11 @@ namespace SynapticSea.Core.Session
             if (PaidCraftingEnabled) RequirePaidRestoreOperation(_paidRestoreOperation);
             GdDict requested = (PaidCraftingEnabled ? _paidRestoreOperation.Selection : Deps.SelectedSaveGeneration).DeepCopy();
             var service = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled)
-            { FirstAwaySalvageProfileEnabled = ReviewedFirstAwayProfileEnabled };
+            { FirstAwaySalvageProfileEnabled = ReviewedFirstAwayProfileEnabled, BitExactPaidCompatibilityEnabled = BitExactPaidCompatibilityEnabled };
+            if (Deps.EnableContinuousAuxiliaryDiagnostic && !service.TryEnableContinuousDiagnosticReader(out string continuousReason))
+            { LastFailureReason = continuousReason; PlayableFailed?.Invoke(continuousReason); return false; }
             GdDict exact = service.ReadGeneration(requested.GetString("run_id"), requested.GetString("slot_id"), requested.GetString("generation_id"), requested.GetString("manifest_sha256"));
-            if (!exact.GetBool("ok") || !(PaidCraftingEnabled ? PaidSnapshotCodec.Same(requested.Get("payloads"), exact.Get("payloads")) : V.VariantEquals(requested.Get("payloads"), exact.Get("payloads"))))
+            if (!exact.GetBool("ok") || !(PaidCraftingEnabled ? PaidSnapshotCodec.Same(requested.Get("payloads"), exact.Get("payloads"), exact.GetDictOrEmpty("payloads").GetDictOrEmpty("binding").GetString("hash_algorithm") == PaidHashContext.BitsV2.Algorithm ? PaidHashContext.BitsV2 : PaidHashContext.Legacy) : V.VariantEquals(requested.Get("payloads"), exact.Get("payloads"))))
             {
                 LastSaveResult = exact.GetBool("ok") ? new GdDict { { "ok", false }, { "reason", "selection_mismatch" } } : exact;
                 LastFailureReason = LastSaveResult.GetString("reason"); PlayableFailed?.Invoke(LastFailureReason); return false;
@@ -147,6 +149,7 @@ namespace SynapticSea.Core.Session
 
         public bool RequestSaveToSlot(string slotId, string slotKind, string displayName)
         {
+            if (ContinuousAuxiliaryRuntimeActive) return RequestContinuousSaveToSlot(slotId, slotKind, displayName);
             if (ComponentGenerationRestoreInProgress) return false;
             if (ComponentTerminalPending) return false;
             if (!CompleteGenerationEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "component_integration_not_enabled" } }; return false; }

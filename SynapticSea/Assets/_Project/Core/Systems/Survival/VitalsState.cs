@@ -42,6 +42,14 @@ namespace SynapticSea.Core.Systems
         public double Health = DEFAULT_MAX_HEALTH;
         /// <summary>Observed actual health loss by source. Optional diagnostic observer; never changes rates or saves.</summary>
         public event Action<string,double> HealthDamageObserved;
+        // Restricted writer's issued committed token only; legacy event paths remain unchanged.
+        internal void NotifyContinuousDamage(ContinuousVitalsDamageNotification notification)
+        {
+            if (notification == null || !notification.TryConsume(this, out var proposal))
+                throw new InvalidOperationException("uncommitted_or_consumed_damage_notification");
+            for (int i = 0; i < proposal.DamageCount; i++)
+                HealthDamageObserved?.Invoke(proposal.DamageSource(i), proposal.DamageAmount(i));
+        }
         static readonly string[] DamageContextKeys = { SimKeys.RadiationHealthDrain, SimKeys.AtmosphereHealthDrain,
             SimKeys.FireHealthDrain, SimKeys.SanityHealthDrain, SimKeys.EncumbranceHealthDrain, SimKeys.WoundHealthDrain };
 
