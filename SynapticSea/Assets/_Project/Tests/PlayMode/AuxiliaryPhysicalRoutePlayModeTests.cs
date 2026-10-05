@@ -838,6 +838,48 @@ namespace SynapticSea.Tests.PlayMode
             AuxiliaryContinuationState("one_earned_sealant_retrieved_from_home");
         }
 
+        static object AuxiliaryFlattenDockValue(object value)
+        {
+            if (value is Vec3 position) return AuxiliaryPosition(position);
+            if (value is GdDict dictionary)
+            {
+                var result = new GdDict();
+                foreach (var row in dictionary) result[row.Key] = AuxiliaryFlattenDockValue(row.Value);
+                return result;
+            }
+            if (value is GdArray array) return new GdArray(array.Select(AuxiliaryFlattenDockValue));
+            return value;
+        }
+
+        static GdDict AuxiliaryDockPose(SynapticSea.Core.Systems.IShipSceneRoot root)
+        {
+            if (root == null) return new GdDict();
+            var pose = root.GlobalTransform;
+            return new GdDict { { "origin", AuxiliaryPosition(pose.Origin) },
+                { "basis_rows", GdArray.Of(AuxiliaryPosition(pose.Basis.Row0), AuxiliaryPosition(pose.Basis.Row1), AuxiliaryPosition(pose.Basis.Row2)) } };
+        }
+
+        void AuxiliaryDockSeamDiagnostic(string phase, Vec3 dockLanding)
+        {
+            var player = _boot.Host.SceneState.Player.transform.position;
+            var target = Frame.ToUnity(dockLanding);
+            var filter = new UnityEngine.AI.NavMeshQueryFilter { agentTypeID = ShipNavMesh.AgentTypeId, areaMask = UnityEngine.AI.NavMesh.AllAreas };
+            bool startFound = UnityEngine.AI.NavMesh.SamplePosition(player, out var start, 2.5f, filter);
+            bool targetFound = UnityEngine.AI.NavMesh.SamplePosition(target, out var end, .75f, filter);
+            var path = new UnityEngine.AI.NavMeshPath();
+            bool calculated = startFound && targetFound && UnityEngine.AI.NavMesh.CalculatePath(start.position, end.position, filter, path);
+            Debug.Log("[AuxiliaryDockSeam] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "phase", phase }, { "current_ship_id", _s.CurrentShip.ShipId }, { "occupancy_ship_id", _s.CurrentOccupancy?.ShipId ?? "" },
+                { "player_godot", AuxiliaryPosition(_boot.Host.SceneState.Player.GodotPosition) }, { "dock_landing_godot", AuxiliaryPosition(dockLanding) },
+                { "authored_port", (_s.CurrentShip.SceneRoot as IShipLoaderView)?.LayoutDoc.GetDictOrEmpty("docking_port") ?? new GdDict() },
+                { "dock_edges", AuxiliaryFlattenDockValue(WorldSnapshotAssembler.CurrentDockEdges(_s)) },
+                { "host_global", AuxiliaryDockPose(_s.CurrentShip.SceneRoot) }, { "mobile_global", AuxiliaryDockPose(_s.PilotedShip?.SceneRoot) },
+                { "nav_start_found", startFound }, { "nav_target_found", targetFound }, { "nav_calculated", calculated }, { "nav_status", path.status.ToString() },
+                { "nav_corners_unity", new GdArray(path.corners.Select(c => GdArray.Of((double)c.x,(double)c.y,(double)c.z))) },
+                { "player_unity", GdArray.Of((double)player.x,(double)player.y,(double)player.z) },
+                { "target_unity", GdArray.Of((double)target.x,(double)target.y,(double)target.z) } }));
+        }
+
         IEnumerator AuxiliaryWitnessOwnedAwayPressure()
         {
             var ship = _s.CurrentShip;
@@ -882,7 +924,9 @@ namespace SynapticSea.Tests.PlayMode
             }
             var boardedLoader = _s.CurrentShip.SceneRoot as IShipLoaderView; Assert.IsNotNull(boardedLoader);
             var dockLanding = _s.CurrentShip.SceneRoot.GlobalTransform * boardedLoader.GetStartTransform().Origin;
+            AuxiliaryDockSeamDiagnostic("before_normal_landing_walk", dockLanding);
             yield return WalkTo(dockLanding, 1.1f);
+            AuxiliaryDockSeamDiagnostic("after_normal_landing_walk", dockLanding);
             Assert.IsNotNull(SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position));
             Assert.IsTrue(_boot.Host.SceneState.Player.GetComponent<CharacterController>().isGrounded);
             yield return AuxiliaryWitnessOwnedAwayPressure();
