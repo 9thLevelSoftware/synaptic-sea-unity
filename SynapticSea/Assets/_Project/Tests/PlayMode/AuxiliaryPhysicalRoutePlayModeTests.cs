@@ -257,7 +257,7 @@ namespace SynapticSea.Tests.PlayMode
             yield return AuxiliaryProbeSealAndCapture();
         }
 
-        IEnumerator AuxiliaryBootImmutableCheckpoint(string expectedBoundary, bool reviewedProfileAdmission = false)
+        IEnumerator AuxiliaryBootImmutableCheckpoint(string expectedBoundary, bool reviewedProfileAdmission = false, System.Action<RunSession> observeBoot = null)
         {
             string directory = System.Environment.GetEnvironmentVariable(AuxiliaryReplayEnv);
             Assert.IsFalse(string.IsNullOrEmpty(directory), "explicit owned checkpoint directory required in " + AuxiliaryReplayEnv);
@@ -306,11 +306,26 @@ namespace SynapticSea.Tests.PlayMode
                 { "legacy_payload_sha256", SynapticSea.Core.Systems.SaveGenerationArtifacts.Hash(GdJson.Stringify(package)) },
                 { "paid_payload_sha256", SynapticSea.Core.Systems.SaveGenerationArtifacts.Hash(SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(package)) } }));
             _recordJourneyTelemetry = true;
-            yield return BootPlayable(new RunLaunchRequest { Mode = RunLaunchMode.Continue, SlotId = launch.GetString("slot_id"),
+            var request = new RunLaunchRequest { Mode = RunLaunchMode.Continue, SlotId = launch.GetString("slot_id"),
                 ClassId = launch.GetString("class_id"), Seed = launch.GetInt("seed"), BiomeId = launch.GetString("biome_id"), DifficultyId = launch.GetString("difficulty_id"),
                 LayoutOverridePath = launch.GetString("layout_override_path"), EnableAuxiliaryServices = true,
                 EnableManualStudy = launch.GetBool("enable_manual_study"), EnableComponentIntegration = launch.GetBool("enable_component_integration"),
-                EnableReviewedFirstAwayProfile = reviewedProfileAdmission || launch.GetBool("enable_reviewed_first_away_profile"), SelectedSaveGeneration = selected });
+                EnableReviewedFirstAwayProfile = reviewedProfileAdmission || launch.GetBool("enable_reviewed_first_away_profile"), SelectedSaveGeneration = selected };
+            if (observeBoot == null) yield return BootPlayable(request);
+            else
+            {
+                var boot = BootPlayable(request);
+                try
+                {
+                    while (boot.MoveNext())
+                    {
+                        var current = PlayableBootstrap.Current;
+                        if (current != null && current.IsBooted && current.Session != null) observeBoot(current.Session);
+                        yield return boot.Current;
+                    }
+                }
+                finally { (boot as System.IDisposable)?.Dispose(); }
+            }
             // Normal scene boot installs resource/catalog ports before typed-owner admission can validate.
             var reread = _s.SaveLoadService.ReadGeneration(selected.GetString("run_id"), selected.GetString("slot_id"), selected.GetString("generation_id"), selected.GetString("manifest_sha256"));
             Assert.IsTrue(reread.GetBool("ok"), GdJson.Stringify(reread));
@@ -627,6 +642,90 @@ namespace SynapticSea.Tests.PlayMode
             yield return AuxiliaryRetrieveEarnedSealant();
             _s.EnableReviewedFirstAwayProfile = true;
             yield return AuxiliaryTravelReturnWitness(true);
+        }
+
+        [UnityTest, Explicit("Pinned living checkpoint; at most three ordinary seconds, no care or revisit"), Timeout(120000)]
+        public IEnumerator ContinueAuxiliaryReturnedCheckpointAndObserveThreeSecondsOfActualBoatAir()
+        {
+            string directory = System.Environment.GetEnvironmentVariable(AuxiliaryReplayEnv);
+            Assert.IsFalse(string.IsNullOrEmpty(directory));
+            var manifest = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(AuxiliaryReadVerified(directory, "manifest.json",
+                System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_CHECKPOINT_MANIFEST_SHA256")));
+            var selection = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(AuxiliaryReadVerified(directory,
+                manifest.GetString("selection_file"), manifest.GetString("selection_sha256")));
+            var payload = selection.GetDictOrEmpty("payloads");
+            var savedWorld = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("world_text"));
+            var savedRun = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("run_text"));
+            double started = savedWorld.GetFloat("world_time"), health = savedRun.GetDictOrEmpty("vitals_summary").GetFloat("health");
+            double oxygen = savedRun.GetDictOrEmpty("oxygen_summary").GetFloat("oxygen");
+            double bleed = savedRun.GetDictOrEmpty("wound_summary").GetFloat("bleed_rate");
+            Assert.Greater(health - bleed * 3, 10, "preflight wound-only safety margin for entire boot plus observation");
+            Assert.Less(oxygen + 3.5 * 3, 35, "bounded observation is not a safe-threshold/full-refill claim");
+            Debug.Log("[AuxiliaryBoatAirPreflight] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "saved_world_time", started }, { "saved_health", health }, { "saved_oxygen", oxygen }, { "bleed_per_second", bleed },
+                { "maximum_world_seconds_including_boot", 3.0 }, { "nominal_health_lower_bound", health - bleed * 3 },
+                { "nominal_oxygen_upper_bound", oxygen + 3.5 * 3 } }));
+            yield return AuxiliaryBootImmutableCheckpoint("returned_saved_and_continued_before_revisit", true, session =>
+            {
+                double elapsed = session.WorldTime - started;
+                Assert.That(elapsed, Is.InRange(0.0, 3.0), "stop an unexpectedly long simulation boot before waiting further");
+                Assert.IsFalse(session.SliceComplete); Assert.Greater(session.VitalsState.Health, 10);
+                Assert.AreEqual(health - bleed * elapsed, session.VitalsState.Health, .08, "unexpected boot damage stops observation");
+                Assert.AreEqual(oxygen + session.OxygenState.RegenRate * elapsed, session.OxygenState.Oxygen, .08, "boot air is already subject to corrected local ownership");
+                _s = session; ObserveNaturalJourney();
+            });
+            var position = _boot.Host.SceneState.Player.GodotPosition;
+            var inventory = _s.InventoryState.Items.DeepCopy(); var progression = _s.PlayerProgression.GetSummary().DeepCopy();
+            System.Func<string> woundIdentity = () => SynapticSea.Core.Systems.PaidCraftingState.Hash(new GdArray(
+                _s.WoundState.Wounds.Cast<GdDict>().Select(w => (object)new GdDict {
+                    { "id", w.Get("wound_id") }, { "kind", w.Get("kind") }, { "body", w.Get("body_part") },
+                    { "source", w.Get("source_id") }, { "treated", w.Get("treated") }, { "bandaged", w.Get("bandaged") },
+                    { "severity", w.Get("severity") }, { "bleed_rate", w.Get("bleed_rate") } })));
+            string wounds = woundIdentity();
+            var homeAirBefore = _s.LifeSupportExpandedState.GetSummary().DeepCopy();
+            var boatAirBefore = (_s.LifeboatShip.SystemsManager.GetSystem("life_support") as SynapticSea.Core.Systems.LifeSupportSystem).OxygenState.GetSummary();
+            float deadline = Time.realtimeSinceStartup + 20;
+            while (true)
+            {
+                double elapsed = _s.WorldTime - started;
+                Assert.That(elapsed, Is.InRange(0.0, 3.0), "all normal boot frames count against the safety cap");
+                Assert.IsFalse(_s.SliceComplete); Assert.Greater(_s.VitalsState.Health, 10);
+                Assert.IsFalse(_s.AwayFromStart); Assert.AreSame(_s.HomeShip, _s.CurrentShip);
+                Assert.AreSame(_s.LifeboatShip, _s.CurrentOccupancy);
+                var boat = _s.LifeboatShip; Assert.IsTrue(boat.SceneRoot.IsValid && boat.SceneRoot.IsInsideTree);
+                Assert.IsTrue(boat.SystemsManager.IsOperational("power") && boat.SystemsManager.IsOperational("life_support"));
+                var localAir = ((SynapticSea.Core.Systems.LifeSupportSystem)boat.SystemsManager.GetSystem("life_support")).OxygenState;
+                Assert.GreaterOrEqual(localAir.Oxygen, localAir.SafeThreshold);
+                Assert.AreEqual(0, boat.GetHull().GetBreachCount()); Assert.LessOrEqual(boat.Fire?.GetTotalIntensity() ?? 0, 0);
+                Vec3 local = SessionMath.AffineInverse(boat.SceneRoot.GlobalTransform) * _boot.Host.SceneState.Player.GodotPosition;
+                Assert.IsTrue(SynapticSea.Core.Systems.AssemblyMobility.Floors(boat.BuiltLayout).Any(c =>
+                    System.Math.Abs(local.X - c.X) < 2.01 && System.Math.Abs(local.Z - c.Z) < 2.01 && local.Y >= c.Y - .25 && local.Y < c.Y + 3));
+                Assert.IsNotNull(SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position));
+                Assert.IsFalse(_s.SuitFilteringShipAir);
+                Assert.AreEqual(oxygen + _s.OxygenState.RegenRate * elapsed, _s.OxygenState.Oxygen, .08, "normal local refill from saved boundary");
+                Assert.AreEqual(health - bleed * elapsed, _s.VitalsState.Health, .08, "untreated bleeding continues; unexpected damage stops observation");
+                Assert.IsFalse(_journeyDamage.Keys.Any(key => V.Str(key) != SynapticSea.Core.Contracts.SimKeys.WoundHealthDrain));
+                Assert.AreEqual(wounds, woundIdentity());
+                Assert.IsTrue(V.VariantEquals(inventory, _s.InventoryState.Items)); Assert.IsTrue(V.VariantEquals(progression, _s.PlayerProgression.GetSummary()));
+                Assert.Less(_boot.Host.SceneState.Player.GodotPosition.DistanceTo(position), .05);
+                if (elapsed >= 2.5) break;
+                Assert.Less(Time.realtimeSinceStartup, deadline, "bounded ordinary observation never waits indefinitely");
+                yield return null;
+            }
+            Debug.Log("[AuxiliaryBoatAirObserved] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "elapsed_world_seconds_including_boot", _s.WorldTime - started }, { "world_time", _s.WorldTime },
+                { "oxygen", _s.OxygenState.GetSummary() }, { "vitals", _s.VitalsState.GetSummary() }, { "wounds", _s.WoundState.GetSummary() },
+                { "health_damage_by_source", _journeyDamage }, { "inventory", inventory }, { "progression", progression },
+                { "position", AuxiliaryPosition(_boot.Host.SceneState.Player.GodotPosition) }, { "occupancy", _s.CurrentOccupancy.ShipId },
+                { "home_air_before", homeAirBefore }, { "home_air_after", _s.LifeSupportExpandedState.GetSummary() },
+                { "boat_air_before", boatAirBefore }, { "boat_air_after", ((SynapticSea.Core.Systems.LifeSupportSystem)_s.LifeboatShip.SystemsManager.GetSystem("life_support")).OxygenState.GetSummary() } }));
+            // Synchronous normal save/capture of this isolated run; no extra simulation wait or Continue.
+            string capture = System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_RETURN_CAPTURE_DIR");
+            if (!string.IsNullOrEmpty(capture))
+            {
+                Assert.IsTrue(_s.RequestSave(), GdJson.Stringify(_s.LastSaveResult));
+                AuxiliaryCaptureCheckpoint(capture, "cook", "bounded_three_second_boat_air_observation_without_care");
+            }
         }
 
         IEnumerator AuxiliaryTravelReturnWitness(bool reviewedProfile)
