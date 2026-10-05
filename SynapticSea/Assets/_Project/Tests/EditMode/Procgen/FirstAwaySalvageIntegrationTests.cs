@@ -52,6 +52,46 @@ namespace SynapticSea.Tests.EditMode.Procgen
                 Assert.IsNotNull(docs.FirstAwayDescriptor);Assert.AreEqual(before,GdJson.Stringify(contract.Contract));
             }
         }
+        [TestCase(42)] [TestCase(777)]
+        public void DockPortUsesExactAuthoredEndpointInEverySizeAndCondition(long seed)
+        {
+            for(long size=0;size<3;size++) for(long condition=0;condition<3;condition++)
+            {
+                var docs=new ShipGenerator().GenerateFirstAway(Inputs(seed,size,condition));
+                Assert.IsNotNull(docs);
+                string before=GdJson.Stringify(docs.Layout,"  ");
+                var authored=docs.Layout.GetDictOrEmpty("docking_port");
+                var port=DockPorts.ForDerelict(docs.Layout,seed,condition);
+                Assert.IsFalse(port.IsEmpty,size+"/"+condition);
+                Assert.AreEqual(Vec3.FromArray(authored["position"],Vec3.Inf),port["position"],"exact authored cell, not dock centroid");
+                Assert.AreEqual(Vec3.FromArray(authored["facing"],Vec3.Zero),port["facing"],"exact authored cardinal normal");
+                Assert.AreEqual(DockPorts.ConditionFromSeed(seed,condition),port.GetString("condition"));
+                Assert.AreEqual(before,GdJson.Stringify(docs.Layout,"  "),"port derivation is pure");
+            }
+        }
+        [Test]
+        public void ProfileDockPortRefusesMissingAndMalformedContractWithoutCentroidFallback()
+        {
+            var docs=new ShipGenerator().GenerateFirstAway(Inputs(42,0,2));Assert.IsNotNull(docs);
+            var original=docs.Layout;
+            var absent=original.DeepCopy();absent.Erase("docking_port");
+            Assert.IsTrue(DockPorts.ForDerelict(absent).IsEmpty);
+            foreach(var bad in new[] {
+                new GdDict {{"contract_version",2L},{"position",GdArray.Of(0.0,0.0,0.0)},{"facing",GdArray.Of(0.0,0.0,1.0)}},
+                new GdDict {{"contract_version",1L},{"position",GdArray.Of(0.0,0.0)},{"facing",GdArray.Of(0.0,0.0,1.0)}},
+                new GdDict {{"contract_version",1L},{"position",GdArray.Of(double.NaN,0.0,0.0)},{"facing",GdArray.Of(0.0,0.0,1.0)}},
+                new GdDict {{"contract_version",1L},{"position",GdArray.Of(0.0,0.0,0.0)},{"facing",GdArray.Of(1.0,0.0,1.0)}},
+                new GdDict {{"contract_version",1L},{"position",GdArray.Of(0.0,0.0,0.0)},{"facing",GdArray.Of(0.0,1.0,0.0)}} })
+            {
+                var layout=original.DeepCopy();layout["docking_port"]=bad;
+                Assert.IsTrue(DockPorts.ForDerelict(layout).IsEmpty,"profile must not fall back to an otherwise valid dock room");
+            }
+            var legacy=original.DeepCopy();legacy.Erase("generation_profile");legacy.Erase("docking_port");
+            var legacyPort=DockPorts.ForDerelict(legacy);
+            Assert.IsFalse(legacyPort.IsEmpty,"ordinary legacy centroid path remains available");
+            Assert.AreEqual(new Vec3(1.0,0.0,0.0),legacyPort["facing"]);
+            Assert.AreEqual(StartSceneBuilder.FindDockPosition(legacy),legacyPort["position"]);
+        }
         static void AssertAllRoomStandingReturn(GdDict layout)
         {
             var graph=new ShipNavGraph();Assert.Greater(graph.BuildFromLayout(layout),0);
