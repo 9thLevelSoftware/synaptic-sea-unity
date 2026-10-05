@@ -67,6 +67,8 @@ namespace SynapticSea.Game
         public readonly NearbyWorkPickerPanel NearbyWorkPicker = new NearbyWorkPickerPanel();
         public Button NearbyWorkAction { get; private set; }
         SessionComponentHost _componentHost;
+        bool _workPickerRequestInProgress;
+        GdDict _deferredWorkRecipe;
         TerminalSaveRetryPanel _terminalSaveRetry;
         public SurfacePanel TerminalSaveRetry => _terminalSaveRetry;
         string _transferShipId = "", _transferCartId = "", _transferLabel = "";
@@ -306,11 +308,34 @@ namespace SynapticSea.Game
             RecipePicker.PanelClosed += () => OnInspectionClosed(RecipePicker);
             NearbyWorkPicker.ListTargets = session.ListNearbyWorkTargets;
             NearbyWorkPicker.DescribeTarget = session.DescribeWorkTarget;
-            NearbyWorkPicker.RequestTarget = target => host != null ? host.RequestWorkTargetFromPicker(target)
-                : new GdDict { { "ok", false }, { "reason", "not_ready" } };
+            NearbyWorkPicker.RequestTarget = target =>
+            {
+                _deferredWorkRecipe = null;
+                _workPickerRequestInProgress = target is CraftingStation station && station.StationKind == "workbench";
+                try
+                {
+                    return host != null ? host.RequestWorkTargetFromPicker(target)
+                        : new GdDict { { "ok", false }, { "reason", "not_ready" } };
+                }
+                catch
+                {
+                    _deferredWorkRecipe = null;
+                    throw;
+                }
+                finally { _workPickerRequestInProgress = false; }
+            };
             NearbyWorkPicker.PanelClosed += () => OnInspectionClosed(NearbyWorkPicker);
             NearbyWorkPicker.WorkResolved += result =>
             {
+                GdDict recipe = _deferredWorkRecipe;
+                _deferredWorkRecipe = null;
+                if (result.GetBool("opened"))
+                {
+                    // The chooser has closed before the normal station event reaches the recipe modal.
+                    if (recipe != null && recipe.GetString("station_kind") == result.GetString("station_kind"))
+                        OnPanelRequested("recipe_picker", recipe);
+                    return;
+                }
                 if (!result.GetBool("started")) return;
                 // UI confirmation is never a held world Interact press.
                 session.EndWorkHold();
@@ -742,6 +767,11 @@ namespace SynapticSea.Game
                     Show(Inventory);
                     break;
                 case "recipe_picker":
+                    if (_workPickerRequestInProgress && args.GetString("station_kind") == "workbench")
+                    {
+                        _deferredWorkRecipe = args.DeepCopy();
+                        return;
+                    }
                     if (RecipePicker.IsOpen()) RecipePicker.Close();
                     RecipePicker.OpenForStation(V.Str(args.Get("station_kind", "")));
                     if (RecipePicker.IsOpen()) Show(RecipePicker);

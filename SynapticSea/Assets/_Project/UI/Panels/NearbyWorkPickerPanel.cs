@@ -24,7 +24,7 @@ namespace SynapticSea.UI
         string _status = "";
         public NearbyWorkPickerPanel() : base("CHOOSE NEARBY WORK", SurfaceTime.Live)
         {
-            _list = new SelectableList("nearby_work", "No reachable repair or seal work.") { Wrap = true };
+            _list = new SelectableList("nearby_work", "No reachable repair, seal or workbench.") { Wrap = true };
             _detail = UiFactory.Text("", UiClasses.LabelSecondary);
             Body.Add(_list); Body.Add(_detail);
             Body.Add(UiFactory.Button("Select work", () => ConfirmSelection(), "action:select_work"));
@@ -73,7 +73,7 @@ namespace SynapticSea.UI
             {
                 // Blocked rows deliberately reach the authoritative denial path; no UI fallback.
                 GdDict result = RequestTarget?.Invoke(SelectedTarget) ?? new GdDict { { "ok", false }, { "reason", "not_ready" } };
-                if (result.GetBool("started")) Close();
+                if (result.GetBool("started") || result.GetBool("opened")) Close();
                 else { _status = "Work denied: " + result.GetString("reason", "rejected"); Render(); }
                 WorkResolved?.Invoke(result);
                 return result;
@@ -98,7 +98,7 @@ namespace SynapticSea.UI
             }
             _list.SetItems(items, _selected);
             GdDict row = SelectedTarget != null ? DescribeTarget?.Invoke(SelectedTarget) : null;
-            if (row == null) _detail.text = "No reachable repair or seal work. Close and reopen after moving.";
+            if (row == null) _detail.text = "No reachable repair, seal or workbench. Close and reopen after moving.";
             else
             {
                 GdDict req = row.GetDictOrEmpty("requirements");
@@ -108,7 +108,12 @@ namespace SynapticSea.UI
                 if (req.GetString("required_item").Length > 0) lines.Add("Required item: " + req.GetString("required_item"));
                 foreach (object part in req.GetArrayOrEmpty("parts")) lines.Add("Part: " + V.Str(part));
                 foreach (object tool in req.GetArrayOrEmpty("tools")) lines.Add("Tool: " + V.Str(tool));
-                lines.Add("Select starts this task only. Existing work controls remain available.");
+                if (row.GetString("station_kind").Length > 0)
+                {
+                    lines.Add("Station tier: " + req.GetInt("effective_tier"));
+                    lines.Add("Select opens this workbench’s recipes. Crafting requires a separate confirmation.");
+                }
+                else lines.Add("Select starts this task only. Existing work controls remain available.");
                 _detail.text = string.Join("\n", lines);
             }
             StatusText.Set(_status, _status.Length > 0 ? Severity.Caution : Severity.None);

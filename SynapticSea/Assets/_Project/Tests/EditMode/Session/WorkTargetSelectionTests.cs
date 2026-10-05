@@ -161,4 +161,149 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual("unsupported_target", result.GetString("reason")); Assert.IsFalse(result.GetBool("handled")); Assert.IsFalse(loot.Searched);
         }
     }
+    public class WorkbenchTargetSelectionTests : PaidCraftFixture
+    {
+        sealed class Sight : ILineOfSightProbe
+        {
+            public bool HasSpace => true;
+            public bool IntersectRay(Vec3 from, Vec3 to, out Vec3 hit) { hit = (from + to) * .5f; return true; }
+        }
+        sealed class Ui : IRunUiState
+        {
+            public bool RecipePickerOpen { get; set; }
+            public bool ScannerOpen { get; set; }
+            public bool InventoryOpen { get; set; }
+            public bool MenusClosed { get; set; } = true;
+        }
+        static CraftingStation Bench(RunSession s) => s.CraftingStations.Single(st => st.StationKind == "workbench");
+        static void Stand(RunSession s, SessionInteractable p) => ((FakeSceneState)s.Scene).PlayerPosition = p.GlobalPosition;
+        static void Refuse(RunSession s, CraftingStation st, string expected)
+        {
+            var inventory = s.InventoryState.GetSummary(); var xp = s.PlayerProgression.GetSummary(); int intents = 0;
+            Action<string, GdDict> listener = (panel, args) => { if (panel == "recipe_picker") intents++; };
+            s.Events.PanelRequested += listener;
+            GdDict result;
+            try { result = s.RequestWorkTarget(st); }
+            finally { s.Events.PanelRequested -= listener; }
+            Assert.IsFalse(result.GetBool("ok")); Assert.IsFalse(result.GetBool("opened")); Assert.IsFalse(result.GetBool("started"));
+            Assert.AreEqual(expected, result.GetString("reason")); Assert.AreEqual(0, intents);
+            Equal(inventory, s.InventoryState.GetSummary(), "Refusal must not pay or create inventory");
+            Equal(xp, s.PlayerProgression.GetSummary(), "Refusal must not award XP");
+        }
+        [Test]
+        public void ExactWorkbenchOpensOneNormalRecipeIntentWithoutCraftingOrPayment()
+        {
+            var s = Boot(paid: false); var st = Bench(s); Stand(s, st); st.SetPowered(false);
+            // The picker may open with no inputs and insufficient recipe skill: recipe confirmation owns those gates.
+            s.PlayerProgression.Skills["fabrication"] = 0L;
+            var inventory = s.InventoryState.GetSummary(); var xp = s.PlayerProgression.GetSummary(); var materials = s.MaterialState.GetSummary();
+            int intents = 0, stationIntents = 0;
+            st.RecipePickerRequested += kind => { Assert.AreEqual("workbench", kind); stationIntents++; };
+            var ui = new Ui(); s.Deps.UiState = ui;
+            s.Events.PanelRequested += (panel, args) => {
+                if (panel == "recipe_picker") { Assert.AreEqual("workbench", args.GetString("station_kind")); intents++; ui.RecipePickerOpen = true; }
+            };
+            for (int n = 0; n < 3; n++)
+            {
+                CollectionAssert.Contains(s.ListNearbyWorkTargets(), st);
+                var description = s.DescribeWorkTarget(st);
+                Assert.AreEqual("ready", description.GetString("reason"));
+                Assert.AreEqual("open_recipe_picker", description.GetString("action"));
+                Assert.AreEqual(s.HomeShip.ShipId, description.GetString("owner_id"));
+            }
+            Assert.AreEqual(0, intents); Assert.AreEqual(0, stationIntents);
+            var result = s.RequestWorkTarget(st);
+            Assert.IsTrue(result.GetBool("ok")); Assert.IsTrue(result.GetBool("handled")); Assert.IsTrue(result.GetBool("opened"));
+            Assert.IsFalse(result.GetBool("started")); Assert.AreEqual("opened", result.GetString("reason"));
+            Assert.AreEqual("workbench", result.GetString("station_kind")); Assert.AreEqual(1, intents); Assert.AreEqual(1, stationIntents);
+            Assert.IsFalse(s.CraftingState.IsCrafting()); Assert.IsFalse(s.IsWorkInteractHeld);
+            Equal(inventory, s.InventoryState.GetSummary(), "Opening never pays");
+            Equal(xp, s.PlayerProgression.GetSummary(), "Opening never awards XP");
+            Equal(materials, s.MaterialState.GetSummary(), "Opening never consumes materials");
+            Refuse(s, st, "ui_busy"); Assert.AreEqual(1, intents); Assert.AreEqual(1, stationIntents);
+        }
+        [TestCase("crafting")][TestCase("materials")][TestCase("inventory")][TestCase("resolver")][TestCase("progression")]
+        public void EachCurrentWorkbenchBindingIsRequired(string binding)
+        {
+            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            if (binding == "crafting") st.CraftingState = null;
+            if (binding == "materials") st.MaterialState = null;
+            if (binding == "inventory") st.InventoryState = null;
+            if (binding == "resolver") st.DeconstructionResolver = null;
+            if (binding == "progression") st.PlayerProgression = null;
+            Refuse(s, st, "invalid_binding"); CollectionAssert.DoesNotContain(s.ListNearbyWorkTargets(), st);
+        }
+        [Test]
+        public void WorkbenchRequiresExactCurrentReferenceAndHomeOwnerAfterContinue()
+        {
+            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            var clone = new CraftingStation();
+            clone.Configure("workbench", st.CraftingState, st.MaterialState, st.InventoryState, st.DeconstructionResolver, st.PlayerProgression, st.LocalPosition, st.InteractionRadius);
+            clone.Parent = st.Parent;
+            Refuse(s, clone, "stale_target");
+            var parent = st.Parent; st.Parent = new FakeShipRoot { IsInsideTree = true };
+            Refuse(s, st, "stale_owner"); st.Parent = parent;
+            Assert.IsTrue(s.ApplyManualSlot(RunSnapshotAssembler.Build(s)));
+            Assert.AreNotSame(st, Bench(s)); Stand(s, Bench(s)); Refuse(s, st, "stale_target");
+        }
+        [Test]
+        public void WorkbenchUsesCurrentStrictRangeAndLineOfSight()
+        {
+            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            CollectionAssert.Contains(s.ListNearbyWorkTargets(), st);
+            ((FakeSceneState)s.Scene).PlayerPosition += new Vec3(20, 0, 0); st.CandidatePlayerInRange = true;
+            Refuse(s, st, "out_of_range"); CollectionAssert.DoesNotContain(s.ListNearbyWorkTargets(), st);
+            Stand(s, st); s.Deps.LosProbe = new Sight(); Refuse(s, st, "no_line_of_sight");
+            CollectionAssert.DoesNotContain(s.ListNearbyWorkTargets(), st);
+        }
+        [TestCase("recipe")][TestCase("scanner")][TestCase("inventory")][TestCase("menu")]
+        public void ExistingOtherUiPreventsRecipeOpening(string panel)
+        {
+            var s = Boot(paid: false); var st = Bench(s); Stand(s, st); var ui = new Ui(); s.Deps.UiState = ui;
+            if (panel == "recipe") ui.RecipePickerOpen = true;
+            if (panel == "scanner") ui.ScannerOpen = true;
+            if (panel == "inventory") ui.InventoryOpen = true;
+            if (panel == "menu") ui.MenusClosed = false;
+            Refuse(s, st, panel == "menu" ? "menu_open" : "ui_busy");
+        }
+        [Test]
+        public void ActiveAndRestoredPausedWorkPreventWorkbenchOpening()
+        {
+            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            s.WorkActionDriver.Work = new WorkActionState { Status = WorkActionState.STATUS_ACTIVE };
+            Refuse(s, st, "work_busy");
+            s.WorkActionDriver.Work.Status = WorkActionState.STATUS_INTERRUPTED;
+            typeof(RunSession).GetField("_workAwaitingResume", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(s, true);
+            Refuse(s, st, "work_busy");
+        }
+        [Test]
+        public void PausedPaidOrdinaryJobPreventsWorkbenchOpening()
+        {
+            var s = Boot(); Provision(s); string id = Start(s);
+            Assert.IsTrue(s.RestorePaidCraftingDomain(s.CapturePaidCraftingDomain()));
+            Assert.AreEqual("paused", Job(s, id).GetString("status"));
+            var st = Bench(s); Stand(s, st); Refuse(s, st, "work_busy");
+        }
+        [TestCase("medbay")][TestCase("fabricator")]
+        public void OtherStationsCannotEnterExactWorkbenchDispatch(string kind)
+        {
+            var s = Boot(paid: false); var st = s.CraftingStations.Single(row => row.StationKind == kind); Stand(s, st);
+            Refuse(s, st, "unsupported_target"); CollectionAssert.DoesNotContain(s.ListNearbyWorkTargets(), st);
+        }
+        [Test]
+        public void NormalHigherPriorityHomeJoinStaysFirstWhileExactWorkbenchHasNoHomeWorkEffects()
+        {
+            var s = Boot(paid: false); Assert.IsTrue(s.CompleteAllObjectives()); s.RebuildHomeJoinControls();
+            var join = s.HomeJoinControls.Single(c => c.ActionId == "commission_home_propulsion");
+            var st = Bench(s); st.Parent = join.Parent; st.LocalPosition = join.LocalPosition; Stand(s, st);
+            Assert.AreEqual("home_join", s.RequestInteract());
+            int recipeIntents = 0; s.Events.PanelRequested += (id, args) => { if (id == "recipe_picker") recipeIntents++; };
+            var mobility = s.HomeShip.Mobility.DeepCopy(); var inventory = s.InventoryState.GetSummary();
+            var result = s.RequestWorkTarget(st);
+            Assert.IsTrue(result.GetBool("opened"), result.GetString("reason")); Assert.AreEqual(1, recipeIntents);
+            Equal(mobility, s.HomeShip.Mobility, "Workbench selection does not commission propulsion");
+            Equal(inventory, s.InventoryState.GetSummary(), "Workbench selection never pays home work");
+        }
+    }
+
 }

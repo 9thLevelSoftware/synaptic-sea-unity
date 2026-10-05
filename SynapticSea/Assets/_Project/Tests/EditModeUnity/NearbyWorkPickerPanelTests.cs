@@ -59,6 +59,54 @@ namespace SynapticSea.Tests.Unity
         }
 
         [Test]
+        public void WorkbenchSubmitClosesBeforeRecipeHandoffWithoutStartingCraftOrDuplicating()
+        {
+            var station = new CraftingStation { NodeName = "workbench", StationKind = "workbench" };
+            int requests = 0, recipes = 0;
+            var panel = new NearbyWorkPickerPanel {
+                ListTargets = () => new SessionInteractable[] { station }, DescribeTarget = target => new GdDict {
+                    { "label", "Use workbench" }, { "station_kind", "workbench" },
+                    { "requirements", new GdDict { { "effective_tier", 3L } } },
+                    { "status", "ready" }, { "reason", "ready" } },
+                RequestTarget = target => { Assert.AreSame(station, target); requests++;
+                    return new GdDict { { "opened", true }, { "started", false }, { "station_kind", "workbench" } }; } };
+            panel.WorkResolved += result => {
+                Assert.IsFalse(panel.IsOpen(), "chooser closes before normal recipe modal handoff");
+                Assert.IsTrue(result.GetBool("opened")); Assert.IsFalse(result.GetBool("started")); recipes++;
+            };
+            using (var harness = new UiHarness())
+            {
+                harness.Mount(panel); panel.Open(); harness.Layout();
+                Assert.AreEqual(0, requests, "opening does not use a station");
+                StringAssert.Contains("separate confirmation", panel.DetailText);
+                StringAssert.Contains("Station tier: 3", panel.DetailText);
+                var row = panel.List.RowAt(0);
+                using (var submit = NavigationSubmitEvent.GetPooled()) { submit.target = row; row.SendEvent(submit); }
+                Assert.AreEqual(1, requests); Assert.AreEqual(1, recipes); Assert.IsFalse(panel.IsOpen());
+                using (var submit = NavigationSubmitEvent.GetPooled()) { submit.target = row; row.SendEvent(submit); }
+                panel.ConfirmSelection(); Assert.AreEqual(1, requests); Assert.AreEqual(1, recipes);
+            }
+        }
+
+        [Test]
+        public void WorkbenchCoveredCancelAndReplacementNeverOpenRecipes()
+        {
+            var station = new CraftingStation { NodeName = "workbench", StationKind = "workbench" };
+            IReadOnlyList<SessionInteractable> live = new SessionInteractable[] { station }; int requests = 0;
+            var panel = new NearbyWorkPickerPanel { ListTargets = () => live, DescribeTarget = Describe,
+                RequestTarget = target => { requests++; return new GdDict { { "opened", true } }; } };
+            using (var harness = new UiHarness())
+            {
+                harness.Mount(panel); panel.Open(); harness.Layout(); panel.SetCovered(true);
+                panel.Consume(UiCommand.Accept); Assert.AreEqual(0, requests);
+                panel.SetCovered(false); panel.Consume(UiCommand.Cancel); Assert.IsFalse(panel.IsOpen());
+                panel.Open(); Assert.AreEqual(0, requests);
+                live = new SessionInteractable[] { new CraftingStation { NodeName = "workbench", StationKind = "workbench" } };
+                panel.Refresh(); Assert.IsFalse(panel.IsOpen()); panel.ConfirmSelection(); Assert.AreEqual(0, requests);
+            }
+        }
+
+        [Test]
         public void LiveReorderPreservesSelectedReferenceThroughRealNavigationSubmit()
         {
             var repair = new RepairPoint { NodeName = "gravity" };
