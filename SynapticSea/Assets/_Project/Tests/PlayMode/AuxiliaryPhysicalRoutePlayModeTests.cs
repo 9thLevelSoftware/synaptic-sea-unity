@@ -655,11 +655,22 @@ namespace SynapticSea.Tests.PlayMode
             var selection = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(AuxiliaryReadVerified(directory,
                 manifest.GetString("selection_file"), manifest.GetString("selection_sha256")));
             var payload = selection.GetDictOrEmpty("payloads");
-            var savedWorld = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("world_text"));
-            var savedRun = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("run_text"));
-            double started = savedWorld.GetFloat("world_time"), health = savedRun.GetDictOrEmpty("vitals_summary").GetFloat("health");
-            double oxygen = savedRun.GetDictOrEmpty("oxygen_summary").GetFloat("oxygen");
-            double bleed = savedRun.GetDictOrEmpty("wound_summary").GetFloat("bleed_rate");
+            var savedWorld = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("world_text"), SynapticSea.Core.Systems.PaidSnapshotCodec.Policy.OrdinaryWorld);
+            var savedRun = SynapticSea.Core.Systems.PaidSnapshotCodec.Parse(payload.GetString("run_text"), SynapticSea.Core.Systems.PaidSnapshotCodec.Policy.OrdinaryRun);
+            Assert.IsNotNull(savedWorld, "verified paid world must parse under its ordinary snapshot policy");
+            Assert.IsNotNull(savedRun, "verified paid run must parse under its ordinary snapshot policy");
+            System.Func<GdDict, string, double> requiredNumber = (owner, key) =>
+            {
+                object value = owner.Get(key);
+                Assert.IsTrue(value is double || value is long, "required saved numeric field: " + key);
+                double number = owner.GetFloat(key);
+                Assert.IsFalse(double.IsNaN(number) || double.IsInfinity(number), "finite saved numeric field: " + key);
+                return number;
+            };
+            double started = requiredNumber(savedWorld, "world_time"), health = requiredNumber(savedRun.GetDictOrEmpty("vitals_summary"), "health");
+            double oxygen = requiredNumber(savedRun.GetDictOrEmpty("oxygen_summary"), "oxygen");
+            double bleed = requiredNumber(savedRun.GetDictOrEmpty("wound_summary"), "bleed_rate");
+            Assert.Greater(started, 0); Assert.Greater(health, 0); Assert.Greater(oxygen, 0); Assert.Greater(bleed, 0);
             Assert.Greater(health - bleed * 3, 10, "preflight wound-only safety margin for entire boot plus observation");
             Assert.Less(oxygen + 3.5 * 3, 35, "bounded observation is not a safe-threshold/full-refill claim");
             Debug.Log("[AuxiliaryBoatAirPreflight] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
