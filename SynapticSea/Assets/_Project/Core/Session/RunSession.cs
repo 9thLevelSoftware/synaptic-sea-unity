@@ -104,7 +104,7 @@ namespace SynapticSea.Core.Session
         public const string PLAYER_LOCAL_ID = "player_local";
         public const double FOOTSTEP_INTERVAL_WALK = 0.40;
         public const double FOOTSTEP_INTERVAL_CROUCH = 0.55;
-        public static readonly IReadOnlyList<string> BANDAGE_ITEM_IDS = new[] { "bandage_kit", "bandage", "field_dressing" };
+        public static readonly IReadOnlyList<string> BANDAGE_ITEM_IDS = new[] { "bandage_kit", "bandage", "field_dressing", "field_bandage" };
         public static readonly IReadOnlyList<string> TREAT_ITEM_IDS = new[] { "medkit", "stim_pack", "antibiotic" };
         public const double WORK_ACTION_INTERACT_RANGE = 3.5;
 
