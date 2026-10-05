@@ -4,6 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Variant;
+using SynapticSea.Game;
 using SynapticSea.Runtime;
 using SynapticSea.Runtime.Session;
 using SynapticSea.UI;
@@ -704,7 +705,7 @@ namespace SynapticSea.Tests.PlayMode
                 Assert.IsFalse(_s.SuitFilteringShipAir);
                 Assert.AreEqual(oxygen + _s.OxygenState.RegenRate * elapsed, _s.OxygenState.Oxygen, .08, "normal local refill from saved boundary");
                 Assert.AreEqual(health - bleed * elapsed, _s.VitalsState.Health, .08, "untreated bleeding continues; unexpected damage stops observation");
-                Assert.IsFalse(_journeyDamage.Keys.Any(key => V.Str(key) != SynapticSea.Core.Contracts.SimKeys.WoundHealthDrain));
+                Assert.IsFalse(_journeyDamage.Keys.Any(key => V.Str(key) != SynapticSea.Core.Systems.SimKeys.WoundHealthDrain));
                 Assert.AreEqual(wounds, woundIdentity());
                 Assert.IsTrue(V.VariantEquals(inventory, _s.InventoryState.Items)); Assert.IsTrue(V.VariantEquals(progression, _s.PlayerProgression.GetSummary()));
                 Assert.Less(_boot.Host.SceneState.Player.GodotPosition.DistanceTo(position), .05);
