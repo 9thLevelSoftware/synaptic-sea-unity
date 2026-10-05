@@ -40,6 +40,34 @@ namespace SynapticSea.Tests.Session
             }
         }
 
+        [TestCase(SynapticSea.Core.Procgen.FirstAwayGenerationInputs.Profile, true)]
+        [TestCase(SynapticSea.Core.Procgen.ConstrainedExpedition.Profile, true)]
+        [TestCase(SynapticSea.Core.Procgen.ConstrainedExpedition.LegacyProfile, false)]
+        public void NormalTickRefreshesPhysicalFloorOwnerForEligibleProfilesAndPreservesLegacy(string profile, bool refresh)
+        {
+            var rig = SessionHarness.CreateGolden(); var s = rig.Session;
+            try
+            {
+                var root = new FakeShipRoot { IsInsideTree = true };
+                var bp = new SynapticSea.Core.Procgen.ShipBlueprint(0, 2, 42) { GenerationProfile = profile };
+                var ship = ShipInstance.Create("ship_tick_owner", "tick_owner", bp, new ShipSystemsManager(), root);
+                ship.BuiltLayout = new GdDict { { "structural_plan", new GdDict { { "floor_placements", GdArray.Of(
+                    new GdDict { { "position", new Vec3(800, 0, 800) } }) } } } };
+                s.VisitedShips["tick_owner"] = ship; s.CurrentShip = ship; s.AwayFromStart = true;
+                s.CurrentOccupancy = s.LifeboatShip;
+                // Feed successive player positions through the ordinary tick input; never call the resolver explicitly.
+                for (int i = 0; i <= 4; i++)
+                {
+                    rig.Scene.PlayerPosition = new Vec3(800 + (4 - i), .5, 800);
+                    s.Tick(TickContext.Frame(.02, rig.Scene.PlayerPosition));
+                }
+                Assert.AreSame(refresh ? ship : s.LifeboatShip, s.CurrentOccupancy);
+                Assert.AreSame(ship, s.CurrentShip, "refresh does not force a different boarded context");
+                Assert.AreEqual(profile, ship.Blueprint.GenerationProfile);
+            }
+            finally { s.Dispose(); }
+        }
+
         [Test]
         public void RepairedRecoveryHabitatAirRequiresPhysicalOwnershipLocalServicesSealingAndNoAuthoredVent()
         {
