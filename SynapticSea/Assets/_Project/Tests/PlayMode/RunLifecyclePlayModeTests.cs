@@ -26,7 +26,7 @@ namespace SynapticSea.Tests.PlayMode
     /// by path, death pauses into the results and returns to the title with the last-run line, and boot/load failures
     /// return to the title with the error.
     /// </summary>
-    public class RunLifecyclePlayModeTests
+    public partial class RunLifecyclePlayModeTests
     {
         IStorage _previousStorage;
         IResourceReader _previousResources;

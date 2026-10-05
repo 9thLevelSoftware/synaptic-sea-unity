@@ -182,10 +182,11 @@ namespace SynapticSea.Game
                 DifficultyId = string.IsNullOrEmpty(launch.DifficultyId) ? RunLaunchRequest.DefaultDifficultyId : launch.DifficultyId,
                 BiomeId = launch.BiomeId ?? "",
                 EnableComponentIntegration = launch.EnableComponentIntegration,
-                EnableManualStudy = launch.EnableManualStudy,
-                EnablePaidCrafting = launch.EnableManualStudy,
+                EnableManualStudy = launch.EnableManualStudy || launch.EnableAuxiliaryServices,
+                EnableAuxiliaryServices = launch.EnableAuxiliaryServices,
+                EnablePaidCrafting = launch.EnableManualStudy || launch.EnableAuxiliaryServices,
             };
-            if ((launch.EnableComponentIntegration || launch.EnableManualStudy) && launch.Mode != RunLaunchMode.NewRun)
+            if ((launch.EnableComponentIntegration || launch.EnableManualStudy || launch.EnableAuxiliaryServices) && launch.Mode != RunLaunchMode.NewRun)
             {
                 string slotId = launch.Mode == RunLaunchMode.Continue ? RunLaunchRequest.WorldSlotId : launch.SlotId;
                 var service = new SaveLoadService(CoreServices.UserStorage, CoreServices.Clock, true);
@@ -316,7 +317,7 @@ namespace SynapticSea.Game
         {
             failure = "";
             bool applied = true;
-            if ((launch.EnableComponentIntegration || launch.EnableManualStudy) && launch.Mode != RunLaunchMode.NewRun)
+            if ((launch.EnableComponentIntegration || launch.EnableManualStudy || launch.EnableAuxiliaryServices) && launch.Mode != RunLaunchMode.NewRun)
             {
                 GdDict selected = launch.SelectedSaveGeneration;
                 applied = selected != null && session.ApplySelectedGeneration(selected);

@@ -702,6 +702,7 @@ namespace SynapticSea.Game
                         Inventory.BindComponents(_componentHost, holderId);
                     }
                     Inventory.OpenTransfer(_session.InventoryState, hold, V.Str(args.Get("label", "HOLD")), _session.EquipmentState);
+                    Inventory.BindBulkTransferGate(shipId.Length > 0 ? (Func<GdDict>)(() => _session.GetCargoBulkEligibility(shipId)) : null);
                     Show(Inventory);
                     break;
                 case "recipe_picker":

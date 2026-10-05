@@ -123,11 +123,11 @@ namespace SynapticSea.Core.Session
                 if (ShipModificationState != null && !ShipModificationState.IsPowerBudgetOk())
                     stationsPowered = false;
                 foreach (string kind in CRAFTING_STATION_KINDS)
-                    CraftingState.GetOrCreateStation(kind).SetPower(stationsPowered);
+                    CraftingState.GetOrCreateStation(kind).SetPower(stationsPowered && (kind != "fabricator" || AuxiliaryFabricatorFeedReady()));
                 foreach (CraftingStation st in CraftingStations)
                 {
                     if (st.IsValid)
-                        st.SetPowered(stationsPowered);
+                        st.SetPowered(stationsPowered && (st.StationKind != "fabricator" || AuxiliaryFabricatorFeedReady()));
                 }
                 if (CraftingState.Tick(delta))
                     OnCraftCompleted();
@@ -738,7 +738,7 @@ namespace SynapticSea.Core.Session
         public long CargoDeposit(string shipId)
         {
             ShipInstance inst = FindShipById(shipId);
-            if (inst == null || InventoryState == null)
+            if (inst == null || InventoryState == null || !GetCargoBulkEligibility(shipId).GetBool("ok"))
                 return 0;
             long moved = V.I64(CargoTransfer.DepositAll(InventoryState, inst.GetInventory()).Get("total_moved", 0L));
             RecomputePlayerEncumbrance();
@@ -750,7 +750,7 @@ namespace SynapticSea.Core.Session
         public long CargoWithdraw(string shipId, string category)
         {
             ShipInstance inst = FindShipById(shipId);
-            if (inst == null || InventoryState == null)
+            if (inst == null || InventoryState == null || !GetCargoBulkEligibility(shipId).GetBool("ok"))
                 return 0;
             long moved = V.I64(CargoTransfer.WithdrawCategory(inst.GetInventory(), InventoryState, category).Get("total_moved", 0L));
             RecomputePlayerEncumbrance();

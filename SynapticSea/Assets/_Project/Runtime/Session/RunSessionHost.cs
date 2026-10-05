@@ -431,6 +431,9 @@ namespace SynapticSea.Runtime.Session
         {
             if (model == null || _interactables.ContainsKey(model) || !model.IsValid || (model.Parent != null && !model.Parent.IsValid)) return;
             _interactables[model] = InteractableView.Create(model, _interactionRoot, SceneState?.Sensor);
+            if (model is AuxiliaryServicePoint service)
+                _interactables[model].GetComponentInChildren<AuxiliaryUtilityView>(true)?.BindEffects(
+                    () => Session?.GetAuxiliaryUtilityEffects(service.OwnerId, service.ServiceId));
             SceneState?.Sensor?.Refresh();
         }
 

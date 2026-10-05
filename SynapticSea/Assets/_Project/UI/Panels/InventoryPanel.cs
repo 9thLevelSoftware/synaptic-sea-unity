@@ -50,6 +50,15 @@ namespace SynapticSea.UI
         string _componentActionMode = "", _componentActionPane = "", _componentActionRow = "";
         List<string> _componentActionVerbs;
 
+        Func<GdDict> _bulkTransferGate;
+        public void BindBulkTransferGate(Func<GdDict> gate) => _bulkTransferGate = gate;
+        bool CanBulkTransfer()
+        {
+            GdDict result = _bulkTransferGate?.Invoke();
+            if (result == null || result.GetBool("ok")) return true;
+            Deny(result.GetString("reason", "Bulk transfer unavailable")); return false;
+        }
+
         public void BindComponents(IComponentInteractionHost host, string containerHolderId = "")
         {
             if (!ReferenceEquals(_componentHost, host) || _componentContainerHolder != (containerHolderId ?? ""))
@@ -212,6 +221,7 @@ namespace SynapticSea.UI
 
         public void OpenSelf(InventoryState inv, EquipmentState equip)
         {
+            _bulkTransferGate = null;
             _playerInv = inv ?? throw new ArgumentNullException(nameof(inv), "InventoryState dependency must not be null");
             _equip = equip ?? throw new ArgumentNullException(nameof(equip), "EquipmentState dependency must not be null");
             _container = null;
@@ -225,6 +235,7 @@ namespace SynapticSea.UI
 
         public void OpenTransfer(InventoryState playerInv, CargoTransfer.ICargoHold containerHold, string containerLabel, EquipmentState equip)
         {
+            _bulkTransferGate = null;
             _playerInv = playerInv ?? throw new ArgumentNullException(nameof(playerInv), "Player inventory dependency must not be null");
             _container = containerHold ?? throw new ArgumentNullException(nameof(containerHold), "Container hold dependency must not be null");
             _containerLabel = containerLabel ?? "";
@@ -238,6 +249,7 @@ namespace SynapticSea.UI
 
         public void Close()
         {
+            _bulkTransferGate = null;
             _mode = "closed";
             CancelSplit();
             SetViewVisible(false);
@@ -537,6 +549,7 @@ namespace SynapticSea.UI
         /// <summary>Moves every id in <paramref name="pane"/> to the other pane (manual; includes tools).</summary>
         public long TransferAllFrom(string pane)
         {
+            if (!CanBulkTransfer()) return 0;
             if (_componentHost != null) return TransferComponentRows(pane, GdString.ToGdArray(IdsForPane(pane)));
             CargoTransfer.ICargoStore src = InvForPane(pane);
             CargoTransfer.ICargoStore dst = InvForPane(OtherPane(pane));
@@ -731,7 +744,7 @@ namespace SynapticSea.UI
         /// <summary>"Deposit All": bulk part+supply (tools excluded) into the container.</summary>
         public long DepositAllToContainer()
         {
-            if (_mode != "transfer" || _playerInv == null || _container == null) return 0;
+            if (_mode != "transfer" || _playerInv == null || _container == null || !CanBulkTransfer()) return 0;
             if (_componentHost != null)
             {
                 var rows = new GdArray();

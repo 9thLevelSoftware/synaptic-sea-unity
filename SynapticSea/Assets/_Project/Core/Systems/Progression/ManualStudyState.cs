@@ -159,7 +159,7 @@ namespace SynapticSea.Core.Systems
         }
         internal static bool Conserved(GdDict before, GdDict after, GdDict effect)
         {
-            if (before.GetInt("schema_version") != 4 || after.GetInt("schema_version") != 4 || after.GetInt("revision") != before.GetInt("revision") + 1 || after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
+            if ((before.GetInt("schema_version") != 4 && before.GetInt("schema_version") != 5) || after.GetInt("schema_version") != before.GetInt("schema_version") || after.GetInt("revision") != before.GetInt("revision") + 1 || after.GetInt("command_sequence") != before.GetInt("command_sequence") + 1) return false;
             GdDict expected = before.DeepCopy(), a = State(before), b = State(after); string op = effect.GetString("operation"), book = effect.GetString("book_id");
             if (!IsOperation(op)) return false;
             if (op == "study_complete")
@@ -196,7 +196,7 @@ namespace SynapticSea.Core.Systems
         public static bool Validate(GdDict domain, out string reason)
         {
             reason = "invalid_manual_study"; GdDict s = State(domain), paid = PaidCraftingState.State(domain), p = domain.GetDictOrEmpty("participating_state");
-            if (!Keys(p, "inventory", "progression", "training", "crafting", "field_crafting", "stacks", "paid_crafting", "spoilage", "manual_study")) return false;
+            if (!Keys(p, domain.GetInt("schema_version") == 5 ? new[] { "inventory", "progression", "training", "crafting", "field_crafting", "stacks", "paid_crafting", "spoilage", "manual_study", "auxiliary_services" } : new[] { "inventory", "progression", "training", "crafting", "field_crafting", "stacks", "paid_crafting", "spoilage", "manual_study" })) return false;
             if (!Keys(s, "schema_version", "run_id", "actor_id", "job", "completed") || !PaidCraftRewardProof.Version(s) || !Text(s, "run_id") || !Text(s, "actor_id") ||
                 s.GetString("run_id") != paid.GetString("run_id") || s.GetString("actor_id") != paid.GetString("actor_id") || !(s.Get("job") is GdDict job) || !ValidJob(job) || !(s.Get("completed") is GdDict completed)) return false;
             GdDict books = PlayerProgressionState.LoadBooksCatalog();

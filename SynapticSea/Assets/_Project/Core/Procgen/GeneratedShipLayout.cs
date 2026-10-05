@@ -306,6 +306,21 @@ namespace SynapticSea.Core.Procgen
             return specs;
         }
 
+        public GdArray BuildAuxiliaryServiceSpecs()
+        {
+            var descriptors = SynapticSea.Core.Systems.AuxiliaryServiceState.Descriptors(GameplayDoc.GetArrayOrEmpty("auxiliary_services"));
+            var specs = new GdArray();
+            foreach (var pair in descriptors)
+            {
+                var row = ((GdDict)pair.Value).DeepCopy(); var room = FindRoom(LayoutDoc.GetArrayOrEmpty("rooms"), row.GetString("room_id"));
+                if (room.IsEmpty) throw new ArgumentException("unknown_aux_room");
+                Vec3 position = RoomCellWorld(LayoutDoc, room, row.GetArrayOrEmpty("approach_cell"));
+                if (position == Vec3.Inf) throw new ArgumentException("invalid_aux_anchor");
+                var offset = row.GetArrayOrEmpty("position_offset"); row["position"] = position + new Vec3(V.F64(offset[0]), V.F64(offset[1]), V.F64(offset[2])); specs.Add(row);
+            }
+            return specs;
+        }
+
         /// <summary>Port of <c>_build_loot_container_specs</c>.</summary>
         public GdArray BuildLootContainerSpecs()
         {

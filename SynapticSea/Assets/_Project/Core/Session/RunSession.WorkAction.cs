@@ -119,6 +119,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_refresh_work_action_hud()</c> -> <see cref="SessionEvents.WorkActionHudState"/>.</summary>
         internal void RefreshWorkActionHud()
         {
+            if (AuxiliaryWorkRunning) { RefreshAuxiliaryHud(); return; }
             if (WorkActionDriver == null)
                 return;
             string st = WorkActionDriver.GetStatus();
@@ -181,6 +182,7 @@ namespace SynapticSea.Core.Session
         public bool BeginWorkHold()
         {
             if (ComponentGenerationRestoreInProgress) return false;
+            if (AuxiliaryWorkRunning) { _workHoldInput = true; return true; }
             if (ManualStudyEnabled && GetManualStudyState().GetDictOrEmpty("job").GetString("status") == "paused")
                 return RequestManualStudy(GetManualStudyState().GetDictOrEmpty("job").GetString("book_id")).GetBool("committed");
             if (ManualStudyRunning) return true;
@@ -203,6 +205,7 @@ namespace SynapticSea.Core.Session
         public void EndWorkHold()
         {
             if (ComponentGenerationRestoreInProgress) return;
+            if (AuxiliaryWorkRunning && HoldToWorkEnabled) PauseAuxiliaryService("released");
             if (ManualStudyRunning) PauseManualStudy("released");
             _workHoldInput = false;
         }
@@ -1007,6 +1010,7 @@ namespace SynapticSea.Core.Session
         /// <summary>PKG-B2.2b: advance in-progress work (both branches; hold-to-work freezes progress on release).</summary>
         void TickWorkAction(double delta)
         {
+            if (TickAuxiliaryWork(delta)) return;
             if (ComponentIntegrationEnabled && ComponentTerminalPending) return;
             if (TickComponentWork(delta)) return;
             if (WorkActionDriver == null || delta <= 0.0)
@@ -1229,6 +1233,7 @@ namespace SynapticSea.Core.Session
 
         void InterruptWorkOnDamage(string reason="damage")
         {
+            if (AuxiliaryWorkRunning) { PauseAuxiliaryService(reason); return; }
             if (ManualStudyRunning) { PauseManualStudy(reason); return; }
             if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
             { PauseComponentWork(reason); PlaySfx(AudioEventSeam.UI_PANEL_CLOSE); RefreshWorkActionHud(); return; }

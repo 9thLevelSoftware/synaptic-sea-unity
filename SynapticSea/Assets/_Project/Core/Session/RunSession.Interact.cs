@@ -65,6 +65,7 @@ namespace SynapticSea.Core.Session
         public string RequestInteract()
         {
             if (ComponentGenerationRestoreInProgress) return "restore_in_progress";
+            if (AuxiliaryWorkRunning) return "auxiliary_busy";
             if (ManualStudyRunning) return "study_busy";
             if (ComponentIntegrationEnabled && ComponentTerminalPending) return "terminal_pending";
             TriggerTutorial("player_interacted", "any");

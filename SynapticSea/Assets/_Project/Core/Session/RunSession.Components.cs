@@ -80,7 +80,7 @@ namespace SynapticSea.Core.Session
         {
             reason = "invalid_component_physical_layout";
             if (domain == null || layout == null || string.IsNullOrWhiteSpace(owner) ||
-                !(domain.Get("schema_version") is long schema) || (schema != 2 && schema != 3 && schema != 4) ||
+                !(domain.Get("schema_version") is long schema) || (schema != 2 && schema != 3 && schema != 4 && schema != 5) ||
                 !domain.GetArrayOrEmpty("registered_owners").Contains(owner)) return false;
             var catalog = new ComponentCatalog();
             if (!catalog.LoadDefault()) { reason = "component_content_missing"; return false; }
@@ -305,7 +305,7 @@ namespace SynapticSea.Core.Session
         public bool ValidateComponentDomainRestore(GdDict summary, out string reason)
         {
             reason = "component_integration_inactive";
-            if (!ComponentIntegrationEnabled || summary?.GetInt("schema_version") == 4 && !ManualStudyEnabled) return false;
+            if (!ComponentIntegrationEnabled || summary?.GetInt("schema_version") == 4 && !ManualStudyEnabled || summary?.GetInt("schema_version") == 5 && !AuxiliaryServicesEnabled) return false;
             if (!DomainBundle.TryCreate(summary, out _, out reason) || (summary.GetInt("schema_version") != 2 && !(PaidCraftingEnabled && PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")) && summary.GetString("domain_mode") == "components_and_craft"))) return false;
             foreach (GdDict row in Instances(summary).Values.OfType<GdDict>())
             {
@@ -600,7 +600,7 @@ namespace SynapticSea.Core.Session
         {
             if (ComponentTerminalPending) return ComponentFailure("terminal_pending");
             if (_componentMutating || _componentPublishing) return ComponentFailure("reentrant_mutation");
-            if (ManualStudyRunning || WorkActionDriver?.IsWorking() == true) return ComponentFailure("work_busy");
+            if (AuxiliaryWorkRunning || ManualStudyRunning || WorkActionDriver?.IsWorking() == true) return ComponentFailure("work_busy");
             GdDict domain = CaptureComponentDomain();
             if (ComponentCaptureFailed(domain)) return domain;
             long sequence = domain.GetInt("command_sequence");
@@ -846,6 +846,7 @@ namespace SynapticSea.Core.Session
         {
             GdDict before = _componentDomain?.GetSummary();
             GdDict beforeParticipants = ReadComponentParticipants();
+            double beforeAuxStamina = VitalsState?.Stamina ?? 0;
             // Canonical capture intentionally ignores mutable legacy projections; rollback must retain their actual before-images.
             GdDict rawCrafting = PaidCraftingEnabled ? CraftingState.GetSummary().DeepCopy() : null;
             GdDict rawField = PaidCraftingEnabled ? FieldCraftingState.GetSummary().DeepCopy() : null;
@@ -883,6 +884,7 @@ namespace SynapticSea.Core.Session
                 // No hooks, notifications, gate/filter or resource calls between these assignments and coordinator publication.
                 writing = true;
                 ApplyComponentParticipants(candidate.GetDictOrEmpty("participating_state"), nextMultipliers);
+                if (_auxStaminaAfter.HasValue) VitalsState.Stamina = _auxStaminaAfter.Value;
                 foreach (var pair in machineTargets) pair.Key.Health = pair.Value;
                 ProjectComponentPlacement(candidate);
             }
@@ -891,6 +893,7 @@ namespace SynapticSea.Core.Session
                 if (writing)
                 {
                     ApplyComponentParticipants(beforeParticipants, beforeMultipliers);
+                    if (_auxStaminaAfter.HasValue) VitalsState.Stamina = beforeAuxStamina;
                     if (PaidCraftingEnabled)
                     {
                         CraftingState.ApplyOwnedSummary(rawCrafting); FieldCraftingState.ApplyOwnedSummary(rawField);

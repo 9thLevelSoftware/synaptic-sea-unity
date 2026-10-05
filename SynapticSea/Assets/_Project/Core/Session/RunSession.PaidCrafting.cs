@@ -66,10 +66,12 @@ namespace SynapticSea.Core.Session
                     upgraded.GetDictOrEmpty("participating_state")["manual_study"] = ManualStudyState.New(RunId, PLAYER_LOCAL_ID);
                     _componentDomain = NewComponentOwner(upgraded);
                 }
+                InitializeAuxiliaryServices();
                 RecipeKnowledge = RecipeKnowledge ?? new RecipeKnowledgeState();
                 RecipeKnowledge.ApplySummary(PaidState(_componentDomain.GetSummary()).GetDictOrEmpty("knowledge"));
                 BindPaidCraftingModels();
                 ApplyPaidProjections(_componentDomain.GetSummary().GetDictOrEmpty("participating_state"));
+                if (AuxiliaryServicesEnabled) RecomputeExpandedShipSystems(0);
             }
             finally { _paidInitializing = false; }
         }
@@ -93,6 +95,7 @@ namespace SynapticSea.Core.Session
         string PaidRecipePreflight(GdDict recipe)
         {
             if (ComponentGenerationRestoreInProgress) return "restore_in_progress";
+            if (AuxiliaryWorkRunning) return "auxiliary_busy";
             if (ManualStudyRunning) return "study_busy";
             if (ComponentTerminalPending || SliceComplete) return "terminal_pending";
             if (IsComponentForm(recipe.GetDictOrEmpty("produces").GetString("item_id")) || recipe.GetDictOrEmpty("ingredients").Keys.Any(id => IsComponentForm(V.Str(id))))
@@ -103,7 +106,7 @@ namespace SynapticSea.Core.Session
         {
             if (ComponentGenerationRestoreInProgress || !PaidCraftingEnabled) return false;
             if (_componentDomain == null || !PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) || ManualStudyEnabled && _componentDomain.SchemaVersion == 3) InitializePaidCrafting();
-            return _componentDomain != null && PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) && (_componentDomain.SchemaVersion != 4 || ManualStudyEnabled);
+            return _componentDomain != null && PaidCraftingState.IsDomainVersion(_componentDomain.SchemaVersion) && (_componentDomain.SchemaVersion != 4 || ManualStudyEnabled) && (_componentDomain.SchemaVersion != 5 || AuxiliaryServicesEnabled);
         }
         public GdDict CapturePaidCraftingDomain()
         {
@@ -129,8 +132,9 @@ namespace SynapticSea.Core.Session
             participants["crafting"] = PaidProjection(state, false);
             participants["field_crafting"] = new GdDict { { "field_crafting", PaidProjection(state, true) } };
             participants["spoilage"] = SpoilageState?.GetSummary() ?? new GdDict();
-            if (ManualStudyEnabled && _componentDomain?.SchemaVersion == 4)
+            if (ManualStudyEnabled && (_componentDomain?.SchemaVersion == 4 || _componentDomain?.SchemaVersion == 5))
                 participants["manual_study"] = ManualStudyState.State(_componentDomain.GetSummary()).DeepCopy();
+            if (AuxiliaryServicesEnabled && _componentDomain?.SchemaVersion == 5) participants["auxiliary_services"] = AuxiliaryServiceState.State(_componentDomain.GetSummary()).DeepCopy();
             return participants;
         }
         GdDict PaidProjection(GdDict state, bool field)
@@ -211,7 +215,7 @@ namespace SynapticSea.Core.Session
             bool busy = state.GetDictOrEmpty("jobs").Values.OfType<GdDict>().Any(row => row.GetString("channel") == CraftChannel(kind) && row.GetString("input_state") == "paid" && !PaidCraftingState.Terminal(row) && row.GetString("job_id") != job?.GetString("job_id"));
             return new GdDict { { "recipe", recipe.DeepCopy() }, { "equipment_reason", PaidRecipePreflight(recipe) }, { "station_exists", PaidStationExists(kind, job == null || job.GetString("input_state") == "unpaid") },
                 { "station_kind", kind }, { "station_id", PaidStationId(kind) }, { "station_owner_id", PaidStationOwner(kind) }, { "run_id", RunId }, { "actor_id", PLAYER_LOCAL_ID },
-                { "skill", PlayerProgression.GetSkillLevel("fabrication") }, { "tier", station?.EffectiveTier() ?? 0L }, { "powered", station?.Powered ?? true }, { "busy", busy },
+                { "skill", PlayerProgression.GetSkillLevel("fabrication") }, { "tier", station?.EffectiveTier() ?? 0L }, { "powered", (station?.Powered ?? true) && (kind != "fabricator" || AuxiliaryFabricatorFeedReady()) }, { "busy", busy },
                 { "knowledge", state.GetDictOrEmpty("knowledge").DeepCopy() }, { "inventory", domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("inventory").DeepCopy() },
                 { "output_capacity", inventory.CanAccept(output.GetString("item_id"), output.GetInt("quantity")) }, { "job", job?.DeepCopy() ?? new GdDict() },
                 { "payment_receipt", domain.GetDictOrEmpty("receipts").GetDictOrEmpty(job?.GetString("payment_commit_id") ?? "").DeepCopy() } };
@@ -241,7 +245,7 @@ namespace SynapticSea.Core.Session
             if (ComponentTerminalPending || SliceComplete || !PlayableStarted || VitalsState?.IsIncapacitated() == true ||
                 !V.VariantEquals(before.Get("participating_state"), ReadComponentParticipants()) ||
                 !V.VariantEquals(_paidPublicationContext, PaidContextFingerprint())) throw new InvalidOperationException("stale_context");
-            _studyPublicationGate?.Invoke();
+            _studyPublicationGate?.Invoke(); _auxPublicationGate?.Invoke();
             if (_paidRewardContext && (!ReferenceEquals(_paidRewardFilter, TrainingEventBus.EventFilter) || !ReferenceEquals(_paidRewardGate, TrainingEventBus.SkillGate))) throw new InvalidOperationException("stale_training_policy");
             if (_paidMaterialInputs != null)
                 foreach (var input in _paidMaterialInputs)
@@ -525,7 +529,7 @@ namespace SynapticSea.Core.Session
         {
             reason = "paid_crafting_inactive";
             if (!PaidCraftingEnabled) return false;
-            if (!DomainBundle.TryCreate(summary, out _, out reason) || !PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")) || summary.GetInt("schema_version") == 4 && !ManualStudyEnabled) return false;
+            if (!DomainBundle.TryCreate(summary, out _, out reason) || !PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")) || summary.GetInt("schema_version") == 4 && !ManualStudyEnabled || summary.GetInt("schema_version") == 5 && !AuxiliaryServicesEnabled) return false;
             if (summary.GetString("domain_mode") != (ComponentIntegrationEnabled ? "components_and_craft" : "craft_only")) { reason = "domain_mode_mismatch"; return false; }
             if (ComponentIntegrationEnabled && !ValidateComponentDomainRestore(summary, out reason)) return false;
             GdDict state = PaidState(summary), participants = summary.GetDictOrEmpty("participating_state");
@@ -590,9 +594,9 @@ namespace SynapticSea.Core.Session
             GdDict candidate = summary.DeepCopy();
             if (candidate.GetInt("schema_version") == 3 && ManualStudyEnabled)
             { candidate["schema_version"] = 4L; candidate.GetDictOrEmpty("participating_state")["manual_study"] = ManualStudyState.New(PaidState(candidate).GetString("run_id"), PLAYER_LOCAL_ID); }
-            GdDict studyJob = ManualStudyState.State(candidate).GetDictOrEmpty("job");
-            if (!studyJob.IsEmpty && studyJob.GetString("status") != "completed")
-            { studyJob["status"] = "paused"; studyJob["resume_required"] = true; studyJob["reason"] = "explicit_resume_required"; }
+            if (candidate.GetInt("schema_version") == 4 && AuxiliaryServicesEnabled)
+            { candidate["schema_version"] = 5L; candidate.GetDictOrEmpty("participating_state")["auxiliary_services"] = AuxiliaryServiceState.New(PaidState(candidate).GetString("run_id"), PLAYER_LOCAL_ID, AuxiliaryDescriptors(Loader)); }
+            PauseSavedManualJobs(candidate);
             foreach (GdDict job in PaidState(candidate).GetDictOrEmpty("jobs").Values.OfType<GdDict>())
                 if (!PaidCraftingState.Terminal(job)) { job["resume_required"] = true; if (job.GetString("status") == "running") job["status"] = "paused"; }
             // Preserve saved station metadata; consent and executable rows are projected from saved authority.
@@ -604,10 +608,17 @@ namespace SynapticSea.Core.Session
                 DomainTransactionCoordinator next = NewComponentOwner(candidate);
                 ApplyComponentViews(candidate); _componentDomain = next;
                 if (ComponentIntegrationEnabled) { BindComponentReadViews(); ProjectComponentPlacement(candidate); }
-                BindPaidCraftingModels(); _workHoldInput = false; _studyConsent = false; RefreshStudyHud();
+                BindPaidCraftingModels(); _workHoldInput = false; _studyConsent = false; _auxConsent = false; BuildAuxiliaryServicePoints(); RefreshStudyHud(); RefreshAuxiliaryHud();
                 return true;
             }
             catch { return false; }
+        }
+        // Consent-only projection: preserve earned work, stock and reward history.
+        static void PauseSavedManualJobs(GdDict candidate)
+        {
+            foreach (GdDict job in new[] { AuxiliaryServiceState.State(candidate).GetDictOrEmpty("job"), ManualStudyState.State(candidate).GetDictOrEmpty("job") })
+                if (!job.IsEmpty && job.GetString("status") != "completed")
+                { job["status"] = "paused"; job["resume_required"] = true; job["reason"] = "explicit_resume_required"; }
         }
         static void PauseSavedPaidMirrors(GdDict participants)
         {

@@ -52,6 +52,13 @@ namespace SynapticSea.Core.Systems
             LoadDefinitions();
         }
 
+        // Admission-local proof reconstruction only. The owner supplies detached merged
+        // definitions and keeps them private; this model never mutates definitions.
+        internal InventoryState(GdDict normalizedDefinitions)
+        {
+            _definitions = normalizedDefinitions ?? throw new System.ArgumentNullException(nameof(normalizedDefinitions));
+        }
+
         void LoadDefinitions()
         {
             _definitions = ItemDefs.LoadDefinitions();

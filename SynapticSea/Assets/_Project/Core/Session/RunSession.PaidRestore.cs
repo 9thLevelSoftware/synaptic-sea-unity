@@ -23,7 +23,7 @@ namespace SynapticSea.Core.Session
             internal IShipLoaderView HomeToInstall;
             internal GdDict Selection;
             internal GdDict TerminalMeta;
-            internal bool RollingBack, Destructive, Committed;
+            internal bool RollingBack, Destructive, Committed, ManualViewsFailed;
             internal readonly RunSession Owner;
             internal PaidRestoreOperation(RunSession owner) { Owner = owner; }
         }
@@ -66,6 +66,7 @@ namespace SynapticSea.Core.Session
             if (world.HomeShip.Has("home_finite_loot") && !(world.HomeShip.Get("home_finite_loot") is GdDict) ||
                 !ManualStudyEnabled && !finiteHome.IsEmpty || !FiniteLootState.ValidateSources(finiteHome, "ship_start", loader.GetLootContainerSpecsCopy(), out _))
                 throw new InvalidOperationException("invalid_home_finite_loot");
+            if (domain.GetInt("schema_version") == 5 && (!AuxiliaryServicesEnabled || !V.VariantEquals(AuxiliaryServiceState.State(domain).Get("descriptors"), AuxiliaryDescriptors(loader)))) throw new InvalidOperationException("auxiliary_source_mismatch");
             var crafting = new CraftingState();
             var materials = new MaterialState(); var inventory = new InventoryState();
             var deconstruction = new DeconstructionResolver(); var progression = new PlayerProgressionState();
@@ -355,6 +356,21 @@ namespace SynapticSea.Core.Session
         }
 
         // Boot and runtime replacement share this sole selected-world/owner publisher. Only their lifecycles differ.
+        // Rebind only after the selected home has committed. Before then the original
+        // points remain available for exact rollback against the retained home root.
+        void RebindPaidManualRestoreViews(PaidRestoreOperation operation)
+        {
+            RequirePaidRestoreOperation(operation);
+            if (!operation.Committed) throw new InvalidOperationException("manual_restore_views_before_commit");
+            try
+            {
+                _workHoldInput = false; _studyConsent = false; _auxConsent = false;
+                if (AuxiliaryServicesEnabled && _componentDomain?.SchemaVersion == 5) BuildAuxiliaryServicePoints();
+                RefreshStudyHud(); RefreshAuxiliaryHud();
+            }
+            catch { operation.ManualViewsFailed = true; throw; }
+        }
+
         void InstallPaidSelectedWorld(PaidRestoreOperation operation, GdDict payload, WorldSnapshot world, GdDict owner, IResourceReader reader)
         {
             RequirePaidRestoreOperation(operation);
@@ -365,6 +381,7 @@ namespace SynapticSea.Core.Session
                 BlueprintPath = payload.GetDictOrEmpty("binding").GetDictOrEmpty("ship_references").GetDictOrEmpty("ship_start").GetString("blueprint_path");
                 if (!WorldSnapshotAssembler.ApplyOwned(this, world, operation)) throw new InvalidOperationException("generation_apply_failed");
                 GdDict candidate = owner.DeepCopy();
+                PauseSavedManualJobs(candidate);
                 foreach (GdDict job in PaidState(candidate).GetDictOrEmpty("jobs").Values.OfType<GdDict>())
                     if (!PaidCraftingState.Terminal(job)) { job["resume_required"] = true; if (job.GetString("status") == "running") job["status"] = "paused"; }
                 PauseSavedPaidMirrors(candidate.GetDictOrEmpty("participating_state"));
@@ -374,7 +391,7 @@ namespace SynapticSea.Core.Session
                 DomainTransactionCoordinator next = NewComponentOwner(candidate);
                 ApplyComponentViews(candidate); _componentDomain = next;
                 if (ComponentIntegrationEnabled) BindComponentReadViews();
-                BindPaidCraftingModels(); _workHoldInput = false;
+                BindPaidCraftingModels(); _workHoldInput = false; _studyConsent = false; _auxConsent = false;
                 _workAwaitingResume = !work.IsEmpty && work.GetBool("resume_required"); MirrorComponentWork(work);
                 return true;
             });
@@ -421,6 +438,7 @@ namespace SynapticSea.Core.Session
                 CheckPaidRestoreAuthority(operation);
                 prepared.Commit(); operation.Committed = true;
                 FreePaidStagedRoots(operation.SelectedRoots.Values);
+                RebindPaidManualRestoreViews(operation);
                 if (!CheckCommittedPaidRestore(operation, out GdDict authority))
                 {
                     release = ComponentTerminalPending;
@@ -444,10 +462,11 @@ namespace SynapticSea.Core.Session
                 if (operation.Committed)
                 {
                     bool live = CheckCommittedPaidRestore(operation, out GdDict authority);
+                    if (operation.ManualViewsFailed) live = false;
                     if (!live) { release = ComponentTerminalPending; PlayableStarted = false; }
                     LastFailureReason = live ? "" : "generation_loaded_unavailable";
                     LastSaveResult = new GdDict { { "ok", live }, { "applied", true }, { "reason", live ? "generation_loaded" : LastFailureReason },
-                        { "detail", "post_commit_notification_failed" }, { "authority", authority } };
+                        { "detail", operation.ManualViewsFailed ? "manual_restore_views_failed" : "post_commit_notification_failed" }, { "authority", authority } };
                     return;
                 }
                 bool cleaned = true;
@@ -519,6 +538,7 @@ namespace SynapticSea.Core.Session
                 catch { if (before.HomeLoader.IsValid) operation.Committed = false; throw; }
                 _generationRootDocuments.Remove(before.HomeLoader);
                 FreePaidStagedRoots(operation.SelectedRoots.Values.Concat(beforeOwned));
+                RebindPaidManualRestoreViews(operation);
                 if (!CheckCommittedPaidRestore(operation, out GdDict committedAuthority))
                 {
                     release = ComponentTerminalPending;
@@ -545,10 +565,11 @@ namespace SynapticSea.Core.Session
                     catch (Exception) { /* Per-root cleanup continues before reporting the post-commit failure. */ }
                     // Ownership has committed; never reconstruct against an already retired home.
                     bool available = CheckCommittedPaidRestore(operation, out GdDict evidence);
+                    if (operation.ManualViewsFailed) { available = false; PlayableStarted = false; }
                     if (!available) release = ComponentTerminalPending;
                     LastSaveResult = new GdDict { { "ok", available }, { "applied", true },
                         { "reason", available ? "generation_loaded" : "generation_loaded_unavailable" },
-                        { "detail", "post_commit_notification_failed" }, { "authority", evidence } };
+                        { "detail", operation.ManualViewsFailed ? "manual_restore_views_failed" : "post_commit_notification_failed" }, { "authority", evidence } };
                     return available;
                 }
                 bool rolledBack = !operation.Destructive;

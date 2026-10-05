@@ -35,11 +35,12 @@ registry together.
 | 15 | tool_pickup | Home | `_try_tool_pickup_interact(tool_pickup, player)` |
 | 16 | junction_calibrator_pickup | Home | `_try_tool_pickup_interact(junction_calibrator_pickup, player)` |
 | 17 | home_objective | Home | `interactables`: `interactable.try_interact(player)` |
-| 18 | hangar | Both | `_try_hangar_interact(player)` |
-| 19 | cargo_deposit | Both | `_try_cargo_deposit(player)` |
-| 20 | cart | Both | `_try_cart_interact(player)` |
-| 21 | work_yield_drop | Both | `_try_work_yield_drop_interact(player)` |
-| 22 | work_action | Both | `_try_work_action_interact(player)` |
+| 18 | auxiliary_service | Home | Diagnostic opt-in only; retained service work or finite rack take; completed/empty/unavailable points do not claim interaction |
+| 19 | hangar | Both | `_try_hangar_interact(player)` |
+| 20 | cargo_deposit | Both | `_try_cargo_deposit(player)` |
+| 21 | cart | Both | `_try_cart_interact(player)` |
+| 22 | work_yield_drop | Both | `_try_work_yield_drop_interact(player)` |
+| 23 | work_action | Both | `_try_work_action_interact(player)` |
 <!-- interaction-order:end -->
 
 Cargo and bay controls use a shared nearest-eligible-console choice within their
@@ -51,7 +52,7 @@ distinct anchor. Opening cargo must never dock, launch or reposition a craft.
 ## Resulting chains
 
 **Home:** dock_barrier, authored_portal, deck_transition, home_join, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, crafting_station,
-production_station, loot_container, tool_pickup, junction_calibrator_pickup, home_objective, hangar, cargo_deposit, cart,
+production_station, loot_container, tool_pickup, junction_calibrator_pickup, home_objective, auxiliary_service, hangar, cargo_deposit, cart,
 work_yield_drop, work_action. If none claims the request, the soft-miss cue plays.
 
 **Away:** dock_barrier, authored_portal, deck_transition, home_join, bridge_terminal, fire_suppression_point, repair_point, breach_seal_point, loot_container,

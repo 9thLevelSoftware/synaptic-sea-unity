@@ -93,6 +93,8 @@ namespace SynapticSea.Core.Session
         public bool EnablePaidCrafting = false;
         /// <summary>Diagnostic retained-manual study; requires paid crafting. Ordinary launches remain unchanged.</summary>
         public bool EnableManualStudy = false;
+        /// <summary>Explicit diagnostic F08 utilities and finite F02 recovery racks.</summary>
+        public bool EnableAuxiliaryServices = false;
         public GdDict SelectedSaveGeneration;
 
         // ---- the @export vars
