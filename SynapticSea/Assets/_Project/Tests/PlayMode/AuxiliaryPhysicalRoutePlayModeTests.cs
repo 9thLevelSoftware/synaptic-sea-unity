@@ -699,6 +699,7 @@ namespace SynapticSea.Tests.PlayMode
             string wounds = woundIdentity();
             var homeAirBefore = _s.LifeSupportExpandedState.GetSummary().DeepCopy();
             var boatAirBefore = (_s.LifeboatShip.SystemsManager.GetSystem("life_support") as SynapticSea.Core.Systems.LifeSupportSystem).OxygenState.GetSummary();
+            var observations = new GdArray();
             float deadline = Time.realtimeSinceStartup + 20;
             while (true)
             {
@@ -723,12 +724,16 @@ namespace SynapticSea.Tests.PlayMode
                 Assert.AreEqual(wounds, woundIdentity());
                 Assert.IsTrue(V.VariantEquals(inventory, _s.InventoryState.Items)); Assert.IsTrue(V.VariantEquals(progression, _s.PlayerProgression.GetSummary()));
                 Assert.Less(_boot.Host.SceneState.Player.GodotPosition.DistanceTo(position), .05);
+                observations.Add(new GdDict { { "elapsed", elapsed }, { "health", _s.VitalsState.Health }, { "suit_oxygen", _s.OxygenState.Oxygen },
+                    { "owner", boat.ShipId }, { "local_oxygen", localAir.Oxygen }, { "power_operational", boat.SystemsManager.IsOperational("power") },
+                    { "life_support_operational", boat.SystemsManager.IsOperational("life_support") }, { "hull_breaches", boat.GetHull().GetBreachCount() },
+                    { "fire_intensity", boat.Fire?.GetTotalIntensity() ?? 0 }, { "filtering_ship_air", _s.SuitFilteringShipAir } });
                 if (elapsed >= 2.5) break;
                 Assert.Less(Time.realtimeSinceStartup, deadline, "bounded ordinary observation never waits indefinitely");
                 yield return null;
             }
             Debug.Log("[AuxiliaryBoatAirObserved] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
-                { "elapsed_world_seconds_including_boot", _s.WorldTime - started }, { "world_time", _s.WorldTime },
+                { "elapsed_world_seconds_including_boot", _s.WorldTime - started }, { "world_time", _s.WorldTime }, { "samples", observations },
                 { "oxygen", _s.OxygenState.GetSummary() }, { "vitals", _s.VitalsState.GetSummary() }, { "wounds", _s.WoundState.GetSummary() },
                 { "health_damage_by_source", _journeyDamage }, { "inventory", inventory }, { "progression", progression },
                 { "position", AuxiliaryPosition(_boot.Host.SceneState.Player.GodotPosition) }, { "occupancy", _s.CurrentOccupancy.ShipId },
