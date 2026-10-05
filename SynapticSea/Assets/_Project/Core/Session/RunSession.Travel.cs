@@ -301,6 +301,7 @@ namespace SynapticSea.Core.Session
                 return new GdDict { { "success", false }, { "reason", reason }, { "capability", capacity ?? new GdDict() } };
             }
             bool returned = TravelHome();
+            if (returned) SynapticSeaWorld.SetPlayerPosition(HomeSeaPosition);
             return new GdDict { { "success", returned }, { "reason", returned ? "ok" : "home_berth_unavailable" }, { "capability", capacity } };
         }
 

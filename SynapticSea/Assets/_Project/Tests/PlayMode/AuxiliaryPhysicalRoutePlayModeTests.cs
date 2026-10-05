@@ -737,6 +737,12 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(_s.RequestSave(), GdJson.Stringify(_s.LastSaveResult)); Assert.IsTrue(_s.RequestLoad()); yield return FixedSteps(8);
             Assert.IsTrue(_s.IsAuxiliaryHardwareReady(_s.HomeShip.ShipId, "maintenance_fabricator_feed_01"));
             AuxiliaryContinuationState("returned_saved_and_continued");
+            Debug.Log("[AuxiliaryReturnedSurvival] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
+                { "oxygen", _s.GetOxygenSummary() }, { "vitals", _s.VitalsState.GetSummary() },
+                { "occupancy_ship_id", _s.CurrentOccupancy?.ShipId ?? "" }, { "world_time", _s.WorldTime } }));
+            string returnCapture = System.Environment.GetEnvironmentVariable("SYNAPTIC_AUXILIARY_RETURN_CAPTURE_DIR");
+            if (reviewedProfile && !string.IsNullOrEmpty(returnCapture))
+                AuxiliaryCaptureCheckpoint(returnCapture, "cook", "returned_saved_and_continued_before_revisit");
             yield return CaptureHud("cook-checkpoint-earned-return.png");
             if (reviewedProfile)
             {

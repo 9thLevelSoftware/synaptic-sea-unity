@@ -211,6 +211,8 @@ namespace SynapticSea.Core.Session
             // Phase 4.5: Synaptic Sea map + scanner + travel, seeded from the starting blueprint.
             ShipBlueprint startBp = LoadBlueprintForSystems();
             SynapticSeaWorld = new SynapticSeaWorld(startBp.SeedValue, Vec3.Zero);
+            StartingHomeSeaPosition = SynapticSeaWorld.PlayerPosition;
+            HomeSeaPosition = StartingHomeSeaPosition;
             ScannerState = new ScannerState();
             TravelController = new TravelController();
             ShipGenerator = new ShipGenerator();

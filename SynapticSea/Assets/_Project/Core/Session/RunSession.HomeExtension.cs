@@ -23,6 +23,7 @@ namespace SynapticSea.Core.Session
         internal bool RestoringConnections;
         bool _switchingBoardedContext;
         // Sea coordinates are distinct from the retained local scene frame used for walking.
+        internal Vec3 StartingHomeSeaPosition;
         public Vec3 HomeSeaPosition = Vec3.Zero;
         public string HomeSeaMarkerId = "";
         internal Vec3? RestoredActiveScenePosition;

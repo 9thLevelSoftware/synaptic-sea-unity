@@ -304,6 +304,9 @@ namespace SynapticSea.Core.Systems
             if (used.Count != artifacts.Count || !oldRefs.Has("lifeboat")) throw new Refusal("binding_mismatch");
             GdDict mobile = world.GetDictOrEmpty("mobile_home_state");
             if (mobile.GetInt("version") != 1 || !ValidMobility(mobile.GetDictOrEmpty("home_mobility"), "ship_start")) throw new Refusal("invalid_payload");
+            if (mobile.Has("starting_home_anchor") && (_compatibility.GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile
+                || request.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile
+                || mobile.Has("home_location") || !WorldSnapshotAssembler.ValidStartingHomeAnchor(mobile.Get("starting_home_anchor") as GdDict))) throw new Refusal("invalid_payload");
             oldWorld.Erase("mobile_home_state");
             legacy["run_text"] = paid ? PaidSnapshotCodec.Stringify(oldActive) : GdJson.Stringify(oldActive); legacy["world_text"] = paid ? PaidSnapshotCodec.Stringify(oldWorld) : GdJson.Stringify(oldWorld);
             GdDict oldBinding = legacy.GetDictOrEmpty("binding"); oldBinding.Erase("binding_version"); oldBinding.Erase("component_revision"); oldBinding.Erase("player_pose_owner_id"); oldBinding.Erase("save_mode"); oldBinding["ship_references"] = oldRefs;

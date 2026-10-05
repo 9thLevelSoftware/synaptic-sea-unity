@@ -793,6 +793,9 @@ namespace SynapticSea.Core.Systems
                 if (lifeboat.GetString("ship_id") != "lifeboat" || !ValidMobility(mobileState.Get("home_mobility") as GdDict, "ship_start") ||
                     !ValidMobility(lifeboat.Get("mobility") as GdDict, "lifeboat")) throw new Refusal("invalid_payload");
                 if (mobileState.Has("active_scene_position") && !Position(mobileState.Get("active_scene_position"))) throw new Refusal("invalid_payload");
+                if (mobileState.Has("starting_home_anchor") && (_compatibility.GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile
+                    || request.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile
+                    || mobileState.Has("home_location") || !WorldSnapshotAssembler.ValidStartingHomeAnchor(mobileState.Get("starting_home_anchor") as GdDict))) throw new Refusal("invalid_payload");
                 if (mobileState.Has("home_location"))
                 {
                     GdDict homeLocation = mobileState.Get("home_location") as GdDict;

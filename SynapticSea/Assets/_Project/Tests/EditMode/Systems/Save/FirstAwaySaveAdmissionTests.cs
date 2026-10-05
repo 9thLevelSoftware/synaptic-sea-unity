@@ -49,6 +49,57 @@ namespace SynapticSea.Tests.Systems
             Assert.AreEqual("incompatible_content",GenerationFixtures.Coordinator(new MemoryStorage()).ValidateSuppliedPayload(request,GenerationFixtures.Run,"slot_01").GetString("reason"));
         }
         [Test]
+        public void StationaryHomeAnchorSurvivesAwayContinueAndGuardedReturnWithoutOriginGuess()
+        {
+            var engine = CoreServices.Engine; CoreServices.Engine = new FixedEngineInfo(SessionHarness.GodotVersion);
+            RunSession s = null;
+            try
+            {
+                var deps = SessionHarness.GoldenDeps(out var rig); SessionHarness.OverlayGamePlayability(deps); deps.EnablePaidCrafting = true;
+                s = rig.Session = RunSession.Create(deps); s.EnableReviewedFirstAwayProfile = true;
+                // Nonzero world-start fixture demonstrates that return uses retained ownership, not a literal origin.
+                s.StartingHomeSeaPosition = new Vec3(42, 0, -72); s.HomeSeaPosition = s.StartingHomeSeaPosition;
+                s.SynapticSeaWorld.SetPlayerPosition(s.HomeSeaPosition);
+                var anchorOnlyCapture = SavePayloadAssembler.Build(s, "world", "world"); Assert.IsTrue(anchorOnlyCapture.GetBool("ok"));
+                var anchorOnly = anchorOnlyCapture.GetDictOrEmpty("payloads");
+                Assert.AreEqual(0, s.VisitedShips.Count, "anchor capability tested without any new-profile ship artifacts");
+                var anchorCoordinator = new SaveCommitCoordinator(rig.Storage, SaveLoadService.PaidGenerationRoot, new GenerationAuthority(), s.SaveLoadService.ComponentCompatibility(), allowPaidCrafting: true);
+                Assert.IsTrue(anchorCoordinator.ValidateSuppliedPayload(anchorOnly, anchorOnly.GetString("run_id"), "world").GetBool("ok"));
+                var anchorStripped = anchorOnly.DeepCopy(); anchorStripped.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").Erase(FirstAwayGenerationInputs.Profile);
+                Assert.IsFalse(anchorCoordinator.ValidateSuppliedPayload(anchorStripped, anchorStripped.GetString("run_id"), "world").GetBool("ok"));
+                s.ForceRepairAll(); s.ThreatManager.Threats.Clear();
+                foreach (string id in s.LifeboatShip.SystemsManager.Systems.Keys.ToList())
+                    foreach (var part in s.LifeboatShip.SystemsManager.GetSystem(id).Subcomponents) s.LifeboatShip.SystemsManager.ForceRepair(id, part.SubcomponentId);
+                s.PropulsionExpandedState.Configure(new GdDict { { "thrust_percent", 100.0 }, { "operational", true } });
+                GdDict travelled = null;
+                foreach (string id in s.ScannableMarkerIds()) { travelled = s.TravelToMarkerId(id); if (travelled.GetBool("success")) break; }
+                Assert.IsTrue(travelled.GetBool("success"), GdJson.Stringify(travelled));
+                string marker = s.CurrentShip.MarkerId, descriptor = s.CurrentShip.Blueprint.FirstAwayDescriptorText;
+                Assert.IsTrue(s.RequestSave(), GdJson.Stringify(s.LastSaveResult)); Assert.IsTrue(s.RequestLoad());
+                Assert.AreEqual(new Vec3(42, 0, -72), s.HomeSeaPosition); Assert.AreEqual("", s.HomeSeaMarkerId);
+                var bridge = s.BridgeTerminals.Single(t => t.ShipId == s.LifeboatShip.ShipId);
+                rig.Scene.PlayerPosition = bridge.GlobalPosition;
+                var items = s.InventoryState.Items.DeepCopy(); var xp = s.PlayerProgression.GetSummary().DeepCopy();
+                var returned = s.ReturnHomeFromNavigation(); Assert.IsTrue(returned.GetBool("success"), GdJson.Stringify(returned));
+                Assert.AreEqual(new Vec3(42, 0, -72), s.SynapticSeaWorld.PlayerPosition); Assert.IsFalse(s.AwayFromStart);
+                Assert.IsTrue(s.RequestSave(), GdJson.Stringify(s.LastSaveResult)); Assert.IsTrue(s.RequestLoad());
+                Assert.AreEqual(new Vec3(42, 0, -72), s.HomeSeaPosition); Assert.AreEqual(s.HomeSeaPosition, s.SynapticSeaWorld.PlayerPosition);
+                Assert.AreEqual(descriptor, s.VisitedShips[marker].Blueprint.FirstAwayDescriptorText);
+                var capture = SavePayloadAssembler.Build(s, "world", "world"); Assert.IsTrue(capture.GetBool("ok"));
+                var payload = capture.GetDictOrEmpty("payloads");
+                var stripped = payload.DeepCopy(); stripped.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").Erase(FirstAwayGenerationInputs.Profile);
+                var coordinator = new SaveCommitCoordinator(rig.Storage, SaveLoadService.PaidGenerationRoot, new GenerationAuthority(), s.SaveLoadService.ComponentCompatibility(), allowPaidCrafting: true);
+                Assert.IsFalse(coordinator.ValidateSuppliedPayload(stripped, stripped.GetString("run_id"), "world").GetBool("ok"), "baseline request cannot smuggle stationary anchor through extended reader");
+                var baseline = s.SaveLoadService.ComponentCompatibility().DeepCopy(); baseline.GetDictOrEmpty("profiles").Erase(FirstAwayGenerationInputs.Profile);
+                var oldReader = new SaveCommitCoordinator(rig.Storage, SaveLoadService.PaidGenerationRoot, new GenerationAuthority(), baseline, allowPaidCrafting: true);
+                Assert.IsFalse(oldReader.ValidateSuppliedPayload(payload, payload.GetString("run_id"), "world").GetBool("ok"));
+                Assert.AreEqual(new Vec3(42, 0, -72), s.HomeSeaPosition);
+                Assert.IsTrue(V.VariantEquals(items, s.InventoryState.Items)); Assert.IsTrue(V.VariantEquals(xp, s.PlayerProgression.GetSummary()));
+            }
+            finally { s?.Dispose(); CoreServices.Engine = engine; }
+        }
+
+        [Test]
         public void NormalPaidGenerationRoundTripPreservesProfileRawArtifactsDescriptorAndInventory()
         {
             var engine=CoreServices.Engine; CoreServices.Engine=new FixedEngineInfo(SessionHarness.GodotVersion);
