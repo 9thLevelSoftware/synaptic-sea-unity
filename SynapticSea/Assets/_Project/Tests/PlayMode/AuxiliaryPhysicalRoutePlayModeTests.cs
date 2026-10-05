@@ -675,7 +675,6 @@ namespace SynapticSea.Tests.PlayMode
                 else Assert.AreEqual("0:0:0", witnessedMarker, "representative uses actual first contact");
                 Assert.AreEqual("first_away_salvage_v1", _s.CurrentShip.Blueprint.GenerationProfile, "actual admitted profile; no forced marker/seed");
                 Assert.AreEqual(42, _s.CurrentShip.Blueprint.SeedValue, "normal ordered preferred gate selected its first complete candidate");
-                yield return AuxiliaryWitnessOwnedAwayPressure();
                 witnessedBinding = AuxiliaryAssertFirstAwayRawBinding(_s.CurrentShip);
                 Debug.Log("[AuxiliaryReviewedFirstAwayBoarded] " + SynapticSea.Core.Systems.PaidSnapshotCodec.Stringify(new GdDict {
                     { "ship_id", _s.CurrentShip.ShipId }, { "marker_id", _s.CurrentShip.MarkerId }, { "blueprint", _s.CurrentShip.Blueprint.ToDict() },
@@ -886,6 +885,7 @@ namespace SynapticSea.Tests.PlayMode
             yield return WalkTo(dockLanding, 1.1f);
             Assert.IsNotNull(SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position));
             Assert.IsTrue(_boot.Host.SceneState.Player.GetComponent<CharacterController>().isGrounded);
+            yield return AuxiliaryWitnessOwnedAwayPressure();
             foreach (var threat in living)
             {
                 bool wallSeparates = Physics.Linecast(_boot.Host.SceneState.Player.transform.position + Vector3.up * 1.2f,
