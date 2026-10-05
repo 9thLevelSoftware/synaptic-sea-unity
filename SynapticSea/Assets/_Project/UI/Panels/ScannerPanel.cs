@@ -7,6 +7,12 @@ using UnityEngine.UIElements;
 
 namespace SynapticSea.UI
 {
+    public interface IHomeReturnScannerHost
+    {
+        bool HomeNavigationAvailable { get; }
+        GdDict ReturnHomeFromNavigation();
+    }
+
     public interface IAssemblyScannerHost
     {
         GdDict TravelCapability();
@@ -99,10 +105,15 @@ namespace SynapticSea.UI
         int _selected;
         string _status = "";
         bool _open;
+        bool _covered;
+        public override void SetCovered(bool covered) { _covered = covered; base.SetCovered(covered); }
 
         readonly SelectableList _list;
         readonly Label _detail;
         readonly Button _travel;
+        readonly Button _returnHome;
+        readonly Label _returnGuidance;
+        public Button ReturnHomeButton => _returnHome;
 
         public ScannerPanel() : base("SCANNER", SurfaceTime.Live)
         {
@@ -120,6 +131,10 @@ namespace SynapticSea.UI
             var tools = UiFactory.Box(UiClasses.Toolbar);
             _travel = UiFactory.Button("Travel", () => ConfirmSelection(), "act:travel");
             tools.Add(_travel);
+            _returnHome = UiFactory.Button("Return home", () => ConfirmReturnHome(), "act:return-home");
+            tools.Add(_returnHome);
+            _returnGuidance = UiFactory.Text("Walk back to your lifeboat cockpit, then select Return home.", UiClasses.LabelSecondary);
+            Body.Add(_returnGuidance);
             tools.Add(UiFactory.Button("Rescan", () => Refresh(), "act:rescan"));
             Body.Add(tools);
             _list.SelectionRequested += i =>
@@ -193,6 +208,17 @@ namespace SynapticSea.UI
 
         public int GetSelectedIndex() => _selected;
         public string GetStatus() => _status;
+
+        public GdDict ConfirmReturnHome()
+        {
+            var result = _host is IHomeReturnScannerHost home && _open && !_covered
+                ? home.ReturnHomeFromNavigation()
+                : new GdDict { { "success", false }, { "reason", "home_navigation_unavailable" } };
+            if (result.GetBool("success")) Close();
+            else { _status = result.GetString("reason"); Render(); PlayDeny(); }
+            TravelResolved?.Invoke(result);
+            return result;
+        }
 
         public GdDict ConfirmSelection()
         {
@@ -276,6 +302,9 @@ namespace SynapticSea.UI
                 || (_status.Length != 0 && !GdString.EndsWith(_status, "contact(s)"));
             StatusText.Set(_status, _status.Length == 0 ? Severity.None : deny ? Severity.Caution : Severity.Info);
             _travel.SetEnabled(!_markers.IsEmpty);
+            bool homeAvailable = _host is IHomeReturnScannerHost home && home.HomeNavigationAvailable;
+            _returnHome.style.display = homeAvailable ? DisplayStyle.Flex : DisplayStyle.None;
+            _returnGuidance.style.display = homeAvailable ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         string DetailFor(GdDict view)

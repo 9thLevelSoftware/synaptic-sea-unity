@@ -270,6 +270,40 @@ namespace SynapticSea.Core.Session
             return result.ToDict();
         }
 
+        public bool FirstAwayHomeNavigationAvailable => ReviewedFirstAwayProfileEnabled && AwayFromStart
+            && CurrentShip?.Blueprint?.GenerationProfile == FirstAwayGenerationInputs.Profile;
+
+        /// <summary>Deliberate navigation from the player's live lifeboat cockpit, using the existing home berth transition.</summary>
+        public GdDict ReturnHomeFromNavigation()
+        {
+            string reason = "";
+            if (ComponentGenerationRestoreInProgress) reason = "restore_in_progress";
+            else if (CompleteGenerationEnabled && ComponentTerminalPending) reason = "terminal_pending";
+            else if (!FirstAwayHomeNavigationAvailable || SliceComplete) reason = "home_navigation_unavailable";
+            else if (!HasPlayer || PilotedShip == null || PilotedShip != LifeboatShip || !RootValid(PilotedShip.SceneRoot)) reason = "lifeboat_not_piloted";
+            else if (!PilotedShip.GetAccess().HasAccess(PLAYER_LOCAL_ID)) reason = "ship_access_denied";
+            if (reason.Length == 0)
+            {
+                RecomputeOccupancy();
+                if (CurrentOccupancy != PilotedShip) reason = "return_to_lifeboat";
+                else if (!BridgeTerminals.Exists(terminal => terminal.ShipId == PilotedShip.ShipId
+                    && ReferenceEquals(terminal.Parent, PilotedShip.SceneRoot) && HasInteractionSightAndReach(terminal))) reason = "return_to_lifeboat_cockpit";
+            }
+            GdDict capacity = null;
+            if (reason.Length == 0)
+            {
+                capacity = TravelCapability();
+                if (!capacity.GetBool("success")) reason = capacity.GetString("reason");
+            }
+            if (reason.Length > 0)
+            {
+                EmitTravelDeniedSfx();
+                return new GdDict { { "success", false }, { "reason", reason }, { "capability", capacity ?? new GdDict() } };
+            }
+            bool returned = TravelHome();
+            return new GdDict { { "success", returned }, { "reason", returned ? "ok" : "home_berth_unavailable" }, { "capability", capacity } };
+        }
+
         /// <summary>Returns to the home ship: frees the derelict scene, re-docks the ride home, rebuilds home interactables.</summary>
         public bool TravelHome()
         {

@@ -139,5 +139,32 @@ namespace SynapticSea.Tests.Unity
             Assert.IsNotNull(screen.Model.LastLoadedSnapshot);
             Assert.AreEqual("bridge", screen.Model.LastLoadedSnapshot.CurrentLocation);
         }
+        sealed class HomeReturnHost : IScannerHost, IHomeReturnScannerHost
+        {
+            public bool HomeNavigationAvailable { get; set; } = true;
+            public int Returns;
+            public IUiAudio Audio => null;
+            public GdDict Scan() => new GdDict { { "markers", new GdArray() } };
+            public GdDict TravelToMarkerId(string markerId) => new GdDict { { "success", false } };
+            public void EmitTrainingEvent(string eventId, string targetId) { }
+            public GdDict ReturnHomeFromNavigation() { Returns++; return new GdDict { { "success", true }, { "reason", "ok" } }; }
+        }
+
+        [Test]
+        public void OptionalHomeNavigationConfirmsOnceAndRejectsClosedDuplicate()
+        {
+            var host = new HomeReturnHost(); var panel = new ScannerPanel(); panel.Bind(host); panel.Open();
+            Assert.AreEqual(UnityEngine.UIElements.DisplayStyle.Flex, panel.ReturnHomeButton.style.display.value);
+            panel.SetCovered(true); Assert.IsFalse(panel.ConfirmReturnHome().GetBool("success")); Assert.AreEqual(0, host.Returns);
+            panel.SetCovered(false);
+            int resolved = 0; panel.TravelResolved += _ => resolved++;
+            Assert.IsTrue(panel.ConfirmReturnHome().GetBool("success"));
+            Assert.IsFalse(panel.IsOpen()); Assert.AreEqual(1, host.Returns);
+            Assert.IsFalse(panel.ConfirmReturnHome().GetBool("success"));
+            Assert.AreEqual(1, host.Returns); Assert.AreEqual(2, resolved);
+            host.HomeNavigationAvailable = false; panel.Open();
+            Assert.AreEqual(UnityEngine.UIElements.DisplayStyle.None, panel.ReturnHomeButton.style.display.value);
+        }
+
     }
 }

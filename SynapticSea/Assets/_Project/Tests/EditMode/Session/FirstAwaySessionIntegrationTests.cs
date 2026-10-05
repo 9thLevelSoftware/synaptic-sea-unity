@@ -21,6 +21,38 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(rig.Session.PlayableStarted, rig.Session.LastFailureReason); return rig.Session;
         }
         [Test]
+        public void HomeNavigationRefusesRemoteWrongOwnerAndOfflineBoatWithoutTravelOrRewardMutation()
+        {
+            var s = Boot(out var rig);
+            try
+            {
+                s.EnableReviewedFirstAwayProfile = true; s.AwayFromStart = true;
+                var destination = ShipInstance.Create("ship_navigation_test", "navigation_test",
+                    new ShipBlueprint(0, 2, 42) { GenerationProfile = FirstAwayGenerationInputs.Profile },
+                    new ShipSystemsManager(), new FakeShipRoot { IsInsideTree = true });
+                destination.BuiltLayout = s.HomeShip.BuiltLayout;
+                s.VisitedShips[destination.MarkerId] = destination; s.CurrentShip = destination;
+                var current = s.CurrentShip; var sea = s.SynapticSeaWorld.PlayerPosition;
+                string inventory = GdJson.Stringify(s.InventoryState.Items), progression = GdJson.Stringify(s.PlayerProgression.GetSummary());
+                rig.Scene.PlayerPosition = new Vec3(800, .5, 800);
+                Assert.AreEqual("return_to_lifeboat", s.ReturnHomeFromNavigation().GetString("reason"));
+                var bridge = s.BridgeTerminals.Single(t => t.ShipId == s.LifeboatShip.ShipId);
+                rig.Scene.PlayerPosition = bridge.GlobalPosition;
+                s.LifeboatShip.GetAccess().OwnerId = "other_player"; s.LifeboatShip.GetAccess().AccessIds.Clear();
+                Assert.AreEqual("ship_access_denied", s.ReturnHomeFromNavigation().GetString("reason"));
+                s.LifeboatShip.GetAccess().Claim("player_local");
+                s.LifeboatShip.SystemsManager.DamageSubcomponent("propulsion", "thruster_array", 1);
+                Assert.IsFalse(s.ReturnHomeFromNavigation().GetBool("success"), "unavailable normal travel capability cannot return");
+                s.EnableReviewedFirstAwayProfile = false;
+                Assert.AreEqual("home_navigation_unavailable", s.ReturnHomeFromNavigation().GetString("reason"));
+                Assert.AreSame(current, s.CurrentShip); Assert.IsTrue(s.AwayFromStart); Assert.AreEqual(sea, s.SynapticSeaWorld.PlayerPosition);
+                Assert.AreEqual(inventory, GdJson.Stringify(s.InventoryState.Items));
+                Assert.AreEqual(progression, GdJson.Stringify(s.PlayerProgression.GetSummary()));
+            }
+            finally { s.Dispose(); }
+        }
+
+        [Test]
         public void ExplicitPostReadyFlagUpdatesSaveAdmissionAndAcceptedGateReusesExactDocuments()
         {
             var session = Boot(out _);

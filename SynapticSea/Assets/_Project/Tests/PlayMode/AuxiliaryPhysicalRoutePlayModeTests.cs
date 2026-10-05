@@ -669,6 +669,7 @@ namespace SynapticSea.Tests.PlayMode
             yield return FixedSteps(8);
             string witnessedMarker = ""; string witnessedLoot = ""; GdDict witnessedBinding = null;
             GdDict witnessedInventory = null;
+            long witnessedRepairXp = 0, witnessedScavengingXp = 0, witnessedWeldingXp = 0;
             if (reviewedProfile)
             {
                 witnessedMarker = _s.CurrentShip.MarkerId;
@@ -692,19 +693,46 @@ namespace SynapticSea.Tests.PlayMode
                 yield return AuxiliaryWitnessReviewedProfileWork();
                 witnessedLoot = _s.LootContainers.Single(container => container.ContainerId.EndsWith("/common_cache", System.StringComparison.Ordinal)).ContainerId;
                 witnessedInventory = _s.InventoryState.Items.DeepCopy();
+                witnessedRepairXp = _s.PlayerProgression.GetSkillXp("repair");
+                witnessedScavengingXp = _s.PlayerProgression.GetSkillXp("scavenging");
+                witnessedWeldingXp = _s.PlayerProgression.GetSkillXp("welding");
             }
-            var loader = _s.CurrentShip.SceneRoot as SynapticSea.Core.Session.IShipLoaderView;
-            Assert.IsNotNull(loader);
-            var exit = loader.GetAuthoredPortals().Where(portal => portal.IsValid && portal.IsExterior)
-                .OrderBy(portal => portal.GlobalPosition.DistanceSquaredTo(_boot.Host.SceneState.Player.GodotPosition)).FirstOrDefault();
-            Assert.IsNotNull(exit, "ordinary exterior return portal exists");
-            yield return AuxiliaryDeck(exit.GlobalPosition.Y > 3 ? 1 : 0);
-            yield return WalkTo(exit.GlobalPosition, 1.2f);
-            Assert.IsTrue(exit.IsInRange(_boot.Host.SceneState.Player.GodotPosition));
-            _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
-            AuxiliaryContinuationState("return_portal_requested", exit.PortalId);
-            Assert.IsFalse(_s.AwayFromStart, "normal exterior interaction returns home; no direct TravelHome call");
-            Assert.AreEqual("authored_portal", _s.LastInteractHandlerId, "actual successful exterior handler, not an away-context inference");
+            if (reviewedProfile)
+            {
+                var boatBridge = _s.BridgeTerminals.Single(terminal => terminal.ShipId == _s.LifeboatShip.ShipId);
+                AuxiliaryDockSeamDiagnostic("before_normal_return_to_lifeboat", boatBridge.GlobalPosition);
+                yield return WalkTo(boatBridge, 1.1f);
+                AuxiliaryDockSeamDiagnostic("after_normal_return_to_lifeboat", boatBridge.GlobalPosition);
+                Assert.AreSame(_s.LifeboatShip, _s.CurrentOccupancy);
+                Assert.IsTrue(boatBridge.IsPlayerInDirectRangeStrict(_boot.Host.SceneState.Player.GodotPosition));
+                _boot.Ui.OnPanelToggle("toggle_scanner"); Assert.IsTrue(_boot.Ui.Scanner.IsOpen());
+                var homeResults = new List<GdDict>(); System.Action<GdDict> homeResolved = result => homeResults.Add(result.DeepCopy());
+                _boot.Ui.Scanner.TravelResolved += homeResolved;
+                try
+                {
+                    AuxiliarySubmit(_boot.Ui.Scanner.ReturnHomeButton);
+                    Assert.AreEqual(1, homeResults.Count); Assert.IsTrue(homeResults[0].GetBool("success"), GdJson.Stringify(homeResults[0]));
+                }
+                finally { _boot.Ui.Scanner.TravelResolved -= homeResolved; }
+                yield return FixedSteps(8);
+                AuxiliaryContinuationState("lifeboat_cockpit_navigation_returned_home");
+                Assert.IsFalse(_s.AwayFromStart, "deliberate mounted scanner return after ordinary walk aboard lifeboat");
+            }
+            else
+            {
+                var loader = _s.CurrentShip.SceneRoot as SynapticSea.Core.Session.IShipLoaderView;
+                Assert.IsNotNull(loader);
+                var exit = loader.GetAuthoredPortals().Where(portal => portal.IsValid && portal.IsExterior)
+                    .OrderBy(portal => portal.GlobalPosition.DistanceSquaredTo(_boot.Host.SceneState.Player.GodotPosition)).FirstOrDefault();
+                Assert.IsNotNull(exit, "ordinary exterior return portal exists");
+                yield return AuxiliaryDeck(exit.GlobalPosition.Y > 3 ? 1 : 0);
+                yield return WalkTo(exit.GlobalPosition, 1.2f);
+                Assert.IsTrue(exit.IsInRange(_boot.Host.SceneState.Player.GodotPosition));
+                _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
+                AuxiliaryContinuationState("return_portal_requested", exit.PortalId);
+                Assert.IsFalse(_s.AwayFromStart, "normal exterior interaction returns home; no direct TravelHome call");
+                Assert.AreEqual("authored_portal", _s.LastInteractHandlerId, "actual successful exterior handler, not an away-context inference");
+            }
             Assert.AreSame(_s.HomeShip, _s.CurrentShip); Assert.AreEqual(_s.HomeSeaPosition, _s.SynapticSeaWorld.PlayerPosition);
             Assert.IsTrue(_s.RequestSave(), GdJson.Stringify(_s.LastSaveResult)); Assert.IsTrue(_s.RequestLoad()); yield return FixedSteps(8);
             Assert.IsTrue(_s.IsAuxiliaryHardwareReady(_s.HomeShip.ShipId, "maintenance_fabricator_feed_01"));
@@ -747,6 +775,9 @@ namespace SynapticSea.Tests.PlayMode
                 _boot.Host.SceneState.Player.RequestInteract(); yield return FixedSteps(8);
                 Assert.IsTrue(cached.Searched);
                 Assert.IsTrue(V.VariantEquals(witnessedInventory, _s.InventoryState.Items), "ordinary repeat interaction after save/revisit grants no items");
+                Assert.AreEqual(witnessedRepairXp, _s.PlayerProgression.GetSkillXp("repair"));
+                Assert.AreEqual(witnessedScavengingXp, _s.PlayerProgression.GetSkillXp("scavenging"));
+                Assert.AreEqual(witnessedWeldingXp, _s.PlayerProgression.GetSkillXp("welding"));
                 Assert.AreEqual(0, _s.InventoryState.GetQuantity("hull_sealant"), "one carried earned sealant remains spent");
                 var revisitedBinding = AuxiliaryAssertFirstAwayRawBinding(_s.CurrentShip);
                 Assert.IsTrue(V.VariantEquals(witnessedBinding, revisitedBinding), "return/Continue/revisit preserves exact generation raw document hashes and descriptor text");
