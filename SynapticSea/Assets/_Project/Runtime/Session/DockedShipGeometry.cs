@@ -117,21 +117,6 @@ namespace SynapticSea.Runtime.Session
             return true;
         }
 
-        static bool IsOwnedProfileDock(IShipLoaderView loader, string roomId)
-        {
-            var layout = loader?.LayoutDoc;
-            const string profile = "first_away_salvage_v1";
-            if (layout == null || layout.GetString("generation_profile") != profile) return false;
-            var inputs = layout.GetDictOrEmpty("first_away_inputs");
-            string owner = inputs.GetString("owner_id"), marker = inputs.GetString("marker_id");
-            if (inputs.GetString("profile") != profile || marker.Length == 0 || owner != "ship_" + marker
-                || roomId != profile + "/" + owner + "/room/dock"
-                || layout.GetDictOrEmpty("docking_port").GetString("room_id") != roomId) return false;
-            var rooms = layout.GetArrayOrEmpty("rooms").OfType<GdDict>().Where(room => room.GetString("id") == roomId).ToArray();
-            return rooms.Length == 1 && rooms[0].GetString("semantic_id") == "dock"
-                && rooms[0].GetString("room_role") == "dock" && rooms[0].GetString("owner_id") == owner;
-        }
-
         void SuppressCoveredEdges(GameObject root, List<Bounds> floors, bool includeFrames, IShipLoaderView hostLoader = null)
         {
             foreach (var module in root.GetComponentsInChildren<StructuralModule>())
@@ -143,7 +128,7 @@ namespace SynapticSea.Runtime.Session
                 // Compiled hull edges include an empty exterior owner. That is not a second
                 // interior room; only distinct, nonempty owners identify a protected boundary.
                 var owners = module.roomIds?.Where(id => !string.IsNullOrEmpty(id)).Distinct().ToArray();
-                if (!includeFrames && (owners == null || !owners.Any(id => id.StartsWith("airlock") || id.StartsWith("dock") || IsOwnedProfileDock(hostLoader, id))
+                if (!includeFrames && (owners == null || !owners.Any(id => id.StartsWith("airlock") || id.StartsWith("dock"))
                     || owners.Length > 1)) continue;
                 if (module.GetComponentInChildren<NavMeshBlocker>() != null) continue;
                 var activeColliders = module.GetComponentsInChildren<BoxCollider>().Where(c => c.enabled && !c.isTrigger).ToArray();

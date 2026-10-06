@@ -11,8 +11,8 @@
 | REQ-03 | Weld useful hulls into homes; support stationary and mobile homes | Owned vessels retain identity and local services while connected, moved and detached |
 | REQ-04 | Generally fly any sufficiently repaired vessel/assembly with propulsion appropriate to load/size | Capability depends on eligible machinery, power, load and configuration rather than a static home-only hull class |
 | REQ-05 | Small recon, scavenging and immediate escape craft retain utility | Independent excursions and detach/return remain useful alongside a larger home |
-| REQ-06 | No extraction-victory loop | Onboarding completion and normal return preserve the world and active survival; no payout/save deletion as ordinary success |
-| REQ-07 | Every starting class can establish a home and repair a first ship solo | All supported class routes pass with finite earned resources; specialization changes methods/cost/time without removing meaningful skill/tool gates |
+| REQ-06 | No extraction-victory loop | Onboarding completion and normal return preserve the world and active survival; no payout/save deletion as ordinary success. Amended by D8 (`docs/design/decisions.md`): death starts a new survivor in the same world, with no roguelite meta-payout or save freezing |
+| REQ-07 | Every starting class can establish a home and repair a first ship solo | All supported class routes pass with finite earned resources; specialization changes methods/cost/time without removing meaningful skill/tool gates. Satisfied by D6 (`docs/design/decisions.md`): any class can repair slowly at low quality, and skill is a multiplier |
 | REQ-08 | Preserve user work, saves and proprietary assets | Additive versioned changes, reversible migration and exact provenance; no reset to published main |
 
 REQ-07 is approved policy. It does not approve equal starting skills, universal advanced fabrication, free resources, or bypassing locks. For unlockable classes, acceptance uses legitimately established unlock state, with no hub repair/XP benefits presumed. Directly configured classes are diagnostics only.

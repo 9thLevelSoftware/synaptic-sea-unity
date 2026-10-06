@@ -51,7 +51,6 @@ namespace SynapticSea.Runtime.Session
         public bool EnableComponentIntegration;
         /// <summary>Explicit diagnostic retained-study/finite-entry route; ordinary launch stays disabled.</summary>
         public bool EnableManualStudy;
-        public bool EnableReviewedFirstAwayProfile;
         GdDict _selectedSaveGeneration;
         /// <summary>Owned exact generation handle; never inferred from the presence of a generation on disk.</summary>
         public GdDict SelectedSaveGeneration

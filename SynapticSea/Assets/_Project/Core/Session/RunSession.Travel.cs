@@ -182,17 +182,17 @@ namespace SynapticSea.Core.Session
                 if (!contractCtx.IsEmpty) runCtx = contractCtx;
             }
             ShipGenerator.ConfigureRunContext(V.Str(runCtx.Get("biome", "")), V.Str(runCtx.Get("difficulty", "")));
-            TravelAttemptResult result = TravelController.AttemptTravel(marker, opsT, SynapticSeaWorld, TravelGenerationSource(marker), ScannerState.RangeRadius);
+            TravelAttemptResult result = TravelController.AttemptTravel(marker, opsT, SynapticSeaWorld, FirstRunGenerator(), ScannerState.RangeRadius);
             if (!result.Success)
             {
-                if (ReviewedFirstAwayProfileEnabled && firstRunContractApplied) marker.SeedValue = originalMarkerSeed;
+                if (firstRunContractApplied) marker.SeedValue = originalMarkerSeed;
                 EmitTravelDeniedSfx();
                 return result.ToDict();
             }
             IShipLoaderView newRoot = result.Ship is ShipDocuments docs ? BuildShipSceneFromDocuments(docs) : result.Ship as IShipLoaderView;
             if (newRoot == null)
             {
-                if (ReviewedFirstAwayProfileEnabled && firstRunContractApplied)
+                if (firstRunContractApplied)
                 {
                     marker.SeedValue = originalMarkerSeed;
                     SynapticSeaWorld.SetPlayerPosition(prevPlayerPos);
@@ -218,7 +218,7 @@ namespace SynapticSea.Core.Session
                 if (dockFailure.Length > 0)
                 {
                     ShipHost?.FreeShipRoot(newRoot);
-                    if (ReviewedFirstAwayProfileEnabled && firstRunContractApplied) marker.SeedValue = originalMarkerSeed;
+                    if (firstRunContractApplied) marker.SeedValue = originalMarkerSeed;
                     SynapticSeaWorld.SetPlayerPosition(prevPlayerPos);
                     if (!wasGenerated)
                         SynapticSeaWorld.UnmarkGenerated(marker.MarkerId);
@@ -253,8 +253,6 @@ namespace SynapticSea.Core.Session
             {
                 var newBp = new ShipBlueprint(marker.SizeClass, marker.Condition, marker.SeedValue);
                 newBp.GenerationProfile = newRoot.GetLayoutCopy().GetString("generation_profile");
-                if (result.Ship is ShipDocuments firstAway && firstAway.FirstAwayDescriptor != null)
-                    newBp.FirstAwayDescriptorText = PaidSnapshotCodec.Stringify(firstAway.FirstAwayDescriptor.Snapshot());
                 var newMgr = new ShipSystemsManager();
                 newMgr.Configure(newMgr.LoadDefinitions(), newBp.ShipCondition, newBp.SeedValue);
                 inst = ShipInstance.Create("ship_" + mid, mid, newBp, newMgr, null);
@@ -270,8 +268,8 @@ namespace SynapticSea.Core.Session
             return result.ToDict();
         }
 
-        public bool FirstAwayHomeNavigationAvailable => ReviewedFirstAwayProfileEnabled && AwayFromStart
-            && CurrentShip?.Blueprint?.GenerationProfile == FirstAwayGenerationInputs.Profile;
+        /// <summary>The scanner's "return home" action. Dormant: only the removed reviewed first-away profile enabled it.</summary>
+        public bool HomeNavigationAvailable => false;
 
         /// <summary>Deliberate navigation from the player's live lifeboat cockpit, using the existing home berth transition.</summary>
         public GdDict ReturnHomeFromNavigation()
@@ -279,7 +277,7 @@ namespace SynapticSea.Core.Session
             string reason = "";
             if (ComponentGenerationRestoreInProgress) reason = "restore_in_progress";
             else if (CompleteGenerationEnabled && ComponentTerminalPending) reason = "terminal_pending";
-            else if (!FirstAwayHomeNavigationAvailable || SliceComplete) reason = "home_navigation_unavailable";
+            else if (!HomeNavigationAvailable || SliceComplete) reason = "home_navigation_unavailable";
             else if (!HasPlayer || PilotedShip == null || PilotedShip != LifeboatShip || !RootValid(PilotedShip.SceneRoot)) reason = "lifeboat_not_piloted";
             else if (!PilotedShip.GetAccess().HasAccess(PLAYER_LOCAL_ID)) reason = "ship_access_denied";
             if (reason.Length == 0)
@@ -671,8 +669,6 @@ namespace SynapticSea.Core.Session
         {
             if (marker == null)
                 return new GdDict { { "biome", "abyssal_synaptic_sea" }, { "difficulty", "standard" } };
-            if (VisitedShips.TryGetValue(marker.MarkerId, out ShipInstance saved) && saved.Blueprint.GenerationProfile == FirstAwayGenerationInputs.Profile)
-                return FirstAwayContractContext();
             return ResolveRunContext(marker.SeedValue, marker.SizeClass, marker.Condition);
         }
 
@@ -685,8 +681,7 @@ namespace SynapticSea.Core.Session
                 ShipGenerator.ConfigureRunContext("", "");
                 return;
             }
-            GdDict ctx = blueprint.GenerationProfile == FirstAwayGenerationInputs.Profile
-                ? FirstAwayContractContext() : ResolveRunContext(blueprint.SeedValue, blueprint.ShipSize, blueprint.ShipCondition);
+            GdDict ctx = ResolveRunContext(blueprint.SeedValue, blueprint.ShipSize, blueprint.ShipCondition);
             ShipGenerator.ConfigureRunContext(V.Str(ctx.Get("biome", "")), V.Str(ctx.Get("difficulty", "")));
         }
 

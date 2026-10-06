@@ -30,7 +30,6 @@ namespace SynapticSea.Core.Procgen
         public long ShipCondition = (long)Condition.Pristine;
         public long SeedValue = 0;
         public string GenerationProfile = "";
-        public string FirstAwayDescriptorText = "";
 
         /// <summary>Inclusive (min, max) room count. Recomputed from size in the constructor; writable for overrides.</summary>
         public Vec2i RoomCountRange = new Vec2i(8, 12);
@@ -88,7 +87,6 @@ namespace SynapticSea.Core.Procgen
                 },
             };
             if (GenerationProfile.Length != 0) data["generation_profile"] = GenerationProfile;
-            if (FirstAwayDescriptorText.Length != 0) data["first_away_descriptor_text"] = FirstAwayDescriptorText;
             return data;
         }
 
@@ -99,7 +97,6 @@ namespace SynapticSea.Core.Procgen
             if (data.Has("condition")) bp.ShipCondition = V.I64(data["condition"]);
             if (data.Has("seed_value")) bp.SeedValue = V.I64(data["seed_value"]);
             bp.GenerationProfile = data.GetString("generation_profile");
-            bp.FirstAwayDescriptorText = data.GetString("first_away_descriptor_text");
             if (data.Has("room_count_range") && data["room_count_range"] is GdDict r)
             {
                 Vec2i derived = bp.GetRoomCountRange();

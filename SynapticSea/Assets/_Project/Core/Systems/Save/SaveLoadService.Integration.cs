@@ -15,7 +15,6 @@ namespace SynapticSea.Core.Systems
         public const string PaidGenerationRoot = "user://saves/.paid-craft-generations";
         public bool PaidCraftingEnabled { get; }
         /// <summary>Explicit reviewed profile capability; off preserves the prior compatibility catalog.</summary>
-        public bool FirstAwaySalvageProfileEnabled { get; set; }
         public bool CompleteGenerationEnabled => ComponentIntegrationEnabled || PaidCraftingEnabled;
         string GenerationRoot => ComponentIntegrationEnabled ? ComponentGenerationRoot : PaidGenerationRoot;
         string AdmissionVersion => ComponentIntegrationEnabled ? "component-run-admission-1" : "paid-run-admission-1";
@@ -42,7 +41,6 @@ namespace SynapticSea.Core.Systems
             { "library_id", "" }, { "library_version", "" },
             { "profiles", new GdDict { { ConstrainedExpedition.Profile, ConstrainedExpedition.Profile }, { ConstrainedExpedition.LegacyProfile, ConstrainedExpedition.LegacyProfile } } }
         };
-            if (FirstAwaySalvageProfileEnabled) compatibility.GetDictOrEmpty("profiles")[FirstAwayGenerationInputs.Profile] = FirstAwayGenerationInputs.Profile;
             return compatibility;
         }
         internal SaveCommitCoordinator ComponentCoordinator(Action<string> fault = null)

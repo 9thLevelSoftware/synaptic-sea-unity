@@ -22,22 +22,20 @@ namespace SynapticSea.Tests.EditMode.Procgen
             Assert.IsTrue(SaveGenerationArtifacts.TryCreateReader(selection,fallback,out var reader,out var reason),reason);return reader;
         }
         [Test]
-        public void ArchiveDirectoryCapabilityPreservesCanonicalProfileAndRestore()
+        public void ArchiveDirectoryCapabilityPreservesCanonicalGeneration()
         {
             var original=CoreServices.Resources;
             string dir=ModularSocketCatalog.CONTRACTS_ROOT+ModularSocketCatalog.DEFAULT_KIT_ID;
             var names=ProcgenCompat.ListResFiles(dir);Assert.IsNotEmpty(names);Assert.IsTrue(ProcgenCompat.ResDirExists(dir));
-            var inputs=new FirstAwayGenerationInputs(42,17,0,2,"0:0:0","ship_0:0:0","breach_field","standard");
-            var before=new ShipGenerator().GenerateFirstAway(inputs);Assert.IsNotNull(before);
-            var snapshot=before.FirstAwayDescriptor.Snapshot();
+            var before=OrdinaryWreck();Assert.IsNotNull(before);
             var reader=Overlay(original,new KeyValuePair<string,string>(before.KitPath,original.ReadText(before.KitPath)));
             CoreServices.Resources=reader;CatalogRegistry.Clear();
             Assert.IsTrue(ProcgenCompat.ResDirExists(dir));CollectionAssert.AreEqual(names,ProcgenCompat.ListResFiles(dir));
             Assert.IsTrue(new ModularSocketCatalog().LoadKit("ship_structural_hazard"));
-            var inside=new ShipGenerator().GenerateFirstAway(inputs);Assert.IsNotNull(inside);
+            var inside=OrdinaryWreck();Assert.IsNotNull(inside);
             Assert.AreEqual(before.LayoutJson,inside.LayoutJson);Assert.AreEqual(before.GameplaySliceJson,inside.GameplaySliceJson);
-            Assert.IsTrue(new ShipGenerator().TryRestoreFirstAway(inputs,snapshot,before.LayoutJson,before.GameplaySliceJson,out _));
         }
+        static ShipDocuments OrdinaryWreck(){var generator=new ShipGenerator();generator.ConfigureRunContext("breach_field","standard");return generator.GenerateFromSeed(42,0,2);}
         [Test]
         public void ArchiveListingUnionsDirectFilesWithoutDuplicatesAndKeepsOverlayTextAuthority()
         {

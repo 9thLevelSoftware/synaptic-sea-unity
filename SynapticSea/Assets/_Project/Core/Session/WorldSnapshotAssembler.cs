@@ -77,9 +77,6 @@ namespace SynapticSea.Core.Session
             if(s.HomeSeaMarkerId.Length>0)
                 ws.MobileHomeState["home_location"]=new GdDict{{"version",1L},{"marker_id",s.HomeSeaMarkerId},
                     {"sea_position",GdArray.Of((double)s.HomeSeaPosition.X,(double)s.HomeSeaPosition.Y,(double)s.HomeSeaPosition.Z)}};
-            else if(s.ReviewedFirstAwayProfileEnabled)
-                ws.MobileHomeState["starting_home_anchor"] = new GdDict { { "version", 1L }, { "source", "starting_world_position_v1" },
-                    { "sea_position", GdArray.Of((double)s.HomeSeaPosition.X, (double)s.HomeSeaPosition.Y, (double)s.HomeSeaPosition.Z) } };
             if(s.HasSecuredHomeExtension() && s.CurrentShip!=null && !s.IsHomeMember(s.CurrentShip) && s.CurrentShip.SceneRoot!=null)
             {
                 Vec3 position=s.CurrentShip.SceneRoot.GlobalTransform*Vec3.Zero;
@@ -181,9 +178,7 @@ namespace SynapticSea.Core.Session
             if (ws == null)
                 return false;
             var homeLocation=ws.MobileHomeState.GetDictOrEmpty("home_location");
-            var startingAnchor = ws.MobileHomeState.GetDictOrEmpty("starting_home_anchor");
-            if (ws.MobileHomeState.Has("starting_home_anchor") && (!s.ReviewedFirstAwayProfileEnabled
-                || ws.MobileHomeState.Has("home_location") || !ValidStartingHomeAnchor(startingAnchor))) return false;
+            if (ws.MobileHomeState.Has("starting_home_anchor")) return false;
             if((ws.MobileHomeState.Has("home_location") && (homeLocation.GetInt("version")!=1 || homeLocation.GetString("marker_id").Length==0
                 || !ValidScenePosition(homeLocation.GetArrayOrEmpty("sea_position"))))
                 || (ws.MobileHomeState.Has("active_scene_position") && !ValidScenePosition(ws.MobileHomeState.GetArrayOrEmpty("active_scene_position"))))
@@ -253,8 +248,7 @@ namespace SynapticSea.Core.Session
             s.UniqueItemState?.ApplySummary(ws.UniqueItemSummary);
             if (s.SynapticSeaWorld != null && !ws.WorldSummary.IsEmpty)
                 s.SynapticSeaWorld.ApplySummary(ws.WorldSummary);
-            s.HomeSeaPosition = !homeLocation.IsEmpty ? Vec3.FromArray(homeLocation.GetArrayOrEmpty("sea_position"))
-                : !startingAnchor.IsEmpty ? Vec3.FromArray(startingAnchor.GetArrayOrEmpty("sea_position")) : s.StartingHomeSeaPosition;
+            s.HomeSeaPosition = !homeLocation.IsEmpty ? Vec3.FromArray(homeLocation.GetArrayOrEmpty("sea_position")) : s.StartingHomeSeaPosition;
             s.HomeSeaMarkerId=homeLocation.GetString("marker_id");
             ApplyVisitedShips(s, ws.VisitedShips);
             if(!ws.MobileHomeState.IsEmpty && s.HomeShip!=null) s.HomeShip.Mobility = ws.MobileHomeState.GetDictOrEmpty("home_mobility").DeepCopy();
@@ -321,11 +315,6 @@ namespace SynapticSea.Core.Session
 
         public static bool OwnedInstallation(string shipId, GdDict spec) => spec.GetString("engine_id").Length == 0
             || spec.GetString("engine_id") == "propulsion:" + shipId;
-        public static bool ValidStartingHomeAnchor(GdDict anchor) => anchor != null && anchor.Count == 3
-            && anchor.Get("version") is long version && version == 1
-            && anchor.Get("source") is string source && source == "starting_world_position_v1"
-            && anchor.Get("sea_position") is GdArray position && ValidScenePosition(position)
-            && position.All(value => value is long || value is double);
         static bool ValidScenePosition(GdArray position)
         {
             if(position.Count!=3)return false;

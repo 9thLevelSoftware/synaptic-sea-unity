@@ -183,15 +183,13 @@ namespace SynapticSea.Game
                 BiomeId = launch.BiomeId ?? "",
                 EnableComponentIntegration = launch.EnableComponentIntegration,
                 EnableManualStudy = launch.EnableManualStudy,
-                EnableReviewedFirstAwayProfile = launch.EnableReviewedFirstAwayProfile,
-                EnablePaidCrafting = launch.EnableManualStudy || launch.EnableReviewedFirstAwayProfile,
+                EnablePaidCrafting = launch.EnableManualStudy,
             };
-            if ((launch.EnableComponentIntegration || launch.EnableManualStudy || launch.EnableReviewedFirstAwayProfile) && launch.Mode != RunLaunchMode.NewRun)
+            if ((launch.EnableComponentIntegration || launch.EnableManualStudy) && launch.Mode != RunLaunchMode.NewRun)
             {
                 string slotId = launch.Mode == RunLaunchMode.Continue ? RunLaunchRequest.WorldSlotId : launch.SlotId;
                 var service = new SaveLoadService(CoreServices.UserStorage, CoreServices.Clock,
-                    deps.EnableComponentIntegration, deps.EnablePaidCrafting)
-                { FirstAwaySalvageProfileEnabled = deps.EnableReviewedFirstAwayProfile };
+                    deps.EnableComponentIntegration, deps.EnablePaidCrafting);
                 GdDict selected = launch.SelectedSaveGeneration ?? service.SelectGeneration(slotId);
                 if (selected == null || !selected.GetBool("ok"))
                 {
@@ -321,7 +319,7 @@ namespace SynapticSea.Game
         {
             failure = "";
             bool applied = true;
-            if ((launch.EnableComponentIntegration || launch.EnableManualStudy || launch.EnableReviewedFirstAwayProfile) && launch.Mode != RunLaunchMode.NewRun)
+            if ((launch.EnableComponentIntegration || launch.EnableManualStudy) && launch.Mode != RunLaunchMode.NewRun)
             {
                 GdDict selected = launch.SelectedSaveGeneration;
                 applied = selected != null && session.ApplySelectedGeneration(selected);

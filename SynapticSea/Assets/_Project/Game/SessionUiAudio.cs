@@ -76,7 +76,7 @@ namespace SynapticSea.Game
         public IUiAudio Audio { get; }
         public GdDict Scan() => _session.Scan();
         public GdDict TravelCapability() => _session.TravelCapability();
-        public bool HomeNavigationAvailable => _session.FirstAwayHomeNavigationAvailable;
+        public bool HomeNavigationAvailable => _session.HomeNavigationAvailable;
         public GdDict ReturnHomeFromNavigation() => _session.ReturnHomeFromNavigation();
         public GdDict TravelToMarkerId(string markerId) => _session.TravelToMarkerId(markerId);
         public void EmitTrainingEvent(string eventId, string targetId) => _session.EmitTrainingEvent(eventId, targetId);

@@ -31,8 +31,7 @@ namespace SynapticSea.Core.Session
             _inTick = true;
             try
             {
-                if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
-                    || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.FirstAwayGenerationInputs.Profile)) RecomputeOccupancy();
+                if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile)) RecomputeOccupancy();
                 double delta = ctx.Delta;
                 WorldTime += delta;
                 if (PlayableStarted && !SliceComplete)

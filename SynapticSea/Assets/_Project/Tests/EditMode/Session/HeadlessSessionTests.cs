@@ -40,7 +40,6 @@ namespace SynapticSea.Tests.Session
             }
         }
 
-        [TestCase(SynapticSea.Core.Procgen.FirstAwayGenerationInputs.Profile, true)]
         [TestCase(SynapticSea.Core.Procgen.ConstrainedExpedition.Profile, true)]
         [TestCase(SynapticSea.Core.Procgen.ConstrainedExpedition.LegacyProfile, false)]
         public void NormalTickRefreshesPhysicalFloorOwnerForEligibleProfilesAndPreservesLegacy(string profile, bool refresh)
@@ -168,21 +167,19 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
-        public void StartingHomeAnchorIsExplicitCapabilityGatedAndMovedLocationRemainsAuthoritative()
+        public void StartingHomeAnchorIsRetiredAndMovedLocationRemainsAuthoritative()
         {
             var rig = SessionHarness.CreateGolden(); var s = rig.Session;
             try
             {
-                s.EnableReviewedFirstAwayProfile = true; s.HomeSeaPosition = new Vec3(42, 0, -72);
-                var saved = WorldSnapshotAssembler.Build(s); Assert.IsTrue(saved.MobileHomeState.Has("starting_home_anchor"));
+                s.HomeSeaPosition = new Vec3(42, 0, -72);
+                var saved = WorldSnapshotAssembler.Build(s); Assert.IsFalse(saved.MobileHomeState.Has("starting_home_anchor"));
+                // The reviewed first-away profile that wrote this anchor is gone: a world carrying one is refused.
+                saved.MobileHomeState["starting_home_anchor"] = new GdDict { { "version", 1L }, { "source", "starting_world_position_v1" },
+                    { "sea_position", GdArray.Of(42.0, 0.0, -72.0) } };
                 s.HomeSeaPosition = new Vec3(999, 0, 999);
-                Assert.IsTrue(WorldSnapshotAssembler.Apply(s, saved)); Assert.AreEqual(new Vec3(42, 0, -72), s.HomeSeaPosition);
-                var bad = saved.MobileHomeState.GetDictOrEmpty("starting_home_anchor"); bad["source"] = "unknown";
-                Assert.IsFalse(WorldSnapshotAssembler.Apply(s, saved)); Assert.AreEqual(new Vec3(42, 0, -72), s.HomeSeaPosition);
-                bad["source"] = "starting_world_position_v1"; bad["sea_position"] = GdArray.Of(double.NaN, 0.0, 0.0);
-                Assert.IsFalse(WorldSnapshotAssembler.Apply(s, saved)); bad["sea_position"] = GdArray.Of(42.0, 0.0, -72.0);
-                s.EnableReviewedFirstAwayProfile = false; Assert.IsFalse(WorldSnapshotAssembler.Apply(s, saved));
-                s.EnableReviewedFirstAwayProfile = true; s.HomeSeaPosition = new Vec3(84, 0, 96); s.HomeSeaMarkerId = "fixture-contact";
+                Assert.IsFalse(WorldSnapshotAssembler.Apply(s, saved)); Assert.AreEqual(new Vec3(999, 0, 999), s.HomeSeaPosition);
+                s.HomeSeaPosition = new Vec3(84, 0, 96); s.HomeSeaMarkerId = "fixture-contact";
                 var moved = WorldSnapshotAssembler.Build(s); Assert.IsFalse(moved.MobileHomeState.Has("starting_home_anchor"));
                 Assert.IsTrue(WorldSnapshotAssembler.Apply(s, moved)); Assert.AreEqual(new Vec3(84, 0, 96), s.HomeSeaPosition);
                 Assert.AreEqual("fixture-contact", s.HomeSeaMarkerId);

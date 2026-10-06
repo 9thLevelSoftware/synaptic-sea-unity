@@ -706,7 +706,7 @@ namespace SynapticSea.Core.Systems
             return copy;
         }
 
-        Candidate ValidateRequest(GdDict supplied, string run, string slot, bool componentAdapter = false, bool exactPaidAdapter = false, HashSet<string> authenticatedFirstAwayOwners = null)
+        Candidate ValidateRequest(GdDict supplied, string run, string slot, bool componentAdapter = false, bool exactPaidAdapter = false)
         {
             if (_allowPaidCrafting && !componentAdapter) return ValidateIntegrationRequest(supplied, run, slot, true);
             if (_allowComponentIntegration && !componentAdapter && supplied != null && ParseObject(supplied.GetString("run_text"))?.GetString("slice_version") == RunSnapshot.ComponentIntegrationVersion)
@@ -776,12 +776,12 @@ namespace SynapticSea.Core.Systems
                 if (!(item.Key is string marker) || !Identity(marker) || !(item.Value is GdDict ship) || !StringFields(ship, "ship_id", "marker_id") || !Identity(ship.GetString("ship_id")) ||
                     ship.GetString("marker_id") != marker || !owners.Add(ship.GetString("ship_id")) || !(ship.Get("systems") is GdDict) || !(ship.Get("blueprint") is GdDict)) throw new Refusal("binding_mismatch");
                 GdDict s = (GdDict)item.Value;
-                ValidateReference(refs.Get(s.GetString("ship_id")) as GdDict, artifacts, used, null, s.GetDictOrEmpty("blueprint"), authenticatedFirstAwayOwners?.Contains(s.GetString("ship_id")) == true);
+                ValidateReference(refs.Get(s.GetString("ship_id")) as GdDict, artifacts, used, null, s.GetDictOrEmpty("blueprint"));
                 if (s.Has("mobility") && !ValidMobility(s.Get("mobility") as GdDict, s.GetString("ship_id"))) throw new Refusal("invalid_payload");
             }
             string owner = location.Length == 0 ? "ship_start" : visited.GetDictOrEmpty(location).GetString("ship_id");
             if (!Identity(owner) || owner != binding.GetString("current_owner_id")) throw new Refusal("binding_mismatch");
-            ValidateReference(refs.Get(owner) as GdDict, artifacts, used, active, location.Length == 0 ? null : visited.GetDictOrEmpty(location).GetDictOrEmpty("blueprint"), authenticatedFirstAwayOwners?.Contains(owner) == true);
+            ValidateReference(refs.Get(owner) as GdDict, artifacts, used, active, location.Length == 0 ? null : visited.GetDictOrEmpty(location).GetDictOrEmpty("blueprint"));
             if (location.Length == 0 && !(exactPaidAdapter ? PaidSnapshotCodec.Same(home.Get("player_position"), active.Get("player_position")) : V.VariantEquals(home.Get("player_position"), active.Get("player_position")))) throw new Refusal("binding_mismatch");
             GdDict lifeRef = refs.Get("lifeboat") as GdDict;
             if (world.Has("mobile_home_state"))
@@ -793,9 +793,7 @@ namespace SynapticSea.Core.Systems
                 if (lifeboat.GetString("ship_id") != "lifeboat" || !ValidMobility(mobileState.Get("home_mobility") as GdDict, "ship_start") ||
                     !ValidMobility(lifeboat.Get("mobility") as GdDict, "lifeboat")) throw new Refusal("invalid_payload");
                 if (mobileState.Has("active_scene_position") && !Position(mobileState.Get("active_scene_position"))) throw new Refusal("invalid_payload");
-                if (mobileState.Has("starting_home_anchor") && (_compatibility.GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile
-                    || request.GetDictOrEmpty("compatibility").GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile
-                    || mobileState.Has("home_location") || !WorldSnapshotAssembler.ValidStartingHomeAnchor(mobileState.Get("starting_home_anchor") as GdDict))) throw new Refusal("invalid_payload");
+                if (mobileState.Has("starting_home_anchor")) throw new Refusal("invalid_payload");
                 if (mobileState.Has("home_location"))
                 {
                     GdDict homeLocation = mobileState.Get("home_location") as GdDict;
@@ -817,7 +815,7 @@ namespace SynapticSea.Core.Systems
             return candidate;
         }
 
-        void ValidateReference(GdDict reference, Dictionary<string, Artifact> artifacts, HashSet<string> used, GdDict run, GdDict blueprint, bool authenticatedFirstAway = false)
+        void ValidateReference(GdDict reference, Dictionary<string, Artifact> artifacts, HashSet<string> used, GdDict run, GdDict blueprint)
         {
             if (reference == null || reference.Count != 5 || !StringFields(reference, "layout_path", "gameplay_slice_path", "kit_path", "profile_id") ||
                 !(reference.Get("present") is bool present) || !present) throw new Refusal("binding_mismatch");
@@ -830,7 +828,7 @@ namespace SynapticSea.Core.Systems
             var rooms = new HashSet<string>(layout.Document.GetArrayOrEmpty("rooms").OfType<GdDict>().Select(r => r.GetString("id")), StringComparer.Ordinal);
             if (!rooms.Contains(slice.Document.GetString("start_room")) || !rooms.Contains(slice.Document.GetString("goal_room"))) throw new Refusal("invalid_reference");
             if (layout.Document.GetString("generation_profile") != profile || profile.Length > 0 &&
-                (!(ConstrainedExpedition.Supported(profile) || authenticatedFirstAway && profile == FirstAwayGenerationInputs.Profile) || _compatibility.GetDictOrEmpty("profiles").GetString(profile) != profile)) throw new Refusal("incompatible_content");
+                (!ConstrainedExpedition.Supported(profile) || _compatibility.GetDictOrEmpty("profiles").GetString(profile) != profile)) throw new Refusal("incompatible_content");
             if (blueprint != null)
             {
                 if (blueprint.Has("generation_profile") && !(blueprint.Get("generation_profile") is string) ||
@@ -1160,10 +1158,7 @@ namespace SynapticSea.Core.Systems
         {
             if (_compatibility == null || supplied == null) return false;
             if (V.VariantEquals(supplied, _compatibility)) return true;
-            // Only the exact old catalog is readable by this explicit extension, never arbitrary subsets or revisions.
-            if (_compatibility.GetDictOrEmpty("profiles").GetString(FirstAwayGenerationInputs.Profile) != FirstAwayGenerationInputs.Profile) return false;
-            var prior = _compatibility.DeepCopy(); prior.GetDictOrEmpty("profiles").Erase(FirstAwayGenerationInputs.Profile);
-            return V.VariantEquals(supplied, prior);
+            return false;
         }
 
         static bool ValidCompatibility(GdDict compatibility)
@@ -1171,7 +1166,7 @@ namespace SynapticSea.Core.Systems
             if (compatibility == null || compatibility.Count != 6 || !StringFields(compatibility, "engine_version", "catalog_id", "catalog_version", "library_id", "library_version") ||
                 !Identity(compatibility.GetString("engine_version")) || !Identity(compatibility.GetString("catalog_id")) ||
                 !Identity(compatibility.GetString("catalog_version")) || !(compatibility.Get("library_id") is string) || !(compatibility.Get("library_version") is string) || !(compatibility.Get("profiles") is GdDict)) return false;
-            foreach (var profile in compatibility.GetDictOrEmpty("profiles")) if (!(profile.Key is string key) || !(ConstrainedExpedition.Supported(key) || key == FirstAwayGenerationInputs.Profile) || !(profile.Value is string version) || version != key) return false;
+            foreach (var profile in compatibility.GetDictOrEmpty("profiles")) if (!(profile.Key is string key) || !ConstrainedExpedition.Supported(key) || !(profile.Value is string version) || version != key) return false;
             return true;
         }
         static bool OwnerRevisionsAdvance(GdDict child, GdDict parent)

@@ -755,8 +755,7 @@ namespace SynapticSea.Core.Systems
                     !AssemblyMobility.ValidSpecification(mobile.GetDictOrEmpty("lifeboat").GetDictOrEmpty("mobility")) ||
                     !WorldSnapshotAssembler.OwnedInstallation("ship_start", mobile.GetDictOrEmpty("home_mobility")) ||
                     !WorldSnapshotAssembler.OwnedInstallation("lifeboat", mobile.GetDictOrEmpty("lifeboat").GetDictOrEmpty("mobility"))) return false;
-                if (mobile.Has("starting_home_anchor") && (!FirstAwaySalvageProfileEnabled || mobile.Has("home_location")
-                    || !WorldSnapshotAssembler.ValidStartingHomeAnchor(mobile.Get("starting_home_anchor") as GdDict))) return false;
+                if (mobile.Has("starting_home_anchor")) return false;
                 if (mobile.Has("home_location"))
                 {
                     GdDict locationState = mobile.GetDictOrEmpty("home_location");
