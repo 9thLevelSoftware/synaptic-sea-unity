@@ -104,9 +104,25 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(42L, first.Seed);
         }
 
-        [TestCase(42L, 3)]
-        [TestCase(777L, 0)]
-        public void PreferredAwaySeedMatrixPreservesCompleteContractGate(long seed, int expectedAccepted)
+        [Test]
+        public void FirstRunPatch_IsDeterministic()
+        {
+            var contract = new FirstRunContract();
+            Assert.IsTrue(contract.LoadContract());
+            string Patched()
+            {
+                var generator = new ShipGenerator();
+                generator.ConfigureRunContext("breach_field", "standard");
+                var docs = generator.GenerateFromSeed(777, 1, (long)ShipBlueprint.Condition.Damaged);
+                FirstRunAwayGate.Patch(contract, docs);
+                return GdJson.Stringify(docs.Layout, "  ");
+            }
+            Assert.AreEqual(Patched(), Patched());
+        }
+
+        [TestCase(42L, 9)]
+        [TestCase(777L, 9)]
+        public void PreferredAwaySeedMatrixSatisfiesCompleteContractGate(long seed, int expectedAccepted)
         {
             var contract = new FirstRunContract();
             Assert.IsTrue(contract.LoadContract());
@@ -128,14 +144,15 @@ namespace SynapticSea.Tests.Session
                     }
                     contract.Contract["preferred_seeds"] = GdArray.Of(seed);
                     var pick = FirstRunAwayGate.EvaluateCandidates(contract, size, condition, (a, b, c) => docs);
-                    Assert.AreEqual(reason.Length == 0, pick.Success, "the authoritative candidate gate matches complete content/standing validation");
+                    Assert.IsTrue(pick.Success, "gate must accept every size/condition cell (ordinary generator reject: " + reason + "): " + pick.Reason);
+                    Assert.AreEqual("", FirstRunAwayGate.RejectReason(contract, docs.Layout, docs.GameplaySlice, condition), "the patched candidate satisfies the complete contract");
                     if (pick.Success) accepted++;
                     else StringAssert.Contains(FirstRunAwayGate.UnsatisfiedReason, pick.Reason);
                     TestContext.WriteLine("away seed=" + seed + " size=" + size + " condition=" + condition + " result=" + (pick.Success ? "accepted" : reason)
                         + " loot=" + (docs?.GameplaySlice.GetArrayOrEmpty("loot_containers").Count ?? 0)
                         + " encounters=" + (docs?.Layout.GetArrayOrEmpty("encounters").Count ?? 0));
                 }
-            Assert.AreEqual(expectedAccepted, accepted, "pin the actual supported matrix; listing a preferred seed does not bypass the contract");
+            Assert.AreEqual(expectedAccepted, accepted, "D9: the first wreck always qualifies, on every size and condition");
             Assert.IsFalse(MilestoneALaunch.TryAccept(seed, "breach_field", "standard", out _), "away candidates are not supported title seeds");
         }
 

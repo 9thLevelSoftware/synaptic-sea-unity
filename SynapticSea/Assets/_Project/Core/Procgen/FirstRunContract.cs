@@ -20,6 +20,8 @@ namespace SynapticSea.Core.Procgen
             "hydroponics", "cargo", "storage",
         };
 
+        public static bool IsHazardRole(string role) => Array.IndexOf(HAZARD_ROLES, role) >= 0;
+
         public GdDict Contract = new GdDict();
 
         public bool LoadContract(string path = CONTRACT_PATH)
@@ -55,7 +57,9 @@ namespace SynapticSea.Core.Procgen
         /// Returns the first preferred seed whose generated payload the contract accepts. <paramref name="candidates"/>
         /// is a <see cref="GdDict"/> mapping seed -&gt; <c>{"layout", "gameplay_slice"}</c>, or a
         /// <c>Func&lt;long, object&gt;</c> provider (the GDScript Callable) for lazy generation; invalid candidates are
-        /// skipped. Falls back to the first preferred seed (no new RNG).
+        /// skipped. Falls back to the first preferred seed (no new RNG). The fallback contradicts
+        /// <see cref="FirstRunAwayGate"/>'s refuse-on-failure policy; the gate, not this method, picks the live first-away
+        /// seed. Kept because the Godot parity tests pin it.
         /// </summary>
         public long PickSeed(object candidates = null)
         {
@@ -80,6 +84,11 @@ namespace SynapticSea.Core.Procgen
             }
             return V.I64(preferred[0]);
         }
+
+        /// <summary>True when the layout/slice already carries a hazard the contract's <c>require_any</c> accepts.</summary>
+        public bool HasRequiredHazard(GdDict layout, GdDict gameplaySlice) =>
+            Contract.Get("require_any", new GdArray()) is GdArray required
+            && HasAnyRequiredHazard(layout, gameplaySlice ?? new GdDict(), required);
 
         bool HasAnyRequiredHazard(GdDict layout, GdDict gameplaySlice, GdArray required)
         {

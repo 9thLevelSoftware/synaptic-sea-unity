@@ -118,7 +118,7 @@ namespace SynapticSea.Core.Session
                 var accepted = _acceptedFirstAwayDocuments; _acceptedFirstAwayDocuments = null;
                 return new ExactFirstAwayTravel(accepted, marker);
             }
-            return ShipGenerator;
+            return FirstRunGenerator();
         }
 
         sealed class ExactFirstAwayTravel : IShipGenerator

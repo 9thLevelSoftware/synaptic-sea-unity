@@ -247,7 +247,7 @@ namespace SynapticSea.Core.Session
                 FirstRunContract, marker.SizeClass, marker.Condition,
                 (seed, size, condition) => ReviewedFirstAwayProfileEnabled
                     ? GenerateFirstAwayCandidate(marker, seed, size, condition)
-                    : ShipGenerator.GenerateFromSeed(seed, size, condition));
+                    : (ShipDocuments)FirstRunGenerator().GenerateFromSeed(seed, size, condition));
             if (!pick.Success)
             {
                 return new GdDict
