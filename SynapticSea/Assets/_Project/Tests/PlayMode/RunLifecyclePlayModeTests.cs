@@ -746,7 +746,8 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(_s.RequestLoad(), "partial study and exact source restore through production admission");
             yield return FixedSteps(8);
             Assert.IsFalse(_s.ManualStudyRunning, "Continue never restores held study input");
-            Assert.AreEqual(paused, _s.GetManualStudyState().GetDictOrEmpty("job").GetFloat("progress_seconds"));
+            Assert.Greater(paused, 0, "study had progressed before the save");
+            Assert.IsTrue(_s.GetManualStudyState().GetDictOrEmpty("job").IsEmpty, "the in-progress study job is session-held and not saved");
             Assert.IsFalse(_s.PlayerProgression.HasReadBook("fabrication_schematic_basic"));
             Assert.IsTrue(_s.LootContainers.Single(l => l.ContainerId == "home_service_kit_01").Searched);
             StudyThroughInventory(); deadline = Time.realtimeSinceStartup + 50;

@@ -64,7 +64,7 @@ namespace SynapticSea.Core.Session
         {
             GdDict finiteHome = world.HomeShip.GetDictOrEmpty("home_finite_loot");
             if (world.HomeShip.Has("home_finite_loot") && !(world.HomeShip.Get("home_finite_loot") is GdDict) ||
-                !ManualStudyEnabled && !finiteHome.IsEmpty || !FiniteLootState.ValidateSources(finiteHome, "ship_start", loader.GetLootContainerSpecsCopy(), out _))
+                !FiniteLootState.ValidateSources(finiteHome, "ship_start", loader.GetLootContainerSpecsCopy(), out _))
                 throw new InvalidOperationException("invalid_home_finite_loot");
             if (domain.GetInt("schema_version") == 5) throw new InvalidOperationException("auxiliary_source_mismatch");
             var crafting = new CraftingState();
@@ -112,8 +112,7 @@ namespace SynapticSea.Core.Session
         void ValidatePaidFiniteStock(ShipInstance ship)
         {
             GdDict stock = ship.FiniteLootSummary;
-            if (!ManualStudyEnabled && !stock.IsEmpty) throw new InvalidOperationException("finite_loot_inactive");
-            if (ship.SceneRoot is IShipLoaderView root)
+                        if (ship.SceneRoot is IShipLoaderView root)
             {
                 if (!FiniteLootState.ValidateSources(stock, ship.ShipId, root.GetLootContainerSpecsCopy(), out _)) throw new InvalidOperationException("finite_loot_source_mismatch");
             }
@@ -364,7 +363,7 @@ namespace SynapticSea.Core.Session
             if (!operation.Committed) throw new InvalidOperationException("manual_restore_views_before_commit");
             try
             {
-                _workHoldInput = false; _studyConsent = false;
+                _workHoldInput = false; _study.Pause("explicit_resume_required");
                 RefreshStudyHud();
             }
             catch { operation.ManualViewsFailed = true; throw; }
@@ -390,7 +389,7 @@ namespace SynapticSea.Core.Session
                 DomainTransactionCoordinator next = NewComponentOwner(candidate);
                 ApplyComponentViews(candidate); _componentDomain = next;
                 if (ComponentIntegrationEnabled) BindComponentReadViews();
-                BindPaidCraftingModels(); _workHoldInput = false; _studyConsent = false;
+                BindPaidCraftingModels(); _workHoldInput = false; _study.Pause("explicit_resume_required");
                 _workAwaitingResume = !work.IsEmpty && work.GetBool("resume_required"); MirrorComponentWork(work);
                 return true;
             });

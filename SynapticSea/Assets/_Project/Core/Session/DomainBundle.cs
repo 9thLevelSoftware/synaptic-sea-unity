@@ -143,9 +143,9 @@ namespace SynapticSea.Core.Session
                     if (!PaidCraftingState.ValidReceipt(craftReceipt, V.Str(key), revision) || !commands.Add(craftReceipt.GetString("command_id"))) return false;
                     continue;
                 }
-                if ((schema == 4 || schema == 5) && receipts[key] is GdDict studyReceipt && ManualStudyState.IsOperation(studyReceipt.GetDictOrEmpty("result").GetString("operation")))
+                if ((schema == 4 || schema == 5) && receipts[key] is GdDict studyReceipt && PaidManualStudyProof.IsOperation(studyReceipt.GetDictOrEmpty("result").GetString("operation")))
                 {
-                    if (!ManualStudyState.ValidReceipt(owned, studyReceipt, V.Str(key)) || !commands.Add(studyReceipt.GetString("command_id"))) return false;
+                    if (!PaidManualStudyProof.ValidReceipt(owned, studyReceipt, V.Str(key)) || !commands.Add(studyReceipt.GetString("command_id"))) return false;
                     continue;
                 }
                 if (!Text(key) || !(receipts[key] is GdDict receipt) ||
@@ -235,7 +235,7 @@ namespace SynapticSea.Core.Session
                     }
                     if ((schema == 4 || schema == 5) && effect.GetString("operation") == "study_complete")
                     {
-                        if (!ManualStudyState.ValidReceipt(owned, receipt, commitId) || !V.VariantEquals(record, effect.Get("training_record"))) { reason = "invalid_study_training_receipt"; return false; }
+                        if (!PaidManualStudyProof.ValidReceipt(owned, receipt, commitId) || !V.VariantEquals(record, effect.Get("training_record"))) { reason = "invalid_study_training_receipt"; return false; }
                         continue;
                     }
                     string sourceKind = holders.GetDictOrEmpty(effect.GetString("source_holder_id")).GetString("kind");
@@ -247,7 +247,7 @@ namespace SynapticSea.Core.Session
                 }
             }
             if (PaidCraftingState.IsDomainVersion(schema) && !PaidCraftingState.Validate(owned, out reason)) return false;
-            if ((schema == 4 || schema == 5) && !ManualStudyState.Validate(owned, out reason)) return false;
+            if ((schema == 4 || schema == 5) && !PaidManualStudyProof.Validate(owned, out reason)) return false;
             bundle = new DomainBundle(owned, revision, new GdDict { { "holders", holderProjection }, { "machinery", machineProjection } });
             reason = "ok"; return true;
         }

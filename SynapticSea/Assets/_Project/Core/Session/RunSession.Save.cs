@@ -429,7 +429,7 @@ namespace SynapticSea.Core.Session
         {
             if (snapshot == null || operation == null && !PlayableStarted)
                 return false;
-            if (!snapshot.HomeFiniteLoot.IsEmpty && (!Deps.EnableManualStudy || !FiniteLootState.Validate(snapshot.HomeFiniteLoot, "ship_start", out _))) return false;
+            if (!snapshot.HomeFiniteLoot.IsEmpty && !FiniteLootState.Validate(snapshot.HomeFiniteLoot, "ship_start", out _)) return false;
             _isReloading = true;
             ResetRuntimeForReload();
             LayoutPath = snapshot.LayoutPath;
@@ -658,6 +658,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         void ResetRuntimeForReload()
         {
+            _study.Clear();
             _woundRollCounter = 0;
             if (AwayFromStart)
             {

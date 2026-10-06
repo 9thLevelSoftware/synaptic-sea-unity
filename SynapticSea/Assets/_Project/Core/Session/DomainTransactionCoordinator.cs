@@ -147,10 +147,10 @@ namespace SynapticSea.Core.Session
                 GdDict candidate; candidate = before.DeepCopy(); candidate["revision"] = before.GetInt("revision") + 1;
                 GdDict effect = stage(candidate);
                 if (!effect.GetBool("ok", true)) return effect;
-                ManualStudyState.PruneProgress(candidate, command);
+                PaidManualStudyProof.PruneProgress(candidate, command);
                 string id = effect.GetString("operation") == "study_complete"
-                    ? ManualStudyState.CompletionId(ManualStudyState.State(candidate), command.GetString("book_id")) : "manual_study:" + command.GetString("command_id");
-                if (!ManualStudyState.Conserved(before, candidate, effect)) return Failure("invalid_study_transition");
+                    ? PaidManualStudyProof.CompletionId(PaidManualStudyProof.State(candidate), command.GetString("book_id")) : "manual_study:" + command.GetString("command_id");
+                if (!PaidManualStudyProof.Conserved(before, candidate, effect)) return Failure("invalid_study_transition");
                 candidate.GetDictOrEmpty("receipts")[id] = new GdDict { { "schema_version", 1L }, { "transaction_id", id }, { "commit_id", id },
                     { "command_id", command.Get("command_id") }, { "command", command.DeepCopy() }, { "command_hash", PaidCraftingState.Hash(command) },
                     { "revision", candidate.Get("revision") }, { "result", effect.DeepCopy() } };
@@ -178,9 +178,9 @@ namespace SynapticSea.Core.Session
             try
             {
                 if (_current.Revision != pending.ExpectedRevision) return Failure("stale_domain", transactionId, commandId);
-                bool study = ManualStudyState.IsOperation(pending.Result.GetString("operation"));
+                bool study = PaidManualStudyProof.IsOperation(pending.Result.GetString("operation"));
                 bool craft = PaidCraftingState.IsOperation(pending.Result.GetString("operation")) || study;
-                if (craft ? !DomainBundle.TryCreate(pending.Candidate, out _, out _) || !(study ? ManualStudyState.Conserved(current, pending.Candidate, pending.Result) : PaidCraftingState.Conserved(current, pending.Candidate, pending.Result))
+                if (craft ? !DomainBundle.TryCreate(pending.Candidate, out _, out _) || !(study ? PaidManualStudyProof.Conserved(current, pending.Candidate, pending.Result) : PaidCraftingState.Conserved(current, pending.Candidate, pending.Result))
                     : !DomainBundle.TryCreatePreparation(pending.Candidate, pending.Command, out _, out _) || !ConservedTransition(current, pending.Candidate, pending.Command) || !MatchesEffect(pending.Result, pending.Command))
                     return Failure("invalid_preparation", transactionId, commandId);
 

@@ -15,6 +15,24 @@ namespace SynapticSea.Core.Systems
 
         public static GdDict LoadTables() => ItemsCompat.ReadJson(LOOT_TABLES_PATH) as GdDict ?? new GdDict();
 
+        /// <summary>Unity-only additions to the synced Godot tables: <c>{ table_id: [entries] }</c> appended to the table's entries. Keeps loot_tables.json identical to the Godot parity fixtures.</summary>
+        public const string BOOK_LOOT_OVERLAY_PATH = "res://data/items/book_loot_overlay.json";
+
+        /// <summary>The tables a running session rolls from: <see cref="LoadTables"/> plus the book overlay.</summary>
+        public static GdDict LoadTablesWithOverlays()
+        {
+            GdDict tables = LoadTables();
+            if (!(ItemsCompat.ReadJson(BOOK_LOOT_OVERLAY_PATH) is GdDict overlay)) return tables;
+            foreach (var pair in overlay)
+            {
+                if (!(tables.Get(pair.Key, null) is GdDict table) || !(pair.Value is GdArray extra)) continue;
+                GdArray entries = table.Get("entries", null) as GdArray ?? new GdArray();
+                foreach (object entry in extra) entries.Append(V.DeepCopy(entry));
+                table["entries"] = entries;
+            }
+            return tables;
+        }
+
         /// <summary>Returns [{item_id, quantity}], merged by item_id, ordered by item_id.</summary>
         public static GdArray Roll(string tableKey, string seedSource, GdDict tables)
         {

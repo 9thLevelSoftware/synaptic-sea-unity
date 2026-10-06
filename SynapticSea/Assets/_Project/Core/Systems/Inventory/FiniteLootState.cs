@@ -8,7 +8,7 @@ namespace SynapticSea.Core.Systems
     public static class FiniteLootState
     {
         static bool Keys(GdDict d, params string[] keys) => d != null && d.Count == keys.Length && keys.All(d.Has);
-        public static string SourceHash(string sourceId, GdDict initial) => PaidCraftingState.Hash(new GdDict {
+        public static string SourceHash(string sourceId, GdDict initial) => CanonicalHash.Of(new GdDict {
             { "source_id", sourceId }, { "initial", initial }
         });
         public static bool Validate(GdDict state, string owner, out string reason)

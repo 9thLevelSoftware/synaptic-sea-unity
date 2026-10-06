@@ -26,7 +26,7 @@ namespace SynapticSea.Tests.Session
         {
             var deps = SessionHarness.GoldenDeps(out rig); SessionHarness.OverlayGamePlayability(deps);
             deps.LayoutPath = Directory + "layout.json"; deps.GameplaySlicePath = Directory + "gameplay_slice.json";
-            deps.BlueprintPath = Directory + "blueprint.json"; deps.EnablePaidCrafting = true; deps.EnableManualStudy = true;
+            deps.BlueprintPath = Directory + "blueprint.json"; deps.EnablePaidCrafting = true;
             return deps;
         }
         [Test] public void PartialKitSurvivesCompleteGenerationFreshContinueAndCannotRefillAfterDepletion()

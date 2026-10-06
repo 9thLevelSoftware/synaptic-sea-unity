@@ -34,7 +34,7 @@ namespace SynapticSea.Core.Session
                 lc.Configure(cid, V.Str(spec.Get("loot_table", "generic_crate")), seedSource, InventoryState, _loot_tables, pos, 1.8, BuildLootContext(spec), UniqueItemState);
                 if (spec.Has("finite_source"))
                 {
-                    if (!(spec.Get("finite_source") is bool finiteFlag) || !finiteFlag || !Deps.EnableManualStudy
+                    if (!(spec.Get("finite_source") is bool finiteFlag) || !finiteFlag
                         || !FiniteLootState.TryBind(ref CurrentShip.FiniteLootSummary, CurrentShip.ShipId, cid, spec, out GdDict stock))
                     { lc.Free(); continue; }
                     lc.FiniteSource = stock;
@@ -47,7 +47,7 @@ namespace SynapticSea.Core.Session
                         GdDict equipment = EquipmentState?.GetSummary().DeepCopy();
                         return () =>
                         {
-                            if (progression != null && !PaidCraftRewardProof.CopyProgressionExact(PlayerProgression, progression))
+                            if (progression != null && !PlayerProgression.RestoreExact(progression))
                                 throw new System.InvalidOperationException("finite_progression_rollback_failed");
                             if (training != null) TrainingEventBus.ApplySummary(training);
                             owner.LootedContainerIds = searchedIds;

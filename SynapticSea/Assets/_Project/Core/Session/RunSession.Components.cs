@@ -305,7 +305,7 @@ namespace SynapticSea.Core.Session
         public bool ValidateComponentDomainRestore(GdDict summary, out string reason)
         {
             reason = "component_integration_inactive";
-            if (!ComponentIntegrationEnabled || summary?.GetInt("schema_version") == 5 || summary?.GetInt("schema_version") == 4 && !ManualStudyEnabled) return false;
+            if (!ComponentIntegrationEnabled || summary?.GetInt("schema_version") == 5 || summary?.GetInt("schema_version") == 4 && !PaidManualStudyEnabled) return false;
             if (!DomainBundle.TryCreate(summary, out _, out reason) || (summary.GetInt("schema_version") != 2 && !(PaidCraftingEnabled && PaidCraftingState.IsDomainVersion(summary.GetInt("schema_version")) && summary.GetString("domain_mode") == "components_and_craft"))) return false;
             foreach (GdDict row in Instances(summary).Values.OfType<GdDict>())
             {

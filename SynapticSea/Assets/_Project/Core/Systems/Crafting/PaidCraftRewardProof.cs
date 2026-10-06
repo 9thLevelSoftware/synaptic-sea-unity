@@ -144,7 +144,7 @@ namespace SynapticSea.Core.Systems
                         { if (!ValidRow(row, count - 1) || !Equal(row, effect.Get("training_record"))) return false; }
                         else if ((domain.GetInt("schema_version") == 4 || domain.GetInt("schema_version") == 5) && effect.GetString("operation") == "study_complete")
                         {
-                            if (!ManualStudyState.ValidReceipt(domain, receipt, row.GetString("commit_id")) || !Equal(row, effect.Get("training_record"))) return false;
+                            if (!PaidManualStudyProof.ValidReceipt(domain, receipt, row.GetString("commit_id")) || !Equal(row, effect.Get("training_record"))) return false;
                         }
                         else
                         {

@@ -66,5 +66,16 @@
   "nanite_patch":         { "display_name": "Nanite Patch",         "category": "supply", "weight": 0.2, "max_stack": 10, "rarity": "rare" },
   "cryo_unit":            { "display_name": "Cryo Unit",            "category": "part",   "weight": 3.0, "max_stack": 2,  "rarity": "rare" },
   "junction_calibrator_mk2":   { "display_name": "Junction Calibrator Mk2",   "category": "tool", "weight": 1.0, "max_stack": 1, "rarity": "rare" },
-  "portable_oxygen_pump_mk2":  { "display_name": "Portable Oxygen Pump Mk2",  "category": "tool", "weight": 2.0, "max_stack": 1, "rarity": "rare" }
+  "portable_oxygen_pump_mk2":  { "display_name": "Portable Oxygen Pump Mk2",  "category": "tool", "weight": 2.0, "max_stack": 1, "rarity": "rare" },
+  "welding_manual_basic": { "display_name": "Welder's Handbook (Vol. I)", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
+  "diagnostics_field_guide": { "display_name": "Field Diagnostics Manual", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
+  "advanced_welding_schematic": { "display_name": "Advanced Welding Schematic", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "rare" },
+  "field_surgery_manual": { "display_name": "Field Surgery Manual", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "uncommon" },
+  "pharmacology_formulary": { "display_name": "Pharmacology Formulary", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
+  "astrogation_almanac": { "display_name": "Astrogation Almanac", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
+  "biomatter_signal_analysis": { "display_name": "Biomatter Signal Analysis", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "rare" },
+  "scavenger_companion": { "display_name": "Scavenger's Companion", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
+  "derelict_cookbook": { "display_name": "Derelict Cookbook", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
+  "leadership_protocol": { "display_name": "Leadership Protocol", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" },
+  "comms_relay_handbook": { "display_name": "Comms Relay Handbook", "category": "book", "weight": 0.5, "max_stack": 1, "rarity": "common" }
 }

@@ -182,7 +182,7 @@ namespace SynapticSea.Core.Session
             MaterialState = new MaterialState();
             FieldCraftingState = new FieldCraftingState();
             DeconstructionResolver = new DeconstructionResolver();
-            _loot_tables = LootRoller.LoadTables();
+            _loot_tables = LootRoller.LoadTablesWithOverlays();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
             SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled);
             GdDict bootSelection = _selectedGeneration ?? Deps.SelectedSaveGeneration;
