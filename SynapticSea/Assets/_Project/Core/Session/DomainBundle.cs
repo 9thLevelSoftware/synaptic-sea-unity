@@ -51,8 +51,7 @@ namespace SynapticSea.Core.Session
 
         public static bool TryCreate(GdDict summary, out DomainBundle bundle, out string reason)
         {
-            using (AdmissionHashMemo.Begin())
-            using (AuxiliaryServiceState.BeginValidation()) return TryCreateBody(summary, out bundle, out reason);
+            using (AdmissionHashMemo.Begin()) return TryCreateBody(summary, out bundle, out reason);
         }
         static bool TryCreateBody(GdDict summary, out DomainBundle bundle, out string reason)
         {
@@ -149,8 +148,6 @@ namespace SynapticSea.Core.Session
                     if (!ManualStudyState.ValidReceipt(owned, studyReceipt, V.Str(key)) || !commands.Add(studyReceipt.GetString("command_id"))) return false;
                     continue;
                 }
-                if (schema == 5 && receipts[key] is GdDict auxReceipt && AuxiliaryServiceState.IsOperation(auxReceipt.GetDictOrEmpty("result").GetString("operation")))
-                { if (!AuxiliaryServiceState.ValidReceipt(owned, auxReceipt, V.Str(key)) || !commands.Add(auxReceipt.GetString("command_id"))) return false; continue; }
                 if (!Text(key) || !(receipts[key] is GdDict receipt) ||
                     !Keys(receipt, schema == 1 ? new[] { "schema_version", "transaction_id", "command_id", "revision", "result" }
                         : new[] { "schema_version", "transaction_id", "command_id", "commit_id", "revision", "result" }) ||
@@ -241,8 +238,6 @@ namespace SynapticSea.Core.Session
                         if (!ManualStudyState.ValidReceipt(owned, receipt, commitId) || !V.VariantEquals(record, effect.Get("training_record"))) { reason = "invalid_study_training_receipt"; return false; }
                         continue;
                     }
-                    if (schema == 5 && effect.GetString("operation") == "aux_complete")
-                    { if (!AuxiliaryServiceState.ValidReceipt(owned, receipt, commitId) || !V.VariantEquals(record, effect.Get("training_record"))) return false; continue; }
                     string sourceKind = holders.GetDictOrEmpty(effect.GetString("source_holder_id")).GetString("kind");
                     string destinationKind = holders.GetDictOrEmpty(effect.GetString("destination_holder_id")).GetString("kind");
                     string action = sourceKind == "slot" ? "dismount_component" : destinationKind == "slot" ? "mount_component" : "";
@@ -251,7 +246,6 @@ namespace SynapticSea.Core.Session
                     { reason = "invalid_component_training_receipt"; return false; }
                 }
             }
-            if (schema == 5 && !AuxiliaryServiceState.Validate(owned, out reason)) return false;
             if (PaidCraftingState.IsDomainVersion(schema) && !PaidCraftingState.Validate(owned, out reason)) return false;
             if ((schema == 4 || schema == 5) && !ManualStudyState.Validate(owned, out reason)) return false;
             bundle = new DomainBundle(owned, revision, new GdDict { { "holders", holderProjection }, { "machinery", machineProjection } });

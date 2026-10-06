@@ -66,7 +66,7 @@ namespace SynapticSea.Core.Session
             if (world.HomeShip.Has("home_finite_loot") && !(world.HomeShip.Get("home_finite_loot") is GdDict) ||
                 !ManualStudyEnabled && !finiteHome.IsEmpty || !FiniteLootState.ValidateSources(finiteHome, "ship_start", loader.GetLootContainerSpecsCopy(), out _))
                 throw new InvalidOperationException("invalid_home_finite_loot");
-            if (domain.GetInt("schema_version") == 5 && (!AuxiliaryServicesEnabled || !V.VariantEquals(AuxiliaryServiceState.State(domain).Get("descriptors"), AuxiliaryDescriptors(loader)))) throw new InvalidOperationException("auxiliary_source_mismatch");
+            if (domain.GetInt("schema_version") == 5) throw new InvalidOperationException("auxiliary_source_mismatch");
             var crafting = new CraftingState();
             var materials = new MaterialState(); var inventory = new InventoryState();
             var deconstruction = new DeconstructionResolver(); var progression = new PlayerProgressionState();
@@ -364,9 +364,8 @@ namespace SynapticSea.Core.Session
             if (!operation.Committed) throw new InvalidOperationException("manual_restore_views_before_commit");
             try
             {
-                _workHoldInput = false; _studyConsent = false; _auxConsent = false;
-                if (AuxiliaryServicesEnabled && _componentDomain?.SchemaVersion == 5) BuildAuxiliaryServicePoints();
-                RefreshStudyHud(); RefreshAuxiliaryHud();
+                _workHoldInput = false; _studyConsent = false;
+                RefreshStudyHud();
             }
             catch { operation.ManualViewsFailed = true; throw; }
         }
@@ -391,7 +390,7 @@ namespace SynapticSea.Core.Session
                 DomainTransactionCoordinator next = NewComponentOwner(candidate);
                 ApplyComponentViews(candidate); _componentDomain = next;
                 if (ComponentIntegrationEnabled) BindComponentReadViews();
-                BindPaidCraftingModels(); _workHoldInput = false; _studyConsent = false; _auxConsent = false;
+                BindPaidCraftingModels(); _workHoldInput = false; _studyConsent = false;
                 _workAwaitingResume = !work.IsEmpty && work.GetBool("resume_required"); MirrorComponentWork(work);
                 return true;
             });

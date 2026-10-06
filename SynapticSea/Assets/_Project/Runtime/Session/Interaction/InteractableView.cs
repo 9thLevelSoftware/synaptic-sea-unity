@@ -130,8 +130,6 @@ namespace SynapticSea.Runtime.Session
                     case ObjectiveInteractable o: return o.PromptText;
                     case HomeJoinControl c: return c.Prompt;
                     case DeckTransition d: return d.Prompt;
-                    case AuxiliaryServicePoint point: return point.ServiceKind == "recovery_rack" ?
-                        (_marker != null && _marker.GetComponent<AuxiliaryUtilityView>()?.RackReleased == true ? "Take spare harness" : "Recover spare harness") : "Repair service hardware";
                     case RepairPoint rp: return "Repair: " + rp.SubcomponentId;
                     case BreachSealPoint sp: return "Seal breach: " + sp.CompartmentId;
                     case FireSuppressionPoint fp: return "Extinguish: " + fp.CompartmentId;
@@ -160,7 +158,6 @@ namespace SynapticSea.Runtime.Session
                 case "home_join_control": return "home_join";
                 case "bridge_terminal": return "bridge_terminal";
                 case "fire_suppression_point": return "fire_suppression_point";
-                case "auxiliary_service": return "auxiliary_service";
                 case "repair_point": return "repair_point";
                 case "breach_seal_point": return "breach_seal_point";
                 case "crafting_station": return "crafting_station";
@@ -275,9 +272,6 @@ namespace SynapticSea.Runtime.Session
                     break;
                 case ProductionStation _:
                     _marker = Box(new Vector3(r * 0.5f, r * 0.5f, r * 0.5f), new Color(0.35f, 0.85f, 0.45f, 0.7f));
-                    break;
-                case AuxiliaryServicePoint point:
-                    _marker = AuxiliaryUtilityView.CreateFixture(point.ServiceId, transform);
                     break;
                 case WorkYieldDrop _:
                     _marker = Box(new Vector3(0.35f, 0.25f, 0.35f), new Color(0.9f, 0.75f, 0.25f, 0.9f));

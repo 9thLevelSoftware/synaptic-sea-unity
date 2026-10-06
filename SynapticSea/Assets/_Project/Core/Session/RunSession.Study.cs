@@ -14,7 +14,7 @@ namespace SynapticSea.Core.Session
         public GdDict GetManualStudyState() => ManualStudyEnabled && (_componentDomain?.SchemaVersion == 4 || _componentDomain?.SchemaVersion == 5)
             ? _componentDomain.GetParticipantProjection("manual_study") : new GdDict();
         public bool ManualStudyRunning => GetManualStudyState().GetDictOrEmpty("job").GetString("status") == "running";
-        bool OtherManualWork(GdDict domain) => AuxiliaryWorkRunning || WorkActionDriver?.IsWorking() == true ||
+        bool OtherManualWork(GdDict domain) => WorkActionDriver?.IsWorking() == true ||
             RepairPoints.Any(p => p.Channeling) || BreachSealPoints.Any(p => p.Channeling) || FireSuppressionPoints.Any(p => p.Channeling) || DockBarriers.Any(p => p.Channeling) ||
             domain.GetDictOrEmpty("component_work").GetString("status") == "active" ||
             PaidState(domain).GetDictOrEmpty("jobs").Values.OfType<GdDict>().Any(j => j.GetString("input_state") == "paid" && !PaidCraftingState.Terminal(j));

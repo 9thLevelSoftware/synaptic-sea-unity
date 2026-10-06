@@ -64,7 +64,6 @@ namespace SynapticSea.Core.Session
             new InteractionHandler("tool_pickup", InteractionScope.Home, "_try_tool_pickup_interact(tool_pickup)", (s, p) => s.TryToolPickupInteract(s.ToolPickup, p)),
             new InteractionHandler("junction_calibrator_pickup", InteractionScope.Home, "_try_tool_pickup_interact(junction_calibrator_pickup)", (s, p) => s.TryToolPickupInteract(s.JunctionCalibratorPickup, p)),
             new InteractionHandler("home_objective", InteractionScope.Home, "interactables: interactable.try_interact", (s, p) => s.TryHomeObjectives(p)),
-            new InteractionHandler("auxiliary_service", InteractionScope.Home, "diagnostic retained auxiliary service", (s, p) => s.TryAuxiliaryServices(p)),
             new InteractionHandler("hangar", InteractionScope.Both, "_try_hangar_interact", (s, p) => s.TryHangarInteract(p)),
             new InteractionHandler("cargo_deposit", InteractionScope.Both, "_try_cargo_deposit", (s, p) => s.TryCargoDeposit(p)),
             new InteractionHandler("cart", InteractionScope.Both, "_try_cart_interact", (s, p) => s.TryCartInteract(p)),

@@ -180,8 +180,7 @@ namespace SynapticSea.Core.Session
             string component = domain.GetDictOrEmpty("component_work").GetString("status");
             if (component == "active" || component.StartsWith("paused", StringComparison.Ordinal)) return true;
             string study = GetManualStudyState().GetDictOrEmpty("job").GetString("status");
-            string auxiliary = GetAuxiliaryServiceState().GetDictOrEmpty("job").GetString("status");
-            if (study == "running" || study == "paused" || auxiliary == "running" || auxiliary == "paused") return true;
+            if (study == "running" || study == "paused") return true;
             return domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting").GetDictOrEmpty("jobs")
                 .Values.OfType<GdDict>().Any(j => j.GetString("input_state") == "paid" && !PaidCraftingState.Terminal(j));
         }

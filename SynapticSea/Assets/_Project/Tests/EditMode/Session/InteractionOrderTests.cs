@@ -15,7 +15,7 @@ namespace SynapticSea.Tests.Session
         {
             "dock_barrier", "authored_portal", "deck_transition", "home_join", "bridge_terminal", "fire_suppression_point", "repair_point", "breach_seal_point",
             "crafting_station", "production_station", "loot_container", "tool_pickup", "junction_calibrator_pickup",
-            "home_objective", "auxiliary_service", "hangar", "cargo_deposit", "cart", "work_yield_drop", "work_action",
+            "home_objective", "hangar", "cargo_deposit", "cart", "work_yield_drop", "work_action",
         };
 
         static readonly string[] GodotAwayChain =
