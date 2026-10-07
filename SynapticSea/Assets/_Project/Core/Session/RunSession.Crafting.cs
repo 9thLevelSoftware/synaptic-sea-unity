@@ -34,6 +34,16 @@ namespace SynapticSea.Core.Session
                     if (sub.IsFunctional())
                         continue;
                     Vec3 pos = positions[idx % positions.Count];
+                    if (AwayFromStart && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile)
+                    {
+                        // Reuse the generator's protected, reachable work/loot anchor.
+                        // List order is not a meaningful owner or room-placement contract.
+                        string roomId = sid == "life_support" ? "medical_01" : sid == "power" ? "maintenance_01" : "";
+                        if (roomId.Length > 0 && CurrentShip.SceneRoot is IShipLoaderView active)
+                            foreach (object raw in active.GetLootContainerSpecsCopy())
+                                if (raw is GdDict slot && slot.GetString("room_id") == roomId && slot.Get("position") is Vec3 protectedAnchor)
+                                { pos = protectedAnchor; break; }
+                    }
                     idx += 1;
                     var rp = new RepairPoint();
                     rp.Configure(sid, sub.SubcomponentId, mgr, InventoryState, PlayerProgression, pos, sub.RepairSeconds, sub.MinSkill, 1.8);
@@ -78,6 +88,15 @@ namespace SynapticSea.Core.Session
             foreach (string cid in breached)
             {
                 Vec3 pos = positions[idx % positions.Count];
+                if (AwayFromStart && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                    && CurrentShip.SceneRoot is IShipLoaderView active)
+                {
+                    // Hull work shares protected reachable anchors with the corresponding room's salvage.
+                    string roomId = cid == "cargo" ? "cargo_01" : cid == "engineering" ? "maintenance_01" : "medical_01";
+                    foreach (object raw in active.GetLootContainerSpecsCopy())
+                        if (raw is GdDict slot && slot.GetString("room_id") == roomId && slot.Get("position") is Vec3 anchor)
+                        { pos = anchor; break; }
+                }
                 idx += 1;
                 var sp = new BreachSealPoint();
                 sp.Configure(cid, hull, InventoryState, PlayerProgression, pos, 4.0, "hull_sealant", 1.0, 1.8);
@@ -147,6 +166,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Stream F: medbay field surgery when health is critical (CraftingStation's surgery provider).</summary>
         public bool TryMedbaySurgery()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (VitalsState == null)
                 return false;
             if (VitalsState.Health >= SURGERY_HEALTH_THRESHOLD)
@@ -192,10 +212,7 @@ namespace SynapticSea.Core.Session
             List<StationPlacer.Placement> placements = PlaceHomeStations(CRAFTING_STATION_KINDS, positions);
             foreach (StationPlacer.Placement placement in placements)
             {
-                string kind = placement.Kind;
-                Vec3 pos = placement.LocalPosition;
-                var st = new CraftingStation();
-                st.Configure(kind, CraftingState, MaterialState, InventoryState, DeconstructionResolver, PlayerProgression, pos, STATION_INTERACTION_RADIUS);
+                var st = ConfigureCraftingStation(HomeShip.SceneRoot, CraftingState, MaterialState, InventoryState, DeconstructionResolver, PlayerProgression, placement);
                 st.SurgeryProvider = this;
                 st.CraftStarted += OnCraftStarted;
                 st.SalvageCompleted += OnSalvageCompleted;
@@ -205,6 +222,20 @@ namespace SynapticSea.Core.Session
                 CraftingStations.Add(Spawn(st));
             }
         }
+
+        static CraftingStation ConfigureCraftingStation(IShipSceneRoot root, CraftingState crafting, MaterialState materials,
+            InventoryState inventory, DeconstructionResolver deconstruction, PlayerProgressionState progression,
+            StationPlacer.Placement placement)
+        {
+            var station = new CraftingStation();
+            station.Configure(placement.Kind, crafting, materials, inventory, deconstruction, progression, placement.LocalPosition, STATION_INTERACTION_RADIUS);
+            station.Parent = root;
+            return station;
+        }
+
+        static List<StationPlacer.Placement> PlaceCraftingServices(GdDict layout, IReadOnlyList<string> kinds,
+            List<StationPlacer.Occupied> occupied, List<Vec3> legacyPositions)
+            => StationPlacer.Place(layout, kinds, occupied, legacyPositions, STATION_INTERACTION_RADIUS, PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR);
 
         /// <summary>
         /// Unity port: home stations go into rooms by role (<see cref="StationPlacer"/>) instead of Godot's first structural
@@ -228,8 +259,7 @@ namespace SynapticSea.Core.Session
                 Vec3 local = node.Parent == home ? node.LocalPosition : ToLocal(home, ToGlobal(node.Parent, node.LocalPosition));
                 occupied.Add(new StationPlacer.Occupied(local, node.InteractionRadius));
             }
-            List<StationPlacer.Placement> placements = StationPlacer.Place(HomeShip.BuiltLayout, kinds, occupied, legacyPositions,
-                STATION_INTERACTION_RADIUS, PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR);
+            List<StationPlacer.Placement> placements = PlaceCraftingServices(HomeShip.BuiltLayout, kinds, occupied, legacyPositions);
             foreach (StationPlacer.Placement p in placements)
                 Log.Info("STATION PLACED kind=" + p.Kind + " room=" + (p.RoomId.Length > 0 ? p.RoomId : "legacy"));
             return placements;
@@ -444,6 +474,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public void RequestFieldCraft()
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (FieldCraftingState == null || InventoryState == null)
                 return;
             if (FieldCraftingState.IsCrafting())
@@ -473,8 +504,15 @@ namespace SynapticSea.Core.Session
         /// <summary>Explicit field craft for a chosen recipe (picker confirm + tests).</summary>
         public bool BeginFieldCraftRecipe(string recipeId)
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (string.IsNullOrEmpty(recipeId) || FieldCraftingState == null || InventoryState == null)
                 return false;
+            string componentReason = FieldCraftingState.RecipeBlockedReason(recipeId);
+            if (componentReason.Length > 0)
+            {
+                OnCraftBlocked("field_crafting", componentReason);
+                return false;
+            }
             if (FieldCraftingState.IsCrafting())
             {
                 OnCraftBlocked("field_crafting", "busy");
@@ -507,6 +545,7 @@ namespace SynapticSea.Core.Session
         /// <summary>First ready field recipe without UI (was <c>field_craft_first_ready_for_validation</c>).</summary>
         public bool FieldCraftFirstReady()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (FieldCraftingState == null || InventoryState == null)
                 return false;
             string rid = FieldCraftingState.FirstReadyRecipeId(InventoryState);
@@ -540,6 +579,7 @@ namespace SynapticSea.Core.Session
         /// <summary>REQ-CS-016/017/018: pure listing seam for the recipe picker.</summary>
         public GdArray ListStationRecipeEntries(string stationKind)
         {
+            if (ComponentGenerationRestoreInProgress) return new GdArray();
             if (InventoryState == null)
                 return new GdArray();
             if (stationKind == "field_crafting")
@@ -557,18 +597,28 @@ namespace SynapticSea.Core.Session
             }
             if (CraftingState == null)
                 return new GdArray();
-            long skill = PlayerProgression != null ? PlayerProgression.GetSkillLevel("fabrication") : 0;
-            return CraftingState.ListRecipeEntries(stationKind, InventoryState, skill);
+            foreach (CraftingStation st in CraftingStations)
+                if (st.IsValid && st.StationKind == stationKind) return st.ListRecipeEntries();
+            return new GdArray();
         }
 
         /// <summary>REQ-CS-016/017/018: the picker confirm handler.</summary>
         public GdDict BeginCraftFromPicker(string stationKind, string recipeId)
         {
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
             GdDict Result(bool ok, string reason) => new GdDict { { "ok", ok }, { "reason", reason }, { "recipe_id", recipeId } };
             if (string.IsNullOrEmpty(recipeId) || string.IsNullOrEmpty(stationKind))
             {
                 OnCraftBlocked(!string.IsNullOrEmpty(stationKind) ? stationKind : "unknown", "bad_args");
                 return Result(false, "bad_args");
+            }
+            string componentReason = stationKind == "field_crafting"
+                ? FieldCraftingState?.RecipeBlockedReason(recipeId) ?? ""
+                : CraftingState?.RecipeBlockedReason(recipeId) ?? "";
+            if (componentReason.Length > 0)
+            {
+                OnCraftBlocked(stationKind, componentReason);
+                return Result(false, componentReason);
             }
             if (stationKind == "field_crafting")
             {
@@ -620,10 +670,9 @@ namespace SynapticSea.Core.Session
             {
                 if (st.IsValid && st.StationKind == stationKind)
                 {
-                    if (st.TryCraftRecipe(recipeId))
+                    if (st.TryCraftRecipe(recipeId, out string reason))
                         return Result(true, "started");
-                    OnCraftBlocked(stationKind, "begin_failed");
-                    return Result(false, "begin_failed");
+                    return Result(false, reason);
                 }
             }
             OnCraftBlocked(stationKind, "station_missing");
@@ -633,6 +682,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Start a repair channel through the real range gate (was <c>repair_subcomponent_for_validation</c>).</summary>
         public bool RepairSubcomponent(string systemId, string subcomponentId)
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (!HasPlayer)
                 return false;
             foreach (RepairPoint rp in RepairPoints)
@@ -651,6 +701,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Pump every channeling repair point by delta (was <c>advance_repair_channels_for_validation</c>).</summary>
         public void AdvanceRepairChannels(double delta)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             foreach (RepairPoint rp in new List<RepairPoint>(RepairPoints))
             {
                 if (rp.IsValid && rp.Channeling)
@@ -661,6 +712,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Station craft of the first ready recipe through the real path (was <c>craft_at_station_for_validation</c>).</summary>
         public bool CraftAtStation(string stationKind)
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (!HasPlayer)
                 return false;
             foreach (CraftingStation st in CraftingStations)
@@ -684,6 +736,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Advance the active station craft (+ field craft) by delta, depositing outputs (was <c>advance_crafting_for_validation</c>).</summary>
         public void AdvanceCrafting(double delta)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (CraftingState != null)
             {
                 string activeKind = CraftingState.GetActiveStationKind();
@@ -699,6 +752,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Advance hydroponics + water recycler by delta (was <c>advance_production_for_validation</c>).</summary>
         public void AdvanceProduction(double delta)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (HydroponicsState != null && HydroponicsState.CurrentState == (long)HydroponicsState.State.PLANTED)
                 HydroponicsState.Tick(delta);
             if (WaterRecyclerState != null && WaterRecyclerState.CurrentState == (long)WaterRecyclerState.State.RECYCLING)

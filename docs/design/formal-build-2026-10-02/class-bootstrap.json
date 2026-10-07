@@ -1,0 +1,977 @@
+{
+  "schema": "synaptic-class-bootstrap-plan-1",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "approved_policy": "Every starting class can establish a home and repair a first ship solo; meaningful skills/tools and specialization remain.",
+  "review_amendment": "docs/design/formal-build-2026-10-02/amendments/f08-class-routes.md",
+  "amendment_selected": null,
+  "baseline_evidence": "docs/audit-deep/content/predeparture-repair-producers.json",
+  "work_packages": [
+    "F08",
+    "F09"
+  ],
+  "acceptance_tests": [
+    "A02",
+    "A10"
+  ],
+  "rows": [
+    {
+      "class_id": "engineer",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 3,
+        "diagnostics": 2,
+        "welding": 2,
+        "fabrication": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.0,
+          "level": 5,
+          "xp": 495
+        },
+        "after_cargo_seal": {
+          "fractional": 0.0,
+          "level": 5,
+          "xp": 495
+        },
+        "before_cargo_seal": {
+          "fractional": 0.5,
+          "level": 5,
+          "xp": 472
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "engineer",
+        "completed_repairs": [
+          "power/power_distribution",
+          "power/battery_cells",
+          "gravity/field_emitter",
+          "navigation/star_charts",
+          "navigation/nav_computer",
+          "propulsion/nav_linkage",
+          "scanners/scanner_dish",
+          "scanners/power_coupling",
+          "power/reactor_core"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "sensor_module": 1,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 21.3
+        },
+        "repair2": true,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 0,
+        "normal_traversal_witness": false,
+        "classification": "source-connected finite-cache MODEL feasible"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "mechanic",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 4,
+        "welding": 3,
+        "fabrication": 1,
+        "scavenging": 2
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.0,
+          "level": 6,
+          "xp": 295
+        },
+        "after_cargo_seal": {
+          "fractional": 0.0,
+          "level": 6,
+          "xp": 295
+        },
+        "before_cargo_seal": {
+          "fractional": 0.5,
+          "level": 6,
+          "xp": 272
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "mechanic",
+        "completed_repairs": [
+          "power/reactor_core",
+          "power/power_distribution",
+          "power/battery_cells",
+          "gravity/field_emitter",
+          "navigation/star_charts",
+          "navigation/nav_computer",
+          "propulsion/nav_linkage",
+          "scanners/scanner_dish",
+          "scanners/power_coupling"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "sensor_module": 1,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 21.3
+        },
+        "repair2": true,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 0,
+        "normal_traversal_witness": false,
+        "classification": "source-connected finite-cache MODEL feasible"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "medic",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 1,
+        "first_aid": 3,
+        "pharmacology": 2,
+        "surgery": 1,
+        "quarantine": 2
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.5,
+          "level": 1,
+          "xp": 164
+        },
+        "after_cargo_seal": {
+          "fractional": 0.5,
+          "level": 1,
+          "xp": 164
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 154
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "medic",
+        "completed_repairs": [
+          "power/battery_cells",
+          "navigation/star_charts"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 3,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 2,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 40.8
+        },
+        "repair2": false,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 35.5,
+        "normal_traversal_witness": false,
+        "classification": "finite-cache MODEL insufficient; broader normal predeparture exhaustion NOT established"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "pilot",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 1,
+        "piloting": 3,
+        "astrogation": 2,
+        "scanner_operation": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.0,
+          "level": 2,
+          "xp": 135
+        },
+        "after_cargo_seal": {
+          "fractional": 0.0,
+          "level": 2,
+          "xp": 35
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 2,
+          "xp": 20
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "pilot",
+        "completed_repairs": [
+          "power/battery_cells",
+          "navigation/star_charts",
+          "propulsion/nav_linkage",
+          "scanners/power_coupling"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 2,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 1,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 38.8
+        },
+        "repair2": true,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 0,
+        "normal_traversal_witness": false,
+        "classification": "source-connected finite-cache MODEL feasible"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "scientist",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 2,
+        "diagnostics": 2,
+        "signal_analysis": 2,
+        "pharmacology": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.0,
+          "level": 3,
+          "xp": 342
+        },
+        "after_cargo_seal": {
+          "fractional": 0.0,
+          "level": 3,
+          "xp": 342
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 3,
+          "xp": 324
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "scientist",
+        "completed_repairs": [
+          "power/power_distribution",
+          "power/battery_cells",
+          "navigation/star_charts",
+          "propulsion/nav_linkage",
+          "scanners/power_coupling",
+          "gravity/field_emitter",
+          "navigation/nav_computer",
+          "scanners/scanner_dish"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "reactor_core": 1,
+            "sensor_module": 1,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 33.3
+        },
+        "repair2": true,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 0,
+        "normal_traversal_witness": false,
+        "classification": "source-connected finite-cache MODEL feasible"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "cook",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 0,
+        "cooking": 3,
+        "resource_management": 2,
+        "scavenging": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 48
+        },
+        "after_cargo_seal": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 8
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 0,
+          "xp": 96
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "cook",
+        "completed_repairs": [
+          "navigation/star_charts"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 3,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 3,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 41.8
+        },
+        "repair2": false,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 152.0,
+        "normal_traversal_witness": false,
+        "classification": "finite-cache MODEL insufficient; broader normal predeparture exhaustion NOT established"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "security",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 1,
+        "intimidation": 2,
+        "construction": 1,
+        "scavenging": 1,
+        "leadership": 2
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.5,
+          "level": 2,
+          "xp": 101
+        },
+        "after_cargo_seal": {
+          "fractional": 0.5,
+          "level": 2,
+          "xp": 11
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 198
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "security",
+        "completed_repairs": [
+          "power/battery_cells",
+          "navigation/star_charts",
+          "propulsion/nav_linkage",
+          "scanners/power_coupling"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 2,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 1,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 38.8
+        },
+        "repair2": true,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 0,
+        "normal_traversal_witness": false,
+        "classification": "source-connected finite-cache MODEL feasible"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "communications",
+      "title_fresh_available": true,
+      "initial_skills": {
+        "repair": 0,
+        "comms": 3,
+        "signal_analysis": 2,
+        "negotiation": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.5,
+          "level": 1,
+          "xp": 66
+        },
+        "after_cargo_seal": {
+          "fractional": 0.5,
+          "level": 1,
+          "xp": 21
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 8
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "communications",
+        "completed_repairs": [
+          "navigation/star_charts"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 3,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 3,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 41.8
+        },
+        "repair2": false,
+        "title_locked": false,
+        "additional_effective_xp_for_repair2": 133.5,
+        "normal_traversal_witness": false,
+        "classification": "finite-cache MODEL insufficient; broader normal predeparture exhaustion NOT established"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "salvage_captain",
+      "title_fresh_available": false,
+      "initial_skills": {
+        "scavenging": 3,
+        "repair": 1,
+        "resource_management": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.500000000000028,
+          "level": 2,
+          "xp": 168
+        },
+        "after_cargo_seal": {
+          "fractional": 0.500000000000014,
+          "level": 2,
+          "xp": 58
+        },
+        "before_cargo_seal": {
+          "fractional": 1.4210854715202e-14,
+          "level": 2,
+          "xp": 42
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "salvage_captain",
+        "completed_repairs": [
+          "power/battery_cells",
+          "navigation/star_charts",
+          "propulsion/nav_linkage",
+          "scanners/power_coupling"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 2,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 1,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 38.8
+        },
+        "repair2": true,
+        "title_locked": true,
+        "additional_effective_xp_for_repair2": 0,
+        "normal_traversal_witness": false,
+        "classification": "source-connected finite-cache MODEL feasible"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "field_medic",
+      "title_fresh_available": false,
+      "initial_skills": {
+        "first_aid": 3,
+        "surgery": 1,
+        "quarantine": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 48
+        },
+        "after_cargo_seal": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 8
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 0,
+          "xp": 96
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "field_medic",
+        "completed_repairs": [
+          "navigation/star_charts"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 3,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 3,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 41.8
+        },
+        "repair2": false,
+        "title_locked": true,
+        "additional_effective_xp_for_repair2": 152.0,
+        "normal_traversal_witness": false,
+        "classification": "finite-cache MODEL insufficient; broader normal predeparture exhaustion NOT established"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    },
+    {
+      "class_id": "signal_specialist",
+      "title_fresh_available": false,
+      "initial_skills": {
+        "signal_analysis": 3,
+        "scanner_operation": 1,
+        "comms": 1
+      },
+      "finite_cache_model": {
+        "after_available_repairs": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 85
+        },
+        "after_cargo_seal": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 35
+        },
+        "before_cargo_seal": {
+          "fractional": 0.0,
+          "level": 1,
+          "xp": 20
+        },
+        "cargo_sealed": true,
+        "cargo_start_accepted": true,
+        "class": "signal_specialist",
+        "completed_repairs": [
+          "navigation/star_charts"
+        ],
+        "remaining_bag": {
+          "active_effects": [
+            {
+              "tool_id": "crowbar",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "fire_extinguisher",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "plasma_cutter",
+              "type": "",
+              "value": 1.0
+            },
+            {
+              "tool_id": "welder",
+              "type": "",
+              "value": 1.0
+            }
+          ],
+          "drain_multiplier": 1.0,
+          "items": {
+            "circuit_board": 3,
+            "crowbar": 1,
+            "fire_extinguisher": 1,
+            "hull_sealant": 5,
+            "plasma_cutter": 1,
+            "power_cell": 3,
+            "reactor_core": 1,
+            "sensor_module": 2,
+            "welder": 1
+          },
+          "max_weight": 50.0,
+          "tool_ids": [
+            "crowbar",
+            "fire_extinguisher",
+            "plasma_cutter",
+            "welder"
+          ],
+          "total_weight": 41.8
+        },
+        "repair2": false,
+        "title_locked": true,
+        "additional_effective_xp_for_repair2": 115.0,
+        "normal_traversal_witness": false,
+        "classification": "finite-cache MODEL insufficient; broader normal predeparture exhaustion NOT established"
+      },
+      "planned_status": "earned_route_required_not_yet_certified",
+      "normal_traversal_witness": false,
+      "normal_requirement": "Legitimate unlock state if locked; no hub repair/XP perks, no grants, finite inventory and normal order variants"
+    }
+  ]
+}

@@ -12,6 +12,7 @@ using SynapticSea.Runtime;
 using SynapticSea.Runtime.Input;
 using SynapticSea.Runtime.Session;
 using SynapticSea.UI;
+using SynapticSea.UI.Presenters;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -118,7 +119,7 @@ namespace SynapticSea.Game
             }
             Services = AppServices.Ensure();
             EnsureGlobalVolume();
-            AtmosphereApplier.ApplyGodotDefaultEnvironment();
+            AtmosphereApplier.ApplyPlayableDefaultEnvironment();
 
             HudDocument = MakeDocument("HUD", hudPanelSettings, 0);
             var hud = HudDocument.gameObject.AddComponent<HudRoot>();
@@ -180,7 +181,35 @@ namespace SynapticSea.Game
                 StartingClassId = string.IsNullOrEmpty(launch.ClassId) ? RunLaunchRequest.DefaultClassId : launch.ClassId,
                 DifficultyId = string.IsNullOrEmpty(launch.DifficultyId) ? RunLaunchRequest.DefaultDifficultyId : launch.DifficultyId,
                 BiomeId = launch.BiomeId ?? "",
+                EnableComponentIntegration = launch.EnableComponentIntegration,
             };
+            if (launch.EnableComponentIntegration && launch.Mode != RunLaunchMode.NewRun)
+            {
+                string slotId = launch.Mode == RunLaunchMode.Continue ? RunLaunchRequest.WorldSlotId : launch.SlotId;
+                var service = new SaveLoadService(CoreServices.UserStorage, CoreServices.Clock, deps.EnableComponentIntegration);
+                GdDict selected = launch.SelectedSaveGeneration ?? service.SelectGeneration(slotId);
+                if (selected == null || !selected.GetBool("ok"))
+                {
+                    string reason = selected?.GetString("reason", "No diagnostic save was selected") ?? "No diagnostic save was selected";
+                    if (SaveSlotScreenModel.IsOriginalSaveRefusal(reason)) RunReturnInfo.OriginalSaveSlotId = slotId;
+                    failure = SaveSlotScreenModel.FailureMessage(reason);
+                    return null;
+                }
+                GdDict exact = service.ReadGeneration(selected.GetString("run_id"), selected.GetString("slot_id"), selected.GetString("generation_id"), selected.GetString("manifest_sha256"));
+                if (!exact.GetBool("ok") || !V.VariantEquals(exact.GetDictOrEmpty("payloads"), selected.GetDictOrEmpty("payloads")))
+                { failure = "The selected diagnostic save is no longer available or could not be verified"; return null; }
+                if (selected.GetString("slot_id") != slotId || !SaveGenerationArtifacts.TryCreateReader(selected, CoreServices.Resources,
+                    out IResourceReader reader, out string artifactReason))
+                { failure = "The selected diagnostic save could not be validated"; return null; }
+                GdDict world;
+                try { world = GdJson.Parse(selected.GetDictOrEmpty("payloads").GetString("world_text"), true) as GdDict; }
+                catch (Exception) { failure = "The selected diagnostic world is invalid"; return null; }
+                GdDict home = world?.GetDictOrEmpty("home_ship");
+                if (home == null || !ApplySelectedHome(deps, home, selected, reader, out failure)) return null;
+                launch.SelectedSaveGeneration = selected;
+                deps.SelectedSaveGeneration = selected.DeepCopy();
+                return deps;
+            }
             switch (launch.Mode)
             {
                 case RunLaunchMode.Continue:
@@ -263,11 +292,37 @@ namespace SynapticSea.Game
             return true;
         }
 
+        static bool ApplySelectedHome(RunSessionDeps deps, GdDict home, GdDict selection, IResourceReader reader, out string failure)
+        {
+            failure = "";
+            string layout = home.GetString("layout_path"), slice = home.GetString("gameplay_slice_path"), kit = home.GetString("kit_path");
+            if (layout.Length == 0 || slice.Length == 0 || kit.Length == 0 || !reader.Exists(layout) || !reader.Exists(slice) || !reader.Exists(kit))
+            { failure = "The selected save is missing its ship layout, gameplay or kit"; return false; }
+            deps.LayoutPath = layout; deps.GameplaySlicePath = slice; deps.KitPath = kit;
+            GdDict reference = selection.GetDictOrEmpty("payloads").GetDictOrEmpty("binding").GetDictOrEmpty("ship_references").GetDictOrEmpty("ship_start");
+            deps.BlueprintPath = reference.GetString("blueprint_path", "");
+            if (deps.BlueprintPath.Length != 0 && !reader.Exists(deps.BlueprintPath))
+            { failure = "The selected save is missing its ship blueprint"; return false; }
+            GdDict context = home.GetDictOrEmpty("run_context");
+            deps.DifficultyId = context.GetString("difficulty_id", deps.DifficultyId);
+            deps.BiomeId = context.GetString("biome_id", deps.BiomeId);
+            if (context.Has("seed")) deps.RunSeed = V.I64(context["seed"]);
+            return true;
+        }
+
         /// <summary>title_main.gd's handoff: load (Continue / LoadSlot), then the dirty title settings.</summary>
         static bool ApplyLaunch(RunSession session, RunLaunchRequest launch, out string failure)
         {
             failure = "";
             bool applied = true;
+            if (launch.EnableComponentIntegration && launch.Mode != RunLaunchMode.NewRun)
+            {
+                GdDict selected = launch.SelectedSaveGeneration;
+                applied = selected != null && session.ApplySelectedGeneration(selected);
+                if (!applied) failure = SaveSlotScreenModel.FailureMessage(session.LastSaveResult.GetString("reason", "The selected save could not be applied"));
+                if (applied && launch.SettingsSummary != null) session.ApplyUiSettingsSummary(launch.SettingsSummary);
+                return applied;
+            }
             switch (launch.Mode)
             {
                 case RunLaunchMode.Continue:

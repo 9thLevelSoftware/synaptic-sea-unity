@@ -47,6 +47,16 @@ namespace SynapticSea.Runtime.Session
         /// <summary>Slot id for <see cref="RunLaunchMode.LoadSlot"/>; <see cref="WorldSlotId"/> for Continue; "" for a new run.</summary>
         public string SlotId = "";
 
+        /// <summary>Explicit development/fixture opt-in. Ordinary launch/save/Continue remains on the legacy path. Default off; activation scheduled for Phase 5.5 (see docs/design/decisions.md, Phase 0.3 decision 3). The one sanctioned exception to the no-default-off-flags rule.</summary>
+        public bool EnableComponentIntegration;
+        GdDict _selectedSaveGeneration;
+        /// <summary>Owned exact generation handle; never inferred from the presence of a generation on disk.</summary>
+        public GdDict SelectedSaveGeneration
+        {
+            get => _selectedSaveGeneration?.DeepCopy();
+            set => _selectedSaveGeneration = value?.DeepCopy();
+        }
+
         /// <summary>The New Run seed. Slice default <see cref="DefaultSeed"/> boots the Milestone A hub; any other seed fails closed.</summary>
         public long Seed = DefaultSeed;
 
@@ -96,6 +106,14 @@ namespace SynapticSea.Runtime.Session
 
         public static RunLaunchRequest LoadSlot(string slotId) => new RunLaunchRequest { Mode = RunLaunchMode.LoadSlot, SlotId = slotId ?? "" };
 
+        public static RunLaunchRequest DiagnosticNewRun() => new RunLaunchRequest { EnableComponentIntegration = true };
+
+        public static RunLaunchRequest DiagnosticContinue(GdDict selectedGeneration = null) =>
+            new RunLaunchRequest { Mode = RunLaunchMode.Continue, SlotId = WorldSlotId, EnableComponentIntegration = true, SelectedSaveGeneration = selectedGeneration };
+
+        public static RunLaunchRequest DiagnosticLoadSlot(string slotId, GdDict selectedGeneration = null) =>
+            new RunLaunchRequest { Mode = RunLaunchMode.LoadSlot, SlotId = slotId ?? "", EnableComponentIntegration = true, SelectedSaveGeneration = selectedGeneration };
+
         public override string ToString() =>
             $"RunLaunchRequest(mode={Mode}, slot={SlotId}, seed={Seed}, biome={BiomeId}, difficulty={DifficultyId}, class={ClassId}" +
             (LayoutOverridePath.Length != 0 ? $", layout={LayoutOverridePath}" : "") + $", settings={(SettingsSummary != null ? "dirty" : "untouched")})";
@@ -110,6 +128,8 @@ namespace SynapticSea.Runtime.Session
     {
         /// <summary>Boot/reload failure reason ("Load failed: …").</summary>
         public static string LastFailureReason = "";
+        /// <summary>An explicitly refused diagnostic import can reopen the unchanged original legacy slot.</summary>
+        public static string OriginalSaveSlotId = "";
         /// <summary>Completed-run outcome ("Last run: …"): death / extraction / abort.</summary>
         public static string LastRunOutcome = "";
         /// <summary>"objectives n/m" ("Progress: …").</summary>
@@ -122,6 +142,7 @@ namespace SynapticSea.Runtime.Session
         public static void Clear()
         {
             LastFailureReason = "";
+            OriginalSaveSlotId = "";
             LastRunOutcome = "";
             LastRunProgress = "";
             LastRunContext = "";

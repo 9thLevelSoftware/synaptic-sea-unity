@@ -161,7 +161,51 @@ namespace SynapticSea.Tests.Session
             Assert.IsEmpty(d, where + " " + key + ":\n" + TreeDiff.Format(d));
         }
 
-        static GdDict GodotView(GdDict tree) => SynapticSea.Tests.Parity.SavePortSchema.GodotView(tree);
+        static GdDict GodotView(GdDict tree)
+        {
+            var view = SynapticSea.Tests.Parity.SavePortSchema.GodotView(tree);
+            if(view.Has("mobile_home_state"))
+            {
+                GdDict Spec(double area,double mass,string engine,double rating)=>new GdDict {
+                    {"version",1L},{"area_m2",area},{"dry_mass_kg",mass},{"engine_id",engine},{"rated_supported_kg",rating}};
+                var homeSystems=view.GetDictOrEmpty("home_ship").GetDictOrEmpty("ship_systems_summary");
+                var boatSystems=new GdDict {{"systems",homeSystems.GetDictOrEmpty("systems").DeepCopy()},{"system_order",homeSystems.GetArrayOrEmpty("system_order").DeepCopy()}};
+                var boat=new GdDict {{"ship_id","lifeboat"},{"marker_id",""},{"blueprint",new GdDict()},
+                    {"systems",boatSystems},
+                    {"access",new GdDict {{"owner_id","player_local"},{"access_ids",GdArray.Of("player_local")}}},
+                    {"mobility",Spec(48,4800,"propulsion:lifeboat",6000)}};
+                var exact=new GdDict {{"version",1L},{"lifeboat_commissioned",false},{"lifeboat",boat},
+                    {"home_mobility",Spec(416,41600,"",0)}};
+                Assert.IsEmpty(TreeDiff.Compare(exact,view.Get("mobile_home_state"),Strict()),"exact new golden owned mobile-home payload");
+                view.Erase("mobile_home_state");
+            }
+            // Assert the exact new Unity contract, then compare every legacy Godot field unchanged.
+            foreach (object value in view.GetArrayOrEmpty("dock_edges"))
+            {
+                var edge = (GdDict)value;
+                if (!edge.Has("connection_version")) continue;
+                Assert.AreEqual(1L, edge.GetInt("connection_version"));
+                Assert.AreEqual("ship_start", edge.GetString("host_ship_id"));
+                Assert.AreEqual("moored", edge.GetString("connection_kind"));
+                GdDict Port(double x, double z, double facing) => new GdDict {
+                    { "position", GdArray.Of(x, 0.0, z) }, { "facing", GdArray.Of(facing, 0.0, 0.0) },
+                    { "type", "airlock" }, { "size_class", 1L }, { "condition", "intact" }, { "site_id", "canonical-airlock" } };
+                Assert.IsEmpty(TreeDiff.Compare(Port(2.0, 2.0, 1.0), edge.Get("host_local_port"), Strict()), "exact golden home endpoint");
+                Assert.IsEmpty(TreeDiff.Compare(Port(-2.0, 0.0, -1.0), edge.Get("mobile_local_port"), Strict()), "exact golden shuttle endpoint");
+                foreach (string key in new[] { "connection_version", "host_ship_id", "connection_kind", "host_local_port", "mobile_local_port" }) edge.Erase(key);
+            }
+            void AssertExactUtilityRecipeExtension(GdDict run)
+            {
+                if(!run.Has("crafting_summary"))return;
+                var craft=run.GetDictOrEmpty("crafting_summary");
+                Assert.AreEqual(62L,craft.GetInt("recipe_count"),"the two earned utility recipes extend the exact 60-recipe capture");
+                Assert.AreEqual(62L,craft.GetDictOrEmpty("field_crafting").GetInt("recipe_count"));
+                craft["recipe_count"]=60L;craft.GetDictOrEmpty("field_crafting")["recipe_count"]=60L;
+            }
+            AssertExactUtilityRecipeExtension(view);
+            if(view.Has("home_ship"))AssertExactUtilityRecipeExtension(view.GetDictOrEmpty("home_ship"));
+            return view;
+        }
 
         static string RoundTripPath(string rel) => RoundTripRoot + rel.Substring(Root.Length);
 

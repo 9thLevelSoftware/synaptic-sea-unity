@@ -26,10 +26,12 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public void Tick(in TickContext ctx)
         {
+            if (ComponentGenerationRestoreInProgress || CompleteGenerationEnabled && ComponentTerminalPending) return;
             _frame = ctx;
             _inTick = true;
             try
             {
+                if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile)) RecomputeOccupancy();
                 double delta = ctx.Delta;
                 WorldTime += delta;
                 if (PlayableStarted && !SliceComplete)
@@ -45,6 +47,7 @@ namespace SynapticSea.Core.Session
                     }
                 }
                 ProcessInteractableNodes(delta);
+                if (run) TickManualStudy(delta);
             }
             finally
             {
@@ -67,6 +70,13 @@ namespace SynapticSea.Core.Session
                 else
                     inSafe = !AwayFromStart && (OxygenState == null || !OxygenState.GetSummary().GetBool("breach_open"));
             }
+            if (location == SessionLocation.Away
+                && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                && CurrentOccupancy == LifeboatShip && LifeboatCommissioned
+                && LifeboatShip?.SystemsManager?.IsOperational("life_support") == true
+                && (LifeboatShip.Fire == null || LifeboatShip.Fire.GetTotalIntensity() <= 0))
+                inSafe = true; // The independently repaired shuttle is genuine local shelter.
+            if(location==SessionLocation.Away && OwnedRecoveryHabitatAir())inSafe=true;
             TickSanityAndHallucinations(delta, inSafe);
         }
 
@@ -122,9 +132,10 @@ namespace SynapticSea.Core.Session
             double covBefore = 0.0;
             if (HullWebState != null)
                 covBefore = HullWebState.Coverage;
-            AdvanceShip(HomeShip, delta);
-            if (AwayFromStart && CurrentShip != null && CurrentShip != HomeShip)
-                AdvanceShip(CurrentShip, delta);
+            var advanced = new System.Collections.Generic.HashSet<ShipInstance>();
+            foreach (var ship in AllKnownShipsInternal())
+                if (ship != null && RootValid(ship.SceneRoot) && advanced.Add(ship)
+                    && (ship != LifeboatShip || LifeboatCommissioned)) AdvanceShip(ship, delta);
             _biomatterPulseCooldown = Math.Max(0.0, _biomatterPulseCooldown - delta);
             if (HullWebState != null && HullWebState.Coverage > covBefore + 0.0001)
                 MaybeEmitBiomatterPulse();
@@ -232,14 +243,16 @@ namespace SynapticSea.Core.Session
             bool hasAuthoredRadiationSource = false;
             bool hasAuthoredTemperatureSource = false;
             bool inAuthoredTemperatureSource = false;
-            IShipLoaderView authoredLoader = AwayFromStart && CurrentShip != null ? CurrentShip.SceneRoot as IShipLoaderView : Loader;
+            IShipLoaderView authoredLoader = PhysicalAirOwner()?.SceneRoot as IShipLoaderView
+                ?? (PhysicalAirInfrastructureAbsent() ? Loader : null);
             var authoredAtmosphere = new GdDict();
             if (authoredLoader != null && authoredLoader.IsValid && HasPlayer)
                 authoredAtmosphere = authoredLoader.GetAuthoredAtmosphereAt(ToLocal(authoredLoader, PlayerPos)) ?? new GdDict();
             if (authoredLoader != null && authoredLoader.IsValid)
             {
                 GdArray authoredRadiationSpecs = authoredLoader.GetRadiationZoneSpecs() ?? new GdArray();
-                hasAuthoredRadiationSource = !authoredRadiationSpecs.IsEmpty;
+                hasAuthoredRadiationSource = !authoredRadiationSpecs.IsEmpty
+                    || (AwayFromStart && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile);
                 if (!authoredRadiationSpecs.IsEmpty && HasPlayer)
                 {
                     GdDict authoredRadiation = authoredLoader.GetRadiationZoneAt(ToLocal(authoredLoader, PlayerPos)) ?? new GdDict();
@@ -248,6 +261,10 @@ namespace SynapticSea.Core.Session
                 GdArray atmosphereSpecs = authoredLoader.AuthoredAtmosphereSpecs;
                 if (atmosphereSpecs != null)
                 {
+                    // Explicit room atmosphere is authoritative even when every room
+                    // has zero radiation. Do not invent a ship-wide radioactive field
+                    // just because no positive radiation source was authored.
+                    hasAuthoredRadiationSource |= !atmosphereSpecs.IsEmpty;
                     foreach (object specObj in atmosphereSpecs)
                     {
                         if (specObj is GdDict spec)
@@ -272,7 +289,7 @@ namespace SynapticSea.Core.Session
             if (StatusEffectsState != null)
                 statusMult = StatusEffectsState.GetModifier("stamina_recovery");
             double atmoDrain = 0.0;
-            if (LifeSupportExpandedState != null && !AwayFromStart)
+            if (LifeSupportExpandedState != null && PhysicalHomeAtmosphereApplies())
             {
                 atmoDrain = LifeSupportExpandedState.GetHealthDrainPerSecond();
                 tempMult *= LifeSupportExpandedState.GetThirstMultiplier();
@@ -394,6 +411,13 @@ namespace SynapticSea.Core.Session
             return mgr != null && mgr.IsOperational("power");
         }
 
+        public string ResolvePlayerRoom(Vec3 worldPosition)
+        {
+            ShipNavGraph graph = ThreatManager?.NavGraph;
+            if (graph == null || graph.NodeCount() == 0) return "";
+            return graph.GetNodeRoom(graph.NearestNode(worldPosition));
+        }
+
         void TickThreatRuntime(double delta)
         {
             if (ThreatManager == null)
@@ -401,10 +425,13 @@ namespace SynapticSea.Core.Session
             Vec3 playerPos = HasPlayer ? PlayerPos : Vec3.Zero;
             bool moving = HasPlayer && PlayerMoving;
             bool crouching = HasPlayer && PlayerCrouching;
-            ThreatManager.SetPlayerSignals(moving ? 0.3 : 0.05, PlayerRoomLit() ? 0.6 : 0.15, 0.8, crouching, "");
+            ThreatManager.SetPlayerSignals(moving ? 0.3 : 0.05, PlayerRoomLit() ? 0.6 : 0.15, 0.8, crouching, ResolvePlayerRoom(playerPos));
             UpdateThreatEngagedLos();
             RefreshThreatNavCosts();
-            ThreatManager.TickThreats(delta, VitalsState, StatusEffectsState, PlayerArmorProfile(), playerPos);
+            GdDict armor = PlayerArmorProfile();
+            ThreatManager.TickThreats(delta, VitalsState, StatusEffectsState, armor, playerPos);
+            if (EquipmentState != null && EquipmentState.GetEquipped("suit") == "hardsuit" && armor.GetFloat("durability") < 40.0)
+                EquipmentState.ArmorDurability["hardsuit"] = armor.Get("durability", 40.0);
             if (ThreatManager.GetDetectedThreatCount() > 0)
                 TriggerTutorial("threat_spotted", "any");
             SyncCurrentShipCombatSummary();
@@ -416,6 +443,7 @@ namespace SynapticSea.Core.Session
         {
             if (ThreatManager == null || !HasPlayer)
                 return;
+            ThreatManager.ClearEngagedLos();
             ILineOfSightProbe probe = Deps.LosProbe;
             if (probe == null || !probe.HasSpace)
                 return;
@@ -428,10 +456,10 @@ namespace SynapticSea.Core.Session
                 if (tid.Length == 0 || threat.WorldPosition.Count < 3)
                     continue;
                 var to = new Vec3(V.F64(threat.WorldPosition[0]), V.F64(threat.WorldPosition[1]) + 1.0, V.F64(threat.WorldPosition[2]));
-                bool hit = probe.IntersectRay(from, to, out Vec3 hp);
+                bool hit = probe.IntersectRay(from, to, out _);
                 bool hasLos = !hit;
-                if (!hasLos)
-                    hasLos = hp.DistanceTo(to) < 1.5;
+                // The probe includes structure/hatch/portal layers, never the target's body.
+                // A blocker close to the target still blocks the attack.
                 ThreatManager.SetEngagedLos(tid, hasLos);
             }
         }
@@ -453,8 +481,15 @@ namespace SynapticSea.Core.Session
             var bulkheads = new GdArray();
             foreach (SealedHatch h in SealedHatches)
             {
-                if (h.IsValid && !h.Bypassed && h.CompartmentA.Length > 0 && h.CompartmentB.Length > 0)
-                    bulkheads.Add(GdArray.Of(h.CompartmentA, h.CompartmentB));
+                if (h.IsValid && h.CompartmentA.Length > 0 && h.CompartmentB.Length > 0)
+                {
+                    if (!h.Bypassed) bulkheads.Add(GdArray.Of(h.CompartmentA, h.CompartmentB));
+                    if (ThreatManager.SpatialPerception != null)
+                    {
+                        if (h.Bypassed) ThreatManager.SpatialPerception.UnblockLink(h.CompartmentA, h.CompartmentB);
+                        else ThreatManager.SpatialPerception.SetDoorState(h.CompartmentA, h.CompartmentB, "blocked");
+                    }
+                }
             }
             ThreatManager.UpdateNavDynamicCosts(fireRooms, bulkheads);
             ApplyIntegrityNavGaps();

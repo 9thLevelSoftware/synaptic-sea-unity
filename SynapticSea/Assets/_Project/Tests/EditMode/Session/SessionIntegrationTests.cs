@@ -350,7 +350,12 @@ namespace SynapticSea.Tests.Session
             var events = new List<(string id, string kind, double damage, GdDict result)>();
             s.ThreatManager.ThreatAttacked += (id, kind, damage, result) => events.Add((id, kind, damage, result));
             foreach (ThreatAIState t in s.ThreatManager.Threats)
+            {
                 t.StructureDamage = 1.5;
+                t.RoomId = s.ResolvePlayerRoom(rig.Scene.PlayerPosition);
+                Vec3 position = rig.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                t.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
 
             TickSeconds(rig, 15.0);
             var playerHits = events.Where(e => e.kind == ThreatRuntime.ATTACK_TARGET_PLAYER).ToList();
@@ -368,6 +373,12 @@ namespace SynapticSea.Tests.Session
             // Weapon hits: a fresh session, crowbar equipped.
             SessionHarness.Rig armed = Boot();
             RunSession a = armed.Session;
+            foreach (ThreatAIState t in a.ThreatManager.Threats)
+            {
+                t.RoomId = a.ResolvePlayerRoom(armed.Scene.PlayerPosition);
+                Vec3 position = armed.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                t.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
             var weaponHits = new List<string>();
             var kills = new List<GdDict>();
             a.ThreatManager.ThreatAttacked += (id, kind, damage, result) =>
@@ -421,6 +432,12 @@ namespace SynapticSea.Tests.Session
 
             // Combat damage opens wounds.
             SessionHarness.Rig fight = Boot();
+            foreach (ThreatAIState t in fight.Session.ThreatManager.Threats)
+            {
+                t.RoomId = fight.Session.ResolvePlayerRoom(fight.Scene.PlayerPosition);
+                Vec3 position = fight.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                t.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
             TickSeconds(fight, 8.0);
             Assert.Greater(fight.Session.WoundState.ActiveCount(), 0, "threat hits opened a wound");
         }
@@ -530,7 +547,7 @@ namespace SynapticSea.Tests.Session
             s.HomeShip.BreachEnvironmentSummary = new GdDict { { "hazard_kind", "oxygen" }, { "breach_open", false } };
             Assert.IsTrue(s.MetaProgressionState.UnlockCodexEntry("slot_test_entry"));
             Assert.IsTrue(s.UniqueItemState.Claim("slot_test_unique", "slot_seed"));
-            ShipInstance visited = ShipInstance.Create("slot_test_ship", "9:9:9", new ShipBlueprint(), new ShipSystemsManager(), null);
+            ShipInstance visited = ShipInstance.Create("slot_test_ship", "9:9:9", new ShipBlueprint(2, 0, 42) { GenerationProfile = ExpeditionLayoutEngine.Profile }, new ShipSystemsManager(), null);
             s.VisitedShips["9:9:9"] = visited;
             RunSnapshot slot = RunSnapshotAssembler.Build(s);
             Assert.IsNotNull(slot);
@@ -564,6 +581,8 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(s.UniqueItemState.IsClaimed("slot_test_unique"), "unique items restored");
             Assert.IsTrue(s.VisitedShips.ContainsKey("9:9:9"), "visited ships restored");
             Assert.AreEqual("slot_test_ship", s.VisitedShips["9:9:9"].ShipId);
+            Assert.AreEqual(ExpeditionLayoutEngine.Profile, s.VisitedShips["9:9:9"].Blueprint.GenerationProfile);
+            Assert.AreEqual(42, s.VisitedShips["9:9:9"].Blueprint.SeedValue);
         }
     }
 }

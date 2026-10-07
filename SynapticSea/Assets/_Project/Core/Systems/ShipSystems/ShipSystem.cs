@@ -44,14 +44,14 @@ namespace SynapticSea.Core.Systems
                 return 1.0;
             double lowest = 1.0;
             foreach (var sub in Subcomponents)
-                lowest = Math.Min(lowest, sub.Health);
+                lowest = Math.Min(lowest, sub.EffectiveHealth);
             return lowest;
         }
 
         public bool IsSelfFunctional()
         {
             foreach (var sub in Subcomponents)
-                if (!sub.IsFunctional())
+                if (!sub.IsOperationallyFunctional())
                     return false;
             return true;
         }

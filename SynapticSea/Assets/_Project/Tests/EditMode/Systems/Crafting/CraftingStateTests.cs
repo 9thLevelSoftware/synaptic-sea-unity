@@ -18,6 +18,21 @@ namespace SynapticSea.Tests.Systems
             return inv;
         }
 
+        [TestCase("craft_lockpick_set","lockpick_set","scrap_metal",2)]
+        [TestCase("craft_hack_chip","hack_chip","circuit_board",1)]
+        public void UtilityToolsRequireEarnedMaterialsSkillAndCompletedWork(string recipe,string item,string material,long quantity)
+        {
+            var craft=new CraftingState();var inv=new InventoryState();
+            Assert.AreEqual("workbench",craft.GetStationKind(recipe));
+            Assert.IsFalse(craft.BeginCraft(recipe,inv,new MaterialState(),1),"missing inputs never create a tool");
+            inv.AddItem(material,quantity);if(recipe=="craft_hack_chip")inv.AddItem("wiring_spool",1);
+            Assert.IsFalse(craft.BeginCraft(recipe,inv,new MaterialState(),0),"the skill gate stays real");
+            Assert.AreEqual(quantity,inv.GetQuantity(material));
+            Assert.IsTrue(craft.BeginCraft(recipe,inv,new MaterialState(),1));Assert.AreEqual(0,inv.GetQuantity(material));
+            Assert.AreEqual(0,inv.GetQuantity(item));craft.Tick(craft.GetCraftTime(recipe));
+            var output=craft.FinishCraft();Assert.AreEqual(item,output.GetString("item_id"));Assert.AreEqual(1,output.GetInt("quantity"));
+        }
+
         [Test]
         public void SummaryRoundTrips()
         {

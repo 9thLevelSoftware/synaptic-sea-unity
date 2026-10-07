@@ -35,6 +35,7 @@ namespace SynapticSea.Core.Systems
                 { "position", center + new Vec3(-HALF_CELL, 0.0, 0.0) },
                 { "facing", new Vec3(-1.0, 0.0, 0.0) },
                 { "type", "airlock" },
+                { "site_id", "canonical-airlock" },
                 { "size_class", AIRLOCK_SIZE_CLASS },
                 { "condition", "intact" },
             };
@@ -42,6 +43,17 @@ namespace SynapticSea.Core.Systems
 
         public static GdDict ForDerelict(GdDict layout, long seedValue = 0, long conditionClass = 0)
         {
+            if(layout != null && (layout.GetString("generation_profile")==SynapticSea.Core.Procgen.PurposefulExpedition.Profile || SynapticSea.Core.Procgen.ConstrainedExpedition.Supported(layout.GetString("generation_profile"))))
+            {
+                var contract=layout.GetDictOrEmpty("docking_port"); var p=contract.GetArrayOrEmpty("position"); var f=contract.GetArrayOrEmpty("facing");
+                if(contract.GetInt("contract_version")!=1||p.Count!=3||f.Count!=3) return new GdDict();
+                var position=new Vec3(V.F64(p[0]),V.F64(p[1]),V.F64(p[2])); var facing=new Vec3(V.F64(f[0]),V.F64(f[1]),V.F64(f[2]));
+                if(double.IsNaN(position.X)||double.IsInfinity(position.X)||double.IsNaN(position.Y)||double.IsInfinity(position.Y)
+                    ||double.IsNaN(position.Z)||double.IsInfinity(position.Z)||facing.Y!=0
+                    || !((System.Math.Abs(facing.X)==1 && facing.Z==0) || (facing.X==0 && System.Math.Abs(facing.Z)==1))) return new GdDict();
+                return new GdDict {{"position",position},{"facing",facing},{"type","airlock"},{"site_id","canonical-airlock"},{"size_class",AIRLOCK_SIZE_CLASS},
+                    {"condition",ConditionFromSeed(seedValue,conditionClass)}};
+            }
             Vec3 center = RoomFloorCenter(layout, "dock", "dock");
             // Fall back to the airlock room when no dock room exists (e.g. the home ship uses its airlock as the
             // docking attachment point rather than a dedicated dock room).
@@ -54,6 +66,7 @@ namespace SynapticSea.Core.Systems
                 { "position", center },
                 { "facing", new Vec3(1.0, 0.0, 0.0) },
                 { "type", "airlock" },
+                { "site_id", "canonical-airlock" },
                 { "size_class", AIRLOCK_SIZE_CLASS },
                 { "condition", ConditionFromSeed(seedValue, conditionClass) },
             };

@@ -267,6 +267,18 @@ namespace SynapticSea.Core.Systems
             };
         }
 
+        /// <summary>Restores a GetSummary() taken from this same instance (rollback). Unlike ApplySummary it does no import clamping.</summary>
+        public bool RestoreExact(GdDict summary)
+        {
+            if (summary == null || ClassId != summary.GetString("class_id")) return false;
+            Skills = summary.GetDictOrEmpty("skills").DeepCopy();
+            SkillXp = summary.GetDictOrEmpty("skill_xp").DeepCopy();
+            SkillXpFractional = summary.GetDictOrEmpty("skill_xp_fractional").DeepCopy();
+            CrossTraining = summary.GetDictOrEmpty("cross_training").DeepCopy();
+            BooksRead = summary.GetDictOrEmpty("books_read").DeepCopy();
+            return true;
+        }
+
         /// <summary>
         /// Restores class_id/skills/skill_xp/cross_training/books_read from a GetSummary() dict. Skills/xp are
         /// overwritten per-key (unknown keys ignored). Missing cross_training or books_read keys default to empty.

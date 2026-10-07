@@ -77,6 +77,79 @@ namespace SynapticSea.Tests.Systems
 
     public class DockingManagerTests
     {
+        [Test]
+        public void ExactLocalEndpointsRestoreAtMovedRotatedHostWithoutUsingCanonicalPort()
+        {
+            var hostRoot = new FakeRoot { Transform = new Xform3(Basis3.FromAxisAngle(Vec3.Up, 1.5707963f), new Vec3(40, 0, 20)) };
+            var host = new FakeShip(hostRoot); var mobile = new FakeShip(new FakeRoot());
+            var local = new GdDict { { "position", new Vec3(-12, 0, 4) }, { "facing", -Vec3.Right },
+                { "type", "airlock" }, { "size_class", 1L }, { "site_id", "exterior-west" } };
+            var localMobile = new GdDict { { "position", new Vec3(2, 0, 0) }, { "facing", Vec3.Right },
+                { "type", "airlock" }, { "size_class", 1L }, { "site_id", "wreck-dock" } };
+            Assert.IsTrue(DockingManager.Dock(host, mobile, DockingManager.HostPortToWorld(host, local), localMobile).GetBool("success"));
+            var saved = (GdDict)GdJson.Parse(GdJson.Stringify((GdDict)mobile.DockingPorts[0]));
+            Assert.AreEqual("exterior-west", saved.GetDictOrEmpty("host_local_port").GetString("site_id"));
+            var second = new FakeShip(new FakeRoot());
+            Assert.AreEqual("connection_site_occupied", DockingManager.Dock(host, second,
+                DockingManager.HostPortToWorld(host, local), localMobile).GetString("reason"));
+            Assert.IsNull(second.ParentShip);
+            DockingManager.Undock(mobile);
+            hostRoot.Transform = new Xform3(Basis3.Identity, new Vec3(-20, 0, 100));
+            Assert.IsTrue(DockingManager.RestoreConnection(host, mobile, saved).GetBool("success"));
+            Vec3 actual = mobile.SceneRoot.GlobalTransform * (Vec3)localMobile["position"];
+            Vec3 expected = hostRoot.GlobalTransform * (Vec3)local["position"];
+            Assert.Less(actual.DistanceTo(expected), 0.001);
+            saved["connection_version"] = 99L;
+            var before = mobile.SceneRoot.Transform;
+            Assert.IsFalse(DockingManager.RestoreConnection(host, mobile, saved).GetBool("success"));
+            Assert.AreEqual(before, mobile.SceneRoot.Transform);
+            Assert.AreSame(host, mobile.ParentShip);
+        }
+
+        [Test]
+        public void OccupiedMobileBoundaryCannotAlsoBecomeAnAssemblyJoin()
+        {
+            var home = new FakeShip(new FakeRoot()); var wreck = new FakeShip(new FakeRoot());
+            var shuttle = new FakeShip(new FakeRoot());
+            var canonical = HostPort.DeepCopy(); canonical["site_id"] = "canonical-airlock";
+            var shuttlePort = MobilePort.DeepCopy(); shuttlePort["site_id"] = "shuttle-airlock";
+            Assert.IsTrue(DockingManager.Dock(wreck, shuttle,
+                DockingManager.HostPortToWorld(wreck, canonical), shuttlePort).GetBool("success"));
+            var homePort = HostPort.DeepCopy(); homePort["site_id"] = "home-extension-west";
+            var before = wreck.SceneRoot.Transform;
+            Assert.AreEqual("connection_site_occupied", DockingManager.Dock(home, wreck,
+                DockingManager.HostPortToWorld(home, homePort), canonical).GetString("reason"));
+            Assert.IsNull(wreck.ParentShip); Assert.AreSame(wreck, shuttle.ParentShip);
+            Assert.AreEqual(before, wreck.SceneRoot.Transform);
+            var secondPort = MobilePort.DeepCopy(); secondPort["site_id"] = "wreck-second-boundary";
+            Assert.IsTrue(DockingManager.Dock(home, wreck,
+                DockingManager.HostPortToWorld(home, homePort), secondPort).GetBool("success"));
+            var intruder = new FakeShip(new FakeRoot());
+            Assert.AreEqual("connection_site_occupied", DockingManager.Dock(wreck, intruder,
+                DockingManager.HostPortToWorld(wreck, secondPort), shuttlePort).GetString("reason"),
+                "the incoming parent endpoint cannot also host another ship");
+            Assert.IsNull(intruder.ParentShip);
+        }
+
+        [Test]
+        public void AncestorDockFailsAtomicallyAndMalformedTreesCannotBeMoved()
+        {
+            var root = new FakeShip(new FakeRoot()); var child = new FakeShip(new FakeRoot()); var leaf = new FakeShip(new FakeRoot());
+            Assert.IsTrue(DockingManager.Dock(root, child, HostPort, MobilePort).GetBool("success"));
+            Assert.IsTrue(DockingManager.Dock(child, leaf, HostPort, MobilePort).GetBool("success"));
+            var before = root.SceneRoot.Transform;
+            Assert.AreEqual("dock_cycle", DockingManager.Dock(leaf, root, HostPort, MobilePort).GetString("reason"));
+            Assert.IsNull(root.ParentShip); Assert.AreSame(root, child.ParentShip); Assert.AreSame(child, leaf.ParentShip);
+            Assert.AreEqual(before, root.SceneRoot.Transform);
+            Assert.IsTrue(DockingManager.TryConnectedMembers(leaf, out var members, out _));
+            Assert.AreEqual(3, members.Count);
+            root.DockedShips.Add(child);
+            Assert.IsFalse(DockingManager.TryConnectedMembers(leaf, out _, out _));
+            var other = new FakeShip(new FakeRoot());
+            Assert.IsFalse(DockingManager.Dock(other, child, HostPort, MobilePort).GetBool("success"));
+            Assert.AreSame(root, child.ParentShip, "invalid source graph remains unmodified");
+        }
+
         static readonly GdDict HostPort = new GdDict { { "position", new Vec3(22f, 0f, 0f) }, { "facing", new Vec3(1f, 0f, 0f) } };
         static readonly GdDict MobilePort = new GdDict { { "position", new Vec3(2f, 0f, 0f) }, { "facing", new Vec3(1f, 0f, 0f) } };
 

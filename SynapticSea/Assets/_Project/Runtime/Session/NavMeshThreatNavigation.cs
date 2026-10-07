@@ -41,9 +41,11 @@ namespace SynapticSea.Runtime.Session
         public bool HasNavMesh => Ship != null && Ship.HasNavMesh;
 
         /// <summary>The active ship changed (boot, travel, reload): its NavMesh carries the threats from now on.</summary>
-        public void SetShip(ShipNavMesh ship)
+        public void SetShip(ShipNavMesh ship) => SetShip(ship, false);
+
+        public void SetShip(ShipNavMesh ship, bool rebind)
         {
-            if (Ship == ship) return;
+            if (!rebind && Ship == ship) return;
             Ship = ship;
             // The old ship's agents are meaningless on the new mesh; they are re-made where the threats now stand.
             foreach (NavMeshAgent agent in _agents.Values)

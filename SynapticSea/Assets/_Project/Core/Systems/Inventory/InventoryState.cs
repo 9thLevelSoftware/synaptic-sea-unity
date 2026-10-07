@@ -33,18 +33,30 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>item_id: String -> quantity: int</summary>
         public GdDict Items { get; set; } = new GdDict();
+        /// <summary>Actual player inventory debits, including cargo transfers; not synonymous with consumption.</summary>
+        public event Action<string,long> ItemsRemoved;
 
         /// <summary>Added by worn containers (set by the coordinator).</summary>
         public double BonusCapacity = 0.0;
 
         /// <summary>Saved kg from worn containers (set by the coordinator).</summary>
         public double WeightReduction = 0.0;
+        /// <summary>Diagnostic owner projection; unique equipment is never represented in Items.</summary>
+        public Func<double> ComponentMass;
+        public Func<string, bool> RejectAnonymousComponent;
 
         GdDict _definitions = new GdDict(); // item_id -> def Dictionary (merged)
 
         public InventoryState()
         {
             LoadDefinitions();
+        }
+
+        // Admission-local proof reconstruction only. The owner supplies detached merged
+        // definitions and keeps them private; this model never mutates definitions.
+        internal InventoryState(GdDict normalizedDefinitions)
+        {
+            _definitions = normalizedDefinitions ?? throw new System.ArgumentNullException(nameof(normalizedDefinitions));
         }
 
         void LoadDefinitions()
@@ -87,7 +99,7 @@ namespace SynapticSea.Core.Systems
             double total = 0.0;
             foreach (var kv in Items)
                 total += GetWeightEach(V.Str(kv.Key)) * V.F64(kv.Value);
-            return total;
+            return total + (ComponentMass?.Invoke() ?? 0.0);
         }
 
         public long GetQuantity(string itemId) => V.I64(Items.Get(itemId, 0L));
@@ -99,6 +111,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public long AddItem(string itemId, long qty)
         {
+            if (RejectAnonymousComponent?.Invoke(itemId) == true) return 0;
             if (string.IsNullOrEmpty(itemId) || qty <= 0)
                 return 0;
             long current = GetQuantity(itemId);
@@ -118,6 +131,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public bool CanAccept(string itemId, long qty)
         {
+            if (RejectAnonymousComponent?.Invoke(itemId) == true) return false;
             if (string.IsNullOrEmpty(itemId) || qty <= 0)
                 return true;
             return (MaxStack(itemId) - GetQuantity(itemId)) >= qty;
@@ -125,6 +139,7 @@ namespace SynapticSea.Core.Systems
 
         public long RemoveItem(string itemId, long qty)
         {
+            if (RejectAnonymousComponent?.Invoke(itemId) == true) return 0;
             if (qty <= 0)
                 return 0;
             long current = GetQuantity(itemId);
@@ -135,6 +150,7 @@ namespace SynapticSea.Core.Systems
                 Items.Erase(itemId);
             else
                 Items[itemId] = current - removed;
+            ItemsRemoved?.Invoke(itemId,removed);
             return removed;
         }
 

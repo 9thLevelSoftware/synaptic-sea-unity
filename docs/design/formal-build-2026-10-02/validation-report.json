@@ -1,0 +1,244 @@
+{
+  "schema": "synaptic-design-validation-3",
+  "utc": "2026-10-02T08:42:22.746219+00:00",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "approved_implementation_baseline": "15b09d778763c5725c16d56df3244a0ab317d0c0",
+  "observed_current_head": "6ec9e5262f1997aef748f907ffee44801ac5f885",
+  "status": "PASS",
+  "scope": "Documentation/reference validation with attributed bounded engineering; no product tests run by this task or campaign claim",
+  "counts": {
+    "work_packages": 24,
+    "planned_tests": 39,
+    "trace_rows": 62,
+    "recipes": 62,
+    "classes": 11,
+    "protected_files": 3264,
+    "markdown_files": 21
+  },
+  "checks": [
+    "work/test/requirement IDs, acyclic dependencies and current tracked file/symbol references",
+    "bounded revision3 test ownership and F03->F05 assembly dependency",
+    "C6 early kernel/record provider ancestors, retained F04 dependency, A37/A38 real assemblies/scoped XML and provisional default boundaries",
+    "all23 primary findings,8 integrated findings,6 retained negatives and21 v7 diagnostics mapped to work/tests",
+    "all62 recipe dispositions,17 missing inputs,31 sourceless items,11 forms and corrected11 class matrix",
+    "markdown links, required files and placeholder scan",
+    "3264 authoring baseline hashes checked; 10 admitted concurrent protected changes and 0 unadmitted changes observed without restoring/rebaselining"
+  ],
+  "errors": [],
+  "preservation": {
+    "authoring_baseline_retained": true,
+    "unchanged_protected_count": 3254,
+    "concurrent_engineering_mode": true,
+    "changed_protected": [
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Services/Storage.cs",
+        "authoring_sha256": "d193b26c82545c92b7e3e5b083c6d2685a384368905257cd40a12d56e0bccc6e",
+        "observed_sha256": "661ca7c1b9535158cb1ab96c42817c0e362e54de0bc4494ee7ee9ee86e401876",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Session/Interactables/CraftingStation.cs",
+        "authoring_sha256": "ebe8cedc9223b27a6d2421553672f03c972d01b969787de9f8b17509f9377240",
+        "observed_sha256": "c86b686fd8e706b7cbe7163f307623c5b0b54eca1130232e61fdca0e673e42f8",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.Build.cs",
+        "authoring_sha256": "05a538676f339c1de56eefbee2f13370b3d31841dd6fa35a70f969873020b64d",
+        "observed_sha256": "28e5b40e5091d4347bb6ef74ddfb39f48f0f3de6df81e62b0d6377a8be91b5b3",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+        "authoring_sha256": "88ed3a420b3d57f45fb3e3f7e23faf975ca5e3d64b9f523164a1c791fa95814f",
+        "observed_sha256": "52256c140cb0ee33de03d8eae498cf8a025933a8f7b99ff41b420661dae13371",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.Save.cs",
+        "authoring_sha256": "0bd6c54c566d6472dd93e8c6ecab4126653a091e436286080de6b3b8b00c73eb",
+        "observed_sha256": "3c4008bf90c3102c78fcead0e5a72114e16f01a2276c9c4e0ebed795a16af097",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+        "authoring_sha256": "0699961da69a04ce2a66c5ad763ae0c9047330ab67bfed05579e70e4d867f607",
+        "observed_sha256": "626dcf75dcf418606f46eb1749eeb0386ebf3e5113cd7b4d3a198bf51df326e5",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Session/WorldSnapshotAssembler.cs",
+        "authoring_sha256": "0d2197c18f392a7a97f2026ebd7b96189c39aaf81a0217e51a64047b2415f556",
+        "observed_sha256": "1375d766b5bf39dedb1b5d96c353f3a183dd1d921c5acc8b6af9c6ac9569b19d",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Systems/Infra/DependencyValidator.cs",
+        "authoring_sha256": "d831a4f04084a361278f93e62799ea797b25bcd4085f4ca885da2a8f4dd2e421",
+        "observed_sha256": "8d6b54ce58ac50a3393914a0652fdc843228ec363b69b130663125ab34f46ff4",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Systems/Save/SaveLoadService.cs",
+        "authoring_sha256": "c7ce35eb2e682be4738eadeb42653a1841de03539eae913472f6639185d6efef",
+        "observed_sha256": "88862b2c13946fc13c2db4f8c2805c36238eb9694d437c0997fdaec44e7a56ee",
+        "in_admitted_scope": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/UI/Panels/RecipePickerPanel.cs",
+        "authoring_sha256": "d10a6301ab562b37c404f18a87a48562535089c7898a2dcce495a22e36e8459c",
+        "observed_sha256": "2c757345f32b5826775f30d83b37539877c8a4ec9ce77061880a435b2430579d",
+        "in_admitted_scope": true
+      }
+    ],
+    "new_product_files": [
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Systems/Infra/CatalogSourceValidator.cs",
+        "observed_sha256": "721d6c6980b8da4fbbf6ded86ab4e56229545b6598770de1bba4dd5ab9d4ab26",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Core/Systems/Infra/CatalogSourceValidator.cs.meta",
+        "observed_sha256": "accc26d01bd4fb99c6ce705260701fa9e43824c2c6a5b160d583ff9c1df8926a",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/StationTierCraftingTests.cs",
+        "observed_sha256": "9c2a5cb0aad595da062d0425831467facae6adbc69f6c80f3d9d9b126e31b03c",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/StationTierCraftingTests.cs.meta",
+        "observed_sha256": "293033e915ac18f3334b85439a0dd2f75fca0a38ccff277a7e13aba483f7088b",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkLocalityTests.cs",
+        "observed_sha256": "5e08b3de24eb898deb0e6538e7107b2bc8c125f4c35ff732647da1b5a1005295",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkLocalityTests.cs.meta",
+        "observed_sha256": "b36dc88174d24e7d8996364c31b749843250fb1810080f87285c4a3af8c725be",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkRestoreTests.cs",
+        "observed_sha256": "a779ec92cbec1ca4506fd8b605d223d96f026cccdce77c9fce1b970d24ce76ce",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Session/WorkRestoreTests.cs.meta",
+        "observed_sha256": "f7bfca2c74872365c3815273311aa95317fcc3a0b56b38079054d74508cba895",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Infra/CatalogSourceValidatorTests.cs",
+        "observed_sha256": "5fa1397bc4837f0ebca00108870eaa9886843b0595b40509cacb1c874ddbdb08",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Infra/CatalogSourceValidatorTests.cs.meta",
+        "observed_sha256": "4f770455f1ec9706de2a15bdc3067a2a5d2d372897c0bfec095d77824e261cb2",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Save/SaveCommitRecoveryTests.cs",
+        "observed_sha256": "48b5b4375dfc41e20426e2e518b1c1c71d86b8b973a14d9dbdf095d75e64d170",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Save/SaveCommitRecoveryTests.cs.meta",
+        "observed_sha256": "5594fd9cc5bd454fbe6ee4e74baf7aa504a70a90312d1ec3755ad4cc24c9cb0c",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/StationTierRecipePickerTests.cs",
+        "observed_sha256": "2abd1cf10a07c90c466722912bb7a2ca397dae715d431181a2fd31e15aaff6bd",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/StationTierRecipePickerTests.cs.meta",
+        "observed_sha256": "07e46a5f7e7c9b3feae3416b81cab7b46b49863006af912b6b54806d82f60886",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/WorkUiIntegrationTests.cs",
+        "observed_sha256": "12041d6797a3c5e1798ca1dee14058d562adb602c3cd1db06ee7610a0bc33c42",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/WorkUiIntegrationTests.cs.meta",
+        "observed_sha256": "fb4a1d64d04690ef39d4738a116c2cf8d33e5051f91a563b97d8cc7a3b50cf23",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/PlayMode/WorkSessionPlayModeTests.cs",
+        "observed_sha256": "c0d80608510405a970ed2566064294a4c2b1dc245a7ccb9b12762b8254672346",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "SynapticSea/Assets/_Project/Tests/PlayMode/WorkSessionPlayModeTests.cs.meta",
+        "observed_sha256": "29aae10ab1069a080026dd6e16ccb2105d47e5ef414014eeceb7857a5fd72b70",
+        "in_admitted_scope": true,
+        "tracked": true
+      }
+    ],
+    "new_engineering_evidence_files": [
+      {
+        "path": "docs/implementation/foundation-bounded-2026-10-02-verification.json",
+        "observed_sha256": "31ea45145bf9fc66d9e8efae05f4e725aef0760b0bff81b5ab23b8c6b00e6584",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "docs/implementation/foundation-bounded-2026-10-02.md",
+        "observed_sha256": "aecf78596e34fa36461f1aa962fd461492acdca4389904a3210e3f2bf857c65e",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "docs/implementation/station-tier-2026-10-02-verification.json",
+        "observed_sha256": "6f825516ee26fc93bcb7fe58fbb85794933fe62ee5796aae97444d0de3aead5d",
+        "in_admitted_scope": true,
+        "tracked": true
+      },
+      {
+        "path": "docs/implementation/station-tier-2026-10-02.md",
+        "observed_sha256": "8f317e7fd3d6db0e7bfb85087f1f4a997ad8e8bcfef7b127adbd1fcf7eaad1aa",
+        "in_admitted_scope": true,
+        "tracked": true
+      }
+    ],
+    "staged_paths": [],
+    "product_changes_written_by_planning_task": false
+  },
+  "remaining_review_gates": [
+    "C6 targeted closure ready for final review; C1-C5 independently cleared",
+    "Selected provisional numerical defaults require measured survival and all-class route evidence, not additional owner balance approval",
+    "Production descriptor/root/occupancy and authored-row anchor qualification remain required",
+    "Broader time/atmosphere/succession/offline/colony/economy choices remain open",
+    "Supplementary Library helper metadata unavailable on Windows"
+  ],
+  "documentation_status": "PASS",
+  "prior_bounded_implementation_baseline": "a52a347b30c406e5beedd120f0ed7d46b49a5e97",
+  "documentation_errors": [],
+  "preservation_status": "PASS"
+}

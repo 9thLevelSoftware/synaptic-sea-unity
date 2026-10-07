@@ -1,0 +1,69 @@
+{
+  "schema": "synaptic-design-provenance-1",
+  "status": "draft_for_user_review",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "observed_current_head": "6ec9e5262f1997aef748f907ffee44801ac5f885",
+  "date": "2026-10-02",
+  "audit_baseline": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "approved_implementation_baseline": "15b09d778763c5725c16d56df3244a0ab317d0c0",
+  "prior_bounded_implementation_baseline": "a52a347b30c406e5beedd120f0ed7d46b49a5e97",
+  "approved_product_commits": [
+    "c68c3fe80c322c213b076ffdd1f588596097d1cf",
+    "e062f00386c4ce789dc2a481a5a33568902ff85a",
+    "52027d3e8cf31a699c4a4f2b94ea0b7cb571462c"
+  ],
+  "bounded_engineering_evidence": {
+    "path": "docs/implementation/foundation-bounded-2026-10-02.md",
+    "verification": "docs/implementation/foundation-bounded-2026-10-02-verification.json",
+    "core_passed": 919,
+    "edit_passed": 1204,
+    "edit_vendor_environment_skipped": 17,
+    "selected_play_passed": 14,
+    "attribution": "Independently approved parent engineering, not tests run by this documentation task; no native/campaign/all-class/multifile acceptance"
+  },
+  "station_tier_evidence": {
+    "commit": "15b09d778763c5725c16d56df3244a0ab317d0c0",
+    "path": "docs/implementation/station-tier-2026-10-02.md",
+    "verification": "docs/implementation/station-tier-2026-10-02-verification.json",
+    "core_passed": 937,
+    "edit_passed": 1229,
+    "edit_vendor_environment_skipped": 17,
+    "selected_play_passed": 14,
+    "anchor_probe_2": "one empty-container diagnostic passed; production descriptor/root/occupancy and earned/native walking remain unqualified",
+    "attribution": "Parent engineering evidence, not executions by this documentation task; narrower than full F07"
+  },
+  "concurrent_engineering": {
+    "thread_id": "01a0fb2d-7661-723d-be69-35572c2ab0f9",
+    "authorized_scope": "Parent admitted narrow F01 validator, current F04 locality/hold, existing F05 replacement/temp recovery. Documentation task does not mutate/restore product changes or rebaseline them."
+  },
+  "published_main_as_audited": "8dcc95c10ab5e08658546319f51f49b4abd256fc",
+  "published_main_check": "carried from deep audit; no fresh remote query in documentation stage",
+  "authoring_ahead_count_as_audited": 27,
+  "observed_ahead_count_verified": 33,
+  "origin_verified": "F:\\repos\\synaptic-sea-unity",
+  "companion_local_verified": "00735856e4d06e5823608e0ab77832a992baf098",
+  "embedded_companion": "01230d84c895c13fdb744df98d5b39724c35ba44",
+  "audit_v7_source_fingerprint": "616ee6edca894ea1ecb54036612baa251aa3e527e3010d79d12c1756c131ac3e",
+  "audit_v7_result_hash": "dff82e95ee10bd3ac9c98b9c95b8c029ef1c56b0375f380d536628b8eaeb900f",
+  "evidence_counts": {
+    "generation_model_probes": 643,
+    "core_provisioned_diagnostics": 21,
+    "gpu_play_fixtures": 6,
+    "targeted_edit_fixtures": 28,
+    "inventoried_files": 2911,
+    "inventoried_nonmeta": 1542,
+    "exact_catalog_symbol_files": 61,
+    "nonmeta_without_reconciled_exact_symbols": 1481
+  },
+  "library_reference": {
+    "library_file_id": "libfile_2ab6994b66b88191a01fa7250b603dbe",
+    "file_id": "file_00000000b2e081f5a13a5eaaca963f4c",
+    "file_name": "synaptic-sea-report-companion.zip",
+    "version": 0,
+    "expected_bytes": 78623,
+    "status": "not_materialized",
+    "limit": "Current Library transfer helper fails on Windows: os.setxattr unavailable; required metadata not applied; no alternate transfer used"
+  },
+  "repo_instructions": "No applicable AGENTS.md/.agents found in checkout/ancestor locations; docs/design, TickOrder and InteractionOrder conventions retained.",
+  "write_scope": "New design/planning documents only; no product/balance/save/asset/audit/ref mutation"
+}

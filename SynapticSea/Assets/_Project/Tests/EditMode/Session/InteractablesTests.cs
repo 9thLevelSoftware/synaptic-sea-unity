@@ -10,12 +10,119 @@ namespace SynapticSea.Tests.Session
     /// <summary>Behavior checks for the engine-free interaction nodes (scripts/tools/*.gd, scripts/interaction/*.gd).</summary>
     public class InteractablesTests
     {
+        IEngineInfo _previousEngine;
         static readonly Vec3 Here = Vec3.Zero;
+        sealed class TestPortal : IAuthoredPortal
+        {
+            public bool IsValid => true;
+            public string PortalId => "test-door";
+            public string Kind = "DOOR";
+            public string PortalKind => Kind;
+            public bool IsExterior => false;
+            public bool IsOpen { get; private set; }
+            public Vec3 GlobalPosition { get; set; }
+            public string RequiredFlag() => Kind == "LOCKED" ? "lockpick" : "";
+            public bool IsInRange(Vec3 position) => GlobalPosition.DistanceSquaredTo(position) <= 2.2 * 2.2;
+            public GdDict TryInteract(GdDict flags, Vec3 position)
+            {
+                if (!IsInRange(position)) return new GdDict { { "ok", false } };
+                IsOpen = !IsOpen;
+                return new GdDict { { "ok", true }, { "open", IsOpen } };
+            }
+            public void RestorePersistentState(bool unlocked, bool open) => IsOpen = open;
+        }
+
+        [TestCase(0f)]
+        [TestCase(90f)]
+        [TestCase(180f)]
+        public void HatchSightPointLiesOutsideItsOwnFaceInTheOwningHullFrame(float yaw)
+        {
+            var root=new SynapticSea.Tests.Systems.FakeRoot{Transform=new Xform3(Basis3.FromAxisAngle(Vec3.Up,yaw*(float)System.Math.PI/180),new Vec3(100,0,200))};
+            var hatch=new SealedHatch{Parent=root};hatch.Configure("gate",SealedHatch.MECHANICAL,Vec3.Zero);
+            var player=root.GlobalTransform*new Vec3(0,.15,1.35);
+            var face=SessionMath.AffineInverse(root.GlobalTransform)*hatch.InteractionSightPoint(player);
+            Assert.AreEqual(.26,face.Z,.0001,"ray stops outside the .2m blocker face");Assert.AreEqual(0,face.X,.0001);
+            Assert.IsFalse(hatch.TryBypass(player,new GdDict()).GetBool("ok"),"a visible hatch still requires its tool flag");
+        }
+
+        [Test]
+        public void LockedPortalYieldsToReachableSuppliesWithoutUnlockingIt()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            var supplies = session.LootContainers[0];
+            session.Scene.PlayerPosition = supplies.GlobalPosition;
+            var locked = new TestPortal { Kind = "LOCKED", GlobalPosition = supplies.GlobalPosition };
+            ((FakeLoaderView)session.CurrentShip.SceneRoot).Portals.Add(locked);
+            Assert.IsNull(session.FocusedAuthoredPortal(session.Scene.PlayerPosition));
+            Assert.IsFalse(locked.IsOpen, "changing focus never opens or unlocks the door");
+            supplies.SetSearched(true);
+            Assert.AreSame(locked, session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "retain lock feedback when no ordinary target remains");
+            supplies.SetSearched(false);
+            session.CurrentShip.AuthoredUnlockedPortalIds.Add(locked.PortalId);
+            Assert.AreSame(locked, session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "an already unlocked closed door can be opened normally");
+        }
+
+        [Test]
+        public void ClosedDoorTakesPriorityButOpenDoorYieldsToRoomSupplies()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            var supplies = session.LootContainers[0];
+            session.Scene.TeleportPlayer(supplies.GlobalPosition);
+            var portal = new TestPortal { GlobalPosition = supplies.GlobalPosition };
+            ((FakeLoaderView)session.CurrentShip.SceneRoot).Portals.Add(portal);
+            Assert.AreSame(portal, session.FocusedAuthoredPortal(session.Scene.PlayerPosition));
+            Assert.AreEqual("authored_portal", session.RequestInteract(), "closed door wins over the room's supplies");
+            Assert.IsTrue(portal.IsOpen);
+            Assert.IsNull(session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "the same target selection yields to usable supplies");
+            session.Scene.TeleportPlayer(portal.GlobalPosition + new Vec3(3, 0, 0));
+            Assert.IsNull(session.FocusedAuthoredPortal(session.Scene.PlayerPosition), "no remote door toggles");
+        }
+
+        [Test]
+        public void HomeDoorStateSurvivesWorldAndManualSnapshotReload()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            session.HomeShip.AuthoredOpenPortalIds.Add("opened-door");
+            session.HomeShip.AuthoredUnlockedPortalIds.Add("unlocked-door");
+            var snapshot = RunSnapshotAssembler.Build(session);
+            Assert.IsTrue(snapshot.ToDict().Has("home_portal_state"));
+            Assert.IsTrue(session.RequestSave());
+            session.HomeShip.AuthoredOpenPortalIds.Clear();
+            session.HomeShip.AuthoredUnlockedPortalIds.Clear();
+            Assert.IsTrue(session.RequestLoad());
+            Assert.IsTrue(session.HomeShip.AuthoredOpenPortalIds.Contains("opened-door"));
+            Assert.IsTrue(session.HomeShip.AuthoredUnlockedPortalIds.Contains("unlocked-door"));
+            Assert.IsTrue(session.ApplyManualSlot(snapshot));
+            Assert.IsTrue(session.HomeShip.AuthoredOpenPortalIds.Contains("opened-door"));
+        }
+
+        [Test]
+        public void AuthoredDeckTransferRequiresReachAndAValidLanding()
+        {
+            var rig = SessionHarness.CreateGolden();
+            RunSession session = rig.Session;
+            session.RefreshDeckTransitions();
+            Assert.AreEqual(2, session.DeckTransitions.Count, "one bidirectional authored link");
+            var up = session.DeckTransitions[0];
+            Assert.IsFalse(up.InReach(up.GlobalPosition + new Vec3(0, 4, 0)), "adjacent decks cannot overlap into a transfer");
+            session.Scene.TeleportPlayer(up.GlobalPosition);
+            session.Deps.ResolveDeckLanding = (_, __) => null;
+            session.RequestInteract();
+            Assert.AreEqual(up.GlobalPosition, session.Scene.PlayerPosition, "a blocked landing cannot teleport the player");
+            session.Deps.ResolveDeckLanding = (target, _) => target;
+            session.RequestInteract();
+            Assert.AreEqual("deck_transition", session.LastInteractHandlerId);
+            Assert.AreEqual(up.Destination, session.Scene.PlayerPosition);
+            session.RefreshDeckTransitions();
+            Assert.AreEqual(2, session.DeckTransitions.Count, "refresh does not duplicate landing nodes");
+        }
         static readonly Vec3 Far = new Vec3(10f, 0f, 0f);
 
         [SetUp]
         public void SetUp()
         {
+            _previousEngine = CoreServices.Engine;
+            CoreServices.Engine = new FixedEngineInfo(SessionHarness.GodotVersion);
             CatalogRegistry.Clear();
             CoreServices.Resources = new FileSystemResourceReader(Fixtures.StreamingDataRoot);
             WorkActionChannel.ResetSharedCatalog();
@@ -24,6 +131,7 @@ namespace SynapticSea.Tests.Session
         [TearDown]
         public void TearDown()
         {
+            CoreServices.Engine = _previousEngine;
             WorkActionChannel.ResetSharedCatalog();
             CatalogRegistry.Clear();
         }
@@ -38,6 +146,73 @@ namespace SynapticSea.Tests.Session
             sub.RequiredTools = new List<string>();
             sub.MinSkill = 0;
             return ship;
+        }
+
+        [Test]
+        public void BlockedRepairYieldsToAnActionableRepairAndKeepsItsRealSkillGate()
+        {
+            var rig = SessionHarness.CreateGolden();
+            var session = rig.Session;
+            var manager = BrokenReactorShip();
+            manager.GetSystem("power").GetSubcomponent("battery_cells").Health = 0;
+            var inventory = new InventoryState();
+            inventory.AddItem("reactor_core", 1);
+            inventory.AddItem("power_cell", 1);
+            var at = new Vec3(800, 0, 800);
+            var blocked = new RepairPoint();
+            var ready = new RepairPoint();
+            blocked.Configure("power", "reactor_core", manager, inventory, session.PlayerProgression, at, 4,
+                session.PlayerProgression.GetSkillLevel("repair") + 1);
+            ready.Configure("power", "battery_cells", manager, inventory, session.PlayerProgression, at, 4, 0);
+            session.RepairPoints.Clear();
+            session.RepairPoints.Add(blocked);
+            session.RepairPoints.Add(ready);
+            session.Scene.PlayerPosition = at;
+            Assert.IsFalse(blocked.CanBeginRepair());
+            Assert.IsTrue(ready.CanBeginRepair());
+            Assert.IsFalse(session.CanFocusInteractable(blocked));
+            Assert.IsTrue(session.CanFocusInteractable(ready));
+            Assert.AreEqual("repair_point", session.RequestInteract());
+            Assert.IsTrue(ready.Channeling);
+            Assert.IsFalse(blocked.Channeling);
+            ready.Free();
+            Assert.IsTrue(session.CanFocusInteractable(blocked), "retain blocked feedback when no actionable repair remains");
+        }
+
+        [Test]
+        public void BlockedRepairDoesNotHideReachableSupplies()
+        {
+            var session = SessionHarness.CreateGolden().Session;
+            var cache = session.LootContainers[0];
+            var blocked = new RepairPoint();
+            blocked.Configure("power", "reactor_core", BrokenReactorShip(), new InventoryState(), null, cache.GlobalPosition, 4, 0);
+            session.RepairPoints.Clear();
+            session.RepairPoints.Add(blocked);
+            session.Scene.PlayerPosition = cache.GlobalPosition;
+            Assert.IsFalse(blocked.CanBeginRepair());
+            Assert.IsFalse(session.CanFocusInteractable(blocked));
+            Assert.IsTrue(session.CanFocusInteractable(cache));
+            cache.SetSearched(true);
+            Assert.IsTrue(session.CanFocusInteractable(blocked), "the denied repair remains inspectable after supplies are searched");
+        }
+
+        [Test]
+        public void InteractionChoosesNearestLootRatherThanInsertionOrder()
+        {
+            var session = new RunSession(new RunSessionDeps());
+            var inventory = new InventoryState();
+            var far = new LootContainer();
+            var near = new LootContainer();
+            far.Configure("far", "", "far", inventory, new GdDict(), new Vec3(1.5, 0, 0), lootContext: new GdDict { { "contents", new GdArray() } });
+            near.Configure("near", "", "near", inventory, new GdDict(), new Vec3(0.5, 0, 0), lootContext: new GdDict { { "contents", new GdArray() } });
+            far.SetValidationPlayerInRange();
+            near.SetValidationPlayerInRange();
+            session.LootContainers.Add(far);
+            session.LootContainers.Add(near);
+            Assert.AreEqual("loot_container", session.RequestInteract());
+            Assert.IsTrue(near.Searched);
+            Assert.IsFalse(far.Searched);
+            Assert.IsFalse(session.CanFocusInteractable(near));
         }
 
         [Test]

@@ -276,6 +276,27 @@ namespace SynapticSea.Tests.Unity
             Assert.AreEqual(2, container.childCount);
         }
 
+        [Test]
+        public void WorldLabelsRespectWallsAndDecksWhileFocusedFeedbackRemainsReadable()
+        {
+            var cameraNode = new GameObject("LabelCamera"); _objects.Add(cameraNode);
+            var camera = cameraNode.AddComponent<Camera>(); camera.orthographic = true; camera.orthographicSize = 12;
+            camera.transform.position = new Vector3(0,10,-15); camera.transform.LookAt(new Vector3(0,1,2));
+            var wall = GameObject.CreatePrimitive(PrimitiveType.Cube); _objects.Add(wall);
+            wall.layer = PhysicsLayers.Structure; wall.transform.position = new Vector3(0,1.5f,2); wall.transform.localScale = new Vector3(4,3,0.2f);
+            Physics.SyncTransforms();
+            var layer = new WorldLabelLayer();
+            layer.Set("behind_wall", "Other room", () => new Vector3(0,1.3f,4),Color.white,false);
+            layer.Set("upper_deck", "Upper room", () => new Vector3(0,5.3f,0),Color.white,false);
+            layer.Set("local", "Local supply", () => new Vector3(1,1.3f,0),Color.white,false);
+            layer.Set("focused_interaction", "E Interact", () => new Vector3(0,1.3f,4),Color.white,false);
+            layer.Update(camera,Vector3.zero);
+            Assert.IsFalse(layer.Get("behind_wall").Shown); Assert.IsFalse(layer.Get("upper_deck").Shown);
+            Assert.IsTrue(layer.Get("local").Shown); Assert.IsTrue(layer.Get("focused_interaction").Shown);
+            wall.SetActive(false); Physics.SyncTransforms(); layer.Update(camera,Vector3.zero);
+            Assert.IsTrue(layer.Get("behind_wall").Shown,"labels restore when the physical obstruction is gone");
+        }
+
         // ------------------------------------------------------------------ D2 component markers
 
         [Test]
@@ -333,6 +354,12 @@ namespace SynapticSea.Tests.Unity
         {
             SessionHarness.Rig rig = Boot();
             RunSession s = rig.Session;
+            foreach (ThreatAIState threat in s.ThreatManager.Threats)
+            {
+                threat.RoomId = s.ResolvePlayerRoom(rig.Scene.PlayerPosition);
+                Vec3 position = rig.Scene.PlayerPosition + new Vec3(1, 0, 0);
+                threat.WorldPosition = GdArray.Of((double)position.X, (double)position.Y, (double)position.Z);
+            }
             var root = new GameObject("threats");
             _objects.Add(root);
             var view = new ThreatPlaceholderView(root.transform);

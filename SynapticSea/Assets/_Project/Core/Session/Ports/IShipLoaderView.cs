@@ -43,6 +43,9 @@ namespace SynapticSea.Core.Session
 
         bool IsExterior { get; }
 
+        bool IsOpen { get; }
+        bool IsInRange(Vec3 playerPosition);
+
         /// <summary><c>portal.required_flag()</c>.</summary>
         string RequiredFlag();
 

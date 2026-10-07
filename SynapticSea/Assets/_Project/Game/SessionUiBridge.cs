@@ -64,6 +64,14 @@ namespace SynapticSea.Game
         public readonly ShipModificationPanel ShipMod = new ShipModificationPanel();
         public readonly ChartPanel Chart = new ChartPanel();
         public readonly RecipePickerPanel RecipePicker = new RecipePickerPanel();
+        public readonly NearbyWorkPickerPanel NearbyWorkPicker = new NearbyWorkPickerPanel();
+        public Button NearbyWorkAction { get; private set; }
+        SessionComponentHost _componentHost;
+        bool _workPickerRequestInProgress;
+        GdDict _deferredWorkRecipe;
+        TerminalSaveRetryPanel _terminalSaveRetry;
+        public SurfacePanel TerminalSaveRetry => _terminalSaveRetry;
+        string _transferShipId = "", _transferCartId = "", _transferLabel = "";
 
         public const string NoWebChartText = "No web chart";
         public const string ShipModUnavailableText = "Ship modification unavailable";
@@ -121,6 +129,11 @@ namespace SynapticSea.Game
         public void BindSessionEvents(RunSession session)
         {
             _session = session;
+            if (session.ComponentIntegrationEnabled)
+            {
+                _componentHost = new SessionComponentHost(session);
+                session.ComponentDomainChanged += RefreshComponentPanels;
+            }
             SessionEvents e = session.Events;
             e.TrackerObjectivesSet += specs => Hud.Objective?.SetObjectives(specs);
             e.TrackerCompleted += seq => Hud.Objective?.MarkCompleted(seq);
@@ -205,6 +218,14 @@ namespace SynapticSea.Game
                 session.TutorialState,
                 session.SettingsState);
             Coordinator.ConfigureFromData(Accessibility);
+            if (session.ComponentIntegrationEnabled)
+            {
+                Coordinator.SaveSlots.FullSave = session.RequestSaveToSlot;
+                Coordinator.SaveSlots.SaveFailureReason = () => session.LastSaveResult.GetString("reason");
+                Coordinator.SaveSlots.SelectGeneration = session.SaveLoadService.SelectGeneration;
+                Coordinator.SlotGenerationSelected += (_, selection) => AfterLoad(session.ApplySelectedGeneration(selection));
+                Coordinator.OpenOriginalSaveRequested += OpenOriginalSave;
+            }
             // B1: adopt the stored preferences before any handler is subscribed, so nothing re-saves defaults. The copy is
             // kept (and follows later changes): the session's SettingsState may be the app's own instance, which a save
             // restore overwrites in memory.
@@ -224,11 +245,19 @@ namespace SynapticSea.Game
             if (_pendingTooltip != null) Coordinator.SetTooltipQuery(_pendingTooltip);
             if (_hotbarText != null) Hud.Vitals?.SetWeaponLine(_hotbarText);
 
-            Coordinator.SaveRequested += () => session.RequestSave();
+            Coordinator.SaveRequested += () =>
+            {
+                bool saved = session.RequestSave();
+                if (!saved && session.ComponentIntegrationEnabled) Deny(SaveSlotScreenModel.FailureMessage(session.LastSaveResult.GetString("reason"), true));
+            };
             Coordinator.LoadRequested += () => AfterLoad(session.RequestLoad());
             Coordinator.WorldLoadRequested += () => AfterLoad(session.RequestLoad());
             Coordinator.QuitRequested += session.QuitToTitle;
-            Coordinator.SaveAndExitRequested += session.SaveAndExit;
+            Coordinator.SaveAndExitRequested += () =>
+            {
+                session.SaveAndExit();
+                if (session.ComponentIntegrationEnabled && !session.LastSaveResult.GetBool("ok")) Deny(SaveSlotScreenModel.FailureMessage(session.LastSaveResult.GetString("reason"), true));
+            };
             Coordinator.SettingsChanged += OnSettingsChanged;
             Coordinator.SlotSnapshotLoaded += (slotId, snapshot) => AfterLoad(session.ApplyManualSlot(snapshot));
             Coordinator.LanguageChanged += OnLanguageChanged;
@@ -238,17 +267,83 @@ namespace SynapticSea.Game
             Inventory.PanelClosed += () => OnInspectionClosed(Inventory);
             Inventory.TransferCompleted += session.OnInventoryTransferCompleted;
             Inventory.UseRequested += (itemId, useAll) => session.UseConsumableItem(itemId, useAll);
+            Inventory.ManualStudyEnabled = session.ManualStudyEnabled;
+            Inventory.ManualViewRequested += book => Inventory.ShowManualText(session.ViewManual(book));
+            Inventory.StudyRequested += book => {
+                bool pause = session.ManualStudyRunning && session.GetManualStudyState().GetDictOrEmpty("job").GetString("book_id") == book;
+                Inventory.Close();
+                GdDict result = pause ? session.PauseManualStudy("paused") : session.RequestManualStudy(book);
+                if (!result.GetBool("committed")) Deny("Study: " + result.GetString("reason"));
+            };
             Wounds.SetAudioManager(Audio);
             Wounds.Bind(new SessionWoundHost(session));
             Wounds.PanelClosed += () => OnInspectionClosed(Wounds);
             Scanner.Bind(new SessionScannerHost(session, Audio));
             Scanner.PanelClosed += () => OnInspectionClosed(Scanner);
             ShipMod.PanelClosed += () => OnInspectionClosed(ShipMod);
-            ShipMod.InstallRequested += (slot, component, form) => session.OnShipModInstalled(component, form);
-            ShipMod.UninstallRequested += (slot, component, form) => session.OnShipModUninstalled(component, ShipMod.GetInventoryBag());
+            if (!session.ComponentIntegrationEnabled)
+            {
+                ShipMod.InstallRequested += (slot, component, form) => session.OnShipModInstalled(component, form);
+                ShipMod.UninstallRequested += (slot, component, form) => session.OnShipModUninstalled(component, ShipMod.GetInventoryBag());
+            }
+            else
+            {
+                Inventory.BindComponents(_componentHost);
+                ShipMod.BindComponents(_componentHost);
+                Inventory.ComponentInstallRequested += instanceId =>
+                {
+                    if (Inventory.IsOpen()) Inventory.Close();
+                    ShipMod.OpenForComponent(instanceId); Show(ShipMod);
+                };
+                ShipMod.ComponentWorkStarted += result =>
+                {
+                    if (ShipMod.IsOpen()) ShipMod.Close();
+                    Router?.ApplyGameplayGate();
+                    Hud.ShowToast("Component work started. Hold Interact to continue; release pauses.", Severity.Info);
+                };
+                if (host != null) host.ComponentPickerRequested += OpenComponentTarget;
+            }
             Chart.PanelClosed += () => OnInspectionClosed(Chart);
             RecipePicker.Bind(new SessionRecipeHost(session, Audio));
             RecipePicker.PanelClosed += () => OnInspectionClosed(RecipePicker);
+            NearbyWorkPicker.ListTargets = session.ListNearbyWorkTargets;
+            NearbyWorkPicker.DescribeTarget = session.DescribeWorkTarget;
+            NearbyWorkPicker.RequestTarget = target =>
+            {
+                _deferredWorkRecipe = null;
+                _workPickerRequestInProgress = target is CraftingStation station && station.StationKind == "workbench";
+                try
+                {
+                    return host != null ? host.RequestWorkTargetFromPicker(target)
+                        : new GdDict { { "ok", false }, { "reason", "not_ready" } };
+                }
+                catch
+                {
+                    _deferredWorkRecipe = null;
+                    throw;
+                }
+                finally { _workPickerRequestInProgress = false; }
+            };
+            NearbyWorkPicker.PanelClosed += () => OnInspectionClosed(NearbyWorkPicker);
+            NearbyWorkPicker.WorkResolved += result =>
+            {
+                GdDict recipe = _deferredWorkRecipe;
+                _deferredWorkRecipe = null;
+                if (result.GetBool("opened"))
+                {
+                    // The chooser has closed before the normal station event reaches the recipe modal.
+                    if (recipe != null && recipe.GetString("station_kind") == result.GetString("station_kind"))
+                        OnPanelRequested("recipe_picker", recipe);
+                    return;
+                }
+                if (!result.GetBool("started")) return;
+                // UI confirmation is never a held world Interact press.
+                session.EndWorkHold();
+                Router?.ApplyGameplayGate();
+                Hud.ShowToast("Selected work started.", Severity.Info);
+            };
+            NearbyWorkAction = UiFactory.Button("Choose nearby work", OpenNearbyWorkPicker, "action:nearby_work");
+            Inventory.CloseAction.parent.Insert(0, NearbyWorkAction);
 
             Router = new UiInputRouter(Input, Coordinator.Stack, Coordinator.HandleUiInput);
             Router.PanelToggleRequested += OnPanelToggle;
@@ -275,6 +370,14 @@ namespace SynapticSea.Game
         /// <summary>Per-frame UI work (before the session tick): input routing, the vitals cluster and status icons.</summary>
         public void Tick()
         {
+            if (_session?.ComponentIntegrationEnabled == true)
+            {
+                RefreshTerminalSaveRetry();
+                if (Inventory.IsOpen()) Inventory.RefreshComponents();
+                if (ShipMod.IsOpen()) ShipMod.Refresh();
+            }
+            NearbyWorkPicker.Refresh();
+            RefreshPrompt();
             Router?.Tick();
             if (_session?.VitalsModel != null && Hud.Vitals != null) Hud.Vitals.Refresh(_session.VitalsModel);
             if (Hud.Vitals != null && Time.unscaledTime >= _nextEffectRefresh)
@@ -284,7 +387,52 @@ namespace SynapticSea.Game
             }
         }
 
-        void RefreshPrompt() => Hud.SetContextPrompt(_focusPrompt.Length > 0 ? _focusPrompt : _objectivePrompt);
+        void RefreshPrompt()
+        {
+            string prompt = _focusPrompt.Length > 0 ? _focusPrompt : _objectivePrompt;
+            if (_session?.ListNearbyWorkTargets().Count > 0)
+                prompt += (prompt.Length > 0 ? "\n" : "") + "Inventory → Choose nearby work";
+            Hud.SetContextPrompt(prompt);
+        }
+
+        void RefreshTerminalSaveRetry()
+        {
+            if (_session == null || Coordinator == null || Results != null) return;
+            bool pending = _session.LastSaveResult?.GetBool("terminal_pending") == true;
+            if (!pending || _terminalSaveRetry != null) return;
+            _terminalSaveRetry = new TerminalSaveRetryPanel(() =>
+            {
+                _session.EndRun("death");
+                // A successful retry emits the existing completion event. A refusal keeps this same reachable action.
+                if (_session.LastSaveResult?.GetBool("terminal_pending") == true)
+                    Deny("Saving the death record failed. Retry to finish this run.");
+            });
+            Coordinator.MenuState.CloseAll();
+            Coordinator.OpenInspection(_terminalSaveRetry);
+        }
+
+        sealed class TerminalSaveRetryPanel : SurfacePanel
+        {
+            readonly Action _retry;
+            readonly Button _button;
+            public TerminalSaveRetryPanel(Action retry) : base("COMPONENT DIAGNOSTIC — SAVE FAILED", SurfaceTime.Terminal)
+            {
+                _retry = retry;
+                Body.Add(UiFactory.Text("Saving the death record failed. Retry to finish this run.", UiClasses.LabelSecondary));
+                _button = UiFactory.Button("Retry saving death record", () => _retry(), "terminal:retry_save");
+                Body.Add(_button);
+                UiFactory.SetShown(CloseButton, false);
+                SetViewVisible(true);
+            }
+            public override string SurfaceId => "terminal_save_retry";
+            protected override void RequestClose() { }
+            protected override VisualElement InitialFocusElement() => _button;
+            protected override bool OnCommand(UiCommand command)
+            {
+                if (command == UiCommand.Accept) _retry();
+                return true;
+            }
+        }
 
         static List<string> ToStrings(GdArray values)
         {
@@ -356,7 +504,49 @@ namespace SynapticSea.Game
 
         void AfterLoad(bool loaded)
         {
-            if (loaded) ApplyPersistedPreferences();
+            if (loaded)
+            {
+                NearbyWorkPicker.Close();
+                ApplyPersistedPreferences();
+                if (_session?.ComponentIntegrationEnabled == true) RefreshComponentPanels(new GdDict());
+            }
+            else if (_session?.ComponentIntegrationEnabled == true) Deny(SaveSlotScreenModel.FailureMessage(_session.LastSaveResult.GetString("reason")));
+        }
+
+        void RefreshComponentPanels(GdDict _)
+        {
+            if (_componentHost == null) return;
+            if (Inventory.IsOpen())
+            {
+                if (Inventory.GetMode() == "transfer")
+                {
+                    CargoTransfer.ICargoHold hold = _transferShipId.Length != 0 ? _session.GetShipById(_transferShipId)?.GetInventory() : FindCart(_transferCartId)?.GetHold();
+                    if (hold != null) Inventory.RebindLiveModels(_session.InventoryState, _session.EquipmentState, hold);
+                    else Inventory.Close();
+                }
+                else Inventory.RebindLiveModels(_session.InventoryState, _session.EquipmentState);
+                Inventory.RefreshComponents();
+            }
+            if (ShipMod.IsOpen()) ShipMod.Refresh();
+        }
+
+        void OpenComponentTarget(string shipId, string slotId)
+        {
+            if (_componentHost == null || Coordinator == null) return;
+            if (Inventory.IsOpen()) Inventory.Close();
+            ShipMod.BindComponents(_componentHost);
+            ShipMod.OpenForTarget(shipId, slotId);
+            Show(ShipMod);
+        }
+
+        void OpenOriginalSave(string slotId)
+        {
+            RunLaunchRequest request = slotId == RunLaunchRequest.WorldSlotId ? RunLaunchRequest.ContinueWorld() : RunLaunchRequest.LoadSlot(slotId);
+            request.EnableComponentIntegration = false;
+            request.SelectedSaveGeneration = null;
+            RunLaunchRequest.Pending = request;
+            if (PlayableBootstrap.SceneLoader?.Invoke(RunLaunchRequest.PlayableSceneName) != true)
+            { RunLaunchRequest.Pending = null; Deny("The original save scene could not be opened"); }
         }
 
         // ------------------------------------------------------------------ run end (Godot title_main._show_run_results)
@@ -380,6 +570,12 @@ namespace SynapticSea.Game
         {
             _pendingCompletion = null;
             if (Results != null || Coordinator == null) return;
+            if (_terminalSaveRetry != null)
+            {
+                Coordinator.NotifyInspectionClosed(_terminalSaveRetry);
+                _terminalSaveRetry.RemoveFromHierarchy();
+                _terminalSaveRetry = null;
+            }
             RunSession s = _session;
             GdDict summary = (completion ?? new GdDict()).DeepCopy();
             if (s != null)
@@ -426,6 +622,7 @@ namespace SynapticSea.Game
         {
             Coordinator?.NotifyInspectionClosed(panel);
             if (panel == Inventory) Audio?.PlaySfx(AudioEventSeam.UI_INVENTORY_CLOSE);
+            if (panel == Inventory && _session?.ComponentIntegrationEnabled == true) _session.CloseComponentStorage();
             // _on_inventory_panel_closed / _unfreeze_player_after_panel.
             _session?.Scene?.SetPlayerFrozen(false);
         }
@@ -477,6 +674,10 @@ namespace SynapticSea.Game
                     {
                         ShipMod.Close();
                     }
+                    else if (_componentHost != null)
+                    {
+                        ShipMod.BindComponents(_componentHost); ShipMod.Open(); Show(ShipMod);
+                    }
                     else if (_session.ShipModificationState == null)
                     {
                         // B7: Godot returned silently; the player now hears and reads why nothing opened.
@@ -520,10 +721,21 @@ namespace SynapticSea.Game
             }
         }
 
+        /// <summary>Existing inventory navigation opens deliberate work selection; opening never starts work.</summary>
+        public void OpenNearbyWorkPicker()
+        {
+            if (_session == null || Coordinator == null || _session.SliceComplete) return;
+            if (!Inventory.IsOpen() || !ReferenceEquals(Coordinator.Stack.Top, Inventory)) return;
+            Inventory.Close();
+            NearbyWorkPicker.Open();
+            Show(NearbyWorkPicker);
+        }
+
         /// <summary><c>_open_inventory_self</c>.</summary>
         public void OpenInventorySelf()
         {
             if (_session?.InventoryState == null || Coordinator == null) return;
+            if (_componentHost != null) Inventory.BindComponents(_componentHost);
             Inventory.OpenSelf(_session.InventoryState, _session.EquipmentState);
             Show(Inventory);
             Audio?.PlaySfx(AudioEventSeam.UI_INVENTORY_OPEN);
@@ -543,11 +755,23 @@ namespace SynapticSea.Game
                     if (shipId.Length > 0) hold = _session.GetShipById(shipId)?.GetInventory();
                     else if (cartId.Length > 0) hold = FindCart(cartId)?.GetHold();
                     if (hold == null) return;
+                    _transferShipId = shipId; _transferCartId = cartId; _transferLabel = V.Str(args.Get("label", "HOLD"));
                     if (Inventory.IsOpen()) Inventory.Close();
+                    if (_componentHost != null)
+                    {
+                        string holderId = shipId.Length > 0 ? "ship_cargo:" + shipId : _session.GetComponentHolderIds().GetString("cart");
+                        Inventory.BindComponents(_componentHost, holderId);
+                    }
                     Inventory.OpenTransfer(_session.InventoryState, hold, V.Str(args.Get("label", "HOLD")), _session.EquipmentState);
+                    Inventory.BindBulkTransferGate(null);
                     Show(Inventory);
                     break;
                 case "recipe_picker":
+                    if (_workPickerRequestInProgress && args.GetString("station_kind") == "workbench")
+                    {
+                        _deferredWorkRecipe = args.DeepCopy();
+                        return;
+                    }
                     if (RecipePicker.IsOpen()) RecipePicker.Close();
                     RecipePicker.OpenForStation(V.Str(args.Get("station_kind", "")));
                     if (RecipePicker.IsOpen()) Show(RecipePicker);
@@ -587,10 +811,10 @@ namespace SynapticSea.Game
             switch (action)
             {
                 case "save_run":
-                    _session.RequestSave();
+                    if (!_session.RequestSave() && _session.ComponentIntegrationEnabled) Deny(SaveSlotScreenModel.FailureMessage(_session.LastSaveResult.GetString("reason"), true));
                     break;
                 case "quicksave_run":
-                    _session.RequestQuicksave();
+                    if (!_session.RequestQuicksave() && _session.ComponentIntegrationEnabled) Deny(SaveSlotScreenModel.FailureMessage(_session.LastSaveResult.GetString("reason"), true));
                     break;
                 case "load_run":
                     AfterLoad(_session.RequestLoad());
@@ -604,7 +828,9 @@ namespace SynapticSea.Game
             Devices?.Dispose();
             Devices = null;
             if (_session != null) _session.PlayableSliceCompleted -= OnSliceCompleted;
+            if (_session?.ComponentIntegrationEnabled == true) _session.ComponentDomainChanged -= RefreshComponentPanels;
             if (_host != null) _host.PlayerDamaged -= OnPlayerDamaged;
+            if (_host != null) _host.ComponentPickerRequested -= OpenComponentTarget;
             if (Router == null) return;
             Router.PanelToggleRequested -= OnPanelToggle;
 #if !SS_BUILD_RELEASE

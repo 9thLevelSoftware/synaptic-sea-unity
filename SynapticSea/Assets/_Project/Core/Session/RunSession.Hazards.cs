@@ -153,13 +153,19 @@ namespace SynapticSea.Core.Session
                 return;
             }
             double fireO2 = 0.0;
-            FireSuppressionState afsO2 = ActiveFireState();
+            // The scene's boarded context can remain the wreck while the player
+            // physically shelters aboard its independently simulated shuttle.
+            // Do not charge one vessel's fires against another vessel's air.
+            ShipInstance airOwner = PhysicalAirOwner();
+            FireSuppressionState afsO2 = airOwner == HomeShip && airOwner != null ? FireSuppressionState
+                : PhysicalAirInfrastructureAbsent() ? ActiveFireState() : airOwner?.GetFire();
             if (afsO2 != null)
                 fireO2 = FIRE_OXYGEN_DRAIN_PER_INTENSITY * afsO2.GetTotalIntensity();
             if (IsFieldSuitPressureActive())
             {
                 double authoredAtmosphereMultiplier = 1.0;
-                IShipLoaderView atmosphereLoader = AwayFromStart && CurrentShip != null ? CurrentShip.SceneRoot as IShipLoaderView : Loader;
+                IShipLoaderView atmosphereLoader = airOwner?.SceneRoot as IShipLoaderView
+                    ?? (PhysicalAirInfrastructureAbsent() ? Loader : null);
                 if (atmosphereLoader != null && atmosphereLoader.IsValid && HasPlayer)
                     authoredAtmosphereMultiplier = atmosphereLoader.GetAuthoredAtmosphereDrainMultiplierAt(ToLocal(atmosphereLoader, PlayerPos));
                 OxygenState.Tick(deltaSeconds, new GdDict
@@ -175,7 +181,7 @@ namespace SynapticSea.Core.Session
                 double suitBefore = OxygenState.Oxygen;
                 OxygenState.Tick(deltaSeconds, new GdDict
                 {
-                    { "player_in_breach_zone", !AwayFromStart && IsPlayerInBreachZone() },
+                    { "player_in_breach_zone", PhysicalHomeAtmosphereApplies() && IsPlayerInBreachZone() },
                     { "field_atmosphere", false },
                     { "fire_oxygen_drain", fireO2 },
                 });
@@ -195,11 +201,11 @@ namespace SynapticSea.Core.Session
 
         /// <summary>
         /// Unity port (decision 56): how fouled the home ship's air is, 0 (breathable) to 1 (the maximum atmosphere health
-        /// drain). 0 when away or when the suit reserve is disabled.
+        /// drain). Applies only while physically aboard home, or in a legacy session without vessel infrastructure.
         /// </summary>
         internal double HomeAtmosphereSeverity()
         {
-            if (AwayFromStart || Deps.HomeSuitAirReserveSeconds <= 0.0 || LifeSupportExpandedState == null)
+            if (!PhysicalHomeAtmosphereApplies() || Deps.HomeSuitAirReserveSeconds <= 0.0 || LifeSupportExpandedState == null)
                 return 0.0;
             double max = LifeSupportExpandedState.MaxAtmosphereHealthDrain;
             if (max <= 0.0)
@@ -219,21 +225,64 @@ namespace SynapticSea.Core.Session
             double severity = HomeAtmosphereSeverity();
             if (severity <= 0.0 || deltaSeconds <= 0.0 || OxygenState == null)
                 return;
-            double perSecond = severity * OxygenState.MaxOxygen / Deps.HomeSuitAirReserveSeconds * Math.Max(0.1, HomeHazardModifier());
+            double perSecond = severity * OxygenState.MaxOxygen / Deps.HomeSuitAirReserveSeconds * Math.Max(0.1, HomeDial(SynapticSea.Core.Procgen.DifficultyProfile.DIAL_HAZARD));
             double level = Math.Min(OxygenState.Oxygen, suitBefore);
             OxygenState.Oxygen = Math.Max(0.0, level - perSecond * deltaSeconds);
         }
 
-        /// <summary>True when suit O2 drains as hostile field atmosphere: aboard a derelict hull, not inside lifeboat/home.</summary>
+        /// <summary>A broad boarding box or stale occupancy is not proof of a vessel's physical deck air.</summary>
+        internal ShipInstance PhysicalAirOwner()
+        {
+            var ship = CurrentOccupancy;
+            if (ship == null || !HasPlayer || !RootValid(ship.SceneRoot)) return null;
+            Vec3 local = ToLocal(ship.SceneRoot, PlayerPos);
+            return AssemblyMobility.Floors(ship.BuiltLayout).Exists(c => System.Math.Abs(local.X - c.X) < 2.01
+                && System.Math.Abs(local.Z - c.Z) < 2.01 && local.Y >= c.Y - .25 && local.Y < c.Y + 3)
+                ? ship : null;
+        }
+
+        bool PhysicalAirInfrastructureAbsent() => HomeShip == null && LifeboatShip == null && CurrentShip == null;
+
+        bool PhysicalHomeAtmosphereApplies() => HomeShip != null ? PhysicalAirOwner() == HomeShip
+            : PhysicalAirInfrastructureAbsent() && !AwayFromStart;
+
+        bool AuthoredRoomAllowsShelter(ShipInstance ship, bool allowInitialHullAir)
+        {
+            var air = (ship.SceneRoot as IShipLoaderView)?.GetAuthoredAtmosphereAt(ToLocal(ship.SceneRoot, PlayerPos)) ?? new GdDict();
+            // Query only. Docking is not a conduit and explicit pressure is never rewritten or reseeded.
+            return !air.GetBool("vented") && !air.GetBool("depressurized")
+                && (!air.Has("oxygen_bp") || air.GetFloat("oxygen_bp") >= 10000
+                    || allowInitialHullAir && air.GetString("oxygen_source") == "initial_hull_condition_v1");
+        }
+
+        bool IndependentShelterServices(ShipInstance ship, bool allowInitialHullAir)
+        {
+            if (ship?.SystemsManager?.IsOperational("power") != true
+                || !ship.SystemsManager.IsOperational("life_support") || ship.GetHull().GetBreachCount() > 0
+                || (ship.Fire?.GetTotalIntensity() ?? 0) > 0) return false;
+            var localAir = (ship.SystemsManager.GetSystem("life_support") as LifeSupportSystem)?.OxygenState;
+            // Preserve the existing constrained-habitat admission. The independently commissioned boat also
+            // proves its own persisted oxygen reserve; local system health alone cannot stand in for actual air.
+            return (allowInitialHullAir || localAir != null && localAir.Oxygen >= localAir.SafeThreshold)
+                && AuthoredRoomAllowsShelter(ship, allowInitialHullAir);
+        }
+
+        internal bool OwnedRecoveryHabitatAir()
+        {
+            var ship = PhysicalAirOwner();
+            return ship != null && ship != HomeShip && ship != LifeboatShip && ship == CurrentShip
+                && ship.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
+                && ship.Blueprint.ShipCondition != (long)SynapticSea.Core.Procgen.ShipBlueprint.Condition.Wrecked
+                && ship.GetAccess().HasAccess(PLAYER_LOCAL_ID) && IndependentShelterServices(ship, true);
+        }
+
         bool IsFieldSuitPressureActive()
         {
-            if (!AwayFromStart)
-                return false;
-            if (LifeboatShip != null && CurrentOccupancy == LifeboatShip)
-                return false;
-            if (HomeShip != null && CurrentOccupancy == HomeShip)
-                return false;
-            return true;
+            var ship = PhysicalAirOwner();
+            if (ship == null) return PhysicalAirInfrastructureAbsent() ? AwayFromStart : true;
+            if (ship == HomeShip) return !AuthoredRoomAllowsShelter(ship, true);
+            if (ship == LifeboatShip) return !IndependentShelterServices(ship, false);
+            return !OwnedRecoveryHabitatAir();
         }
 
         /// <summary><c>_refresh_player_vitals(delta)</c>: feed the HUD vitals model and push its lines.</summary>

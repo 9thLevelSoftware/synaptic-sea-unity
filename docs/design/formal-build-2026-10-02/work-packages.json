@@ -1,0 +1,1261 @@
+{
+  "schema": "synaptic-work-plan-2",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "requirements": [
+    "REQ-01",
+    "REQ-02",
+    "REQ-03",
+    "REQ-04",
+    "REQ-05",
+    "REQ-06",
+    "REQ-07",
+    "REQ-08"
+  ],
+  "service_providers": {
+    "WorkEligibility": "F04A",
+    "WorkTransactionState": "F04A",
+    "IWorkCommitPort": "F04A",
+    "TrainingEventBus.RecordApplied": "F04A",
+    "DomainTransactionCoordinator": "F03",
+    "ManualStudyService": "F07",
+    "ShipAuxiliaryUtilityState": "F08"
+  },
+  "implementation_defaults": {
+    "status": "selected_for_provisional_implementation",
+    "authority": "Current parent instruction under user authorization to proactively build reviewed gaps",
+    "owner_approved_balance": false,
+    "accepted_gameplay": false,
+    "numerical_status": "Tunable hypotheses requiring measured survival and all-class routes; not owner-approved balance",
+    "value_sources": [
+      "amendments/f02-sources.md",
+      "amendments/f03-operability.md",
+      "amendments/f08-class-routes.md",
+      "contracts.md"
+    ],
+    "selections": [
+      "F02-A finite supplies and two recovery racks",
+      "F03-A separate-health cap and explicit paid legacy overhaul",
+      "Four useful auxiliary utility repairs",
+      "Retained timed manual study",
+      "Conservative legacy Keep paused/Abandon without output-refund/fully paid Start fresh"
+    ],
+    "migration_refusal_policy": "Never delete, overwrite or replace the original legacy save; retain exact bytes and parent for later recovery",
+    "unchanged_open_policies": [
+      "world time",
+      "death succession",
+      "offline/absent simulation",
+      "biomass colony",
+      "long-haul economy"
+    ]
+  },
+  "work_packages": [
+    {
+      "id": "F01",
+      "title": "Catalog/source validation",
+      "owner_subsystem": "foundation",
+      "status": "partially_implemented_bounded_scope",
+      "depends_on": [],
+      "acceptance_tests": [
+        "A01",
+        "A02"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemDefs.cs",
+          "symbol": "LoadDefinitions"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/DependencyValidator.cs",
+          "symbol": "VerifyCatalogSources"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/CatalogSourceValidator.cs",
+          "symbol": "LoadProductionCatalog"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/CatalogSourceValidator.cs",
+          "symbol": "NormalizeSources"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Build.cs",
+          "symbol": "GetCatalogSourceRegistrations"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Build.cs",
+          "symbol": "GetCatalogValidationReport"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "Bounded on-demand diagnostics delivered; finite sources/physical exposure remain pending",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A01",
+        "A02"
+      ],
+      "downstream_integration_tests": [],
+      "package_exit_scope": "Catalog/static and finite graph units; no normal acquisition claim",
+      "delivered_scope": {
+        "commit": "c68c3fe80c322c213b076ffdd1f588596097d1cf",
+        "scope": "Bounded on-demand catalog/source validator and actual registration normalization; no launch gate/content acquisition fix",
+        "future_scope": "Finite physical sources/exposure/quantities and class route closure"
+      },
+      "delivery_evidence": "docs/implementation/foundation-bounded-2026-10-02.md",
+      "full_package_acceptance": "pending"
+    },
+    {
+      "id": "F02",
+      "title": "Reachable source/tool/form amendment",
+      "owner_subsystem": "foundation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F01"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "symbol": "TryWorkActionInteract"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Procgen/GameplaySliceBuilder.cs",
+          "symbol": "Build"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "F02-A selected provisional supplies/recovery; descriptor/physical qualification and measured survival/routes before acceptance",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A01",
+        "A02"
+      ],
+      "downstream_integration_tests": [
+        "A11"
+      ],
+      "package_exit_scope": "Reviewed definition/source/quantity units; F07 supplies recipe parity and F09 physical witness",
+      "review_amendment": "docs/design/formal-build-2026-10-02/amendments/f02-sources.md"
+    },
+    {
+      "id": "F04A",
+      "title": "Shared work and applied-receipt primitives",
+      "owner_subsystem": "foundation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F01"
+      ],
+      "acceptance_tests": [
+        "A39"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/WorkActions/WorkActionDriver.cs",
+          "symbol": "Tick"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Progression/TrainingEventBus.cs",
+          "symbol": "ReplayInto"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Progression/PlayerProgressionState.cs",
+          "symbol": "GrantXp"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/WorkActions/IWorkCommitPort.cs",
+        "SynapticSea/Assets/_Project/Core/Systems/WorkActions/WorkEligibility.cs",
+        "SynapticSea/Assets/_Project/Core/Systems/WorkActions/WorkTransactionState.cs",
+        "SynapticSea/Assets/_Project/Tests/EditMode/Systems/WorkActions/WorkKernelTests.cs",
+        "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Progression/TrainingReceiptTests.cs"
+      ],
+      "review_gate": "Early engine-free kernel/port and RecordApplied; no concrete domain/session/utility dependency or live publication",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A39"
+      ],
+      "downstream_integration_tests": [
+        "A05",
+        "A06",
+        "A32",
+        "A36",
+        "A37",
+        "A38"
+      ],
+      "package_exit_scope": "Early WorkKernelTests/TrainingReceiptTests only with a fake port; live F03 atomic binding and F04/F07/F08 consumers remain downstream",
+      "proposed_modifications": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Progression/TrainingEventBus.cs",
+          "symbol": "RecordApplied",
+          "rule": "Record-only log and receipt-aware replay; no XP grant or concrete F07/F08 dependency"
+        }
+      ]
+    },
+    {
+      "id": "F03",
+      "title": "Instance/loot conservation",
+      "owner_subsystem": "foundation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F02",
+        "F04A"
+      ],
+      "acceptance_tests": [
+        "A03",
+        "A04",
+        "A31",
+        "A32",
+        "A36"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/InventoryState.cs",
+          "symbol": "AddItem"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/CargoTransfer.cs",
+          "symbol": "MoveItem"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/ComponentPlacementState.cs",
+          "symbol": "Mount"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/ComponentMountResolver.cs",
+          "symbol": "ResolveDismount"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/LootContainer.cs",
+          "symbol": "TryInteract"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/UI/Panels/InventoryPanel.cs",
+          "symbol": "OpenTransfer"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/UI/Panels/ShipModificationPanel.cs",
+          "symbol": "InstallFromInventory"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Game/SessionUiBridge.cs",
+          "symbol": "InstallRequested"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemInstanceState.cs",
+        "SynapticSea/Assets/_Project/Core/Systems/Inventory/ComponentTransferService.cs",
+        "SynapticSea/Assets/_Project/Core/Systems/Inventory/LegacyEquipmentReconciliationService.cs",
+        "SynapticSea/Assets/_Project/Core/Session/Interactables/LegacyOverhaulPoint.cs",
+        "SynapticSea/Assets/_Project/Core/Session/DomainTransactionCoordinator.cs"
+      ],
+      "review_gate": "Consume early F04A via port; F03-A and paid overhaul selected provisionally; preserve originals on refused F06 conversion",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A03",
+        "A04",
+        "A31",
+        "A32",
+        "A36"
+      ],
+      "downstream_integration_tests": [],
+      "package_exit_scope": "Model/serialization conservation, atomic faults/UI and paid resolution action; saved/preflight integration waits for F06, earned acquisition F09",
+      "review_amendment": "docs/design/formal-build-2026-10-02/amendments/f03-operability.md",
+      "interface_dependencies": [
+        {
+          "service": "WorkEligibility",
+          "provider": "F04A"
+        },
+        {
+          "service": "WorkTransactionState",
+          "provider": "F04A"
+        },
+        {
+          "service": "IWorkCommitPort",
+          "provider": "F04A"
+        },
+        {
+          "service": "TrainingEventBus.RecordApplied",
+          "provider": "F04A"
+        }
+      ]
+    },
+    {
+      "id": "F04",
+      "title": "Work session integration and commits",
+      "owner_subsystem": "foundation",
+      "status": "partially_implemented_bounded_scope",
+      "depends_on": [
+        "F01",
+        "F03",
+        "F04A"
+      ],
+      "acceptance_tests": [
+        "A05",
+        "A06",
+        "A32"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "symbol": "TickWorkAction"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/WorkActions/WorkActionDriver.cs",
+          "symbol": "Tick"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/RepairPoint.cs",
+          "symbol": "Complete"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "Retain downstream F03 dependency; integrate early F04A kernel with sole atomic owner, existing strict adapters and HUD",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A05",
+        "A06",
+        "A32"
+      ],
+      "downstream_integration_tests": [],
+      "package_exit_scope": "Work record/eligibility/atomic units; saved whole-world Continue phase waits for F06; narrow existing locality correction separable",
+      "delivered_scope": {
+        "commit": "e062f00386c4ce789dc2a481a5a33568902ff85a",
+        "scope": "Existing generic target/context/range and hold release; explicit restore input/HUD; strict repair/seal preserved",
+        "future_scope": "Owner-qualified transactional tickets, atomic multi-domain commits and new schema receipts"
+      },
+      "delivery_evidence": "docs/implementation/foundation-bounded-2026-10-02.md",
+      "full_package_acceptance": "pending",
+      "interface_dependencies": [
+        {
+          "service": "WorkEligibility",
+          "provider": "F04A"
+        },
+        {
+          "service": "WorkTransactionState",
+          "provider": "F04A"
+        },
+        {
+          "service": "IWorkCommitPort",
+          "provider": "F04A"
+        },
+        {
+          "service": "DomainTransactionCoordinator",
+          "provider": "F03"
+        }
+      ]
+    },
+    {
+      "id": "F05",
+      "title": "Durable save recovery",
+      "owner_subsystem": "foundation",
+      "status": "partially_implemented_bounded_scope",
+      "depends_on": [
+        "F01",
+        "F03"
+      ],
+      "acceptance_tests": [
+        "A07",
+        "A08",
+        "A34"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Services/Storage.cs",
+          "symbol": "FileSystemStorage"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Save/SaveLoadService.cs",
+          "symbol": "RecoverLegacyTemporary"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Save/SaveIndexState.cs",
+          "symbol": "SaveIndexState"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Save/PermadeathResolver.cs",
+          "symbol": "HasDiedIn"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/UI/Presenters/SaveSlotScreenModel.cs",
+          "symbol": "SnapshotBuilder"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Save/SaveCommitCoordinator.cs",
+        "SynapticSea/Assets/_Project/Core/Session/SavePayloadAssembler.cs"
+      ],
+      "review_gate": "Pure storage delivered narrowly; full assembly depends F03 committed bundle/revision; generations pending",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A07",
+        "A08",
+        "A34"
+      ],
+      "downstream_integration_tests": [],
+      "package_exit_scope": "Pure supplied-payload storage separable; full actual assembly waits for F03 revision; new schemas F06",
+      "delivered_scope": {
+        "commit": "52027d3e8cf31a699c4a4f2b94ea0b7cb571462c",
+        "scope": "Single-file flushed destination replacement and validated current-shape legacy temp recovery/death/reference scans",
+        "future_scope": "Complete multi-payload generations, F03-bound assembly, index/backup process-death recovery and new migration"
+      },
+      "delivery_evidence": "docs/implementation/foundation-bounded-2026-10-02.md",
+      "full_package_acceptance": "pending"
+    },
+    {
+      "id": "F06",
+      "title": "Migration and paused restore",
+      "owner_subsystem": "foundation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F03",
+        "F04",
+        "F05"
+      ],
+      "acceptance_tests": [
+        "A06",
+        "A09",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Save/SaveMigrationService.cs",
+          "symbol": "MigrateWorld"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Save.cs",
+          "symbol": "ApplyRunSnapshotInternal"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSnapshotAssembler.cs",
+          "symbol": "Build"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/WorldSnapshotAssembler.cs",
+          "symbol": "WorldSnapshotAssembler"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "Run7/world5 review; shipped unknown action/preflight and legacy unverified-payment UI required before conversion",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A06",
+        "A09",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36"
+      ],
+      "downstream_integration_tests": [],
+      "package_exit_scope": "Legacy/provisioned records, unverified craft UI, reachable unknown action/preflight and complete slots; A33 payment preservation only, recipe phases F07; no class journey"
+    },
+    {
+      "id": "F07",
+      "title": "Recipe tier/knowledge parity",
+      "owner_subsystem": "foundation",
+      "status": "partially_implemented_bounded_scope",
+      "depends_on": [
+        "F02",
+        "F06",
+        "F04A"
+      ],
+      "acceptance_tests": [
+        "A11",
+        "A33",
+        "A35",
+        "A38"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/CraftingStation.cs",
+          "symbol": "TryCraftRecipe"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "symbol": "ListStationRecipeEntries"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/RecipeKnowledgeState.cs",
+          "symbol": "LearnFromBook"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/CraftingState.cs",
+          "symbol": "BeginCraft"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/CraftingState.cs",
+          "symbol": "EnqueueCraft"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Progression/PlayerProgressionState.cs",
+          "symbol": "BooksRead"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Crafting/RecipeGateService.cs",
+        "SynapticSea/Assets/_Project/Core/Systems/Progression/ManualStudyService.cs"
+      ],
+      "review_gate": "Consume F04A RecordApplied/work before study, never F08; selected retained timed study and legacy policy remain measurable hypotheses",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A11",
+        "A33",
+        "A35",
+        "A38"
+      ],
+      "downstream_integration_tests": [],
+      "package_exit_scope": "Phase gate/exact paid-input continuation and retained study/legacy read; earned book source/input F09",
+      "delivered_scope": {
+        "commit": "15b09d778763c5725c16d56df3244a0ab317d0c0",
+        "scope": "Actual effective station tier forwarded through spatial listing/precheck/start and current rejection reasons; no new save fields/content",
+        "future_scope": "Knowledge/retained study, paid-input/queue/migration integration and earned upgrades"
+      },
+      "delivery_evidence": "docs/implementation/station-tier-2026-10-02.md",
+      "full_package_acceptance": "pending",
+      "interface_dependencies": [
+        {
+          "service": "WorkEligibility",
+          "provider": "F04A"
+        },
+        {
+          "service": "WorkTransactionState",
+          "provider": "F04A"
+        },
+        {
+          "service": "TrainingEventBus.RecordApplied",
+          "provider": "F04A"
+        },
+        {
+          "service": "DomainTransactionCoordinator",
+          "provider": "F03"
+        }
+      ]
+    },
+    {
+      "id": "F08",
+      "title": "All-class finite solo routes",
+      "owner_subsystem": "foundation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A02",
+        "A10",
+        "A37"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Build.cs",
+          "symbol": "ConfigurePlayerProgression"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Objectives.cs",
+          "symbol": "OnInteractableCompleted"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/BreachSealPoint.cs",
+          "symbol": "Complete"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/RepairPoint.cs",
+          "symbol": "PrecheckReason"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Progression/PlayerProgressionState.cs",
+          "symbol": "GrantXp"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Progression/TrainingEventBus.cs",
+          "symbol": "ReplayInto"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Session/BootstrapRouteValidator.cs",
+        "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/ShipAuxiliaryUtilityState.cs",
+        "SynapticSea/Assets/_Project/Core/Session/Interactables/AuxiliaryServicePoint.cs",
+        "SynapticSea/Assets/_Project/Runtime/Session/Views/AuxiliaryUtilityView.cs"
+      ],
+      "review_gate": "OPEN-06 named genuine hardware/raw adapter/eligible timing/finite recovery values; no XP fixtures or universal lethal-choice guarantee",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A02",
+        "A37"
+      ],
+      "downstream_integration_tests": [
+        "A10"
+      ],
+      "package_exit_scope": "Actual utility consumer/raw/XP/work-rest and finite class/order/recovery units; normal first-ship F09",
+      "review_amendment": "docs/design/formal-build-2026-10-02/amendments/f08-class-routes.md",
+      "interface_dependencies": [
+        {
+          "service": "WorkEligibility",
+          "provider": "F04A"
+        },
+        {
+          "service": "WorkTransactionState",
+          "provider": "F04A"
+        },
+        {
+          "service": "TrainingEventBus.RecordApplied",
+          "provider": "F04A"
+        },
+        {
+          "service": "DomainTransactionCoordinator",
+          "provider": "F03"
+        }
+      ]
+    },
+    {
+      "id": "F09",
+      "title": "Earned foundation acceptance",
+      "owner_subsystem": "foundation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F08",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A10",
+        "A11",
+        "A29",
+        "A31",
+        "A33",
+        "A35",
+        "A36",
+        "A37",
+        "A38"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Tests/PlayMode/PlayableScenePlayModeTests.cs",
+          "symbol": "PlayableScenePlayModeTests"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Tests/PlayMode/FoundationAcquisitionPlayModeTests.cs",
+        "SynapticSea/Assets/_Project/Tests/PlayMode/ClassBootstrapPlayModeTests.cs"
+      ],
+      "review_gate": "Normal no-grant paths, actual reconciliation/study/utility consumers and native evidence distinct",
+      "requirements": [
+        "REQ-01",
+        "REQ-02",
+        "REQ-07",
+        "REQ-08"
+      ],
+      "package_exit_tests": [
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A10",
+        "A11",
+        "A31",
+        "A33",
+        "A35",
+        "A36",
+        "A37",
+        "A38"
+      ],
+      "downstream_integration_tests": [
+        "A29"
+      ],
+      "package_exit_scope": "Normal earned journeys including actual manual/utility/recovery/legacy decision inputs; native first-ship subset. Legacy fixtures are explicitly labeled; full A29 accessibility remains P02/L01"
+    },
+    {
+      "id": "P01",
+      "title": "Truthful launch/caption/tutorial controls",
+      "owner_subsystem": "presentation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A12",
+        "A13"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/App/Title/TitleScreen.cs",
+          "symbol": "TitleScreen"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Game/SessionUiBridge.cs",
+          "symbol": "SessionUiBridge"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/UI/Hud/ObjectiveChip.cs",
+          "symbol": "Refresh"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/TutorialState.cs",
+          "symbol": "HasPendingBanner"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/UI/Hud/CaptionChannel.cs"
+      ],
+      "review_gate": "Actual displayed/scene behavior",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "P02",
+      "title": "Scene/audio/native lifecycle",
+      "owner_subsystem": "presentation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "P01",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A27",
+        "A29"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Runtime/Audio/AudioManager.cs",
+          "symbol": "AudioManager"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/App/Boot/AppServices.cs",
+          "symbol": "AppServices"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Runtime/Session/RunSessionHost.cs",
+          "symbol": "Boot"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "OPEN-11 before hardware certification; native audio witness",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "H01",
+      "title": "Per-vessel services",
+      "owner_subsystem": "habitat",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F06",
+        "F07",
+        "F09"
+      ],
+      "acceptance_tests": [
+        "A14"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "symbol": "BuildProductionStations"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.HomeExtension.cs",
+          "symbol": "ActivateBoardedContext"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/ShipInstance.cs",
+          "symbol": "GetSummary"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Travel/VesselServiceState.cs",
+        "SynapticSea/Assets/_Project/Core/Session/VesselServiceContext.cs"
+      ],
+      "review_gate": "Earned secondary equipment/local power; migration owner review",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "H02",
+      "title": "Typed boundaries and reconciliation",
+      "owner_subsystem": "topology",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F04",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A15",
+        "A22",
+        "A24"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/ModuleIntegrityMap.cs",
+          "symbol": "ModuleIntegrityMap"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Fire.cs",
+          "symbol": "BuildFireContext"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/BoundaryTopologyState.cs"
+      ],
+      "review_gate": "Internal/outside physical edit discriminator",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "H03",
+      "title": "Explicit service networks",
+      "owner_subsystem": "habitat",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "H01",
+        "H02"
+      ],
+      "acceptance_tests": [
+        "A16"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/HomeJoinPlanner.cs",
+          "symbol": "Validate"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.HomeExtension.cs",
+          "symbol": "CompleteHomeWork"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Travel/ServiceConnectionState.cs"
+      ],
+      "review_gate": "OPEN-02 atmosphere model before service transfer",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "M01",
+      "title": "Earned assemblies and reversible scouts",
+      "owner_subsystem": "mobility",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "H01",
+        "H02",
+        "F09"
+      ],
+      "acceptance_tests": [
+        "A17",
+        "A18"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/AssemblyMobility.cs",
+          "symbol": "Evaluate"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/DockingManager.cs",
+          "symbol": "DockingManager"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Travel.cs",
+          "symbol": "TravelHome"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "Earned install/departure/occupied detach and exact pose restore",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "S01",
+      "title": "Active working set/persistence scale",
+      "owner_subsystem": "simulation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F06",
+        "H01"
+      ],
+      "acceptance_tests": [
+        "A19"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Ships.cs",
+          "symbol": "AllKnownShips"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Tick.cs",
+          "symbol": "TickPresentShips"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/WorldSnapshotAssembler.cs",
+          "symbol": "Build"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Travel/ShipRegistry.cs"
+      ],
+      "review_gate": "OPEN-11 before budget claims; never erase visits",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "S02",
+      "title": "Explicit simulation cursors/policy",
+      "owner_subsystem": "simulation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "S01",
+        "H02"
+      ],
+      "acceptance_tests": [
+        "A20"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/ShipRuntime.cs",
+          "symbol": "CatchUp"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/ShipInstance.cs",
+          "symbol": "LastSimTime"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Travel/ShipSimulationPolicy.cs"
+      ],
+      "review_gate": "OPEN-01/03; separate OPEN-04 offline",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "S03",
+      "title": "Recovery/resource/age loops",
+      "owner_subsystem": "survival",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "H01",
+        "S02",
+        "F09"
+      ],
+      "acceptance_tests": [
+        "A21",
+        "A28"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Survival/VitalsState.cs",
+          "symbol": "Tick"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Survival/WoundState.cs",
+          "symbol": "WoundState"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Food/SpoilageState.cs",
+          "symbol": "SpoilageState"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "symbol": "RegisterFoodForSpoilage"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Systems/Food/ResourceFlowLedger.cs"
+      ],
+      "review_gate": "OPEN-09 resource/age amendment",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "G01",
+      "title": "Versioned reachable generated opportunities",
+      "owner_subsystem": "generation",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F02",
+        "H02"
+      ],
+      "acceptance_tests": [
+        "A24"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Procgen/ShipGenerator.cs",
+          "symbol": "ShipGenerator"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Procgen/FirstRunAwayGate.cs",
+          "symbol": "FirstRunAwayGate"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Runtime/Ship/RuntimeVisualCatalog.cs",
+          "symbol": "RuntimeVisualCatalog"
+        }
+      ],
+      "proposed_files": [
+        "SynapticSea/Assets/_Project/Core/Procgen/GameplayOpportunityValidator.cs"
+      ],
+      "review_gate": "Physical/damaged/furnished scope and no actual_seed metric",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "G02",
+      "title": "Companion release and runtime registration",
+      "owner_subsystem": "content_release",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "F06",
+        "G01"
+      ],
+      "acceptance_tests": [
+        "A25",
+        "A26"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Runtime/Session/RunSessionHost.cs",
+          "symbol": "CritterProductionLibrary"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Runtime/Session/Views/ThreatCreatureFactory.cs",
+          "symbol": "ThreatCreatureFactory"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "OPEN-13 selected release/library; unchanged crawler approval retained",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "S04",
+      "title": "Bounded biomass territory/resource",
+      "owner_subsystem": "biomass",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "H02",
+        "S02",
+        "S03",
+        "G01"
+      ],
+      "acceptance_tests": [
+        "A22",
+        "A23"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Combat/ThreatAIState.cs",
+          "symbol": "ThreatAIState"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Combat/SpatialPerceptionState.cs",
+          "symbol": "SpatialPerceptionState"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "Conditional OPEN-10 approval; no ML/full autonomy commitment",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "M02",
+      "title": "Travel/tow resource extension",
+      "owner_subsystem": "mobility",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "M01",
+        "S03"
+      ],
+      "acceptance_tests": [
+        "A30"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Travel.cs",
+          "symbol": "TravelHome"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/SeaGraph.cs",
+          "symbol": "SeaGraph"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "Conditional OPEN-09/12 exact cost/connector/tow rules",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "L01",
+      "title": "Long-haul release acceptance",
+      "owner_subsystem": "acceptance",
+      "status": "proposed_not_implemented",
+      "depends_on": [
+        "P02",
+        "H03",
+        "M01",
+        "S03",
+        "G01",
+        "G02"
+      ],
+      "acceptance_tests": [
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19",
+        "A20",
+        "A21",
+        "A22",
+        "A24",
+        "A25",
+        "A27",
+        "A28",
+        "A29",
+        "A30"
+      ],
+      "current_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Tests/PlayMode/RunLifecyclePlayModeTests.cs",
+          "symbol": "RunLifecyclePlayModeTests"
+        }
+      ],
+      "proposed_files": [],
+      "review_gate": "Written later plans + chosen campaign/hardware budget; G02/A25 and A28/A30 conditional feature scope explicitly deferred if unselected",
+      "requirements": [
+        "REQ-01",
+        "REQ-03",
+        "REQ-04",
+        "REQ-05",
+        "REQ-06",
+        "REQ-08"
+      ]
+    }
+  ]
+}

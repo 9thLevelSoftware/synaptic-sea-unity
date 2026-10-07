@@ -16,6 +16,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_build_run_snapshot(use_home_arc_summary)</c>; null when not started / complete / no save service.</summary>
         public static RunSnapshot Build(RunSession s, bool useHomeArcSummary = false)
         {
+            if (s.ComponentGenerationRestoreInProgress) return null;
             if (!s.PlayableStarted || s.SliceComplete)
                 return null;
             if (s.SaveLoadService == null)
@@ -146,6 +147,11 @@ namespace SynapticSea.Core.Session
             {
                 snapshot.HomeLootedContainers = s.HomeShip.LootedContainerIds.ShallowCopy();
                 snapshot.HomeShipInventory = s.HomeShip.GetInventory().GetSummary();
+                if (!s.HomeShip.FiniteLootSummary.IsEmpty) snapshot.HomeFiniteLoot = s.HomeShip.FiniteLootSummary.DeepCopy();
+                if (!s.HomeShip.AuthoredOpenPortalIds.IsEmpty || !s.HomeShip.AuthoredUnlockedPortalIds.IsEmpty)
+                    snapshot.HomePortalState = new GdDict {
+                        { "open", s.HomeShip.AuthoredOpenPortalIds.ShallowCopy() },
+                        { "unlocked", s.HomeShip.AuthoredUnlockedPortalIds.ShallowCopy() } };
                 // gate2-current-run-6: what only rode world.json, so a manual slot restores it too.
                 var carts = new GdArray();
                 foreach (CartState c in s.HomeShip.GetCarts())

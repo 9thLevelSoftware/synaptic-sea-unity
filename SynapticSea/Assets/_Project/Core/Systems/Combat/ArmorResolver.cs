@@ -36,6 +36,11 @@ namespace SynapticSea.Core.Systems
             double incoming = Math.Max(0.0, V.F64(@event.Get("amount", 0.0)));
             double flat = Math.Max(0.0, V.F64(((GdDict)profile.Get("flat_reduction", new GdDict())).Get(damageType, 0.0)));
             double resistance = GdMath.Clampf(V.F64(((GdDict)profile.Get("resistance", new GdDict())).Get(damageType, 0.0)), -0.9, 0.95);
+            if (V.F64(profile.Get("max_durability", 0.0)) > 0.0 && V.F64(profile.Get("durability", 0.0)) <= 0.0)
+            {
+                flat = 0.0;
+                resistance = Math.Min(0.0, resistance);
+            }
             double afterFlat = Math.Max(0.0, incoming - flat);
             double finalDamage = Math.Max(0.0, afterFlat * (1.0 - resistance));
             double absorbed = Math.Max(0.0, incoming - finalDamage);

@@ -1,0 +1,535 @@
+{
+  "critical_path": [
+    "airlock_01",
+    "corridor_02",
+    "corridor_03",
+    "reactor_06"
+  ],
+  "document_kind": "ship_gameplay_slice",
+  "fire_zones": [],
+  "goal_room": "reactor_06",
+  "loot_containers": [
+    {
+      "approach_cell": [
+        21,
+        10,
+        0
+      ],
+      "id": "container_35",
+      "kind": "suit_locker",
+      "loot_table": "worldgen_seeded",
+      "room_id": "airlock_01"
+    },
+    {
+      "approach_cell": [
+        21,
+        11,
+        0
+      ],
+      "id": "container_36",
+      "kind": "suit_locker",
+      "loot_table": "worldgen_seeded",
+      "room_id": "airlock_01"
+    },
+    {
+      "approach_cell": [
+        22,
+        7,
+        0
+      ],
+      "id": "container_37",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_04"
+    },
+    {
+      "approach_cell": [
+        21,
+        6,
+        0
+      ],
+      "id": "container_38",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_04"
+    },
+    {
+      "approach_cell": [
+        22,
+        5,
+        0
+      ],
+      "id": "container_39",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_04"
+    },
+    {
+      "approach_cell": [
+        16,
+        6,
+        0
+      ],
+      "id": "container_49",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "compartment_07"
+    },
+    {
+      "approach_cell": [
+        17,
+        6,
+        0
+      ],
+      "id": "container_50",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_09"
+    },
+    {
+      "approach_cell": [
+        19,
+        4,
+        0
+      ],
+      "id": "container_51",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_09"
+    },
+    {
+      "approach_cell": [
+        17,
+        4,
+        0
+      ],
+      "id": "container_52",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_09"
+    },
+    {
+      "approach_cell": [
+        19,
+        5,
+        0
+      ],
+      "id": "container_53",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_09"
+    },
+    {
+      "approach_cell": [
+        21,
+        3,
+        0
+      ],
+      "id": "container_56",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "compartment_11"
+    },
+    {
+      "approach_cell": [
+        22,
+        3,
+        0
+      ],
+      "id": "container_57",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_12"
+    },
+    {
+      "approach_cell": [
+        23,
+        5,
+        0
+      ],
+      "id": "container_58",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_12"
+    },
+    {
+      "approach_cell": [
+        23,
+        4,
+        0
+      ],
+      "id": "container_59",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_12"
+    },
+    {
+      "approach_cell": [
+        23,
+        7,
+        0
+      ],
+      "id": "container_61",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_13"
+    },
+    {
+      "approach_cell": [
+        23,
+        6,
+        0
+      ],
+      "id": "container_62",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_13"
+    },
+    {
+      "approach_cell": [
+        24,
+        7,
+        0
+      ],
+      "id": "container_63",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_13"
+    },
+    {
+      "approach_cell": [
+        8,
+        6,
+        0
+      ],
+      "id": "container_66",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_15"
+    },
+    {
+      "approach_cell": [
+        9,
+        6,
+        0
+      ],
+      "id": "container_67",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_15"
+    },
+    {
+      "approach_cell": [
+        8,
+        8,
+        0
+      ],
+      "id": "container_70",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_16"
+    },
+    {
+      "approach_cell": [
+        8,
+        9,
+        0
+      ],
+      "id": "container_71",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_16"
+    },
+    {
+      "approach_cell": [
+        8,
+        10,
+        0
+      ],
+      "id": "container_72",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_17"
+    },
+    {
+      "approach_cell": [
+        10,
+        10,
+        0
+      ],
+      "id": "container_73",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_17"
+    },
+    {
+      "approach_cell": [
+        9,
+        11,
+        0
+      ],
+      "id": "container_74",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_17"
+    },
+    {
+      "approach_cell": [
+        16,
+        4,
+        0
+      ],
+      "id": "container_79",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_18"
+    },
+    {
+      "approach_cell": [
+        15,
+        4,
+        0
+      ],
+      "id": "container_80",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_18"
+    },
+    {
+      "approach_cell": [
+        7,
+        6,
+        0
+      ],
+      "id": "container_82",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_19"
+    },
+    {
+      "approach_cell": [
+        6,
+        7,
+        0
+      ],
+      "id": "container_83",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_19"
+    },
+    {
+      "approach_cell": [
+        6,
+        6,
+        0
+      ],
+      "id": "container_84",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_19"
+    },
+    {
+      "approach_cell": [
+        7,
+        4,
+        0
+      ],
+      "id": "container_85",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_19"
+    },
+    {
+      "approach_cell": [
+        7,
+        10,
+        0
+      ],
+      "id": "container_88",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_20"
+    },
+    {
+      "approach_cell": [
+        9,
+        4,
+        0
+      ],
+      "id": "container_94",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_21"
+    },
+    {
+      "approach_cell": [
+        5,
+        4,
+        0
+      ],
+      "id": "container_97",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "compartment_22"
+    },
+    {
+      "approach_cell": [
+        4,
+        4,
+        0
+      ],
+      "id": "container_98",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "compartment_22"
+    },
+    {
+      "approach_cell": [
+        5,
+        7,
+        0
+      ],
+      "id": "container_99",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_23"
+    },
+    {
+      "approach_cell": [
+        4,
+        10,
+        0
+      ],
+      "id": "container_102",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_24"
+    },
+    {
+      "approach_cell": [
+        5,
+        7,
+        1
+      ],
+      "id": "container_103",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_25"
+    },
+    {
+      "approach_cell": [
+        7,
+        6,
+        1
+      ],
+      "id": "container_104",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_25"
+    },
+    {
+      "approach_cell": [
+        8,
+        5,
+        1
+      ],
+      "id": "container_105",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_25"
+    },
+    {
+      "approach_cell": [
+        6,
+        7,
+        1
+      ],
+      "id": "container_106",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_25"
+    },
+    {
+      "approach_cell": [
+        8,
+        9,
+        1
+      ],
+      "id": "container_107",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_26"
+    },
+    {
+      "approach_cell": [
+        6,
+        8,
+        1
+      ],
+      "id": "container_108",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_26"
+    },
+    {
+      "approach_cell": [
+        9,
+        5,
+        1
+      ],
+      "id": "container_111",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_27"
+    },
+    {
+      "approach_cell": [
+        10,
+        5,
+        1
+      ],
+      "id": "container_112",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_27"
+    },
+    {
+      "approach_cell": [
+        9,
+        7,
+        1
+      ],
+      "id": "container_113",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_27"
+    }
+  ],
+  "objectives": [
+    {
+      "approach_cell": [
+        17,
+        7,
+        0
+      ],
+      "approach_distance_cells": 1,
+      "cell": [
+        17,
+        7,
+        0
+      ],
+      "id": "reactor_06:reach_goal",
+      "interactable": false,
+      "kind": "single",
+      "room_id": "reactor_06",
+      "room_role": "reactor",
+      "semantic": "goal_room",
+      "sequence": 1,
+      "type": "reach_room"
+    }
+  ],
+  "program_id": "worldgen-freighter-42",
+  "schema_version": "1.1.0",
+  "start_room": "airlock_01",
+  "summary": "worldgen freighter seed 42 intactness 0.20 (Depressurization)"
+}

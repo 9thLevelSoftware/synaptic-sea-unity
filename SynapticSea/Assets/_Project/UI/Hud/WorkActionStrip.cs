@@ -20,6 +20,7 @@ namespace SynapticSea.UI
         string _verb = "";
         double _progress;
         string _status = "idle";
+        string _reason = "";
         double _noise;
         string _hint = DefaultHint;
 
@@ -75,6 +76,7 @@ namespace SynapticSea.UI
             _targetId = "";
             _progress = 0.0;
             _status = "idle";
+            _reason = "";
             Render();
         }
 
@@ -86,6 +88,7 @@ namespace SynapticSea.UI
             _verb = V.Str(state.Get("verb", ""));
             _progress = GdMath.Clampf(state.GetFloat("progress", 0.0), 0.0, 1.0);
             _status = V.Str(state.Get("status", "idle"));
+            _reason = ReasonText(state.GetString("block_reason"));
             _noise = System.Math.Max(0.0, state.GetFloat("noise", 0.0));
             if (state.Has("hint")) _hint = V.Str(state.Get("hint"));
             if (_status == "active" || _status == "completed")
@@ -114,6 +117,7 @@ namespace SynapticSea.UI
             lines.Add(title);
             if (_targetId.Length != 0) lines.Add("Target: " + _targetId);
             lines.Add("Status: " + _status);
+            if(_reason.Length!=0)lines.Add("Reason: "+_reason);
             lines.Add("Progress: " + ProgressBar(_progress) + " " + GdString.FormatInt(GdMath.RoundI(_progress * 100.0)) + "%");
             if (_noise > 0.0) lines.Add("Noise: " + GdString.FormatFixed(_noise, 2));
             if (_hint.Length != 0 && _status == "active") lines.Add(_hint);
@@ -137,12 +141,27 @@ namespace SynapticSea.UI
                 : _status == "completed" ? Severity.Success : Severity.None;
             _meter.Set(_progress * 100.0, 100.0, "%", sev == Severity.Caution ? Meter.Severity.Caution : Meter.Severity.Normal);
             string stateText = _status == "active" ? "" : _status;
-            _state.Set(stateText, sev);
+            _state.Set(stateText+(_reason.Length>0?": "+_reason:""), sev);
             var detail = new List<string>();
             if (_noise > 0.0) detail.Add("Noise " + GdString.FormatFixed(_noise, 2));
             if (_hint.Length != 0 && _status == "active" && !_compact) detail.Add(_hint);
             _detail.text = string.Join(" · ", detail);
             UiFactory.SetShown(_detail, detail.Count > 0);
+        }
+        static string ReasonText(string reason)
+        {
+            switch(reason)
+            {
+                case "exhausted":return "Exhausted. Rest before continuing.";
+                case "tool":return "Required tool missing.";
+                case "skill":return "Required work skill not reached.";
+                case "materials":case "materials_changed":return "Required materials missing.";
+                case "access":return "You do not have access to this vessel.";
+                case "left_work_site":return "Return within reach with a clear path to the work site.";
+                case "damage":return "Work interrupted by injury.";
+                case "conditions_changed":return "Work requirements changed. Check your tool, skill and access.";
+                default:return reason.Replace('_',' ');
+            }
         }
     }
 }

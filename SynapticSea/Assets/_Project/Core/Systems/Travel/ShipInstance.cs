@@ -49,6 +49,7 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>The layout dict scene_root was built from (for dock-port derivation).</summary>
         public GdDict BuiltLayout = new GdDict();
+        public GdDict Mobility = new GdDict();
 
         /// <summary>
         /// 5a: <c>ship_root</c> is the ship's positioned root — it IS scene_root, exposed under the docking-domain name.
@@ -136,6 +137,8 @@ namespace SynapticSea.Core.Systems
             return inst;
         }
 
+        public GdDict FiniteLootSummary = new GdDict();
+
         public GdDict GetSummary()
         {
             var bpDict = new GdDict();
@@ -151,6 +154,7 @@ namespace SynapticSea.Core.Systems
                 { "blueprint", bpDict },
                 { "systems", sysDict },
             };
+            if (!FiniteLootSummary.IsEmpty) result["finite_loot"] = FiniteLootSummary.DeepCopy();
             if (ObjectiveController != null)
                 result["objective"] = ObjectiveController.GetSummary();
             if (!LootedContainerIds.IsEmpty)
@@ -200,6 +204,7 @@ namespace SynapticSea.Core.Systems
                 result["module_integrity"] = ModuleIntegritySummary.DeepCopy();
             if (!ComponentPlacementSummary.IsEmpty)
                 result["component_placement"] = ComponentPlacementSummary.DeepCopy();
+            if (!Mobility.IsEmpty) result["mobility"] = Mobility.DeepCopy();
             return result;
         }
 
@@ -215,6 +220,15 @@ namespace SynapticSea.Core.Systems
         {
             if (!(summaryVariant is GdDict summary) || summary.IsEmpty)
                 return false;
+            GdDict finiteLoot = new GdDict();
+            if (summary.Has("finite_loot"))
+            {
+                if (!(summary.Get("finite_loot") is GdDict finite)) return false;
+                finiteLoot = FiniteLootState.Normalize(finite);
+                if (!FiniteLootState.Validate(finiteLoot, summary.GetString("ship_id"), out _)) return false;
+            }
+            FiniteLootSummary = finiteLoot;
+            if(summary.Get("mobility") is GdDict mobility) Mobility = mobility.DeepCopy();
             ShipId = V.Str(summary.Get("ship_id", ShipId));
             MarkerId = V.Str(summary.Get("marker_id", MarkerId));
             object bpDict = summary.Get("blueprint", null);

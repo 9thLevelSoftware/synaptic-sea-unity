@@ -17,12 +17,13 @@ namespace SynapticSea.Runtime.Session
     /// generated derelict never shows at the origin. Raises <see cref="RootAttached"/> / <see cref="RootFreed"/> for the
     /// scene views (atmosphere, sensors).
     /// </summary>
-    public sealed class UnityShipSceneHost : IShipSceneHost
+    public sealed class UnityShipSceneHost : IShipSceneHost, IPreparedHomeSceneHost
     {
         public readonly Transform SessionRoot;
 
         /// <summary>The current home loader (replaced on every reload).</summary>
         public ShipLoaderNode HomeLoader { get; private set; }
+        ShipLoaderNode _preparedEmptyHome;
 
         public readonly List<SceneShipRoot> Roots = new List<SceneShipRoot>();
 
@@ -67,6 +68,77 @@ namespace SynapticSea.Runtime.Session
             Physics.SyncTransforms();
             RootAttached?.Invoke(node);
             return node;
+        }
+
+        public IPreparedHome PrepareHome(ShipDocuments documents, IShipLoaderView expectedCurrentHome, out string reason)
+        {
+            reason = "prepared_home_invalid";
+            if (documents == null || documents.IsAway) return null;
+            ShipLoaderNode old = expectedCurrentHome as ShipLoaderNode;
+            if (expectedCurrentHome == null)
+            { if (HomeLoader != null || _preparedEmptyHome != null) return null; }
+            else if (old == null || old != HomeLoader || !old.IsValid || !Roots.Contains(old)) return null;
+            var selected = BuildShipScene(documents) as ShipLoaderNode;
+            if (selected == null || !selected.IsValid) return null;
+            if (old == null) _preparedEmptyHome = selected;
+            reason = ""; return new PreparedHome(this, old, selected);
+        }
+
+        sealed class PreparedHome : IPreparedHome
+        {
+            readonly UnityShipSceneHost _host;
+            readonly ShipLoaderNode _old, _selected;
+            readonly Transform _parent;
+            readonly bool _visible;
+            readonly Xform3 _transform;
+            bool _finished;
+            public IShipLoaderView PreparedLoader => _selected;
+            public bool IsAdopted { get; private set; }
+            public PreparedHome(UnityShipSceneHost host, ShipLoaderNode old, ShipLoaderNode selected)
+            {
+                _host = host; _old = old; _selected = selected;
+                if (old != null)
+                { _parent = old.GameObject.transform.parent; _visible = old.GameObject.activeSelf; _transform = old.Transform; }
+            }
+            public bool TryAdopt(out string reason)
+            {
+                reason = "prepared_home_invalid";
+                if (_finished || IsAdopted || _host.HomeLoader != _old || !_selected.IsValid ||
+                    (_old == null ? _host._preparedEmptyHome != _selected : !_old.IsValid || !_host.Roots.Contains(_old)) ||
+                    !_host.Roots.Contains(_selected) || _selected.IsInsideTree) return false;
+                IsAdopted = true; _host.HomeLoader = _selected;
+                if (_old != null) _old.GameObject.SetActive(false);
+                _host.AttachShipRoot(_selected);
+                reason = ""; return true;
+            }
+            public void RestoreRetainedHome()
+            {
+                if (_finished || _old != null && !_old.IsValid) throw new InvalidOperationException("retained_home_unavailable");
+                _host.HomeLoader = _old;
+                if (_old != null)
+                {
+                    _old.GameObject.transform.SetParent(_parent, false); _old.Transform = _transform;
+                    _old.GameObject.SetActive(_visible);
+                }
+                if (_selected.IsValid) _selected.GameObject.SetActive(false);
+                IsAdopted = false; Physics.SyncTransforms();
+            }
+            public void Commit()
+            {
+                if (_finished || !IsAdopted || _host.HomeLoader != _selected || !_selected.IsValid)
+                    throw new InvalidOperationException("prepared_home_not_adopted");
+                _finished = true;
+                if (_old == null) _host._preparedEmptyHome = null;
+                else _host.FreeShipRoot(_old);
+            }
+            public void Dispose()
+            {
+                if (_finished) return;
+                if (IsAdopted) RestoreRetainedHome();
+                _finished = true;
+                if (_old == null && _host._preparedEmptyHome == _selected) _host._preparedEmptyHome = null;
+                if (_selected.IsValid) _host.FreeShipRoot(_selected);
+            }
         }
 
         static bool IsUserPath(string path) => FileSystemResourceReader.IsUserPath(path);

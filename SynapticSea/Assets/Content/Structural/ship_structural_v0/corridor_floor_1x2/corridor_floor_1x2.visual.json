@@ -1,0 +1,10 @@
+{
+  "module_id": "corridor_floor_1x2",
+  "reason": "The legacy wrapper aliases all states to a 4x4 intact mesh, while this module's contract and collider span 4x8 metres. Bind the existing authored 4x8 intact export explicitly; preserve existing damaged and breached wrapper selections until reviewed.",
+  "variants": {
+    "Intact": "Assets/Content/Structural/ship_structural_v0/corridor_floor_1x2/corridor_floor_1x2_textured.glb"
+  },
+  "variant_offsets_m": {
+    "Intact": [0.0, -0.125, 0.0]
+  }
+}

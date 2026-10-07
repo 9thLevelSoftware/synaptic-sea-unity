@@ -381,9 +381,9 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         /// <summary>Travels to an in-range marker and back, checking the built derelict view, the kit and the re-peg.</summary>
-        IEnumerator TravelAndReturn(string markerId, string expectedKitId)
+        IEnumerator TravelAndReturn(string markerId, string expectedKitId, GdDict travelResult = null)
         {
-            GdDict result = _s.TravelToMarkerId(markerId);
+            GdDict result = travelResult ?? _s.TravelToMarkerId(markerId);
             Assert.IsTrue(result.GetBool("success"), "travel to " + markerId + ": " + GdJson.Stringify(result));
             yield return null;
             Assert.IsTrue(_s.AwayFromStart);
@@ -472,7 +472,22 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual("breach_field", V.Str(_s.FirstRunContract.Contract.Get("biome_id", "")));
             List<string> markers = _s.ScannableMarkerIds();
             Assert.IsNotEmpty(markers, "markers in scanner range");
-            yield return TravelAndReturn(markers[0], HazardKit);
+            GdDict firstTravel = null;
+            string firstMarker = null;
+            var denials = new List<string>();
+            foreach (string marker in markers)
+            {
+                firstTravel = _s.TravelToMarkerId(marker);
+                if (firstTravel.GetBool("success")) { firstMarker = marker; break; }
+                denials.Add(marker + ": " + firstTravel.GetString("reason"));
+                Assert.IsFalse(_s.AwayFromStart, "a rejected candidate cannot board a ship");
+            }
+            Assert.IsNotNull(firstMarker, "a scannable marker satisfies the first-away contract: " + string.Join(" | ", denials));
+            Assert.AreEqual("breach_field", _s.CurrentShip.BuiltLayout.GetString("biome_id"), "the contract controls the first-away biome");
+            var firstBlueprint = _s.CurrentShip.Blueprint;
+            var expectedFirst = _s.ShipGenerator.GenerateFromSeed(firstBlueprint.SeedValue, firstBlueprint.ShipSize, firstBlueprint.ShipCondition);
+            Assert.IsNotNull(expectedFirst, "the accepted first-away seed regenerates through the production route");
+            yield return TravelAndReturn(firstMarker, expectedFirst.Layout.GetString("kit_id"), firstTravel);
 
             // Later travels generate from the marker: a dead_fleet (industrial kit) and a hive-template (biomatter kit) derelict.
             var kitByMarker = new Dictionary<string, string>();
@@ -685,7 +700,9 @@ namespace SynapticSea.Tests.PlayMode
             _s.ThreatManager.InjectValidationEncounter(GdArray.Of(archetype), spot.Value - new Vec3(4f, 0f, 0f));
             Assert.AreEqual(1, _s.ThreatManager.Threats.Count, "validation encounter spawned");
             ThreatAIState threat = _s.ThreatManager.Threats[0];
+            threat.RoomId = _s.ResolvePlayerRoom(spot.Value);
             Vec3 at = new Vec3(V.F64(threat.WorldPosition[0]), V.F64(threat.WorldPosition[1]), V.F64(threat.WorldPosition[2]));
+            Player.FaceAttackDirection(at - player);
             Assert.Less(at.DistanceTo(spot.Value), 1e-3, "the threat stands on the chosen spot");
             return threat;
         }
@@ -730,6 +747,7 @@ namespace SynapticSea.Tests.PlayMode
             {
                 Assert.IsTrue(_boot.Host.GameplayInputAllowed || _s.SliceComplete, "input stays live while fighting");
                 yield return TapKey(keyboard, Key.F);
+                yield return new WaitForSeconds(0.6f);
             }
             CollectionAssert.Contains(killed, threat.InstanceId, "repeated attack_primary killed the stalker (health " + threat.Health + ")");
             Assert.IsFalse(_s.ThreatManager.Threats.Contains(threat), "the dead threat left the runtime");
@@ -832,6 +850,154 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator CameraWheelZoomHonorsTheGameplayGateAndFocusedLabelMatchesDispatch()
+        {
+            yield return BootPlayable(RunLaunchRequest.NewRun());
+            var rig = _boot.Host.SceneState.CameraRig;
+            var mouse = InputSystem.AddDevice<Mouse>();
+            yield return null;
+            InputSystem.QueueDeltaStateEvent(mouse.scroll, new Vector2(0, 120));
+            yield return null; yield return null;
+            Assert.AreEqual(6f, rig.TargetViewSize, "real mouse scroll input reaches the camera");
+            float zoomDeadline = Time.realtimeSinceStartup + 2f;
+            while (Mathf.Abs(rig.Camera.orthographicSize - 6f) > 0.01f && Time.realtimeSinceStartup < zoomDeadline) yield return null;
+            Assert.AreEqual(6f, rig.Camera.orthographicSize, 0.05f);
+            var previousGate = _boot.Host.GameplayInputBlocked;
+            _boot.Host.GameplayInputBlocked = () => true;
+            try
+            {
+                InputSystem.QueueDeltaStateEvent(mouse.scroll, new Vector2(0, -120));
+                yield return null; yield return null;
+                Assert.AreEqual(6f, rig.TargetViewSize, "menu scrolling cannot zoom the world");
+                Assert.IsFalse(_boot.Host.RequestCameraZoom(-120));
+            }
+            finally { _boot.Host.GameplayInputBlocked = previousGate; }
+            var objective = _s.GetInteractableBySequence(1);
+            _boot.Host.SceneState.TeleportPlayer(objective.GlobalPosition);
+            yield return FixedSteps(3);
+            Assert.IsTrue(_boot.Host.WorldLabels.Has("focused_interaction"));
+            var label = _boot.Host.WorldLabels.Get("focused_interaction");
+            Assert.IsTrue(label.Visible);
+            Assert.IsTrue(label.Anchor().HasValue);
+            Assert.IsFalse(string.IsNullOrEmpty(label.Text));
+            Assert.IsNotNull(rig.FocusAnchor);
+            Assert.Less(Vector3.Distance(label.Anchor().Value, rig.FocusAnchor.Value + Vector3.up * 1.2f), 0.001f);
+            Assert.IsNotNull(Player.transform.Find("PlayerMarker/PlayerOcclusionSilhouette"));
+        }
+
+        [UnityTest]
+        public IEnumerator CameraComparisonCapturesRealRoomsAtOwnerResolutionWithoutChangingGeometry()
+        {
+            yield return BootPlayable(RunLaunchRequest.NewRun());
+            yield return FixedSteps(15);
+            var rig = _boot.Host.SceneState.CameraRig;
+            Vector3 configuredOffset = rig.godotOffset;
+            var root = _boot.Host.ShipHost.HomeLoader.GameObject;
+            var colliders = root.GetComponentsInChildren<Collider>(true);
+            var initialColliderStates = colliders.ToDictionary(c => c, c => c.enabled);
+            var modules = root.GetComponentsInChildren<StructuralModule>(true);
+            var initialTransforms = modules.ToDictionary(m => m, m => (m.transform.position, m.transform.localScale));
+            rig.enabled = false;
+            rig.godotOffset = new Vector3(16, 18, 16); rig.SetViewSize(11); rig.SyncToTarget();
+            float oldHeight = CaptureCameraComparison(rig.Camera, "camera-before.png");
+            rig.godotOffset = configuredOffset; rig.SetViewSize(7); rig.enabled = true; rig.SyncToTarget();
+            yield return FixedSteps(20);
+            yield return new WaitForSecondsRealtime(0.35f);
+            float newHeight = CaptureCameraComparison(rig.Camera, "camera-after.png");
+            Assert.Greater(rig.Occlusion.ActiveRendererCount, 0, "foreground reveal must run on actual docked ship geometry");
+            Assert.Greater(newHeight, oldHeight * 1.4f, "larger on-screen character without scaling rooms/player");
+            foreach (float level in new[] { 4f, 11f })
+            {
+                rig.SetViewSize(level); yield return FixedSteps(10);
+                yield return new WaitForSecondsRealtime(0.35f);
+                CaptureCameraComparison(rig.Camera, level == 4 ? "camera-close.png" : "camera-far.png");
+            }
+            var upper = _s.LootContainers.First(l => l.IsValid && l.GlobalPosition.Y > 3);
+            _boot.Host.SceneState.TeleportPlayer(upper.GlobalPosition);
+            rig.SetViewSize(7); yield return FixedSteps(20);
+            yield return new WaitForSecondsRealtime(0.35f);
+            CaptureCameraComparison(rig.Camera, "camera-upper-deck.png");
+            foreach (var collider in colliders) Assert.AreEqual(initialColliderStates[collider], collider.enabled, collider.name);
+            foreach (var module in modules)
+            {
+                Assert.AreEqual(initialTransforms[module].Item1, module.transform.position);
+                Assert.AreEqual(initialTransforms[module].Item2, module.transform.localScale);
+            }
+            Assert.AreEqual(0, rig.Camera.cullingMask & (1 << PhysicsLayers.Ceiling));
+            Assert.IsNotNull(SpawnClearance.FloorUnder(Player.transform.position));
+        }
+
+        float CaptureCameraComparison(Camera camera, string filename)
+        {
+            Assert.AreNotEqual(UnityEngine.Rendering.GraphicsDeviceType.Null, SystemInfo.graphicsDeviceType);
+            var target = new RenderTexture(2048, 1224, 24);
+            var pixels = new Texture2D(2048, 1224, TextureFormat.RGB24, false);
+            var previousTarget = camera.targetTexture; var previousActive = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = target; camera.Render(); RenderTexture.active = target;
+                pixels.ReadPixels(new Rect(0, 0, 2048, 1224), 0, 0); pixels.Apply();
+                string folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../../artifacts/screenshots"));
+                System.IO.Directory.CreateDirectory(folder);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(folder, filename), pixels.EncodeToPNG());
+                Vector3 feet = camera.WorldToViewportPoint(Player.transform.position);
+                Vector3 head = camera.WorldToViewportPoint(Player.transform.position + Vector3.up * PlayerController.DefaultCollisionHeight);
+                return Mathf.Abs(head.y - feet.y) * 1224;
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget; RenderTexture.active = previousActive;
+                Object.Destroy(target); Object.Destroy(pixels);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator LocalFloorOverlayPreservesThePlayableDeck()
+        {
+            yield return BootPlayable();
+            yield return FixedSteps(40);
+            var floors = _boot.Host.ShipHost.HomeLoader.GameObject.GetComponentsInChildren<StructuralModule>(true)
+                .Where(m => m.transform.Find("Visual/PurchasedTile_0_0") != null).ToArray();
+            if (floors.Length == 0) Assert.Ignore("Local floor adapter is absent.");
+            foreach (var floor in floors)
+            {
+                var renderers = floor.intactVisual.GetComponentsInChildren<Renderer>(true);
+                Assert.LessOrEqual(renderers.Length, floor.footprintCells.x * floor.footprintCells.y * 4,
+                    "bounded renderer count per tile");
+                Assert.IsTrue(renderers.All(r => r.sharedMaterials.All(m => m != null)));
+                Assert.AreEqual(0, floor.intactVisual.GetComponentsInChildren<Collider>(true).Length,
+                    "visual tiles add no collision");
+            }
+            Assert.IsNotNull(SpawnClearance.FloorUnder(_boot.Host.SceneState.Player.transform.position));
+            var camera = _boot.Host.SceneState.CameraRig.Camera;
+            if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null)
+            {
+                var target = new RenderTexture(1280, 720, 24);
+                var pixels = new Texture2D(1280, 720, TextureFormat.RGB24, false);
+                var previousTarget = camera.targetTexture;
+                var previousActive = RenderTexture.active;
+                try
+                {
+                    camera.targetTexture = target;
+                    camera.Render();
+                    RenderTexture.active = target;
+                    pixels.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0);
+                    pixels.Apply();
+                    string folder = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../../artifacts/screenshots"));
+                    System.IO.Directory.CreateDirectory(folder);
+                    System.IO.File.WriteAllBytes(System.IO.Path.Combine(folder, "playable-local-floors.png"), pixels.EncodeToPNG());
+                }
+                finally
+                {
+                    camera.targetTexture = previousTarget;
+                    RenderTexture.active = previousActive;
+                    Object.Destroy(target);
+                    Object.Destroy(pixels);
+                }
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ThreatAttackFeedbackReachesTheViewsAndDenialsToast()
         {
             yield return BootPlayable();
@@ -850,7 +1016,7 @@ namespace SynapticSea.Tests.PlayMode
             for (int i = 0; i < 30 && deaths.Count == 0; i++)
             {
                 _boot.Host.RequestAttack();
-                yield return null;
+                yield return new WaitForSeconds(0.6f);
             }
             Assert.Contains(ThreatRuntime.ATTACK_TARGET_THREAT, handled, "weapon hits reach the threat view");
             Assert.Contains(threat.InstanceId, deaths, "the kill played the death effect");

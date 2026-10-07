@@ -41,9 +41,12 @@ namespace SynapticSea.Tests.Unity
             chip.SetInteractionPrompt("[E] Open hatch");
             Assert.AreEqual("[E] Open hatch", prompt, "the prompt goes to the transient context slot, not the chip");
             StringAssert.Contains(ObjectiveChip.ControlsLine, chip.GetHudText(), "controls/systems stay behind disclosure");
+            chip.SetCurrentSequence(3);
+            StringAssert.Contains("survive",chip.ChipText);
+            Assert.IsFalse(chip.RunComplete);
             chip.MarkRunComplete();
-            StringAssert.StartsWith("COMPLETE", chip.ChipText);
-            Assert.IsTrue(chip.ClassListContains(UiClasses.SevSuccess));
+            StringAssert.StartsWith("LIFE ENDED", chip.ChipText);
+            Assert.IsTrue(chip.ClassListContains(UiClasses.SevCaution));
         }
 
         [Test]
@@ -61,6 +64,22 @@ namespace SynapticSea.Tests.Unity
             work.SetWorkState(new GdDict { { "status", "idle" } });
             Assert.IsFalse(UiFactory.IsShown(work));
             Assert.IsEmpty(work.GetStatusLines());
+        }
+
+        [TestCase("exhausted","Rest before continuing")]
+        [TestCase("left_work_site","Return within reach")]
+        [TestCase("access","do not have access")]
+        [TestCase("materials","Required materials missing")]
+        [TestCase("tool","Required tool missing")]
+        public void WorkDenialReasonRemainsReadableInCompactHud(string reason,string expected)
+        {
+            var work=new WorkActionStrip();
+            work.SetWorkState(new GdDict{{"status","blocked"},{"block_reason",reason}});
+            StringAssert.Contains(expected,work.StateText);work.SetCompact(true);
+            StringAssert.Contains(expected,work.StateText);
+            Assert.IsTrue(work.IsOpen());
+            work.SetWorkState(new GdDict{{"status","active"}});
+            StringAssert.DoesNotContain(expected,work.StateText,"a new action clears old denial feedback");
         }
 
         sealed class Hud : IDisposable

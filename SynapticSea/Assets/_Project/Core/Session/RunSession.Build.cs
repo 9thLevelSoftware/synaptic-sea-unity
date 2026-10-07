@@ -13,6 +13,74 @@ namespace SynapticSea.Core.Session
 {
     public sealed partial class RunSession
     {
+        /// <summary>Read-only snapshot of registered content producers for diagnostics.</summary>
+        public GdDict GetCatalogSourceRegistrations()
+        {
+            var pickups = new GdArray();
+            if (ToolPickup != null && ToolPickup.IsValid)
+                pickups.Add(new GdDict { { "item_id", ToolPickup.ToolId }, { "producer_id", "tool_pickup" }, { "acquired", ToolPickup.Acquired }, { "registration_path", "Core/Session/RunSession.Objectives.cs:BuildToolPickup" } });
+            if (JunctionCalibratorPickup != null && JunctionCalibratorPickup.IsValid)
+                pickups.Add(new GdDict { { "item_id", JunctionCalibratorPickup.ToolId }, { "producer_id", "junction_calibrator_pickup" }, { "acquired", JunctionCalibratorPickup.Acquired }, { "registration_path", "Core/Session/RunSession.Objectives.cs:BuildJunctionCalibratorPickup" } });
+            var containers = new GdArray();
+            foreach (LootContainer container in LootContainers)
+            {
+                if (container == null || !container.IsValid) continue;
+                GdDict row = container.LootContext.DeepCopy();
+                row["id"] = container.ContainerId;
+                row["loot_table"] = container.LootTable;
+                row["searched"] = container.Searched;
+                row["registration_path"] = "Core/Session/RunSession.Loot.cs:BuildLootContainers";
+                row["source_path"] = GameplaySlicePath + ":loot_containers." + container.ContainerId;
+                containers.Add(row);
+            }
+            var stations = new GdDict();
+            var crops = new GdArray();
+            var recycler = new GdDict();
+            foreach (CraftingStation station in CraftingStations)
+            {
+                if (station == null || !station.IsValid) continue;
+                stations[station.StationKind] = new GdDict
+                {
+                    { "registration_path", "Core/Session/RunSession.Crafting.cs:BuildCraftingStations" },
+                    { "tier", CraftingState?.GetStation(station.StationKind)?.EffectiveTier() ?? 0L },
+                    { "precheck_tier", station.EffectiveTier }, { "skill_id", "fabrication" },
+                };
+            }
+            if (FieldCraftingState != null)
+                stations["field_crafting"] = new GdDict { { "registration_path", "Core/Session/RunSession.Crafting.cs:RequestFieldCraft" }, { "tier", 0L } };
+            foreach (ProductionStation station in ProductionStations)
+            {
+                if (station == null || !station.IsValid) continue;
+                stations[station.StationKind] = new GdDict { { "registration_path", "Core/Session/RunSession.Crafting.cs:BuildProductionStations" }, { "tier", 0L } };
+                if (station.StationKind == "hydroponics") crops = station.Config.GetArrayOrEmpty("crops").DeepCopy();
+                if (station.StationKind == "water_recycler" && station.Model is WaterRecyclerState recyclerModel)
+                    recycler = new GdDict
+                    {
+                        { "output_item_id", recyclerModel.OutputItemId }, { "conversion_ratio", recyclerModel.ConversionRatio }, { "power_cost", recyclerModel.PowerCost },
+                        { "registration_path", "Core/Session/RunSession.Crafting.cs:BuildProductionStations -> ProductionStation.InteractRecycler" },
+                    };
+            }
+            return new GdDict
+            {
+                { "pickups", pickups }, { "containers", containers }, { "stations", stations }, { "crops", crops }, { "recycler", recycler },
+                { "placed_components", ComponentPlacementState?.Placed.DeepCopy() ?? new GdArray() },
+                { "work_registered", WorkActionDriver?.Catalog != null },
+                { "scope", "current active session registrations; finite sources, traversal and class routes are unproved" },
+            };
+        }
+
+        /// <summary>Diagnostics are independent of the ordinary boot success contract.</summary>
+        public GdDict GetCatalogValidationReport()
+        {
+            GdDict catalog = CatalogSourceValidator.LoadProductionCatalog();
+            GdDict sources = CatalogSourceValidator.NormalizeSources(catalog, GetCatalogSourceRegistrations());
+            GdDict report = new DependencyValidator().VerifyCatalogSources(catalog, sources, new GdDict());
+            report["registration_scope"] = "current active session";
+            report["source_graph"] = sources;
+            report["definition_origins"] = catalog.GetDictOrEmpty("origins");
+            return report;
+        }
+
         /// <summary><c>_build_runtime_nodes()</c>: construct and configure every model, in the Godot order (RNG/catalog order matters).</summary>
         void BuildRuntimeNodes()
         {
@@ -114,11 +182,17 @@ namespace SynapticSea.Core.Session
             MaterialState = new MaterialState();
             FieldCraftingState = new FieldCraftingState();
             DeconstructionResolver = new DeconstructionResolver();
-            _loot_tables = LootRoller.LoadTables();
+            _loot_tables = LootRoller.LoadTablesWithOverlays();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
-            SaveLoadService = new SaveLoadService(Storage, Clock);
-            _runId = GenerateRunId();
+            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled);
+            GdDict bootSelection = _selectedGeneration ?? Deps.SelectedSaveGeneration;
+            _runId = CompleteGenerationEnabled && bootSelection != null ? bootSelection.GetString("run_id") : GenerateRunId();
             SaveLoadService.SetActiveRunId(_runId);
+            if (CompleteGenerationEnabled)
+            {
+                SaveLoadService.BindComponentSave(RequestSaveToSlot);
+                if (bootSelection == null) SaveLoadService.AuthorizeDiagnosticNewRun(_runId);
+            }
             AutosavePolicy = new AutosavePolicy(Clock);
             LocalizationCatalog = new LocalizationCatalog();
             LocalizationCatalog.Configure(LoadJsonDict("res://data/release/localization_catalog.json"));
@@ -136,6 +210,8 @@ namespace SynapticSea.Core.Session
             // Phase 4.5: Synaptic Sea map + scanner + travel, seeded from the starting blueprint.
             ShipBlueprint startBp = LoadBlueprintForSystems();
             SynapticSeaWorld = new SynapticSeaWorld(startBp.SeedValue, Vec3.Zero);
+            StartingHomeSeaPosition = SynapticSeaWorld.PlayerPosition;
+            HomeSeaPosition = StartingHomeSeaPosition;
             ScannerState = new ScannerState();
             TravelController = new TravelController();
             ShipGenerator = new ShipGenerator();
@@ -165,7 +241,7 @@ namespace SynapticSea.Core.Session
             ShipGenerator.ConfigureRunContext(biomeId, difficultyId);
             FirstRunAwayGate.Result pick = FirstRunAwayGate.EvaluateCandidates(
                 FirstRunContract, marker.SizeClass, marker.Condition,
-                (seed, size, condition) => ShipGenerator.GenerateFromSeed(seed, size, condition));
+                (seed, size, condition) => (ShipDocuments)FirstRunGenerator().GenerateFromSeed(seed, size, condition));
             if (!pick.Success)
             {
                 return new GdDict
@@ -379,6 +455,7 @@ namespace SynapticSea.Core.Session
                 return;
             }
             RecordKitPath(view, kitPath);
+            RememberHomeGenerationDocuments(view, layoutPath, kitPath, gameplaySlicePath);
             Loader = view;
             OnShipLoaded(new GdDict());
         }
@@ -398,11 +475,15 @@ namespace SynapticSea.Core.Session
                 CurrentShip = ShipInstance.Create("ship_start", "", LoadBlueprintForSystems(), ShipSystemsManager, Loader);
                 HomeShip = CurrentShip;
                 HomeShip.BuiltLayout = Loader.GetLayoutCopy();
+                RememberShipGenerationDocuments(HomeShip);
+                HomeShip.Mobility = AssemblyMobility.CreateSpecification(HomeShip, false);
+                HomeShip.GetAccess().Claim(PLAYER_LOCAL_ID);
                 SpawnHangarControl(HomeShip);
                 SpawnCargoHoldControl(HomeShip);
                 SpawnCartControlsForShip(HomeShip);
                 CurrentOccupancy = HomeShip;
                 BuildLifeboatAtHome();
+                RebuildHomeJoinControls();
             }
             ConfigureThreatRuntimeForCurrentShip();
             BuildInteractables();
@@ -440,6 +521,7 @@ namespace SynapticSea.Core.Session
             ReadySummary["playable_interactable_count"] = (long)Interactables.Count;
             Log.Info("PLAYABLE SHIP READY player_spawned=" + (HasPlayer ? "true" : "false") + " camera_spawned=" + (HasPlayer ? "true" : "false")
                      + " objectives=" + Interactables.Count + " collision_shapes=" + Loader.CountCollisionShapes());
+            if (ComponentIntegrationEnabled && !ComponentGenerationRestoreInProgress) InitializeComponentIntegration();
             PlayableReady?.Invoke(GetPlayableSummary());
         }
 
@@ -487,16 +569,34 @@ namespace SynapticSea.Core.Session
                 LifeboatShip = null;
             }
             // Skin the lifeboat's modules by the run's deterministic biome; the floorplan is fixed.
-            LifeBoatBuilder.BuildResult built = LifeBoatBuilder.Build(ResolveCurrentLootBiomeId());
-            IShipSceneRoot lbRoot = built != null ? ShipHost?.BuildLifeboatScene(built) : null;
+            LifeBoatBuilder.BuildResult built = null;
+            IShipSceneRoot lbRoot;
+            if (CompleteGenerationEnabled && _generationShipDocuments.TryGetValue("lifeboat", out GdDict retainedBoat))
+            {
+                GdDict layout = GdJson.ParseString(retainedBoat.GetString("layout_text")) as GdDict;
+                built = RetainedLifeboatBuild(layout, retainedBoat.GetString("kit_path"));
+                lbRoot = built == null ? null : TakeStagedGenerationRoot("lifeboat") ?? ShipHost?.BuildLifeboatScene(built);
+            }
+            else
+            {
+                built = LifeBoatBuilder.Build(ResolveCurrentLootBiomeId());
+                lbRoot = built != null ? ShipHost?.BuildLifeboatScene(built) : null;
+            }
             if (lbRoot == null)
             {
                 Log.Error("PlayableGeneratedShip: LifeBoatBuilder.build() returned null; lifeboat not created");
                 return;
             }
             RecordKitPath(lbRoot, built.KitPath);
-            LifeboatShip = ShipInstance.Create("lifeboat", "", null, ShipSystemsManager, lbRoot);
-            LifeboatShip.BuiltLayout = LifeBoatBuilder.BuildLayout();
+            RememberLifeboatGenerationDocuments(lbRoot, built);
+            var boatSystems = new ShipSystemsManager();
+            boatSystems.Configure(boatSystems.LoadDefinitions(), 0, 0);
+            boatSystems.ApplySummary(ShipSystemsManager.GetSummary());
+            LifeboatCommissioned = false;
+            LifeboatShip = ShipInstance.Create("lifeboat", "", null, boatSystems, lbRoot);
+            LifeboatShip.BuiltLayout = CompleteGenerationEnabled ? built.Layout.DeepCopy() : LifeBoatBuilder.BuildLayout();
+            RememberShipGenerationDocuments(LifeboatShip);
+            LifeboatShip.Mobility = AssemblyMobility.CreateSpecification(LifeboatShip, true);
             LifeboatShip.GetAccess().Claim(PLAYER_LOCAL_ID);
             ShipHost.AttachShipRoot(lbRoot);
             PilotedShip = LifeboatShip;
@@ -645,13 +745,15 @@ namespace SynapticSea.Core.Session
         void ActivateCurrentObjective()
         {
             foreach (ObjectiveInteractable it in Interactables)
-                it.SetActive(it.Sequence == CurrentObjectiveSequence);
+                it.SetActive(!it.Completed && it.Sequence == CurrentObjectiveSequence);
             Events.RaiseTrackerCurrentSequence(CurrentObjectiveSequence);
             GdDict progress = ObjectiveProgressState != null ? ObjectiveProgressState.GetStepProgress(CurrentObjectiveSequence) : new GdDict();
             Events.RaiseTrackerStepProgress(CurrentObjectiveSequence, progress);
             ObjectiveInteractable current = GetInteractableBySequence(CurrentObjectiveSequence);
             if (current != null)
                 Events.RaiseTrackerInteractionPrompt(current.PromptText);
+            else if (HomeObjectivesComplete)
+                Events.RaiseTrackerInteractionPrompt("Establish a safe home. Survey, salvage and repair derelicts.");
         }
     }
 }

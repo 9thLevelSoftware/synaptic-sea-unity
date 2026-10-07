@@ -53,6 +53,14 @@ namespace SynapticSea.Runtime
         /// <summary>Velocity in Godot's frame (what the GDScript's <c>velocity</c> held).</summary>
         public Vec3 GodotVelocity { get; private set; } = Vec3.Zero;
 
+        /// <summary>Last movement heading, retained while standing still.</summary>
+        public Vec3 AttackDirection { get; private set; } = Vec3.Forward;
+
+        public void FaceAttackDirection(Vec3 direction)
+        {
+            if (direction.LengthSquared() > 0.001f) AttackDirection = direction.Normalized();
+        }
+
         CharacterController _controller;
         SynapticSeaInput _input;
         bool _ownsInput;
@@ -196,6 +204,7 @@ namespace SynapticSea.Runtime
         public void Step(float delta)
         {
             Vec3 moveDirection = ReadMoveDirection();
+            if (moveDirection.LengthSquared() > 0.001f) AttackDirection = moveDirection.Normalized();
             if (moveDirection.LengthSquared() > 1f) moveDirection = moveDirection.Normalized();
             if (_input != null && _input.Player.enabled) SetCrouching(_input.Player.crouch.IsPressed());
 

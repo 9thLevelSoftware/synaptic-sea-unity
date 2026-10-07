@@ -16,6 +16,11 @@ namespace SynapticSea.Core.Procgen
     {
         public const string UnsatisfiedReason = "first_run_contract_unsatisfied";
 
+        /// <summary>Derived re-roll seeds tried per preferred seed after the patch fails to satisfy the contract.</summary>
+        public const int MaxRerolls = 3;
+
+        static readonly string[] BreachRoles = { "cargo", "engineering" };
+
         public sealed class Result
         {
             public bool Success;
@@ -49,21 +54,118 @@ namespace SynapticSea.Core.Procgen
             }
             foreach (object seedVariant in preferred)
             {
-                long seed = V.I64(seedVariant);
-                result.EvaluatedSeeds.Add(seed);
-                ShipDocuments docs = generateFromSeed(seed, sizeClass, condition);
-                if (docs == null || docs.Layout == null || docs.GameplaySlice == null) continue;
-                if (SatisfiesCompleteContract(contract, docs.Layout, docs.GameplaySlice, condition))
+                long preferredSeed = V.I64(seedVariant);
+                for (int attempt = 0; attempt <= MaxRerolls; attempt++)
                 {
-                    result.Success = true;
-                    result.Seed = seed;
-                    result.Reason = "";
-                    return result;
+                    long seed = attempt == 0 ? preferredSeed : DeriveSeed(preferredSeed, attempt);
+                    result.EvaluatedSeeds.Add(seed);
+                    ShipDocuments docs = generateFromSeed(seed, sizeClass, condition);
+                    if (docs == null || docs.Layout == null || docs.GameplaySlice == null) break; // nothing generated: next preferred seed
+                    if (RejectReason(contract, docs.Layout, docs.GameplaySlice, condition) == "validate")
+                        Patch(contract, docs);
+                    if (SatisfiesCompleteContract(contract, docs.Layout, docs.GameplaySlice, condition))
+                    {
+                        result.Success = true;
+                        result.Seed = seed;
+                        result.Reason = "";
+                        return result;
+                    }
                 }
             }
             result.Reason = ReadableUnsatisfied("no preferred seed produced a valid first-run wreck (tried "
                                                + string.Join(", ", result.EvaluatedSeeds) + ")");
             return result;
+        }
+
+        /// <summary>Deterministic re-roll seed: same (seed, attempt) always gives the same value.</summary>
+        public static long DeriveSeed(long seed, int attempt) => (seed * 1000003L + attempt) & 0x7FFFFFFFL;
+
+        /// <summary>
+        /// Deterministic repair of the two misses the ordinary generator makes against the first-run contract: no
+        /// encounter marker, and no required hazard. Idempotent; a no-op on a wreck that already has both. Boarding
+        /// applies the same patch (see <see cref="PatchedGenerator"/>) so the player gets the wreck the gate accepted.
+        /// </summary>
+        public static void Patch(FirstRunContract contract, ShipDocuments docs)
+        {
+            if (contract == null || docs?.Layout == null || docs.GameplaySlice == null) return;
+            PatchLayout(contract, docs.Layout, docs.GameplaySlice);
+            if (docs.SourceLayout != null && !ReferenceEquals(docs.SourceLayout, docs.Layout))
+                PatchLayout(contract, docs.SourceLayout, docs.GameplaySlice);
+            if (docs.LayoutJson != null) docs.LayoutJson = GdJson.Stringify(docs.Layout, "  ");
+        }
+
+        static void PatchLayout(FirstRunContract contract, GdDict layout, GdDict gameplaySlice)
+        {
+            GdArray rooms = layout.GetArrayOrEmpty("rooms");
+            long minEncounters = V.I64(contract.Contract.Get("require_min_encounters", 0L));
+            if (layout.GetArrayOrEmpty("encounters").Count < minEncounters) InjectEncounter(layout, rooms);
+            if (!contract.HasRequiredHazard(layout, gameplaySlice)) BreachRoom(rooms);
+        }
+
+        static void InjectEncounter(GdDict layout, GdArray rooms)
+        {
+            var critical = new HashSet<string>();
+            if (layout.Get("critical_path", null) is GdArray cp) foreach (object r in cp) critical.Add(V.Str(r));
+            else foreach (string r in TemplateCTraversal.CriticalPath(layout)) critical.Add(r);
+            double cellSize = V.F64(layout.Get("cell_size", 4.0));
+            foreach (object roomV in rooms)
+            {
+                if (!(roomV is GdDict room)) continue;
+                string rid = V.Str(room.Get("id", ""));
+                if (rid.Length == 0 || critical.Contains(rid)) continue;
+                GdArray entries = EncounterInjector.FloorCellEntries(room, cellSize);
+                if (entries.IsEmpty) continue;
+                var pick = (GdDict)entries[entries.Count >> 1];
+                string role = V.Str(room.Get("room_role", room.Get("role", "")));
+                var marker = new GdDict
+                {
+                    { "id", "enc_" + rid + "_1" },
+                    { "room_id", rid },
+                    { "deck", V.I64(room.Get("deck", 0L)) },
+                    { "cell", pick["cell"] },
+                    { "local_position", pick["local_position"] },
+                    { "encounter_kind", V.Str(EncounterInjector.ROLE_TO_ENCOUNTER_KIND.Get(role, EncounterInjector.DEFAULT_ENCOUNTER_KIND)) },
+                    { "count", 1L },
+                    { "difficulty_tier", V.Str(layout.Get("difficulty_id", "")) },
+                    { "encounter_table_id", "" },
+                    { "seed_offset", 1L },
+                    { "tension_progress", 1.0 },
+                    { "branch_depth", 0L },
+                    { "patrol_crosses_critical", false },
+                    { "spike", false },
+                };
+                var markers = layout.GetArrayOrEmpty("encounters");
+                markers.Append(marker);
+                layout["encounters"] = markers;
+                return;
+            }
+        }
+
+        static void BreachRoom(GdArray rooms)
+        {
+            GdDict fallback = null;
+            foreach (object roomV in rooms)
+            {
+                if (!(roomV is GdDict room)) continue;
+                string role = V.Str(room.Get("room_role", room.Get("role", "")));
+                if (Array.IndexOf(BreachRoles, role) >= 0) { room["variant"] = "breached"; return; }
+                if (fallback == null && FirstRunContract.IsHazardRole(role)) fallback = room;
+            }
+            if (fallback != null) fallback["variant"] = "breached";
+        }
+
+        /// <summary>Wraps a generator so every wreck it returns is patched like the gate's accepted candidate.</summary>
+        public sealed class PatchedGenerator : IShipGenerator
+        {
+            readonly IShipGenerator _inner;
+            readonly FirstRunContract _contract;
+            public PatchedGenerator(IShipGenerator inner, FirstRunContract contract) { _inner = inner; _contract = contract; }
+            public object GenerateFromSeed(long seedValue, long size = 0, long condition = 1)
+            {
+                object docs = _inner.GenerateFromSeed(seedValue, size, condition);
+                if (docs is ShipDocuments d) Patch(_contract, d);
+                return docs;
+            }
         }
 
         public static string ReadableUnsatisfied(string detail) =>

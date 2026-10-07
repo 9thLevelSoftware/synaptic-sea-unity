@@ -149,6 +149,7 @@ namespace SynapticSea.Core.Session
                 return null;
             IShipLoaderView root = ShipHost?.BuildShipScene(docs);
             RecordKitPath(root, docs.KitPath);
+            RememberGeneratedDocuments(root, docs);
             return root;
         }
     }

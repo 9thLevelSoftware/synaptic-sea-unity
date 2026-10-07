@@ -80,21 +80,12 @@ namespace SynapticSea.Core.Session
             long totalSequences = SequenceInteractables.Count;
             if (ObjectiveCompletionCount >= totalSequences)
             {
-                SliceComplete = true;
+                // Home objectives are onboarding milestones, not an escape or end of this life.
                 CurrentObjectiveSequence = totalSequences + 1;
-                Events.RaiseTrackerRunComplete();
-                TryUnlockAchievement("run_complete", "complete");
-                Log.Info("PLAYABLE SLICE COMPLETE objectives_completed=" + ObjectiveCompletionCount);
-                ApplyMetaPayoutAndPersist("completion");
-                if (SaveLoadService != null)
-                {
-                    SaveLoadService.DeleteCurrentRun();
-                    foreach (object slotId in SaveSlotState.AutosaveSlotIds)
-                        SaveLoadService.DeleteSlot(V.Str(slotId));
-                }
-                GdDict objectiveCompletionSummary = GetSliceCompletionSummary();
-                objectiveCompletionSummary["reason"] = "complete";
-                PlayableSliceCompleted?.Invoke(objectiveCompletionSummary);
+                Log.Info("HOME ONBOARDING COMPLETE objectives_completed=" + ObjectiveCompletionCount);
+                RebuildHomeJoinControls();
+                AutoSaveCurrentRun();
+                ActivateCurrentObjective();
                 return;
             }
             // REQ-012: advance FIRST so the checkpoint captures the resumed sequence, then auto-save.
@@ -180,7 +171,7 @@ namespace SynapticSea.Core.Session
             long expectedTotal = SequenceInteractables.Count;
             if (expectedTotal <= 0)
                 return false;
-            while (!SliceComplete)
+            while (!HomeObjectivesComplete && !SliceComplete)
             {
                 long sequence = CurrentObjectiveSequence;
                 if (sequence > expectedTotal)
@@ -188,7 +179,7 @@ namespace SynapticSea.Core.Session
                 if (!CompleteObjectiveSequence(sequence))
                     return false;
             }
-            return SliceComplete && ObjectiveCompletionCount == expectedTotal;
+            return HomeObjectivesComplete && !SliceComplete;
         }
 
         /// <summary>Teleport the player onto the first interactable of a sequence (was <c>teleport_player_to_objective_for_validation</c>).</summary>
@@ -394,6 +385,10 @@ namespace SynapticSea.Core.Session
             if (Loader != null)
             {
                 Vec3 roomCenter = Loader.GetRoomCenter("tool_storage_01");
+                // The Milestone A hub has maintenance instead of tool storage. Use an authored room,
+                // never an unchecked player-relative offset inside the overlapping docked airlock.
+                if (roomCenter == Vec3.Inf && Deps.LayoutPath == SynapticSea.Core.Procgen.MilestoneALaunch.HubLayoutPath)
+                    roomCenter = Loader.GetRoomCenter("maintenance_01");
                 if (roomCenter != Vec3.Inf)
                     return ToGlobal(Loader, roomCenter) + new Vec3(0.0f, (float)PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR, 0.0f);
             }

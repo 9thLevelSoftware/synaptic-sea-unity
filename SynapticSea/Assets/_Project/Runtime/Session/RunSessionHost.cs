@@ -34,6 +34,7 @@ namespace SynapticSea.Runtime.Session
     public sealed class RunSessionHost : MonoBehaviour
     {
         public RunSession Session { get; private set; }
+        [SerializeField] CritterCrafter.CritterLibrary creatureLibrary;
         public UnityShipSceneHost ShipHost { get; private set; }
         public UnityRunSceneState SceneState { get; private set; }
         public AudioManager Audio { get; private set; }
@@ -53,6 +54,10 @@ namespace SynapticSea.Runtime.Session
 
         /// <summary>Raised when the interact focus changes (prompt text, or "" when nothing is in reach).</summary>
         public event Action<string> FocusPromptChanged;
+        public event Action<string, string> ComponentPickerRequested;
+        GdDict _focusedComponentTarget = new GdDict();
+        bool _componentMarkersDirty = true;
+        public GdDict FocusedComponentTarget => _focusedComponentTarget.DeepCopy();
 
         /// <summary>Raised after the session booted (views bound, first sync done).</summary>
         public event Action<RunSession> SessionBooted;
@@ -78,10 +83,12 @@ namespace SynapticSea.Runtime.Session
         Transform _threatRoot;
         readonly Dictionary<SessionInteractable, InteractableView> _interactables = new Dictionary<SessionInteractable, InteractableView>();
         readonly Dictionary<SessionZone, ZoneView> _zones = new Dictionary<SessionZone, ZoneView>();
+        readonly HomeAssemblyGeometry _homeAssembly = new HomeAssemblyGeometry();
         readonly HashSet<SessionInteractable> _liveInteractables = new HashSet<SessionInteractable>();
         readonly HashSet<SessionZone> _liveZones = new HashSet<SessionZone>();
         IShipSceneRoot _appliedActiveRoot;
         bool _environmentDirty = true;
+        readonly DockedShipGeometry _dockedGeometry = new DockedShipGeometry();
         string _focusPrompt = "";
         PlayerController _boundPlayer;
         readonly List<IShipLoaderView> _affordanceDirtyRoots = new List<IShipLoaderView>();
@@ -104,6 +111,8 @@ namespace SynapticSea.Runtime.Session
             _zoneRoot = MakeChild("ZoneRoot");
             _threatRoot = MakeChild("ThreatRoot");
             Threats = new ThreatPlaceholderView(_threatRoot);
+            Threats.CreatureFactory = new ThreatCreatureFactory(creatureLibrary != null ? creatureLibrary :
+                Resources.Load<CritterCrafter.CritterLibrary>("CritterProductionLibrary"));
             Threats.PlayerPosition = () => SceneState?.Player != null ? SceneState.Player.transform.position : (Vector3?)null;
             Threats.PlayerHit += (damage, id, archetype, at) => PlayerDamaged?.Invoke(damage, archetype, at);
             Hallucinations = new HallucinationView(_threatRoot);
@@ -112,7 +121,7 @@ namespace SynapticSea.Runtime.Session
             ComponentMarkers = new ComponentMarkerView(MakeChild("ComponentMarkerRoot"));
 
             ShipHost = new UnityShipSceneHost(transform);
-            ShipHost.RootAttached += _ => _environmentDirty = true;
+            ShipHost.RootAttached += _ => { _environmentDirty = true; SceneState?.CameraRig?.Occlusion.RefreshModules(); };
             ShipHost.RootFreed += r =>
             {
                 _environmentDirty = true;
@@ -127,6 +136,14 @@ namespace SynapticSea.Runtime.Session
             deps.Scene = SceneState;
             deps.ShipHost = ShipHost;
             deps.LosProbe = new PhysicsLineOfSightProbe();
+            deps.ResolveDeckLanding = (desired, root) =>
+            {
+                Vector3 feet = Frame.ToUnity(desired);
+                Transform ship = (root as ShipLoaderNode)?.GameObject.transform;
+                bool Accept(Collider floor) => ship != null && floor.transform.IsChildOf(ship)
+                    && Mathf.Abs(floor.bounds.max.y - feet.y) < 1f;
+                return SpawnClearance.TryFindClear(feet, Accept, out Vector3 clear) ? Frame.ToGodot(clear) : (Vec3?)null;
+            };
             ThreatNavigation = new NavMeshThreatNavigation(Threats);
             deps.ThreatNavigation = ThreatNavigation;
             if (audio != null) deps.AudioSink = new AudioManagerSink(audio, () => SceneState.Player != null ? SceneState.Player.transform : null);
@@ -143,11 +160,13 @@ namespace SynapticSea.Runtime.Session
                 s.Events.BlockedAffordancesCleared += OnBlockedAffordancesCleared;
                 s.Events.BreachUnsafeMarkerVisible += OnBreachUnsafeMarkerVisible;
                 s.Events.ComponentMarkersRebuilt += OnComponentMarkersRebuilt;
+                if (s.ComponentIntegrationEnabled) s.ComponentDomainChanged += _ => _componentMarkersDirty = true;
                 beforeReady?.Invoke(s);
             });
             // The music stems / ambient beds follow the session's audio models (explicit, instead of a host lookup).
             if (audio != null && Session.AudioManager != null)
                 audio.BindSessionModels(Session.AudioManager.MusicState, Session.AudioManager.AmbientZoneState);
+            _homeAssembly.Reconcile(Session.HomeShip);
             Reconcile();
             ApplyActiveShipIfChanged(force: true);
             ResolveSpawnClearance();
@@ -212,7 +231,7 @@ namespace SynapticSea.Runtime.Session
                 Delta = delta,
                 HasPlayer = true,
                 PlayerPosition = Frame.ToGodot(p.transform.position),
-                PlayerRoomId = "",
+                PlayerRoomId = Session.ResolvePlayerRoom(Frame.ToGodot(p.transform.position)),
                 Moving = p.IsMoving(),
                 Crouching = p.IsCrouching(),
                 InteractHeld = interactHeld,
@@ -223,8 +242,12 @@ namespace SynapticSea.Runtime.Session
         public void ApplyViews()
         {
             if (Session == null) return;
+            var mobile = Session.LifeboatShip;
+            _dockedGeometry.Reconcile(mobile?.ParentShip?.SceneRoot as SceneShipRoot, mobile?.SceneRoot as SceneShipRoot);
+            _homeAssembly.Reconcile(Session.HomeShip);
             Reconcile();
             ApplyActiveShipIfChanged(force: false);
+            _dockedGeometry.NormalizeInteractions(_liveInteractables, SceneState?.Player != null ? SceneState.Player.transform.position : (Vector3?)null);
             foreach (InteractableView v in _interactables.Values) v.Sync();
             foreach (ZoneView z in _zones.Values) z.Sync();
             Threats.Bind(Session.ThreatManager);
@@ -246,15 +269,19 @@ namespace SynapticSea.Runtime.Session
                 Affordances.SetBreachMarkerVisible(Session, _breachMarkerVisible);
             }
             Affordances.SyncArcLabels(Session.ArcZoneNodes);
+            RefreshDiagnosticComponentMarkers();
             UpdateFocus();
         }
 
         void LateUpdate()
         {
             if (Session == null || WorldLabels == null) return;
+            if (Input != null && !PointerOverScrollView()) RequestCameraZoom(Input.UI.ScrollWheel.ReadValue<Vector2>().y);
             PlayerController p = SceneState?.Player;
             Camera cam = SceneState?.CameraRig != null ? SceneState.CameraRig.Camera : null;
             WorldLabels.Update(cam, p != null ? p.transform.position : (Vector3?)null);
+            if (p != null && SceneState?.CameraRig != null)
+                SceneState.CameraRig.Occlusion.UpdateThreatVisibility(Threats.Nodes.Values, p.transform.position);
         }
 
         // ------------------------------------------------------------------ scene event views (D1/D2)
@@ -278,7 +305,33 @@ namespace SynapticSea.Runtime.Session
             _breachMarkerDirty = true;
         }
 
-        void OnComponentMarkersRebuilt(IReadOnlyList<GdDict> records) => ComponentMarkers?.Rebuild(records);
+        void OnComponentMarkersRebuilt(IReadOnlyList<GdDict> records)
+        {
+            _componentMarkersDirty = true;
+            if (Session?.ComponentIntegrationEnabled != true) ComponentMarkers?.Rebuild(records);
+        }
+
+        void RefreshDiagnosticComponentMarkers()
+        {
+            if (Session?.ComponentIntegrationEnabled != true || !_componentMarkersDirty) return;
+            _componentMarkersDirty = false;
+            var records = new List<GdDict>();
+            foreach (object item in Session.ListInstallTargets(""))
+            {
+                if (!(item is GdDict target)) continue;
+                GdDict row = target.DeepCopy();
+                bool occupied = target.GetBool("occupied");
+                row["empty_anchor"] = !occupied;
+                row["component_instance_id"] = occupied ? target.GetString("instance_id")
+                    : "anchor:" + target.GetString("ship_id") + ":" + target.GetString("slot_id");
+                if (occupied)
+                    foreach (object value in Session.ListComponentInstances(target.GetString("holder_id")))
+                        if (value is GdDict instance && instance.GetString("instance_id") == target.GetString("instance_id"))
+                        { row["component_id"] = instance.GetString("definition_id"); row["condition_state"] = instance.GetString("condition_state"); row["condition"] = instance.Get("condition"); break; }
+                records.Add(row);
+            }
+            ComponentMarkers?.Rebuild(records);
+        }
 
         // ------------------------------------------------------------------ gameplay input (A1, B3, A5)
 
@@ -287,11 +340,30 @@ namespace SynapticSea.Runtime.Session
             Session != null && !Paused && !(SimulationPaused != null && SimulationPaused()) && !Session.SliceComplete
             && !(GameplayInputBlocked != null && GameplayInputBlocked());
 
+        /// <summary>Wheel zoom shares the gameplay gate: inventory/menu scrolling cannot change the camera.</summary>
+        public bool RequestCameraZoom(float delta)
+        {
+            if (!GameplayInputAllowed || SceneState?.CameraRig == null || delta == 0f) return false;
+            SceneState.CameraRig.ZoomByWheel(delta);
+            return true;
+        }
+
+        bool PointerOverScrollView()
+        {
+            var panel = WorldLabels?.Container?.panel;
+            if (panel == null || Input == null) return false;
+            Vector2 point = Input.UI.Point.ReadValue<Vector2>();
+            var picked = panel.Pick(UnityEngine.UIElements.RuntimePanelUtils.ScreenToPanel(panel, new Vector2(point.x, Screen.height - point.y)));
+            for (var element = picked; element != null; element = element.parent)
+                if (element is UnityEngine.UIElements.ScrollView || element is UnityEngine.UIElements.Scroller) return true;
+            return false;
+        }
+
         /// <summary><c>attack_primary</c>: <see cref="RunSession.AttackWithEquippedWeapon"/> (null when refused by the gate).</summary>
         public GdDict RequestAttack()
         {
             if (!GameplayInputAllowed) return null;
-            GdDict result = Session.AttackWithEquippedWeapon();
+            GdDict result = Session.AttackWithEquippedWeapon(SceneState.Player.AttackDirection);
             ApplyViews();
             return result;
         }
@@ -342,9 +414,27 @@ namespace SynapticSea.Runtime.Session
             if (Paused || (GameplayInputBlocked != null && GameplayInputBlocked())) return "";
             SceneState.Sensor?.Refresh();
             foreach (InteractableView v in _interactables.Values) v.Sync();
+            UpdateFocus();
+            if (!_focusedComponentTarget.IsEmpty && ComponentPickerRequested != null)
+            {
+                ComponentPickerRequested.Invoke(_focusedComponentTarget.GetString("ship_id"), _focusedComponentTarget.GetString("slot_id"));
+                return "component_picker";
+            }
             string handler = Session.RequestInteract();
             ApplyViews();
             return handler;
+        }
+
+        /// <summary>Explicit picker confirmation bypasses no Core gates and never falls back to the registry.</summary>
+        public GdDict RequestWorkTargetFromPicker(SessionInteractable target)
+        {
+            if (Session == null || Paused)
+                return new GdDict { { "ok", false }, { "started", false }, { "reason", "not_ready" } };
+            SceneState?.Sensor?.Refresh();
+            foreach (InteractableView view in _interactables.Values) view.Sync();
+            GdDict result = Session.RequestWorkTarget(target);
+            ApplyViews();
+            return result;
         }
 
         // ------------------------------------------------------------------ interaction nodes
@@ -399,11 +489,14 @@ namespace SynapticSea.Runtime.Session
         {
             _liveInteractables.Clear();
             RunSession s = Session;
+            s.RefreshDeckTransitions();
+            AddAll(s.DeckTransitions);
             AddAll(s.Interactables);
             AddAll(s.DerelictInteractables);
             AddAll(s.LootContainers);
             AddAll(s.WorkYieldDrops);
             AddAll(s.SealedHatches);
+            AddAll(s.HomeJoinControls);
             AddAll(s.RepairPoints);
             AddAll(s.BreachSealPoints);
             AddAll(s.FireSuppressionPoints);
@@ -449,14 +542,31 @@ namespace SynapticSea.Runtime.Session
             PlayerController p = SceneState.Player;
             InteractableView next = null;
             if (p != null && SceneState.Sensor != null && !Paused)
-                next = InteractableView.PickFocus(SceneState.Sensor.Overlapping, p.transform.position);
+                next = InteractableView.PickFocus(SceneState.Sensor.Overlapping, p.transform.position, Session.CanFocusInteractable);
+            IAuthoredPortal portal = p != null && !Paused ? Session.FocusedAuthoredPortal(Frame.ToGodot(p.transform.position)) : null;
+            int portalOrder = InteractionRegistry.OrderFor(Session.AwayFromStart ? SessionLocation.Away : SessionLocation.Home).IndexOf("authored_portal");
+            if (portal != null && (next == null || next.HandlerOrder > portalOrder)) next = null;
+            else portal = null;
             if (next != FocusedView)
             {
                 if (FocusedView != null) FocusedView.SetFocused(false);
                 FocusedView = next;
                 if (FocusedView != null) FocusedView.SetFocused(true);
             }
-            string prompt = FocusedView != null ? FocusedView.PromptText : "";
+            _focusedComponentTarget = next == null && portal == null && p != null && !Paused
+                ? FindComponentFocus(Frame.ToGodot(p.transform.position)) : new GdDict();
+            string prompt = portal != null ? (portal.IsOpen ? "Close door" : portal.PortalKind == "LOCKED" ? "Unlock door" : "Open door")
+                : FocusedView != null ? FocusedView.PromptText : !_focusedComponentTarget.IsEmpty
+                    ? (_focusedComponentTarget.GetBool("occupied") ? "Remove component" : "Install component") : "";
+            // A screen-space label identifies the same authoritative focus as dispatch, even when a foreground wall
+            // covers the small marker. Capture this frame's selected anchor rather than another nearest target.
+            Vector3? focusAnchor = portal != null ? Frame.ToUnity(portal.GlobalPosition) :
+                FocusedView != null ? FocusedView.transform.position : _focusedComponentTarget.Get("world_position") is Vec3 componentAnchor
+                    ? Frame.ToUnity(componentAnchor) : (Vector3?)null;
+            if (SceneState?.CameraRig != null) SceneState.CameraRig.FocusAnchor = focusAnchor;
+            WorldLabels.Set("focused_interaction", string.IsNullOrEmpty(prompt) ? "" : "E · " + prompt,
+                () => focusAnchor.HasValue ? focusAnchor.Value + Vector3.up * 1.2f : (Vector3?)null,
+                new Color(1f, 0.95f, 0.65f), false, !string.IsNullOrEmpty(prompt));
             if (prompt != _focusPrompt)
             {
                 _focusPrompt = prompt;
@@ -465,6 +575,24 @@ namespace SynapticSea.Runtime.Session
         }
 
         // ------------------------------------------------------------------ player
+
+        GdDict FindComponentFocus(Vec3 playerPosition)
+        {
+            if (Session?.ComponentIntegrationEnabled != true || Session.WorkActionDriver?.IsWorking() == true) return new GdDict();
+            GdDict work = Session.GetComponentWorkState();
+            if (work.GetBool("resume_required") || (work.GetString("job_id").Length != 0 && work.GetString("status") != "idle" && work.GetString("status") != "committed")) return new GdDict();
+            GdDict best = new GdDict();
+            double distance = 3.5;
+            foreach (object item in Session.ListInstallTargets(""))
+            {
+                if (!(item is GdDict target) || !(target.Get("world_position") is Vec3 anchor)) continue;
+                GdDict requirements = target.GetDictOrEmpty("requirements");
+                double d = anchor.DistanceTo(playerPosition);
+                if (d > distance || !requirements.GetBool("in_range", d <= 3.5) || !requirements.GetBool("has_los", true) || !requirements.GetBool("access", true)) continue;
+                distance = d; best = target.DeepCopy();
+            }
+            return best;
+        }
 
         void OnPlayerSpawned(PlayerController player)
         {
@@ -546,10 +674,10 @@ namespace SynapticSea.Runtime.Session
         {
             if (ThreatNavigation == null) return;
             GameObject root = active is SceneShipRoot scene && scene.IsValid ? scene.GameObject : null;
-            ShipNavMesh nav = root != null ? ShipNavMesh.Build(root) : null;
+            ShipNavMesh nav = ShipNavMesh.ForActiveShip(root);
             if (root != null && nav == null)
                 Debug.LogWarning($"[RunSessionHost] no NavMesh built for {root.name}; threats fall back to the nav graph");
-            ThreatNavigation.SetShip(nav);
+            ThreatNavigation.SetShip(nav, rebind: true);
         }
 
         static void ApplyEnvironment(ShipLoaderNode loader, bool away)
@@ -558,7 +686,7 @@ namespace SynapticSea.Runtime.Session
             string biomePath = "res://data/procgen/biomes/" + biomeId + ".json";
             if (biomeId.Length == 0 || !CatalogRegistry.Exists(biomePath))
             {
-                AtmosphereApplier.ApplyGodotDefaultEnvironment();
+                AtmosphereApplier.ApplyPlayableDefaultEnvironment();
                 return;
             }
             GdDict atmosphere = (CatalogRegistry.LoadDict(biomePath) ?? new GdDict()).GetDictOrEmpty("atmosphere");
@@ -569,6 +697,7 @@ namespace SynapticSea.Runtime.Session
 
         void OnDestroy()
         {
+            _homeAssembly.Restore();
             UnbindPlayer();
             Threats?.Unbind();
             Affordances?.Clear();

@@ -60,6 +60,8 @@ namespace SynapticSea.App
         public bool SettingsDirty { get; private set; }
 
         public RunLaunchRequest LastRequest { get; private set; }
+        /// <summary>Explicit diagnostic title opt-in for development/fixtures; never inferred from saved bytes. Default off; activation scheduled for Phase 5.5 (see docs/design/decisions.md, Phase 0.3 decision 3). The one sanctioned exception to the no-default-off-flags rule.</summary>
+        public bool EnableComponentIntegration { get; set; }
 
         /// <summary>The open New Run setup submenu (null when closed).</summary>
         public NewRunSetupPanel NewRunSetup { get; private set; }
@@ -69,6 +71,7 @@ namespace SynapticSea.App
         string _lastRunProgress = "";
         string _lastRunContext = "";
         string _lastRunTime = "";
+        string _originalSaveSlotId = "";
         bool _launching;
         int _lastSelectResync = -1000;
 
@@ -121,7 +124,7 @@ namespace SynapticSea.App
             IStorage storage = CoreServices.UserStorage;
             IClock clock = CoreServices.Clock;
 
-            SaveService = new SaveLoadService(storage, clock);
+            SaveService = new SaveLoadService(storage, clock, EnableComponentIntegration);
             DeathRecords = new PermadeathResolver(storage, clock);
             // Generated run directories that no save references any more (finished or abandoned runs).
             new RunDirectoryJanitor(storage, SaveService).Sweep();
@@ -177,11 +180,15 @@ namespace SynapticSea.App
             Coordinator.LoadRequested += OnTitleContinue;
             Coordinator.WorldLoadRequested += OnTitleContinue;
             Coordinator.SlotSnapshotLoaded += OnSlotLoaded;
+            Coordinator.SlotGenerationSelected += (slotId, selection) => Launch(RunLaunchRequest.DiagnosticLoadSlot(slotId, selection));
+            Coordinator.OpenOriginalSaveRequested += slotId => OpenOriginalSave(slotId);
+            if (EnableComponentIntegration) Coordinator.SaveSlots.SelectGeneration = SaveService.SelectGeneration;
             Coordinator.QuitRequested += OnTitleQuit;
             Coordinator.SettingsChanged += OnSettingsChanged;
             Coordinator.MetaScreenConfirmed += OnMetaScreenConfirmed;
 
             _lastBootError = RunReturnInfo.LastFailureReason ?? "";
+            _originalSaveSlotId = RunReturnInfo.OriginalSaveSlotId ?? "";
             _lastRunOutcome = RunReturnInfo.LastRunOutcome ?? "";
             _lastRunProgress = RunReturnInfo.LastRunProgress ?? "";
             _lastRunContext = RunReturnInfo.LastRunContext ?? "";
@@ -242,6 +249,18 @@ namespace SynapticSea.App
         /// <summary>Godot <c>_refresh_continue_enabled</c>.</summary>
         public void RefreshContinueEnabled()
         {
+            if (EnableComponentIntegration)
+            {
+                GdDict selected = SaveService.SelectGeneration(RunLaunchRequest.WorldSlotId);
+                string reason = selected.GetString("reason");
+                if (!selected.GetBool("ok") && SaveSlotScreenModel.IsOriginalSaveRefusal(reason))
+                {
+                    _lastBootError = SaveSlotScreenModel.FailureMessage(reason);
+                    _originalSaveSlotId = RunLaunchRequest.WorldSlotId;
+                }
+                Coordinator.SetLoadAvailable(selected.GetBool("ok"));
+                return;
+            }
             Coordinator.SetLoadAvailable(TitleSaveQuery.IsContinueAvailable(SaveService, DeathRecords));
         }
 
@@ -265,7 +284,11 @@ namespace SynapticSea.App
             var panel = new NewRunSetupPanel(biomes, NewRunSetupPanel.LoadDifficultyIds(), biome, MilestoneALaunch.SliceDifficultyId,
                 MilestoneALaunch.TitleStartSeed);
             panel.SetGlyphResolver(Coordinator.GlyphFor);
-            panel.StartRequested += request => Launch(request);
+            panel.StartRequested += request =>
+            {
+                request.EnableComponentIntegration = EnableComponentIntegration;
+                Launch(request);
+            };
             panel.BackRequested += CloseNewRunSetup;
             NewRunSetup = panel;
             Coordinator.MenuPanel.SetShown(false);
@@ -285,9 +308,51 @@ namespace SynapticSea.App
             panel.RemoveFromHierarchy();
         }
 
-        void OnTitleContinue() => Launch(RunLaunchRequest.ContinueWorld());
+        /// <summary>Explicit development/fixture activation. Saved generations never activate this mode implicitly.</summary>
+        public void ConfigureComponentDiagnostic(bool enabled)
+        {
+            EnableComponentIntegration = enabled;
+            if (!IsBuilt) return;
+            SaveService = new SaveLoadService(CoreServices.UserStorage, CoreServices.Clock, enabled);
+            Coordinator.SaveSlots.Menu.Bind(SaveService);
+            Coordinator.SaveSlots.SelectGeneration = enabled ? (Func<string, GdDict>)SaveService.SelectGeneration : null;
+            Coordinator.SaveSlots.FullSave = null;
+            Coordinator.SaveSlots.ClearSelectedGeneration();
+            RefreshContinueEnabled();
+            RefreshStatus();
+        }
+
+        void OnTitleContinue()
+        {
+            if (!EnableComponentIntegration) { Launch(RunLaunchRequest.ContinueWorld()); return; }
+            GdDict selected = SaveService.SelectGeneration(RunLaunchRequest.WorldSlotId);
+            if (!selected.GetBool("ok"))
+            {
+                string reason = selected.GetString("reason");
+                _lastBootError = SaveSlotScreenModel.FailureMessage(reason);
+                _originalSaveSlotId = SaveSlotScreenModel.IsOriginalSaveRefusal(reason) ? RunLaunchRequest.WorldSlotId : "";
+                RefreshStatus();
+                return;
+            }
+            Launch(RunLaunchRequest.DiagnosticContinue(selected));
+        }
 
         void OnSlotLoaded(string slotId, RunSnapshot snapshot) => Launch(RunLaunchRequest.LoadSlot(slotId));
+
+        public bool OpenOriginalSave(string slotId)
+        {
+            EnableComponentIntegration = false;
+            RunLaunchRequest.Pending = null;
+            Coordinator.SaveSlots.SelectGeneration = null;
+            Coordinator.SaveSlots.FullSave = null;
+            SaveService = new SaveLoadService(CoreServices.UserStorage, CoreServices.Clock);
+            Coordinator.SaveSlots.ClearSelectedGeneration();
+            Coordinator.SaveSlots.Menu.Bind(SaveService);
+            _originalSaveSlotId = "";
+            RunLaunchRequest original = slotId == RunLaunchRequest.WorldSlotId ? RunLaunchRequest.ContinueWorld() : RunLaunchRequest.LoadSlot(slotId);
+            original.SelectedSaveGeneration = null;
+            return Launch(original);
+        }
 
         void OnTitleQuit() => QuitHandler?.Invoke();
 
@@ -357,6 +422,12 @@ namespace SynapticSea.App
         {
             StatusBox.Clear();
             if (_lastBootError.Length != 0) AddStatus("Load failed: " + _lastBootError, Severity.Danger);
+            if (_originalSaveSlotId.Length != 0)
+            {
+                string slot = _originalSaveSlotId;
+                StatusBox.Add(UiFactory.Button("Open original save", () => OpenOriginalSave(slot), "title:open_original"));
+            }
+            if (EnableComponentIntegration) AddStatus("Component integration diagnostic (development only)", Severity.Info);
             if (_lastRunOutcome.Length != 0) AddStatus(LastRunLine(_lastRunOutcome, _lastRunContext, _lastRunTime), _lastRunOutcome == "death" ? Severity.Caution : Severity.Info);
             if (_lastRunProgress.Length != 0) AddStatus("Progress: " + _lastRunProgress, Severity.Info);
 

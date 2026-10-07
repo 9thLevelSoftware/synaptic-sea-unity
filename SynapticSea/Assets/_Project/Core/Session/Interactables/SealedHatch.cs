@@ -54,6 +54,19 @@ namespace SynapticSea.Core.Session
             ApplyBlockedState();
         }
 
+        /// <summary>Visible face of the hatch box, rather than a ray endpoint inside its own blocker.</summary>
+        public Vec3 InteractionSightPoint(Vec3 playerPosition)
+        {
+            Vec3 player=Parent!=null ? SessionMath.AffineInverse(Parent.GlobalTransform)*playerPosition : playerPosition;
+            double dx=player.X-LocalPosition.X,dz=player.Z-LocalPosition.Z;
+            if(Math.Abs(dx)+Math.Abs(dz)<1e-6)return GlobalPosition;
+            double x= Math.Abs(dx)>1e-6 ? (InteractionRadius*.5+.06)/Math.Abs(dx) : double.PositiveInfinity;
+            double z= Math.Abs(dz)>1e-6 ? .26/Math.Abs(dz) : double.PositiveInfinity;
+            double scale=Math.Min(x,z);
+            Vec3 face=LocalPosition+new Vec3(dx*scale,0,dz*scale);
+            return Parent!=null ? Parent.GlobalTransform*face : face;
+        }
+
         public string RequiredFlag() => LockKind == MECHANICAL ? "lockpick" : "hack_chip";
 
         public void SetBypassed(bool value)

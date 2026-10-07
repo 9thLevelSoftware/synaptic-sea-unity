@@ -104,7 +104,7 @@ namespace SynapticSea.Core.Session
         public const string PLAYER_LOCAL_ID = "player_local";
         public const double FOOTSTEP_INTERVAL_WALK = 0.40;
         public const double FOOTSTEP_INTERVAL_CROUCH = 0.55;
-        public static readonly IReadOnlyList<string> BANDAGE_ITEM_IDS = new[] { "bandage_kit", "bandage", "field_dressing" };
+        public static readonly IReadOnlyList<string> BANDAGE_ITEM_IDS = new[] { "bandage_kit", "bandage", "field_dressing", "field_bandage" };
         public static readonly IReadOnlyList<string> TREAT_ITEM_IDS = new[] { "medkit", "stim_pack", "antibiotic" };
         public const double WORK_ACTION_INTERACT_RANGE = 3.5;
 
@@ -153,6 +153,7 @@ namespace SynapticSea.Core.Session
         public double RunPlayTimeSeconds;
 
         public ShipInstance LifeboatShip;
+        public bool LifeboatCommissioned;
         public ShipInstance PilotedShip;
 
         /// <summary>Narrative objective flags with no manager backing (supplies/logs), in insertion order.</summary>
@@ -342,8 +343,13 @@ namespace SynapticSea.Core.Session
         {
             var session = new RunSession(deps);
             beforeReady?.Invoke(session);
-            session.BuildRuntimeNodes();
-            session.LoadFromPaths(session.LayoutPath, session.KitPath, session.GameplaySlicePath);
+            if (!session.PrepareGenerationBoot()) return session;
+            session.WithSelectedArtifactReader(() =>
+            {
+                session.BuildRuntimeNodes();
+                session.LoadFromPaths(session.LayoutPath, session.KitPath, session.GameplaySlicePath);
+                return true;
+            });
             return session;
         }
 
@@ -461,6 +467,7 @@ namespace SynapticSea.Core.Session
         /// <summary><c>emit_training_event(event_id, target_id)</c>: the resolved record, or null on rejection.</summary>
         public GdDict EmitTrainingEvent(string eventId, string targetId = "")
         {
+            if (ComponentGenerationRestoreInProgress) return null;
             if (TrainingEventBus == null || PlayerProgression == null)
                 return null;
             return TrainingEventBus.Emit(eventId, targetId, PlayerProgression);
@@ -482,12 +489,15 @@ namespace SynapticSea.Core.Session
 
         public long GetCurrentObjectiveSequence() => CurrentObjectiveSequence;
 
+        public bool HomeObjectivesComplete => SequenceInteractables.Count > 0 && ObjectiveCompletionCount >= SequenceInteractables.Count;
+
         public GdDict GetSliceCompletionSummary() => new GdDict
         {
             { "objective_count", (long)Interactables.Count },
             { "objectives_completed", ObjectiveCompletionCount },
             { "current_sequence", CurrentObjectiveSequence },
             { "run_complete", SliceComplete },
+            { "home_objectives_complete", HomeObjectivesComplete },
             { "play_time_seconds", RunPlayTimeSeconds },
             { "rooms_discovered", (long)DiscoveredRoomIds.Count },
             { "threats_killed", ThreatsKilledCount },

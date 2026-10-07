@@ -1,0 +1,1501 @@
+{
+  "schema": "synaptic-audit-trace-1",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "rows": [
+    {
+      "id": "CONTENT-01",
+      "title": "Component salvage requires an unavailable wrench",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "line": 214,
+          "symbol": "TryWorkActionInteract",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemDefs.cs",
+          "line": 44,
+          "symbol": "LoadDefinitions",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/components/component_catalog.json",
+          "line": 3,
+          "symbol": "components",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F01",
+        "F02",
+        "F09"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A03"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-02",
+      "title": "Carried component forms lack inventory definitions",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemDefs.cs",
+          "line": 147,
+          "symbol": "WeightEach",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemDefs.cs",
+          "line": 150,
+          "symbol": "MaxStack",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/CargoTransfer.cs",
+          "line": 49,
+          "symbol": "HAULABLE_CATEGORIES",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "line": 791,
+          "symbol": "TickWorkAction",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F01",
+        "F03",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A03",
+        "A04",
+        "A09",
+        "A31",
+        "A32",
+        "A36"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-03",
+      "title": "Most recipe inputs have no supported source",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 12,
+          "symbol": "recipes",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/materials/material_definitions.json",
+          "line": 3,
+          "symbol": "materials",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/items/loot_tables.json",
+          "line": 3,
+          "symbol": "generic_crate",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F01",
+        "F02",
+        "F08",
+        "G01"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A10",
+        "A24"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-04",
+      "title": "Tier upgrades are discarded by spatial craft precheck",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/CraftingStation.cs",
+          "line": 143,
+          "symbol": "TryCraftRecipe",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "line": 580,
+          "symbol": "ListStationRecipeEntries",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/CraftingState.cs",
+          "line": 332,
+          "symbol": "BeginCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 89,
+          "symbol": "craft_sensor_module",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 104,
+          "symbol": "craft_thruster_nozzle",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F06",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A11",
+        "A33",
+        "A35"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-05",
+      "title": "Recipe knowledge and skill books are disconnected",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/RecipeKnowledgeState.cs",
+          "line": 67,
+          "symbol": "LearnFromBook",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/CraftingState.cs",
+          "line": 104,
+          "symbol": "CanCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Progression/PlayerProgressionState.cs",
+          "line": 211,
+          "symbol": "GrantXpFromBook",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/player/skill_tree.json",
+          "line": 4,
+          "symbol": "welding_mastery",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/player/skill_tree.json",
+          "line": 5,
+          "symbol": "biomatter_diagnostics",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F02",
+        "F06",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A09",
+        "A11",
+        "A33",
+        "A38"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-06",
+      "title": "Claimed vessels do not inherit home services",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "line": 200,
+          "symbol": "BuildCraftingStations",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "line": 267,
+          "symbol": "BuildProductionStations",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.HomeExtension.cs",
+          "line": 266,
+          "symbol": "ActivateBoardedContext",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "H01"
+      ],
+      "acceptance_tests": [
+        "A14"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-07",
+      "title": "Medbay surgery depends on source-less gauze",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "line": 176,
+          "symbol": "TryMedbaySurgery",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.cs",
+          "line": 107,
+          "symbol": "BANDAGE_ITEM_IDS",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Procgen/GameplaySliceBuilder.cs",
+          "line": 186,
+          "symbol": "Build",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F02",
+        "S03"
+      ],
+      "acceptance_tests": [
+        "A02",
+        "A21"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-08",
+      "title": "Full item stacks consume finite loot containers",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/LootContainer.cs",
+          "line": 114,
+          "symbol": "TryInteract",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/LootContainer.cs",
+          "line": 142,
+          "symbol": "GrantAuthoredContents",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Travel/ShipInstance.cs",
+          "line": 158,
+          "symbol": "GetSummary",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/InventoryState.cs",
+          "line": 102,
+          "symbol": "AddItem",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F03",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A04",
+        "A09",
+        "A32"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-09",
+      "title": "Queued craft completion bypasses ingredient consumption",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/CraftingState.cs",
+          "line": 437,
+          "symbol": "FinishCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Crafting/CraftingState.cs",
+          "line": 365,
+          "symbol": "EnqueueCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A11"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-10",
+      "title": "Generic structural work lacks continuous site validation",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "line": 738,
+          "symbol": "TickWorkAction",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "line": 196,
+          "symbol": "TryWorkActionInteract",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "line": 109,
+          "symbol": "ApplyWorkYieldsToInventoryState",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F04A",
+        "F04",
+        "F09"
+      ],
+      "acceptance_tests": [
+        "A05",
+        "A06",
+        "A32",
+        "A39"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "CONTENT-11",
+      "title": "Starting class levels and uniform fabrication checks",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/CraftingStation.cs",
+          "line": 90,
+          "symbol": "PlayerSkill",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/player/classes.json",
+          "line": 3,
+          "symbol": "classes",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/ship_systems/systems.json",
+          "line": 46,
+          "symbol": "nav_linkage",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/StreamingAssets/data/work_actions/work_action_catalog.json",
+          "line": 19,
+          "symbol": "commission_home_propulsion",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Objectives.cs",
+          "line": 57,
+          "symbol": "OnInteractableCompleted",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F08",
+        "F09"
+      ],
+      "acceptance_tests": [
+        "A02",
+        "A10",
+        "A37"
+      ],
+      "disposition": "adapt",
+      "correction": "Cargo seal is a real repair0 producer; all-class approved solo policy applies. Six repair2 model-feasible/five short; no natural walk and no global deadlock claim."
+    },
+    {
+      "id": "CONTENT-12",
+      "title": "Reload disables hold requirement for active work",
+      "kind": "audit_finding",
+      "evidence_scope": "static_content_with_scoped_fresh_followups",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSnapshotAssembler.cs",
+          "line": 121,
+          "symbol": "WorkActionSummary",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Save.cs",
+          "line": 531,
+          "symbol": "Apply",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F04",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A06",
+        "A09"
+      ],
+      "disposition": "adapt",
+      "correction": "Consult deep README and final v7 scope; latent/disconnected paths are not promoted to normal exploits."
+    },
+    {
+      "id": "GEN-01",
+      "title": "medium — compiled release can retain revoked approval.",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/generation/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "G02"
+      ],
+      "acceptance_tests": [
+        "A26"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Exact crawler still approved; source/build/receipt/registration are separate. No reapproval."
+    },
+    {
+      "id": "GEN-02",
+      "title": "low — game integration documentation misstates approval/readiness.",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/generation/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "G02"
+      ],
+      "acceptance_tests": [
+        "A25",
+        "A26"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Exact crawler still approved; source/build/receipt/registration are separate. No reapproval."
+    },
+    {
+      "id": "GEN-03",
+      "title": "medium content integration gap — no production creature library installed in audited game tree.",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/generation/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "G02"
+      ],
+      "acceptance_tests": [
+        "A25"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Exact crawler still approved; source/build/receipt/registration are separate. No reapproval."
+    },
+    {
+      "id": "UI-1",
+      "title": "Closed captions disappear into retained, unrendered detail state",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "P01"
+      ],
+      "acceptance_tests": [
+        "A13"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "UI-2",
+      "title": "Difficulty settings and New Run difficulty diverge",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "P01"
+      ],
+      "acceptance_tests": [
+        "A12"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "UI-3",
+      "title": "Low Oxygen tutorial is persistent history presented like a current warning",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "P01"
+      ],
+      "acceptance_tests": [
+        "A13"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "UI-4",
+      "title": "Audio service retains old session models across scene boundaries",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "P02"
+      ],
+      "acceptance_tests": [
+        "A27"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "UI-5",
+      "title": "Unbounded visited-state traversal and snapshot growth",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "S01"
+      ],
+      "acceptance_tests": [
+        "A19"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "UI-6",
+      "title": "Absent ship simulation silently drops gaps above 30 minutes",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "S02"
+      ],
+      "acceptance_tests": [
+        "A20"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "UI-7",
+      "title": "New owned shelter cannot inherit original-home production role",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "H01"
+      ],
+      "acceptance_tests": [
+        "A14"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "UI-8",
+      "title": "Enabled controls overstate their current reach",
+      "kind": "audit_finding",
+      "evidence_scope": "source_confirmed_or_scoped_model_diagnostic_as_reported",
+      "audit_source": "docs/audit-deep/ui-lifecycle/findings.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "P01",
+        "P02"
+      ],
+      "acceptance_tests": [
+        "A13",
+        "A27",
+        "A29"
+      ],
+      "disposition": "adapt_or_conditional_release",
+      "correction": "Native Title/caption/audio/long-haul performance not certified by source/fixture."
+    },
+    {
+      "id": "INTEGRATED-01",
+      "title": "Acquisition closure",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "F01",
+        "F02",
+        "F03",
+        "F08"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A03",
+        "A10"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "INTEGRATED-02",
+      "title": "Original-home service identity",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "H01"
+      ],
+      "acceptance_tests": [
+        "A14"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "INTEGRATED-03",
+      "title": "Internal/exterior structural semantics",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "H02",
+        "H03"
+      ],
+      "acceptance_tests": [
+        "A15",
+        "A16",
+        "A22"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "INTEGRATED-04",
+      "title": "Work locality and input restore",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "F04",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A05",
+        "A06"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "INTEGRATED-05",
+      "title": "Visitation-dependent simulation",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "S02"
+      ],
+      "acceptance_tests": [
+        "A20"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "INTEGRATED-06",
+      "title": "Save replacement recovery",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "F05",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A07",
+        "A08",
+        "A09",
+        "A34"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "INTEGRATED-07",
+      "title": "Offered launch/accessibility/lifecycle",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "P01",
+        "P02"
+      ],
+      "acceptance_tests": [
+        "A12",
+        "A13",
+        "A27",
+        "A29"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "INTEGRATED-08",
+      "title": "Companion adoption/decision freshness",
+      "kind": "integrated_finding",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "G02"
+      ],
+      "acceptance_tests": [
+        "A25",
+        "A26"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "GAP-01",
+      "title": "Occupied/nested detach and earned mobility",
+      "kind": "explicit_unknown_or_open_scope",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "M01"
+      ],
+      "acceptance_tests": [
+        "A17",
+        "A18"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "GAP-02",
+      "title": "Meaningful survival/resource/cargo journeys",
+      "kind": "explicit_unknown_or_open_scope",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "S03",
+        "L01"
+      ],
+      "acceptance_tests": [
+        "A21",
+        "A28"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "GAP-03",
+      "title": "Physical furnishing/multideck/perception bounds",
+      "kind": "explicit_unknown_or_open_scope",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "G01",
+        "H02"
+      ],
+      "acceptance_tests": [
+        "A15",
+        "A22",
+        "A24"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "GAP-04",
+      "title": "Future biomass/logistics choices",
+      "kind": "explicit_unknown_or_open_scope",
+      "evidence_scope": "bounded_deep_audit_not_campaign_acceptance",
+      "audit_source": "docs/audit-deep/README.md",
+      "evidence_refs": [],
+      "work_packages": [
+        "S04",
+        "M02"
+      ],
+      "acceptance_tests": [
+        "A23",
+        "A30"
+      ],
+      "disposition": "adapt_or_decision_gated",
+      "correction": "No native/campaign or optional mechanics commitment inferred from diagnostics."
+    },
+    {
+      "id": "NEG-01",
+      "title": "Portable crafting is connected: field_craft input opens picker, explicit start consumes ingredients, synthetic powered station advances, completion deposits, summaries restore. No missing spatial station defect.",
+      "kind": "retained_negative",
+      "evidence_scope": "reported_current_source_or_model_negative",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Runtime/Player/PlayerController.cs",
+          "line": 116,
+          "symbol": "OnFieldCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Runtime/Session/RunSessionHost.cs",
+          "line": 532,
+          "symbol": "OnPlayerFieldCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "line": 464,
+          "symbol": "RequestFieldCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Tick.cs",
+          "line": 83,
+          "symbol": "StageFieldCraft",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSnapshotAssembler.cs",
+          "line": 52,
+          "symbol": "Build",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Save.cs",
+          "line": 435,
+          "symbol": "Apply",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A11"
+      ],
+      "disposition": "preserve_with_regression",
+      "correction": "Do not replace a functioning path with an absence claim."
+    },
+    {
+      "id": "NEG-02",
+      "title": "Repair reserves no parts at start, cancels leaving strict range/player invalid, rechecks part/tool/skill at completion before consumption. Only player carried inventory is queried; no automatic closed-room/other-vessel cargo borrowing.",
+      "kind": "retained_negative",
+      "evidence_scope": "reported_current_source_or_model_negative",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/RepairPoint.cs",
+          "line": 103,
+          "symbol": "PrecheckReason",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/RepairPoint.cs",
+          "line": 11,
+          "symbol": "Process",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/ShipSystemsManager.cs",
+          "line": 207,
+          "symbol": "RepairWithInventory",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F04"
+      ],
+      "acceptance_tests": [
+        "A05",
+        "A06"
+      ],
+      "disposition": "preserve_with_regression",
+      "correction": "Do not replace a functioning path with an absence claim."
+    },
+    {
+      "id": "NEG-03",
+      "title": "Ordinary station interaction checks LOS plus strict range; recipe picker freezes player. Missing confirmation-range check alone is insufficient proof of remote station use.",
+      "kind": "retained_negative",
+      "evidence_scope": "reported_current_source_or_model_negative",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Interact.cs",
+          "line": 18,
+          "symbol": "CanFocusInteractable",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/Interactables/CraftingStation.cs",
+          "line": 97,
+          "symbol": "TryInteract",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "line": 489,
+          "symbol": "OpenSharedRecipePicker",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A11"
+      ],
+      "disposition": "preserve_with_regression",
+      "correction": "Do not replace a functioning path with an absence claim."
+    },
+    {
+      "id": "NEG-04",
+      "title": "Junk salvage prechecks every output stack before consuming junk, preventing ordinary consume-with-no-space loss; inventory weight is soft-cap by design. Cargo transfers debit only destination accepted quantity.",
+      "kind": "retained_negative",
+      "evidence_scope": "reported_current_source_or_model_negative",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/DeconstructionResolver.cs",
+          "line": 261,
+          "symbol": "SalvageJunkItem",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/CargoTransfer.cs",
+          "line": 115,
+          "symbol": "MoveItem",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/Inventory/InventoryState.cs",
+          "line": 102,
+          "symbol": "AddItem",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F03"
+      ],
+      "acceptance_tests": [
+        "A04"
+      ],
+      "disposition": "preserve_with_regression",
+      "correction": "Do not replace a functioning path with an absence claim."
+    },
+    {
+      "id": "NEG-05",
+      "title": "Existing-slot component remount preserves saved condition; only fresh slot uses catalog default. Remount explicitly raises linked system health to minimum0.55, and ship-mod load reapplication also does so. Carried item form has no provenance/condition data; identity laundering is a parent runtime candidate, not proved normal exploit because wrench absent.",
+      "kind": "retained_negative",
+      "evidence_scope": "reported_current_source_or_model_negative",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/ComponentPlacementState.cs",
+          "line": 479,
+          "symbol": "Mount",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Systems/ShipSystems/ShipSystemsManager.cs",
+          "line": 280,
+          "symbol": "RestoreSubcomponentOnRemount",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.WorkAction.cs",
+          "line": 1103,
+          "symbol": "ReapplyShipModRuntimeEffects",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "F03",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A03",
+        "A09"
+      ],
+      "disposition": "preserve_with_regression",
+      "correction": "Do not replace a functioning path with an absence claim."
+    },
+    {
+      "id": "NEG-06",
+      "title": "New loot/crafted food does not reset already tracked spoilage: RegisterFoodForSpoilage returns when item ID tracked; summaries restore food age. Model is per item type, not per stack/instance; storage-specific ageing and stack freshness blending need separate design/runtime assessment.",
+      "kind": "retained_negative",
+      "evidence_scope": "reported_current_source_or_model_negative",
+      "audit_source": "docs/audit-deep/content/content-audit.md",
+      "evidence_refs": [
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Crafting.cs",
+          "line": 329,
+          "symbol": "RegisterFoodForSpoilage",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Tick.cs",
+          "line": 104,
+          "symbol": "TickFoodRuntime",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        },
+        {
+          "file": "SynapticSea/Assets/_Project/Core/Session/RunSession.Save.cs",
+          "line": 479,
+          "symbol": "Apply",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      ],
+      "work_packages": [
+        "S03"
+      ],
+      "acceptance_tests": [
+        "A28"
+      ],
+      "disposition": "preserve_with_regression",
+      "correction": "Do not replace a functioning path with an absence claim."
+    },
+    {
+      "id": "DIAG-component_identity_transfer_power_coupling",
+      "title": "Same-slot and cross-vessel remount should retain damage/identity unless authored replacement explicitly consumes repair resources",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "component_identity_transfer_power_coupling",
+      "evidence_refs": [],
+      "work_packages": [
+        "F03"
+      ],
+      "acceptance_tests": [
+        "A03"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Real placement/resolver/catalog; reactor_console is an actual definition, power_coupling is deliberately unknown negative case. Provisioned condition; normal wrench acquisition may be blocked. No UI reach or earned source asserted."
+    },
+    {
+      "id": "DIAG-component_identity_transfer_reactor_console",
+      "title": "Same-slot and cross-vessel remount should retain damage/identity unless authored replacement explicitly consumes repair resources",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "component_identity_transfer_reactor_console",
+      "evidence_refs": [],
+      "work_packages": [
+        "F03"
+      ],
+      "acceptance_tests": [
+        "A03"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Real placement/resolver/catalog; reactor_console is an actual definition, power_coupling is deliberately unknown negative case. Provisioned condition; normal wrench acquisition may be blocked. No UI reach or earned source asserted."
+    },
+    {
+      "id": "DIAG-elapsed_300",
+      "title": "Equal elapsed time in active, one long absence and multiple short absences; same-time catch-up must not double tick",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "elapsed_300",
+      "evidence_refs": [],
+      "work_packages": [
+        "S02"
+      ],
+      "acceptance_tests": [
+        "A20"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Web/hull-only provisioned models; no active RunSession fire/food inference, no offline wall-clock assertion."
+    },
+    {
+      "id": "DIAG-elapsed_1800",
+      "title": "Equal elapsed time in active, one long absence and multiple short absences; same-time catch-up must not double tick",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "elapsed_1800",
+      "evidence_refs": [],
+      "work_packages": [
+        "S02"
+      ],
+      "acceptance_tests": [
+        "A20"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Web/hull-only provisioned models; no active RunSession fire/food inference, no offline wall-clock assertion."
+    },
+    {
+      "id": "DIAG-elapsed_3600",
+      "title": "Equal elapsed time in active, one long absence and multiple short absences; same-time catch-up must not double tick",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "elapsed_3600",
+      "evidence_refs": [],
+      "work_packages": [
+        "S02"
+      ],
+      "acceptance_tests": [
+        "A20"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Web/hull-only provisioned models; no active RunSession fire/food inference, no offline wall-clock assertion."
+    },
+    {
+      "id": "DIAG-elapsed_86400",
+      "title": "Equal elapsed time in active, one long absence and multiple short absences; same-time catch-up must not double tick",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "elapsed_86400",
+      "evidence_refs": [],
+      "work_packages": [
+        "S02"
+      ],
+      "acceptance_tests": [
+        "A20"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Web/hull-only provisioned models; no active RunSession fire/food inference, no offline wall-clock assertion."
+    },
+    {
+      "id": "DIAG-production_start_restore_outage",
+      "title": "Power is checked at start; diagnose whether post-start outage reaches the authoritative timer",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "production_start_restore_outage",
+      "evidence_refs": [],
+      "work_packages": [
+        "H01",
+        "S03"
+      ],
+      "acceptance_tests": [
+        "A14",
+        "A21"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Provisioned crop; demonstrates model behavior/one-harvest guard. Runtime caller must be traced before declaring outage defect; continuous fuel consumption remains a design choice."
+    },
+    {
+      "id": "DIAG-craft_station_outage_guard",
+      "title": "Ordinary StationState must pause without adding outage time, persist progress and resume",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "craft_station_outage_guard",
+      "evidence_refs": [],
+      "work_packages": [
+        "F07",
+        "H01"
+      ],
+      "acceptance_tests": [
+        "A11",
+        "A14"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Real station model, provisioned recipe. Negative finding distinguishes functioning crafting outage guard from production timers; no reserved inventory or UI action path claimed."
+    },
+    {
+      "id": "DIAG-nested_stowed_payload",
+      "title": "Valid nested carried hulls and cargo counted once; excluded carried engines not confused with excluded mass",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "nested_stowed_payload",
+      "evidence_refs": [],
+      "work_packages": [
+        "M01"
+      ],
+      "acceptance_tests": [
+        "A17"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Provisioned valid parent graph and catalog items; unknown component item weight tested separately. No actual Hangar UI/detach occupancy/reservation proof."
+    },
+    {
+      "id": "DIAG-atmosphere_scalar",
+      "title": "Determine represented scope before claiming room isolation or distinguishing internal/exterior cuts",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "atmosphere_scalar",
+      "evidence_refs": [],
+      "work_packages": [
+        "H02",
+        "H03"
+      ],
+      "acceptance_tests": [
+        "A15",
+        "A16"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Ship scalar model has no room/portal input. This does not reproduce a particular internal-wall cut; geometric classification still requires Unity/caller diagnostics."
+    },
+    {
+      "id": "DIAG-session_work_hold_restore",
+      "title": "Released held work must remain paused after save/load unless user explicitly selects tap mode",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "session_work_hold_restore",
+      "evidence_refs": [],
+      "work_packages": [
+        "F04",
+        "F06"
+      ],
+      "acceptance_tests": [
+        "A06"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Current RunSession snapshot/manual-apply and stage code with golden data, live playability knobs, fake scene/MemoryStorage. Active job and private input requirement provisioned to isolate serialization; no real wall/tool acquisition or UI input asserted."
+    },
+    {
+      "id": "DIAG-session_actual_travel_cost",
+      "title": "Record actual travel mutation rather than assuming displayed SeaGraph cost helpers are called",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "session_actual_travel_cost",
+      "evidence_refs": [],
+      "work_packages": [
+        "M02"
+      ],
+      "acceptance_tests": [
+        "A30"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Actual RunSession travel with fake generated scene and provisioned repaired systems/threat removal; golden fixture bypasses natural onboarding. This proves only this callable travel transaction, not earned normal access or Unity physical traversal."
+    },
+    {
+      "id": "DIAG-disk_prewrite_failure",
+      "title": "Prewrite exception should retain last good destination; final delete/move interruption remains separate",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "disk_prewrite_failure",
+      "evidence_refs": [],
+      "work_packages": [
+        "F05"
+      ],
+      "acceptance_tests": [
+        "A07"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Real FileSystemStorage on disposable audit path. Fault occurs BEFORE destination deletion; not proof of recovery during final replace interval and not MemoryStorage."
+    },
+    {
+      "id": "DIAG-session_generic_cut_work_locality",
+      "title": "A legitimately started work channel should validate its original site while completing",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "session_generic_cut_work_locality",
+      "evidence_refs": [],
+      "work_packages": [
+        "F04"
+      ],
+      "acceptance_tests": [
+        "A05"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Actual current session interact handler and timed stage; catalog tool and simple target provisioned; movement is fake scene position, no physical/input or earned acquisition assertion."
+    },
+    {
+      "id": "DIAG-module_boundary_representation",
+      "title": "Determine whether internal and exterior identity affects atmospheric breach classification",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "module_boundary_representation",
+      "evidence_refs": [],
+      "work_packages": [
+        "H02"
+      ],
+      "acceptance_tests": [
+        "A15"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Two declared model labels; no geometric ownership field is accepted or persisted by these APIs. Confirms classification contract, not a particular generated internal edge cut."
+    },
+    {
+      "id": "DIAG-session_secondary_shelter_services",
+      "title": "Boarded non-original shelter should be distinguished from original onboarding identity",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "session_secondary_shelter_services",
+      "evidence_refs": [],
+      "work_packages": [
+        "H01"
+      ],
+      "acceptance_tests": [
+        "A14"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Provisioned second ShipInstance claimed by same player, sharing the home fake loader/systems; invokes actual context rebuild; does not claim an earned secured connection or powered station UI test."
+    },
+    {
+      "id": "DIAG-known_ship_tick_save_scale",
+      "title": "Measure enumeration and save growth separately from rendered roots",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "known_ship_tick_save_scale",
+      "evidence_refs": [],
+      "work_packages": [
+        "S01"
+      ],
+      "acceptance_tests": [
+        "A19"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Current session stage and snapshot encoding with minimal uninstantiated visited models; 30 tick samples/count, warm JIT; not loaded hull/AI/GPU or full historic-save performance certification."
+    },
+    {
+      "id": "DIAG-staged_delete_move_save_recovery",
+      "title": "A valid temporary save with missing destination should have an explicit recovery policy",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "staged_delete_move_save_recovery",
+      "evidence_refs": [],
+      "work_packages": [
+        "F05"
+      ],
+      "acceptance_tests": [
+        "A08"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Actual FileSystemStorage/SaveLoadService with current valid snapshot; staged reachable delete-to-move state, not observed crash or killed user process; no Title/native Continue proof."
+    },
+    {
+      "id": "DIAG-real_launch_validation",
+      "title": "Default versus alternatives offered by UI must use authoritative launch predicate",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "real_launch_validation",
+      "evidence_refs": [],
+      "work_packages": [
+        "P01"
+      ],
+      "acceptance_tests": [
+        "A12"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Actual gate called directly, no SceneLoader stub; no boot/Title transition test."
+    },
+    {
+      "id": "DIAG-normal_supply_component_command_boundary",
+      "title": "Empty starting bag acquires live authored cache through dispatch, then attempts first component through same command",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "normal_supply_component_command_boundary",
+      "evidence_refs": [],
+      "work_packages": [
+        "F02",
+        "F09"
+      ],
+      "acceptance_tests": [
+        "A02",
+        "A03"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "No inventory/tool/skill grants; default current session and real authored cache/dispatch, but fake scene directly positions player at anchors. This is command/acquisition boundary evidence, NOT real walking/Unity/native input journey."
+    },
+    {
+      "id": "DIAG-compiled_internal_exterior_cuts",
+      "title": "Compare authoritative mutation of real internal and exterior boundaries in the SAME compiled layout",
+      "kind": "provisioned_diagnostic_trace",
+      "evidence_scope": "freshly_compiled_engine_free_Core_provisioned_diagnostic",
+      "audit_source": "docs/audit-deep/runtime/results-v7/model-results.json",
+      "diagnostic_id": "compiled_internal_exterior_cuts",
+      "evidence_refs": [],
+      "work_packages": [
+        "H02"
+      ],
+      "acceptance_tests": [
+        "A15"
+      ],
+      "disposition": "retain_discriminator_not_acquisition_pass",
+      "correction": "Actual generated compiled edges, catalog timed work driver and map JSON restore. Tool provisioned, no player reach/hold, physical collider/nav rebuild or room-pressure simulation proof."
+    }
+  ]
+}

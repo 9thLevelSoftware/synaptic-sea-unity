@@ -1,4 +1,6 @@
 // Ported from scripts/systems/title_save_query.gd @ 96ecb2b0
+using SynapticSea.Core.Variant;
+
 namespace SynapticSea.Core.Systems
 {
     /// <summary>
@@ -26,6 +28,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public static bool IsContinueAvailable(object service, object resolver)
         {
+            if (service is SaveLoadService diagnostic && diagnostic.ComponentIntegrationEnabled) return diagnostic.SelectGeneration(WorldSlotId).GetBool("ok");
             var saveService = service as ITitleSaveService;
             var deathQuery = resolver as IDeathRecordQuery;
             if (saveService == null || deathQuery == null) return false;

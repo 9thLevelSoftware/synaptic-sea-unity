@@ -1,6 +1,38 @@
 {
   "schema": "work_action_catalog_v1",
   "actions": {
+    "secure_connection": {
+      "verb": "weld",
+      "target_kind": "connection",
+      "tool_class": "welder",
+      "min_skill": "repair",
+      "min_skill_level": 2,
+      "duration": 6.0,
+      "materials_consumed": {
+        "plating": 2
+      },
+      "materials_yielded": {},
+      "noise": 0.65,
+      "xp_event": "weld_panel",
+      "interruptible": true
+    },
+    "commission_home_propulsion": {
+      "verb": "weld",
+      "target_kind": "installation",
+      "tool_class": "welder",
+      "min_skill": "repair",
+      "min_skill_level": 4,
+      "duration": 8.0,
+      "materials_consumed": {
+        "thruster_nozzle": 1,
+        "fuel_line": 1,
+        "circuit_board": 1
+      },
+      "materials_yielded": {},
+      "noise": 0.65,
+      "xp_event": "repair",
+      "interruptible": true
+    },
     "cut_wall": {
       "verb": "cut",
       "target_kind": "module",
@@ -9,7 +41,9 @@
       "min_skill_level": 0,
       "duration": 4.0,
       "materials_consumed": {},
-      "materials_yielded": { "scrap_metal": 2 },
+      "materials_yielded": {
+        "scrap_metal": 2
+      },
       "noise": 0.85,
       "xp_event": "salvage",
       "interruptible": true
@@ -34,7 +68,9 @@
       "min_skill": "repair",
       "min_skill_level": 0,
       "duration": 5.0,
-      "materials_consumed": { "hull_plate": 1 },
+      "materials_consumed": {
+        "hull_plate": 1
+      },
       "materials_yielded": {},
       "noise": 0.55,
       "xp_event": "weld_panel",
@@ -47,7 +83,9 @@
       "min_skill": "repair",
       "min_skill_level": 0,
       "duration": 3.5,
-      "materials_consumed": { "hull_sealant": 1 },
+      "materials_consumed": {
+        "hull_sealant": 1
+      },
       "materials_yielded": {},
       "noise": 0.25,
       "xp_event": "repair",
@@ -61,8 +99,10 @@
       "min_skill_level": 0,
       "duration": 3.0,
       "materials_consumed": {},
-      "materials_yielded": { "scrap_metal": 1 },
-      "noise": 0.40,
+      "materials_yielded": {
+        "scrap_metal": 1
+      },
+      "noise": 0.4,
       "xp_event": "salvage",
       "interruptible": true
     },
@@ -73,9 +113,11 @@
       "min_skill": "repair",
       "min_skill_level": 1,
       "duration": 4.5,
-      "materials_consumed": { "wire_spool": 1 },
+      "materials_consumed": {
+        "wire_spool": 1
+      },
       "materials_yielded": {},
-      "noise": 0.20,
+      "noise": 0.2,
       "xp_event": "repair",
       "interruptible": true
     },
@@ -102,7 +144,7 @@
       "duration": 4.0,
       "materials_consumed": {},
       "materials_yielded": {},
-      "noise": 0.10,
+      "noise": 0.1,
       "xp_event": "repair",
       "interruptible": true,
       "notes": "PKG-B2.5: FireSuppressionPoint wrapper owns extinguisher/charge gates; charge consume on complete"
@@ -144,7 +186,7 @@
       "duration": 3.0,
       "materials_consumed": {},
       "materials_yielded": {},
-      "noise": 0.10,
+      "noise": 0.1,
       "xp_event": "cooking",
       "interruptible": true,
       "notes": "PKG-C3.2: yields produce_item_id from HydroponicsState.harvest"
@@ -158,10 +200,23 @@
       "duration": 5.0,
       "materials_consumed": {},
       "materials_yielded": {},
-      "noise": 0.20,
+      "noise": 0.2,
       "xp_event": "repair",
       "interruptible": true,
       "notes": "PKG-B2.3b: consumes item_form from inventory; restores mounted placement"
+    },
+    "cut_web_attachment": {
+      "verb": "cut",
+      "target_kind": "web_attachment",
+      "tool_class": "plasma_cutter",
+      "min_skill": "repair",
+      "min_skill_level": 2,
+      "duration": 4.0,
+      "materials_consumed": {},
+      "materials_yielded": {},
+      "noise": 0.45,
+      "xp_event": "decontaminate_zone",
+      "interruptible": true
     }
   }
 }

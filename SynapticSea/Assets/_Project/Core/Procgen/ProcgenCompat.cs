@@ -1,7 +1,6 @@
 // Procgen-local helpers for GDScript behaviours the kernel does not cover (no GDScript source).
 using System;
 using System.Collections.Generic;
-using System.IO;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Variant;
 
@@ -40,9 +39,7 @@ namespace SynapticSea.Core.Procgen
         /// <summary><c>DirAccess.dir_exists_absolute</c> / <c>DirAccess.open(...) != null</c> for a <c>res://</c> directory.</summary>
         public static bool ResDirExists(string resDir)
         {
-            var reader = CoreServices.Resources;
-            if (reader is FileSystemResourceReader fs) return Directory.Exists(FullPath(fs, resDir));
-            return false;
+            return CoreServices.Resources is IResourceDirectoryReader directories && directories.DirExists(resDir);
         }
 
         /// <summary>
@@ -54,13 +51,8 @@ namespace SynapticSea.Core.Procgen
         public static List<string> ListResFiles(string resDir)
         {
             var names = new List<string>();
-            var reader = CoreServices.Resources;
-            if (reader is FileSystemResourceReader fs)
-            {
-                string full = FullPath(fs, resDir);
-                if (!Directory.Exists(full)) return names;
-                foreach (string path in Directory.GetFiles(full)) names.Add(Path.GetFileName(path));
-            }
+            if (CoreServices.Resources is IResourceDirectoryReader directories)
+                names.AddRange(directories.ListFiles(resDir));
             names.Sort(NtfsOrder);
             return names;
         }
@@ -71,10 +63,5 @@ namespace SynapticSea.Core.Procgen
             return c != 0 ? c : string.CompareOrdinal(a, b);
         }
 
-        static string FullPath(FileSystemResourceReader fs, string resDir)
-        {
-            string rel = ResPath.StripRes(resDir).Replace('/', Path.DirectorySeparatorChar);
-            return Path.Combine(fs.Root, rel);
-        }
     }
 }

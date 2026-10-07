@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using SynapticSea.Core.Services;
+using SynapticSea.Core.Session;
 using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Core.Systems
@@ -31,7 +32,7 @@ namespace SynapticSea.Core.Systems
     /// (the saved key stays <c>godot_version</c>). Godot's <c>_safe_new</c> headless class-registry workaround has no
     /// C# equivalent and is dropped.
     /// </remarks>
-    public class SaveLoadService : ITitleSaveService
+    public partial class SaveLoadService : ITitleSaveService
     {
         public const string SAVE_PATH = "user://saves/current_run.json";
         public const string CURRENT_SLICE_VERSION = "gate2-current-run-6";
@@ -50,10 +51,11 @@ namespace SynapticSea.Core.Systems
         IStorage _storage;
         IClock _clock;
 
-        public SaveLoadService(IStorage storage = null, IClock clock = null)
+        public SaveLoadService(IStorage storage = null, IClock clock = null, bool enableComponentIntegration = false)
         {
             _storage = storage;
             _clock = clock;
+            ComponentIntegrationEnabled = enableComponentIntegration;
         }
 
         /// <summary><c>user://</c> backing store; defaults to <see cref="CoreServices.UserStorage"/>.</summary>
@@ -100,6 +102,7 @@ namespace SynapticSea.Core.Systems
 
         public bool SaveCurrentRun(RunSnapshot snapshot)
         {
+            if (CompleteGenerationEnabled) return _componentSave != null && _componentSave(ACTIVE_AUTOSAVE_SLOT_ID, SaveSlotState.SlotKindAuto, "Current run");
             // Legacy REQ-012 alias: the active autosave slot is the current_run.json path.
             // Preserves the smoke contracts that depend on SAVE_PATH.
             return SaveToSlot(ACTIVE_AUTOSAVE_SLOT_ID, snapshot, SaveSlotState.SlotKindAuto, false, "current_run_alias");
@@ -113,6 +116,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public bool SaveWorld(WorldSnapshot worldSnapshot)
         {
+            if (CompleteGenerationEnabled) return _componentSave != null && _componentSave("world", SaveSlotState.SlotKindWorld, "World");
             if (worldSnapshot == null)
             {
                 CoreServices.Log.Warning("SaveLoadService: cannot save null world snapshot");
@@ -147,7 +151,10 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public WorldSnapshot LoadWorld()
         {
+            if (CompleteGenerationEnabled)
+            { GdDict selected = SelectGeneration("world"); return selected.GetBool("ok") ? WorldSnapshot.FromDict(ReadSelectedSnapshot(selected, "world"), ComponentIntegrationEnabled ? WorldSnapshot.ComponentIntegrationVersion : WorldSnapshot.WorldSliceVersion, EngineVersionString) : null; }
             string path = WORLD_SLOT_FILE;
+            RecoverLegacyTemporary(path, "world", SaveSlotState.SlotKindWorld);
             if (!Storage.FileExists(path))
                 return null;
             // ADR-0043 permadeath gate -- mirrors the load_from_slot gate. Old saves have no world.death.json, so
@@ -198,6 +205,7 @@ namespace SynapticSea.Core.Systems
 
         public bool DeleteCurrentRun()
         {
+            if (CompleteGenerationEnabled) return DeleteSlot("world") && DeleteSlot(ACTIVE_AUTOSAVE_SLOT_ID);
             // Legacy REQ-012 contract: delete the current_run autosave file. Also remove the world slot and index
             // entries so a stale world save cannot survive a finished run.
             bool ok = true;
@@ -217,6 +225,9 @@ namespace SynapticSea.Core.Systems
                     ok = false;
                 }
             }
+            // A deliberately ended/deleted run must not reappear through a leftover interrupted write.
+            ok = DeleteTemporary(SAVE_PATH) && ok;
+            ok = DeleteTemporary(WORLD_SLOT_FILE) && ok;
             // Also remove the world slot's cloud manifest (mirrors delete_slot()'s manifest removal) so a finished
             // run does not leak user://saves/.cloud/world.manifest.json.
             string worldManifestPath = CLOUD_DIR + "/world.manifest.json";
@@ -232,8 +243,9 @@ namespace SynapticSea.Core.Systems
 
         public bool HasSave()
         {
+            if (CompleteGenerationEnabled) return HasSlot("world");
             // Legacy REQ-012 contract: true when EITHER the current_run autosave exists OR a world save exists.
-            return Storage.FileExists(SAVE_PATH) || Storage.FileExists(WORLD_SLOT_FILE);
+            return HasSlot(ACTIVE_AUTOSAVE_SLOT_ID) || HasSlot("world");
         }
 
         /// <summary>
@@ -267,6 +279,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public bool SaveToSlot(string slotId, RunSnapshot snapshot, string slotKind, bool isQuicksave, string displayName)
         {
+            if (CompleteGenerationEnabled) return _componentSave != null && _componentSave(slotId, slotKind, displayName);
             if (string.IsNullOrEmpty(slotId))
             {
                 CoreServices.Log.Warning("SaveLoadService: save_to_slot called with empty slot_id");
@@ -319,12 +332,16 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public RunSnapshot LoadFromSlot(string slotId)
         {
+            if (CompleteGenerationEnabled)
+            { GdDict selected = SelectGeneration(slotId); return selected.GetBool("ok") ? RunSnapshot.FromDict(ReadSelectedSnapshot(selected, "run"), ComponentIntegrationEnabled ? RunSnapshot.ComponentIntegrationVersion : CURRENT_SLICE_VERSION, EngineVersionString) : null; }
             if (string.IsNullOrEmpty(slotId))
             {
                 CoreServices.Log.Warning("SaveLoadService: load_from_slot called with empty slot_id");
                 return null;
             }
-            string path = SlotPath(slotId, IndexedKindFor(slotId));
+            string kind = IndexedKindFor(slotId);
+            string path = SlotPath(slotId, kind);
+            RecoverLegacyTemporary(path, slotId, kind);
             if (!Storage.FileExists(path))
                 return null;
             // Permadeath: refuse to load from a slot that has a death record.
@@ -401,6 +418,7 @@ namespace SynapticSea.Core.Systems
 
         public bool DeleteSlot(string slotId)
         {
+            if (CompleteGenerationEnabled) return ComponentCoordinator().DeleteDiagnosticSlot(slotId).GetBool("ok");
             string kind = IndexedKindFor(slotId);
             string path = SlotPath(slotId, kind);
             bool ok = true;
@@ -412,6 +430,7 @@ namespace SynapticSea.Core.Systems
                     ok = false;
                 }
             }
+            ok = DeleteTemporary(path) && ok;
             // Godot quirk kept for parity: this is "<slot>.json.migrated.json", while load_from_slot writes
             // "<slot>.migrated.json", so the migrated sidecar written on load is not removed here.
             string migratedPath = path + ".migrated.json";
@@ -431,9 +450,13 @@ namespace SynapticSea.Core.Systems
 
         public bool HasSlot(string slotId)
         {
+            if (CompleteGenerationEnabled) return SelectGeneration(slotId).GetBool("ok");
             if (string.IsNullOrEmpty(slotId))
                 return false;
-            return Storage.FileExists(SlotPath(slotId, IndexedKindFor(slotId)));
+            string kind = IndexedKindFor(slotId);
+            string path = SlotPath(slotId, kind);
+            RecoverLegacyTemporary(path, slotId, kind);
+            return Storage.FileExists(path);
         }
 
         /// <summary>
@@ -443,6 +466,8 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public GdArray SlotIdsForRun(string runId)
         {
+            if (CompleteGenerationEnabled)
+            { var ids = new GdArray(); foreach (SaveSlotState row in ComponentSlots()) if (row.RunId == runId) ids.Add(row.SlotId); return ids; }
             if (string.IsNullOrEmpty(runId))
                 return new GdArray();
             var result = new GdArray();
@@ -458,7 +483,7 @@ namespace SynapticSea.Core.Systems
             }
             // PR #58 (Codex P2): the index is a derived cache; payload files carry the authoritative run_id stamp,
             // so union in a direct disk scan; the index remains a fast path, never the gate.
-            foreach (string diskId in AllSlotIdsOnDisk())
+            foreach (string diskId in AllSlotIdsIncludingTemporary())
             {
                 string slotId = diskId;
                 if (slotId == "index" || result.Contains(slotId))
@@ -476,6 +501,7 @@ namespace SynapticSea.Core.Systems
         string PayloadRunId(string slotId)
         {
             string path = SlotPath(slotId, IndexedKindFor(slotId));
+            if (!Storage.FileExists(path)) path += ".tmp";
             if (!Storage.FileExists(path))
                 return "";
             string text = Storage.ReadText(path);
@@ -493,6 +519,7 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public void FreezeRun(string runId, string cause, string epitaph, double runTime, long finalSeq)
         {
+            if (CompleteGenerationEnabled) { FreezeComponentRun(runId, cause, epitaph); return; }
             PermadeathResolver resolver = NewResolver();
             foreach (object slotId in SlotIdsForRun(runId))
                 resolver.RecordDeath(V.Str(slotId), cause, epitaph, runTime, finalSeq);
@@ -504,7 +531,12 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public List<SaveSlotState> ListSlots()
         {
+            if (CompleteGenerationEnabled) return ComponentSlots();
             SaveIndexState idx = LoadIndex();
+            // The slot menu lists before loading. Validate/promote interrupted payloads before marking their
+            // missing canonical names corrupt, because corruption itself is a recovery rejection witness.
+            foreach (SaveSlotState row in idx.Slots)
+                if (row != null) RecoverLegacyTemporary(SlotPath(row.SlotId, row.SlotKind), row.SlotId, row.SlotKind);
             var present = new List<object>();
             foreach (string slotId in AllSlotIdsOnDisk())
                 present.Add(slotId);
@@ -521,9 +553,10 @@ namespace SynapticSea.Core.Systems
         public HashSet<string> ReferencedLayoutPaths()
         {
             var result = new HashSet<string>(StringComparer.Ordinal);
-            foreach (string slotId in AllSlotIdsOnDisk())
+            foreach (string slotId in AllSlotIdsIncludingTemporary())
             {
                 string path = SlotPath(slotId, IndexedKindFor(slotId));
+                if (!Storage.FileExists(path)) path += ".tmp";
                 if (!Storage.FileExists(path))
                     continue;
                 if (!(GdJson.ParseString(Storage.ReadText(path) ?? "") is GdDict dict))
@@ -559,6 +592,248 @@ namespace SynapticSea.Core.Systems
                 }
             }
             return result;
+        }
+
+        // Keep the existing canonical disk inventory intact. Only lifecycle ownership/reference scans include
+        // interrupted payloads; index/manifests/death/migration sidecars are never themselves recovered.
+        List<string> AllSlotIdsIncludingTemporary()
+        {
+            List<string> result = AllSlotIdsOnDisk();
+            if (!Storage.DirExists(SAVES_DIR)) return result;
+            foreach (string entry in Storage.ListFiles(SAVES_DIR))
+            {
+                if (entry.StartsWith(".", StringComparison.Ordinal) || !entry.EndsWith(".json.tmp", StringComparison.Ordinal)) continue;
+                string id = entry.Substring(0, entry.Length - ".json.tmp".Length);
+                if (id == "index" || id.EndsWith(".death", StringComparison.Ordinal) || id.EndsWith(".migrated", StringComparison.Ordinal)) continue;
+                if (id == "current_run") id = ACTIVE_AUTOSAVE_SLOT_ID;
+                if (!result.Contains(id)) result.Add(id);
+            }
+            return result;
+        }
+
+        bool DeleteTemporary(string path)
+        {
+            string temporary = path + ".tmp";
+            return !Storage.FileExists(temporary) || Storage.Delete(temporary);
+        }
+
+        /// <summary>
+        /// The old file writer could stop between deleting the canonical name and moving its complete .tmp.
+        /// Promote only an unambiguous current-schema payload with its existing references. This is a single-file
+        /// recovery policy, not proof that separately saved run/world/index files share a transaction generation.
+        /// </summary>
+        void RecoverLegacyTemporary(string path, string slotId, string kind)
+        {
+            if (Storage.FileExists(path) || !Storage.FileExists(path + ".tmp")) return;
+            if (kind == SaveSlotState.SlotKindWorld && slotId != "world" || !SaveSlotState.SlotKinds.Contains(kind)) return;
+            foreach (char c in slotId) if (!(char.IsLetterOrDigit(c) || c == '_' || c == '-')) return;
+            try
+            {
+                string temporary = path + ".tmp";
+                // Deny writes while reading and validating staged filesystem bytes. Delete-sharing permits the
+                // final move while the same handle keeps a competing writer from changing the validated payload.
+                using (var staged = Storage is FileSystemStorage
+                    ? new System.IO.FileStream(Storage.Globalize(temporary), System.IO.FileMode.Open,
+                        System.IO.FileAccess.ReadWrite, System.IO.FileShare.Read | System.IO.FileShare.Delete)
+                    : null)
+                {
+                    string text;
+                    if (staged != null)
+                    {
+                        using (var reader = new System.IO.StreamReader(staged, Encoding.UTF8, true, 1024, true)) text = reader.ReadToEnd();
+                    }
+                    else text = Storage.ReadText(temporary);
+                    if (!(GdJson.ParseString(text ?? "") is GdDict dict)) return;
+                    string runId = dict.Get("run_id") as string;
+                    if (string.IsNullOrEmpty(runId) || RecoveryBlocked(slotId, runId)) return;
+                    bool world = kind == SaveSlotState.SlotKindWorld;
+                    if (world ? !ValidTemporaryWorld(dict, runId) : !ValidTemporaryRun(dict, runId, slotId, kind)) return;
+                    if (!MatchesRecoveryWitnesses(slotId, runId, dict, text, world)) return;
+                    if (Storage.FileExists(path)) return;
+                    if (staged != null)
+                    {
+                        staged.Flush(true);
+                        // Two-argument move fails if a canonical file appears after the last existence check.
+                        System.IO.File.Move(Storage.Globalize(temporary), Storage.Globalize(path));
+                    }
+                    else if (!Storage.Rename(temporary, path)) return;
+                }
+                CoreServices.Log.Warning("SaveLoadService: recovered validated legacy temporary, slot_id=" + slotId);
+            }
+            catch (Exception e)
+            {
+                // Invalid/unreadable/locked staging is retained for diagnostics; do not quarantine or mutate it.
+                CoreServices.Log.Warning("SaveLoadService: legacy temporary recovery unavailable, slot_id=" + slotId + " error=" + e.Message);
+            }
+        }
+
+        bool RecoveryBlocked(string slotId, string runId)
+        {
+            PermadeathResolver resolver = NewResolver();
+            if (resolver.HasDiedIn(slotId)) return true;
+            SaveIndexState index = LoadIndex();
+            SaveSlotState requested = index.Find(slotId);
+            if (requested != null && (requested.Frozen || requested.Corrupt ||
+                (!string.IsNullOrEmpty(requested.RunId) && requested.RunId != runId))) return true;
+            foreach (SaveSlotState row in index.Slots)
+                if (row.RunId == runId && (row.Frozen || resolver.HasDiedIn(row.SlotId))) return true;
+            foreach (string id in AllSlotIdsIncludingTemporary())
+                if (resolver.HasDiedIn(id) && PayloadRunId(id) == runId) return true;
+            return false;
+        }
+
+        bool MatchesRecoveryWitnesses(string slotId, string runId, GdDict dict, string text, bool world)
+        {
+            string manifestPath = CLOUD_DIR + "/" + slotId + ".manifest.json";
+            if (Storage.FileExists(manifestPath))
+            {
+                if (!(GdJson.ParseString(Storage.ReadText(manifestPath) ?? "") is GdDict manifest)) return false;
+                if (manifest.GetString("slot_id") != slotId || manifest.GetString("schema_version") != dict.GetString("slice_version")) return false;
+                string sha = manifest.GetString("payload_sha256");
+                if (sha.Length == 0 || sha != InfraCompat.Sha256Text(text)) return false;
+            }
+            if (!world && Storage.FileExists(WORLD_SLOT_FILE))
+            {
+                if (NewResolver().HasDiedIn("world")) return false;
+                if (!(GdJson.ParseString(Storage.ReadText(WORLD_SLOT_FILE) ?? "") is GdDict other) || !ValidTemporaryWorld(other, runId)) return false;
+                GdDict home = other.GetDictOrEmpty("home_ship");
+                if (home.GetString("layout_path") != dict.GetString("layout_path") ||
+                    V.I64(other.GetDictOrEmpty("world_summary").Get("world_seed")) != V.I64(dict.Get("world_seed"))) return false;
+            }
+            if (world && Storage.FileExists(SAVE_PATH))
+            {
+                if (!(GdJson.ParseString(Storage.ReadText(SAVE_PATH) ?? "") is GdDict other) ||
+                    !ValidTemporaryRun(other, runId, ACTIVE_AUTOSAVE_SLOT_ID, SaveSlotState.SlotKindAuto)) return false;
+                GdDict home = dict.GetDictOrEmpty("home_ship");
+                if (home.GetString("layout_path") != other.GetString("layout_path") ||
+                    V.I64(dict.GetDictOrEmpty("world_summary").Get("world_seed")) != V.I64(other.Get("world_seed"))) return false;
+            }
+            // A second missing canonical payload is ambiguous: never promote one half of a staged run/world pair.
+            string otherPath = world ? SAVE_PATH : WORLD_SLOT_FILE;
+            if (!Storage.FileExists(otherPath) && Storage.FileExists(otherPath + ".tmp")) return false;
+            return true;
+        }
+
+        bool ValidTemporaryRun(GdDict dict, string runId, string slotId, string kind)
+        {
+            if (!ValidRunBody(dict) || dict.GetString("run_id") != runId ||
+                dict.GetString("slot_id") != slotId || dict.GetString("slot_kind") != kind) return false;
+            if (dict.GetBool("is_autosave") != (kind == SaveSlotState.SlotKindAuto) ||
+                dict.GetBool("is_quicksave") != (kind == SaveSlotState.SlotKindQuick)) return false;
+            // parent_world_slot remains reserved/unused; a nonempty reference is not safe to guess at in recovery.
+            return dict.GetString("parent_world_slot").Length == 0;
+        }
+
+        bool ValidRunBody(GdDict dict)
+        {
+            if (!MatchesCurrentShape(dict, new RunSnapshot().ToDict()) ||
+                dict.GetString("slice_version") != CURRENT_SLICE_VERSION || dict.GetString("godot_version") != EngineVersionString ||
+                !NumericPosition(dict.Get("player_position"))) return false;
+            GdDict vitals = dict.GetDictOrEmpty("vitals_summary");
+            if (!Numeric(vitals.Get("health")) || V.F64(vitals.Get("health")) <= 0) return false;
+            if (!ValidLayoutReference(dict.GetString("layout_path"), "ship_layout")) return false;
+            if (!ValidLayoutReference(RunSnapshot.ResolveGameplaySlicePath(dict.GetString("layout_path"), dict.GetString("gameplay_slice_path")), "ship_gameplay_slice")) return false;
+            string kit = dict.GetString("kit_path");
+            return kit.Length == 0 || ReadReferenceDict(kit) != null;
+        }
+
+        bool ValidTemporaryWorld(GdDict dict, string runId)
+        {
+            if (!MatchesCurrentShape(dict, new WorldSnapshot().ToDict()) ||
+                dict.GetString("slice_version") != WorldSnapshot.WorldSliceVersion || dict.GetString("godot_version") != EngineVersionString ||
+                dict.GetString("run_id") != runId || !NumericPosition(dict.Get("player_position_in_ship"))) return false;
+            GdDict home = dict.GetDictOrEmpty("home_ship"), world = dict.GetDictOrEmpty("world_summary");
+            if (!ValidRunBody(home) || (home.GetString("run_id").Length > 0 && home.GetString("run_id") != runId) ||
+                !Numeric(world.Get("world_seed")) || !NumericPosition(world.Get("player_position")) ||
+                !(world.Get("generated_marker_ids") is GdArray) || V.I64(world.Get("world_seed")) != V.I64(home.Get("world_seed"))) return false;
+            if (dict.Has("mobile_home_state"))
+            {
+                if (!(dict.Get("mobile_home_state") is GdDict mobile) || mobile.GetInt("version") != 1 ||
+                    mobile.GetDictOrEmpty("lifeboat").GetString("ship_id") != "lifeboat" ||
+                    !AssemblyMobility.ValidSpecification(mobile.GetDictOrEmpty("home_mobility")) ||
+                    !AssemblyMobility.ValidSpecification(mobile.GetDictOrEmpty("lifeboat").GetDictOrEmpty("mobility")) ||
+                    !WorldSnapshotAssembler.OwnedInstallation("ship_start", mobile.GetDictOrEmpty("home_mobility")) ||
+                    !WorldSnapshotAssembler.OwnedInstallation("lifeboat", mobile.GetDictOrEmpty("lifeboat").GetDictOrEmpty("mobility"))) return false;
+                if (mobile.Has("starting_home_anchor")) return false;
+                if (mobile.Has("home_location"))
+                {
+                    GdDict locationState = mobile.GetDictOrEmpty("home_location");
+                    if (locationState.GetInt("version") != 1 || locationState.GetString("marker_id").Length == 0 ||
+                        !NumericPosition(locationState.Get("sea_position"))) return false;
+                }
+                if (mobile.Has("active_scene_position") && !NumericPosition(mobile.Get("active_scene_position"))) return false;
+            }
+            foreach (object value in dict.GetDictOrEmpty("visited_ships").Values)
+                if (!(value is GdDict ship) || ship.GetString("ship_id").Length == 0 ||
+                    ship.Has("mobility") && (!(ship.Get("mobility") is GdDict mobility) || !AssemblyMobility.ValidSpecification(mobility) ||
+                        !WorldSnapshotAssembler.OwnedInstallation(ship.GetString("ship_id"), mobility))) return false;
+            string location = dict.GetString("current_location");
+            if (location.Length != 0 && !dict.GetDictOrEmpty("visited_ships").Has(location)) return false;
+            // Current constructors establish ship_start/lifeboat as the home identities. Reuse the existing
+            // snapshot-only graph authority; unknown member identities/endpoints are rejected rather than guessed.
+            WorldSnapshot snapshot = WorldSnapshot.FromDict(dict, WorldSnapshot.WorldSliceVersion, EngineVersionString);
+            return WorldSnapshotAssembler.ValidateConnectionSnapshot(snapshot, "ship_start", "lifeboat", out _, out _);
+        }
+
+        bool ValidLayoutReference(string path, string documentKind)
+        {
+            GdDict dict = ReadReferenceDict(path);
+            if (dict == null || dict.GetString("document_kind") != documentKind || !FiniteTree(dict)) return false;
+            if (documentKind == "ship_layout")
+            {
+                if (dict.GetString("schema_version") != "1.2.0" || !Numeric(dict.Get("cell_size")) ||
+                    V.F64(dict.Get("cell_size")) <= 0 || !(dict.Get("rooms") is GdArray rooms) || rooms.Count == 0 ||
+                    !(dict.Get("portals") is GdArray)) return false;
+                var ids = new HashSet<string>(StringComparer.Ordinal);
+                foreach (object value in rooms)
+                    if (!(value is GdDict room) || !(room.Get("id") is string id) || id.Length == 0 || !ids.Add(id)) return false;
+                return true;
+            }
+            return dict.GetString("schema_version") == "1.1.0" && dict.GetString("start_room").Length > 0 && dict.GetString("goal_room").Length > 0;
+        }
+
+        GdDict ReadReferenceDict(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            string relative;
+            if (path.StartsWith(ResPath.UserScheme, StringComparison.Ordinal)) relative = ResPath.StripUser(path);
+            else if (path.StartsWith(ResPath.ResScheme, StringComparison.Ordinal)) relative = ResPath.StripRes(path);
+            else return null;
+            if (relative.Contains("\\") || relative.Contains(":") || relative.StartsWith("/", StringComparison.Ordinal)) return null;
+            foreach (string segment in relative.Split('/')) if (segment == ".." || segment == ".") return null;
+            // Generated layouts are read from this service's store, never a different global user profile.
+            string text;
+            if (path.StartsWith(ResPath.UserScheme, StringComparison.Ordinal))
+            {
+                text = Storage.ReadText(path);
+            }
+            else if (path.StartsWith(ResPath.ResScheme, StringComparison.Ordinal)) text = CoreServices.Resources?.ReadText(path);
+            else return null;
+            return GdJson.ParseString(text ?? "") as GdDict;
+        }
+
+        static bool MatchesCurrentShape(GdDict dict, GdDict template)
+        {
+            foreach (object key in template.Keys)
+            {
+                if (!dict.Has(key)) return false;
+                object expected = template[key], actual = dict[key];
+                if (expected is GdDict && !(actual is GdDict) || expected is GdArray && !(actual is GdArray) ||
+                    expected is string && !(actual is string) || expected is bool && !(actual is bool)) return false;
+                if ((expected is long || expected is double) && !Numeric(actual)) return false;
+                if (expected is long && V.F64(actual) != Math.Truncate(V.F64(actual))) return false;
+            }
+            return FiniteTree(dict);
+        }
+
+        static bool Numeric(object value) => value is long || value is double d && !double.IsNaN(d) && !double.IsInfinity(d);
+        static bool NumericPosition(object value) => value is GdArray a && a.Count == 3 && Numeric(a[0]) && Numeric(a[1]) && Numeric(a[2]);
+        static bool FiniteTree(object value)
+        {
+            if (value is double d) return !double.IsNaN(d) && !double.IsInfinity(d);
+            if (value is GdDict dict) { foreach (object child in dict.Values) if (!FiniteTree(child)) return false; }
+            if (value is GdArray array) { foreach (object child in array) if (!FiniteTree(child)) return false; }
+            return true;
         }
 
         string IndexedKindFor(string slotId)

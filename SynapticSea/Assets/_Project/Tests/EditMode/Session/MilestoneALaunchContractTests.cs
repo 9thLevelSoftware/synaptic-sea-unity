@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
@@ -103,6 +104,58 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(42L, first.Seed);
         }
 
+        [Test]
+        public void FirstRunPatch_IsDeterministic()
+        {
+            var contract = new FirstRunContract();
+            Assert.IsTrue(contract.LoadContract());
+            string Patched()
+            {
+                var generator = new ShipGenerator();
+                generator.ConfigureRunContext("breach_field", "standard");
+                var docs = generator.GenerateFromSeed(777, 1, (long)ShipBlueprint.Condition.Damaged);
+                FirstRunAwayGate.Patch(contract, docs);
+                return GdJson.Stringify(docs.Layout, "  ");
+            }
+            Assert.AreEqual(Patched(), Patched());
+        }
+
+        [TestCase(42L, 9)]
+        [TestCase(777L, 9)]
+        public void PreferredAwaySeedMatrixSatisfiesCompleteContractGate(long seed, int expectedAccepted)
+        {
+            var contract = new FirstRunContract();
+            Assert.IsTrue(contract.LoadContract());
+            var generator = new ShipGenerator();
+            generator.ConfigureRunContext("breach_field", "standard");
+            int accepted = 0;
+            for (long size = 0; size <= 2; size++)
+                for (long condition = 0; condition <= 2; condition++)
+                {
+                    var docs = generator.GenerateFromSeed(seed, size, condition);
+                    string reason = docs == null ? "generation" : FirstRunAwayGate.RejectReason(contract, docs.Layout, docs.GameplaySlice, condition);
+                    if (seed == 777 && docs != null)
+                    {
+                        Assert.AreEqual(contract.Contract.GetString("biome_id"), docs.Layout.GetString("biome_id"));
+                        Assert.AreEqual(contract.Contract.GetString("difficulty_id"), docs.Layout.GetString("difficulty_id"));
+                        Assert.GreaterOrEqual(docs.GameplaySlice.GetArrayOrEmpty("loot_containers").Count, contract.Contract.GetInt("require_min_loot_containers"));
+                        Assert.GreaterOrEqual(docs.Layout.GetArrayOrEmpty("encounters").Count, contract.Contract.GetInt("require_min_encounters"));
+                        Assert.IsFalse(contract.Validate(docs.Layout, docs.GameplaySlice), "all non-hazard requirements pass; preserve the missing-hazard rejection");
+                    }
+                    contract.Contract["preferred_seeds"] = GdArray.Of(seed);
+                    var pick = FirstRunAwayGate.EvaluateCandidates(contract, size, condition, (a, b, c) => docs);
+                    Assert.IsTrue(pick.Success, "gate must accept every size/condition cell (ordinary generator reject: " + reason + "): " + pick.Reason);
+                    Assert.AreEqual("", FirstRunAwayGate.RejectReason(contract, docs.Layout, docs.GameplaySlice, condition), "the patched candidate satisfies the complete contract");
+                    if (pick.Success) accepted++;
+                    else StringAssert.Contains(FirstRunAwayGate.UnsatisfiedReason, pick.Reason);
+                    TestContext.WriteLine("away seed=" + seed + " size=" + size + " condition=" + condition + " result=" + (pick.Success ? "accepted" : reason)
+                        + " loot=" + (docs?.GameplaySlice.GetArrayOrEmpty("loot_containers").Count ?? 0)
+                        + " encounters=" + (docs?.Layout.GetArrayOrEmpty("encounters").Count ?? 0));
+                }
+            Assert.AreEqual(expectedAccepted, accepted, "D9: the first wreck always qualifies, on every size and condition");
+            Assert.IsFalse(MilestoneALaunch.TryAccept(seed, "breach_field", "standard", out _), "away candidates are not supported title seeds");
+        }
+
         static ShipDocuments PassingDocuments()
         {
             var occupancy = new GdDict
@@ -164,6 +217,87 @@ namespace SynapticSea.Tests.Session
             CollectionAssert.AreEqual(new[] { 42L, 777L }, seen);
             Assert.IsFalse(pick.Success);
             StringAssert.Contains(FirstRunAwayGate.UnsatisfiedReason, pick.Reason);
+        }
+
+        [Test]
+        public void FiniteHubMaintenanceCacheCoversDamagedFlightPartsAndTools()
+        {
+            RunSessionDeps deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
+            MilestoneALaunch.ApplyHubPaths(deps);
+            var session = RunSession.Create(deps);
+            Assert.IsTrue(session.InventoryState.Items.IsEmpty, "New Run grants no flight-repair inventory");
+            var cache = session.LootContainers.Single(c => c.ContainerId == "start_supply_a");
+            Assert.IsTrue(cache.TryInteract(cache.GlobalPosition));
+            var requirements = new Dictionary<string, int>();
+            var tools = new HashSet<string>();
+            foreach (var point in session.RepairPoints.Where(p => new[] { "power", "navigation", "scanners", "propulsion" }.Contains(p.SystemId)))
+            {
+                var sub = point.TargetManager.GetSystem(point.SystemId).GetSubcomponent(point.SubcomponentId);
+                foreach (string part in sub.RequiredParts) requirements[part] = requirements.TryGetValue(part, out int n) ? n + 1 : 1;
+                foreach (string tool in sub.RequiredTools) tools.Add(tool);
+            }
+            foreach (var part in requirements) Assert.GreaterOrEqual(session.InventoryState.GetQuantity(part.Key), part.Value, part.Key);
+            foreach (string tool in tools) Assert.Greater(session.InventoryState.GetQuantity(tool), 0, tool);
+            string before = GdJson.Stringify(session.InventoryState.Items);
+            Assert.IsFalse(cache.TryInteract(cache.GlobalPosition), "the finite supply cache pays only once");
+            Assert.AreEqual(before, GdJson.Stringify(session.InventoryState.Items));
+        }
+
+        [TestCase("engineer", false)] [TestCase("engineer", true)]
+        [TestCase("mechanic", false)] [TestCase("mechanic", true)]
+        [TestCase("medic", false)] [TestCase("medic", true)]
+        [TestCase("pilot", false)] [TestCase("pilot", true)]
+        [TestCase("scientist", false)] [TestCase("scientist", true)]
+        [TestCase("cook", false)] [TestCase("cook", true)]
+        [TestCase("security", false)] [TestCase("security", true)]
+        [TestCase("communications", false)] [TestCase("communications", true)]
+        public void StartingClassRepairPathPreservesGatesAndReportsReachability(string classId, bool hubTraining)
+        {
+            var deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
+            MilestoneALaunch.ApplyHubPaths(deps);
+            deps.StartingClassId = classId;
+            var s = RunSession.Create(deps);
+            Assert.AreEqual(classId, s.PlayerProgression.ClassId);
+            long initial = s.PlayerProgression.GetSkillLevel("repair");
+            Assert.AreEqual(V.I64(ClassDefinition.LoadAll()[classId].StartingSkills.Get("repair", 0L)), initial);
+            Assert.IsTrue(s.LootContainers.Single(c => c.ContainerId == "start_supply_a").TryInteract(s.LootContainers.Single(c => c.ContainerId == "start_supply_a").GlobalPosition));
+            Assert.AreEqual("crowbar", s.EquipmentState.GetEquipped("primary_hand"), "normal loot auto-equips the acquired tool into the empty hand");
+            if (hubTraining)
+                for (int guard = 0; guard < 12 && s.CurrentObjectiveSequence <= 3; guard++)
+                {
+                    var objective = s.Interactables.First(o => o.Active && !o.Completed);
+                    Assert.IsTrue(objective.TryInteract(objective.GlobalPosition), "existing hub objective interaction");
+                }
+            if (hubTraining) Assert.AreEqual(4, s.CurrentObjectiveSequence, "stop before reactor objective ends extraction");
+            var required = new[] { "power", "navigation", "scanners", "propulsion" };
+            var completed = new List<string>();
+            for (int guard = 0; guard < 24; guard++)
+            {
+                var next = s.RepairPoints.Where(r => required.Contains(r.SystemId) && r.CanBeginRepair())
+                    .OrderBy(r => r.MinSkill).FirstOrDefault();
+                next ??= s.RepairPoints.Where(r => r.CanBeginRepair()).OrderBy(r => r.MinSkill).FirstOrDefault();
+                if (next == null) break;
+                Assert.GreaterOrEqual(s.PlayerProgression.GetSkillLevel("repair"), next.MinSkill);
+                Assert.IsTrue(next.TryStart(next.GlobalPosition));
+                next.AdvanceChannel(120.0);
+                Assert.IsTrue(next.Repaired, "normal resource/skill-gated channel finishes");
+                completed.Add(next.SystemId + "." + next.SubcomponentId);
+            }
+            bool ready = required.All(id => s.ShipSystemsManager.IsOperational(id));
+            Assert.AreEqual(classId == "engineer" || classId == "mechanic", ready,
+                "current finite hub route: preserve and expose class-specific first-away limitations rather than granting skill");
+            TestContext.WriteLine(classId + ": hubTraining=" + hubTraining + " initial=" + initial + " earned=" + s.PlayerProgression.GetSkillLevel("repair")
+                + " ready=" + ready + " completed=" + string.Join(",", completed));
+            if (ready) Assert.IsFalse(s.SliceComplete, "repairing for travel is not extraction");
+            else Assert.IsFalse(s.RepairPoints.Any(r => r.CanBeginRepair()), "a stopped path has no eligible remaining repair, including side work");
+            for (int guard = 0; guard < 24 && !s.HomeObjectivesComplete && !s.SliceComplete; guard++)
+            {
+                var objective = s.Interactables.First(o => o.Active && !o.Completed);
+                Assert.IsTrue(objective.TryInteract(objective.GlobalPosition));
+            }
+            Assert.IsTrue(s.HomeObjectivesComplete, "all classes can complete the existing onboarding tasks");
+            Assert.IsFalse(s.SliceComplete, "onboarding does not terminate survival");
+            Assert.AreEqual(classId, s.PlayerProgression.ClassId, "onboarding retains the chosen class");
         }
 
         [Test]

@@ -21,8 +21,16 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public long EndRun(string reason = "extraction")
         {
-            if (SliceComplete)
+            if (ComponentGenerationRestoreInProgress && reason != "death") return 0;
+            if (ComponentIntegrationEnabled && ComponentTerminalPending && reason != "death") return 0;
+            if (SliceComplete || reason == "complete" || reason == "completion")
                 return 0;
+            if (ComponentIntegrationEnabled && reason == "death" && SaveLoadService != null)
+            {
+                LastSaveResult = SaveLoadService.FreezeComponentRun(_runId, "death", BuildEpitaphText());
+                ComponentTerminalPending = !LastSaveResult.GetBool("ok");
+                if (ComponentTerminalPending) return 0;
+            }
             SliceComplete = true;
             Events.RaiseTrackerRunComplete();
             TriggerTutorial("run_ended", reason);
@@ -34,7 +42,7 @@ namespace SynapticSea.Core.Session
             {
                 if (reason == "death")
                 {
-                    FreezeRunOnDeath();
+                    if (!ComponentIntegrationEnabled) FreezeRunOnDeath();
                 }
                 else
                 {
@@ -118,6 +126,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         bool AutoSaveCurrentRun()
         {
+            if (CompleteGenerationEnabled) return RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World checkpoint");
             if (SaveLoadService == null || SliceComplete)
                 return false;
             if (DemoSaveRefused())
@@ -144,6 +153,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Timed/rotating autosave loop (autosave_a/b/c), additive to the checkpoint save.</summary>
         void TickAutosavePolicy(double delta)
         {
+            if (ComponentGenerationRestoreInProgress) return;
             if (AutosavePolicy == null || SaveLoadService == null || SliceComplete)
                 return;
             if (DemoSaveRefused())
@@ -169,6 +179,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Force one rotating autosave through the real path (was <c>force_autosave_for_validation</c>).</summary>
         public GdDict ForceAutosave()
         {
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
             if (AutosavePolicy == null)
                 return new GdDict();
             AutosavePolicy.Force = true;
@@ -181,6 +192,7 @@ namespace SynapticSea.Core.Session
         /// <summary>F6 quicksave (cooldown-gated) to the quicksave slot.</summary>
         public bool RequestQuicksave()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
             if (SliceComplete || SaveLoadService == null || AutosavePolicy == null)
                 return false;
             if (DemoSaveRefused())
@@ -212,6 +224,14 @@ namespace SynapticSea.Core.Session
         /// <summary>F5 / pause-menu save: the whole world (save-anywhere, ADR-0012). Refused before start / after completion.</summary>
         public bool RequestSave()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
+            if (CompleteGenerationEnabled)
+            {
+                bool saved = RequestSaveToSlot("world", SaveSlotState.SlotKindWorld, "World");
+                if (saved) { PlaySfx(AudioEventSeam.UI_SAVE); TriggerTutorial("run_saved", "any"); }
+                else PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
+                return saved;
+            }
             if (!PlayableStarted || SliceComplete)
             {
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
@@ -281,6 +301,15 @@ namespace SynapticSea.Core.Session
         /// <summary>F9 / Continue: load the whole world and apply it; adopts the loaded run_id.</summary>
         public bool RequestLoad()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
+            if (CompleteGenerationEnabled)
+            {
+                if (ComponentTerminalPending) return false;
+                GdDict selected = SaveLoadService?.SelectGeneration("world");
+                bool applied = selected != null && ApplySelectedGeneration(selected);
+                if (!applied && selected != null && !selected.GetBool("ok")) LastSaveResult = selected.DeepCopy();
+                PlaySfx(applied ? AudioEventSeam.UI_LOAD : AudioEventSeam.UI_PANEL_CLOSE); return applied;
+            }
             if (SaveLoadService == null)
                 return false;
             WorldSnapshot ws = SaveLoadService.LoadWorld();
@@ -308,6 +337,7 @@ namespace SynapticSea.Core.Session
         /// <summary>ADR-0031/0043 slot screen: apply a manual-slot RunSnapshot onto the booted ship only.</summary>
         public bool ApplyManualSlot(RunSnapshot snapshot)
         {
+            if (ComponentIntegrationEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "exact_generation_required" } }; return false; }
             if (snapshot == null)
                 return false;
             if (SliceComplete)
@@ -382,6 +412,7 @@ namespace SynapticSea.Core.Session
         {
             if (snapshot == null || !PlayableStarted)
                 return false;
+            if (!snapshot.HomeFiniteLoot.IsEmpty && !FiniteLootState.Validate(snapshot.HomeFiniteLoot, "ship_start", out _)) return false;
             _isReloading = true;
             ResetRuntimeForReload();
             LayoutPath = snapshot.LayoutPath;
@@ -521,20 +552,11 @@ namespace SynapticSea.Core.Session
                     CurrentShip.ComponentPlacementSummary = snapshot.ComponentPlacementSummary.DeepCopy();
                 RebuildComponentMarkers();
             }
-            if (WorkActionDriver != null && !snapshot.WorkActionSummary.IsEmpty)
-            {
-                GdDict waPack = snapshot.WorkActionSummary;
-                if (waPack.GetBool("active") && waPack.Get("summary", null) is GdDict waSummary)
-                {
-                    WorkActionDriver.Work = new WorkActionState();
-                    WorkActionDriver.Work.ApplySummary(waSummary);
-                    _workRequiresHold = false;
-                }
-            }
+            RestoreWorkAction(snapshot.WorkActionSummary, snapshot.CurrentLocation);
             if (ShipModificationState != null && !snapshot.ShipModificationSummary.IsEmpty)
             {
                 ShipModificationState.ApplySummary(snapshot.ShipModificationSummary);
-                ReapplyShipModRuntimeEffects();
+                if (!ComponentIntegrationEnabled) ReapplyShipModRuntimeEffects();
             }
             ApplyPortSnapshotExtensions(snapshot);
             EnsureConsumableHotbarAssignments();
@@ -548,7 +570,16 @@ namespace SynapticSea.Core.Session
             BuildCraftingStations();
             BuildProductionStations();
             CurrentObjectiveSequence = Math.Max(1L, snapshot.CurrentObjectiveSequence);
+            // Restore presentation/eligibility without replaying rewards or completion events.
+            foreach (ObjectiveInteractable it in Interactables)
+            {
+                GdArray completedSteps = ObjectiveProgressState?.GetStepProgress(it.Sequence)
+                    .GetArrayOrEmpty("completed_step_ids") ?? new GdArray();
+                it.Completed = it.Sequence < CurrentObjectiveSequence
+                    || (it.IsStep && completedSteps.Contains(it.StepId));
+            }
             ActivateCurrentObjective();
+            RefreshHomeTrackerCompleted();
             RefreshWeaponHotbar();
             if (HasPlayer && snapshot.PlayerPosition.Count >= 3)
                 SetPlayerPosition(new Vec3(V.F64(snapshot.PlayerPosition[0]), V.F64(snapshot.PlayerPosition[1]), V.F64(snapshot.PlayerPosition[2])));
@@ -585,7 +616,11 @@ namespace SynapticSea.Core.Session
             }
             if (HomeShip != null)
             {
-                bool rebuildLoot = false;
+                HomeShip.AuthoredOpenPortalIds = snapshot.HomePortalState.GetArrayOrEmpty("open").ShallowCopy();
+                HomeShip.AuthoredUnlockedPortalIds = snapshot.HomePortalState.GetArrayOrEmpty("unlocked").ShallowCopy();
+                if (CurrentShip == HomeShip) RestoreAuthoredPortalStates();
+                HomeShip.FiniteLootSummary = snapshot.HomeFiniteLoot.DeepCopy();
+                bool rebuildLoot = !snapshot.HomeFiniteLoot.IsEmpty;
                 if (!snapshot.HomeLootedContainers.IsEmpty)
                 {
                     HomeShip.LootedContainerIds = snapshot.HomeLootedContainers.ShallowCopy();
@@ -605,6 +640,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         void ResetRuntimeForReload()
         {
+            _study.Clear();
             _woundRollCounter = 0;
             if (AwayFromStart)
             {

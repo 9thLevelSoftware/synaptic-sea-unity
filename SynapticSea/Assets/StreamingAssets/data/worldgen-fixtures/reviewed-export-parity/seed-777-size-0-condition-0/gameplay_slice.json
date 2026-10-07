@@ -1,0 +1,194 @@
+{
+  "critical_path": [
+    "airlock_01",
+    "corridor_02",
+    "cargo_04",
+    "reactor_06"
+  ],
+  "document_kind": "ship_gameplay_slice",
+  "fire_zones": [],
+  "goal_room": "reactor_06",
+  "loot_containers": [
+    {
+      "approach_cell": [
+        5,
+        6,
+        0
+      ],
+      "id": "container_11",
+      "kind": "suit_locker",
+      "loot_table": "worldgen_seeded",
+      "room_id": "airlock_01"
+    },
+    {
+      "approach_cell": [
+        9,
+        4,
+        0
+      ],
+      "id": "container_12",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_04"
+    },
+    {
+      "approach_cell": [
+        10,
+        3,
+        0
+      ],
+      "id": "container_13",
+      "kind": "cargo_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "cargo_04"
+    },
+    {
+      "approach_cell": [
+        7,
+        7,
+        0
+      ],
+      "id": "container_18",
+      "kind": "footlocker",
+      "loot_table": "worldgen_seeded",
+      "room_id": "crew_quarters_05"
+    },
+    {
+      "approach_cell": [
+        8,
+        6,
+        0
+      ],
+      "id": "container_19",
+      "kind": "footlocker",
+      "loot_table": "worldgen_seeded",
+      "room_id": "crew_quarters_05"
+    },
+    {
+      "approach_cell": [
+        9,
+        7,
+        0
+      ],
+      "id": "container_20",
+      "kind": "footlocker",
+      "loot_table": "worldgen_seeded",
+      "room_id": "crew_quarters_05"
+    },
+    {
+      "approach_cell": [
+        3,
+        6,
+        0
+      ],
+      "id": "container_24",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_07"
+    },
+    {
+      "approach_cell": [
+        3,
+        4,
+        0
+      ],
+      "id": "container_25",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_07"
+    },
+    {
+      "approach_cell": [
+        3,
+        5,
+        0
+      ],
+      "id": "container_26",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_07"
+    },
+    {
+      "approach_cell": [
+        4,
+        5,
+        0
+      ],
+      "id": "container_27",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_07"
+    },
+    {
+      "approach_cell": [
+        7,
+        3,
+        0
+      ],
+      "id": "container_29",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_08"
+    },
+    {
+      "approach_cell": [
+        5,
+        3,
+        0
+      ],
+      "id": "container_30",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_08"
+    },
+    {
+      "approach_cell": [
+        11,
+        7,
+        0
+      ],
+      "id": "container_31",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_09"
+    },
+    {
+      "approach_cell": [
+        10,
+        7,
+        0
+      ],
+      "id": "container_32",
+      "kind": "supply_crate",
+      "loot_table": "worldgen_seeded",
+      "room_id": "storage_09"
+    }
+  ],
+  "objectives": [
+    {
+      "approach_cell": [
+        11,
+        4,
+        0
+      ],
+      "approach_distance_cells": 1,
+      "cell": [
+        11,
+        4,
+        0
+      ],
+      "id": "reactor_06:reach_goal",
+      "interactable": false,
+      "kind": "single",
+      "room_id": "reactor_06",
+      "room_role": "reactor",
+      "semantic": "goal_room",
+      "sequence": 1,
+      "type": "reach_room"
+    }
+  ],
+  "program_id": "worldgen-shuttle-777",
+  "schema_version": "1.1.0",
+  "start_room": "airlock_01",
+  "summary": "worldgen shuttle seed 777 intactness 0.95 (DriveMisjump)"
+}

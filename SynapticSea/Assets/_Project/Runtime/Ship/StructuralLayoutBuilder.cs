@@ -50,7 +50,7 @@ namespace SynapticSea.Runtime
                 return null;
             }
             var ceilings = plan.GetArray("ceiling_placements") ?? new GdArray();
-            _vertexWrappers = VertexWrapperPlacement.Resolve(plan);
+            _vertexWrappers = ResolveForKit(plan, kit);
 
             var result = new Result { Root = new GameObject("StructuralRoot") };
             result.Root.SetActive(false);
@@ -106,6 +106,7 @@ namespace SynapticSea.Runtime
                 }
 
                 var module = Object.Instantiate(prefab, result.Root.transform, false);
+                HideCollisionOnlyVisuals(module.gameObject);
                 module.transform.localPosition = Frame.ToUnity(godotPos);
                 module.transform.localRotation = Frame.YawRotation(yaw);
                 module.godotPosition = new Vector3(godotPos.X, godotPos.Y, godotPos.Z);
@@ -150,6 +151,56 @@ namespace SynapticSea.Runtime
                 result.ByModuleKey[module.moduleKey] = module;
             }
             return true;
+        }
+
+        public static void HideCollisionOnlyVisuals(GameObject root)
+        {
+            foreach(var renderer in root.GetComponentsInChildren<Renderer>(true))
+                if(renderer.name.EndsWith("_convcolonly",System.StringComparison.OrdinalIgnoreCase)
+                    || renderer.name.EndsWith("_colonly",System.StringComparison.OrdinalIgnoreCase)
+                    || renderer.name.EndsWith("-convcolonly",System.StringComparison.OrdinalIgnoreCase)
+                    || renderer.name.EndsWith("-colonly",System.StringComparison.OrdinalIgnoreCase)) renderer.enabled = false;
+        }
+
+        public static VertexWrapperPlacement.Result ResolveForKit(GdDict plan, KitPrefabCatalog kit)
+        {
+            var resolved = VertexWrapperPlacement.Resolve(plan);
+            var edges = plan.GetArrayOrEmpty("placements");
+            // Legacy junction meshes are only 2 m high while the current authored straight wall is 3.5 m.
+            // A junction must not suppress neighbouring full-height edges unless its complete assembly spans them.
+            if (kit.TryGetPrefab(StructuralEdgeCompiler.WALL_MODULE, out var straight))
+            {
+                float straightHeight = VisualHeight(straight);
+                bool incomplete = false;
+                foreach (object value in edges)
+                    if (value is GdDict edge && VertexWrapperPlacement.IsVertexModule(edge.GetString("module_id"))
+                        && kit.TryGetPrefab(edge.GetString("module_id"), out var junction))
+                    {
+                        float junctionHeight = VisualHeight(junction);
+                        if (junctionHeight > 0 && straightHeight - junctionHeight > 0.1f) incomplete = true;
+                    }
+                if (incomplete)
+                {
+                    resolved = new VertexWrapperPlacement.Result();
+                    foreach (object value in edges)
+                        if (value is GdDict edge && VertexWrapperPlacement.IsVertexModule(edge.GetString("module_id")))
+                            resolved.Fallbacks.Add(edge.GetString("edge_key"));
+                }
+            }
+
+            return resolved;
+        }
+
+        static float VisualHeight(StructuralModule module)
+        {
+            if (module == null || module.intactVisual == null) return 0;
+            bool any = false; Bounds bounds = default;
+            foreach (var renderer in module.intactVisual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.enabled) continue;
+                if (!any) { bounds = renderer.bounds; any = true; } else bounds.Encapsulate(renderer.bounds);
+            }
+            return any ? bounds.size.y : 0;
         }
 
         /// <summary>Port of <c>_apply_module_damage_visuals</c>: <c>module_damage</c> rows keyed by module_key or placement_id.</summary>

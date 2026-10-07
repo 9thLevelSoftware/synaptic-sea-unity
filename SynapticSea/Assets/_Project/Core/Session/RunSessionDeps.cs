@@ -83,8 +83,13 @@ namespace SynapticSea.Core.Session
         public IShipSceneHost ShipHost;
         public IAudioSink AudioSink;
         public ILineOfSightProbe LosProbe;
+        /// <summary>Scene clearance check for authored deck transfers; null uses the authored landing in headless sessions.</summary>
+        public Func<Vec3, IShipSceneRoot, Vec3?> ResolveDeckLanding;
         public IThreatNavigation ThreatNavigation;
         public IRunUiState UiState;
+        /// <summary>Explicit diagnostic admission; ordinary runs keep legacy crafting and save behavior. Default off; activation scheduled for Phase 5.5 (see docs/design/decisions.md, Phase 0.3 decision 3). The one sanctioned exception to the no-default-off-flags rule.</summary>
+        public bool EnableComponentIntegration = false;
+        public GdDict SelectedSaveGeneration;
 
         // ---- the @export vars
         public string LayoutPath = RunSession.DEFAULT_LAYOUT_PATH;

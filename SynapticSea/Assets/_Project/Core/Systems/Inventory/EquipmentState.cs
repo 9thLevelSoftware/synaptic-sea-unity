@@ -14,6 +14,7 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>slot_id: String -> item_id: String (absent = empty)</summary>
         public GdDict Slots = new GdDict();
+        public GdDict ArmorDurability = new GdDict();
         GdDict _defs = new GdDict();
 
         public EquipmentState()
@@ -105,13 +106,19 @@ namespace SynapticSea.Core.Systems
             return mult;
         }
 
-        public GdDict GetSummary() => new GdDict { { "slots", Slots.DeepCopy() } };
+        public GdDict GetSummary()
+        {
+            var summary = new GdDict { { "slots", Slots.DeepCopy() } };
+            if (!ArmorDurability.IsEmpty) summary["armor_durability"] = ArmorDurability.DeepCopy();
+            return summary;
+        }
 
         public bool ApplySummary(GdDict summary)
         {
             if (summary == null || summary.IsEmpty)
                 return false;
             Slots.Clear();
+            ArmorDurability = (summary.Get("armor_durability", null) as GdDict)?.DeepCopy() ?? new GdDict();
             object slotsVariant = summary.Get("slots", null);
             if (slotsVariant is GdDict slotsDict)
             {

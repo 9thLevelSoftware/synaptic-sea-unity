@@ -323,6 +323,25 @@ namespace SynapticSea.Core.Procgen
                 if (!(c.Get("approach_cell", new GdArray()) is GdArray approach) || approach.Count < 3) continue;
                 Vec3 pos = RoomCellWorld(LayoutDoc, room, approach);
                 if (pos == Vec3.Inf) continue;
+                if (c.Has("position_offset"))
+                {
+                    if (!(c.Get("position_offset") is GdArray offset) || offset.Count != 3
+                        || !V.IsNumber(offset[0]) || !V.IsNumber(offset[1]) || !V.IsNumber(offset[2]))
+                    {
+                        Log.Error("loot container invalid position_offset: " + cid);
+                        continue;
+                    }
+                    // Offset is a ship-local Godot-frame displacement of the interaction root,
+                    // applied after the existing floor projection. Never coerce malformed values.
+                    var displacement = new Vec3(V.F64(offset[0]), V.F64(offset[1]), V.F64(offset[2]));
+                    Vec3 resolved = pos + displacement;
+                    if (!IsFiniteLootPosition(displacement) || !IsFiniteLootPosition(resolved))
+                    {
+                        Log.Error("loot container invalid position_offset: " + cid);
+                        continue;
+                    }
+                    pos = resolved;
+                }
                 var lootSpec = new GdDict
                 {
                     { "id", cid },
@@ -337,12 +356,18 @@ namespace SynapticSea.Core.Procgen
                     lootSpec["slot_kind"] = V.Str(c.Get("slot_kind", ""));
                     lootSpec["slot_index"] = V.I64(c.Get("slot_index", 0L));
                 }
+                if (c.Has("finite_source")) lootSpec["finite_source"] = c.Get("finite_source");
                 // Explicit authored stacks must survive into the coordinator.
                 if (c.Has("contents") && c.Get("contents") is GdArray contents) lootSpec["contents"] = contents.DeepCopy();
                 output.Add(lootSpec);
             }
             return output;
         }
+
+        static bool IsFiniteLootPosition(Vec3 position) =>
+            !float.IsNaN(position.X) && !float.IsInfinity(position.X)
+            && !float.IsNaN(position.Y) && !float.IsInfinity(position.Y)
+            && !float.IsNaN(position.Z) && !float.IsInfinity(position.Z);
 
         // ------------------------------------------------------------------ rooms / cells
 
@@ -1146,6 +1171,7 @@ namespace SynapticSea.Core.Procgen
                 };
                 if (room.Has("atmosphere_bp") || room.Has("oxygen_bp"))
                     spec["oxygen_bp"] = V.I64(room.Get("atmosphere_bp", room.Get("oxygen_bp", 10000L)));
+                if(room.Has("oxygen_source"))spec["oxygen_source"]=room.GetString("oxygen_source");
                 if (room.Has("temperature_c")) spec["temperature_c"] = V.F64(room["temperature_c"]);
                 AuthoredAtmosphereSpecs.Add(spec);
                 AtmosphereVolumes.Add(new TriggerVolumeSpec

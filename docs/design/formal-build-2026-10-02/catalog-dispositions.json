@@ -1,0 +1,2842 @@
+{
+  "schema": "synaptic-catalog-plan-1",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "review_amendment": "docs/design/formal-build-2026-10-02/amendments/f02-sources.md",
+  "amendment_selected": null,
+  "recipe_count": 62,
+  "source_blocked_count_upper_bound": 42,
+  "missing_input_ids": [
+    "antiseptic_vial",
+    "ceramic_plate",
+    "coolant_fluid",
+    "cryo_stabilizer",
+    "enzyme_catalyst",
+    "fusion_igniter",
+    "graphene_sheet",
+    "hydraulic_piston",
+    "medical_gauze",
+    "nanite_slurry",
+    "optical_lens",
+    "radiation_shielding",
+    "scavenged_protein",
+    "sensor_array",
+    "solenoid_coil",
+    "synth_fiber",
+    "synthesizer_base"
+  ],
+  "items_without_enumerated_source": [
+    "antique_relay",
+    "antiseptic_vial",
+    "antitoxin",
+    "biomatter_sample",
+    "calm_patch",
+    "ceramic_plate",
+    "combat_stim",
+    "cryo_stabilizer",
+    "enzyme_catalyst",
+    "eva_backpack",
+    "field_pack",
+    "filament_spool",
+    "flare",
+    "focus_ampoule",
+    "fusion_igniter",
+    "graphene_sheet",
+    "hardsuit",
+    "heat_pack",
+    "hydraulic_piston",
+    "medical_gauze",
+    "nutrient_paste",
+    "optical_lens",
+    "rad_patch",
+    "radiation_shielding",
+    "repair_foam",
+    "scavenged_protein",
+    "sensor_array",
+    "solenoid_coil",
+    "synth_fiber",
+    "synthesizer_base",
+    "tool_belt"
+  ],
+  "component_forms_without_registered_definition": [
+    "air_recycler_unit",
+    "conduit_segment",
+    "console_unit",
+    "machinery_block",
+    "nav_console",
+    "plating_plate",
+    "pump_assembly",
+    "reactor_console",
+    "sensor_rack",
+    "thruster_control",
+    "wall_locker"
+  ],
+  "recipes": [
+    {
+      "recipe_id": "craft_lockpick_set",
+      "audit_definition": {
+        "recipe_id": "craft_lockpick_set",
+        "display_name": "Machine Lockpick Set",
+        "category": "utility",
+        "ingredients": {
+          "scrap_metal": 2
+        },
+        "produces": {
+          "item_id": "lockpick_set",
+          "quantity": 1
+        },
+        "craft_time_seconds": 12.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "station_tier_min": 0,
+        "knowledge_source": "starter",
+        "work_verb": "craft",
+        "power_cost": 1.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 14,
+          "symbol": "craft_lockpick_set",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_hack_chip",
+      "audit_definition": {
+        "recipe_id": "craft_hack_chip",
+        "display_name": "Assemble Hatch Bypass Chip",
+        "category": "utility",
+        "ingredients": {
+          "circuit_board": 1,
+          "wiring_spool": 1
+        },
+        "produces": {
+          "item_id": "hack_chip",
+          "quantity": 1
+        },
+        "craft_time_seconds": 18.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "station_tier_min": 0,
+        "knowledge_source": "starter",
+        "work_verb": "splice",
+        "power_cost": 1.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 29,
+          "symbol": "craft_hack_chip",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "weld_plating",
+      "audit_definition": {
+        "recipe_id": "weld_plating",
+        "display_name": "Weld Hull Plating",
+        "category": "repair",
+        "ingredients": {
+          "scrap_metal": 2,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "plating",
+          "quantity": 1
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 0,
+        "station_kind": "workbench",
+        "station_tier_min": 0,
+        "knowledge_source": "starter",
+        "work_verb": "weld",
+        "power_cost": 2.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 44,
+          "symbol": "weld_plating",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "splice_circuit",
+      "audit_definition": {
+        "recipe_id": "splice_circuit",
+        "display_name": "Splice Circuit",
+        "category": "repair",
+        "ingredients": {
+          "circuit_board": 1,
+          "wiring_bundle": 1
+        },
+        "produces": {
+          "item_id": "circuit_board",
+          "quantity": 1
+        },
+        "craft_time_seconds": 12.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "station_tier_min": 0,
+        "knowledge_source": "starter",
+        "work_verb": "splice",
+        "power_cost": 1.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 59,
+          "symbol": "splice_circuit",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_power_cell",
+      "audit_definition": {
+        "recipe_id": "craft_power_cell",
+        "display_name": "Assemble Power Cell",
+        "category": "fabrication",
+        "ingredients": {
+          "scrap_metal": 1,
+          "wiring_bundle": 2,
+          "reactive_gel": 1
+        },
+        "produces": {
+          "item_id": "power_cell",
+          "quantity": 1
+        },
+        "craft_time_seconds": 30.0,
+        "required_skill_level": 2,
+        "station_kind": "fabricator",
+        "station_tier_min": 0,
+        "knowledge_source": "starter",
+        "work_verb": "craft",
+        "power_cost": 8.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 74,
+          "symbol": "craft_power_cell",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_sensor_module",
+      "audit_definition": {
+        "recipe_id": "craft_sensor_module",
+        "display_name": "Calibrate Sensor Module",
+        "category": "fabrication",
+        "ingredients": {
+          "sensor_array": 1,
+          "optical_lens": 1,
+          "circuit_board": 1
+        },
+        "produces": {
+          "item_id": "sensor_module",
+          "quantity": 1
+        },
+        "craft_time_seconds": 45.0,
+        "required_skill_level": 3,
+        "station_kind": "fabricator",
+        "station_tier_min": 1,
+        "knowledge_source": "starter",
+        "work_verb": "craft",
+        "power_cost": 10.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 89,
+          "symbol": "craft_sensor_module",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "sensor_array",
+        "optical_lens"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_thruster_nozzle",
+      "audit_definition": {
+        "recipe_id": "craft_thruster_nozzle",
+        "display_name": "Machine Thruster Nozzle",
+        "category": "fabrication",
+        "ingredients": {
+          "titanium_ingot": 2,
+          "ceramic_plate": 2,
+          "coolant_fluid": 1
+        },
+        "produces": {
+          "item_id": "thruster_nozzle",
+          "quantity": 1
+        },
+        "craft_time_seconds": 60.0,
+        "required_skill_level": 4,
+        "station_kind": "fabricator",
+        "station_tier_min": 2,
+        "knowledge_source": "book",
+        "work_verb": "craft",
+        "power_cost": 15.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 104,
+          "symbol": "craft_thruster_nozzle",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "ceramic_plate",
+        "coolant_fluid"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_fuel_line",
+      "audit_definition": {
+        "recipe_id": "craft_fuel_line",
+        "display_name": "Braided Fuel Line",
+        "category": "fabrication",
+        "ingredients": {
+          "synth_fiber": 2,
+          "polymer_pellet": 2,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "fuel_line",
+          "quantity": 2
+        },
+        "craft_time_seconds": 20.0,
+        "required_skill_level": 1,
+        "station_kind": "fabricator",
+        "power_cost": 4.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 119,
+          "symbol": "craft_fuel_line",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_welder",
+      "audit_definition": {
+        "recipe_id": "craft_welder",
+        "display_name": "Assemble Plasma Welder",
+        "category": "tool",
+        "ingredients": {
+          "scrap_metal": 3,
+          "power_cell": 1,
+          "circuit_board": 1
+        },
+        "produces": {
+          "item_id": "welder",
+          "quantity": 1
+        },
+        "craft_time_seconds": 40.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 6.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 131,
+          "symbol": "craft_welder",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_plasma_cutter",
+      "audit_definition": {
+        "recipe_id": "craft_plasma_cutter",
+        "display_name": "Assemble Plasma Cutter",
+        "category": "tool",
+        "ingredients": {
+          "titanium_ingot": 2,
+          "fusion_igniter": 1,
+          "power_cell": 1,
+          "circuit_board": 2
+        },
+        "produces": {
+          "item_id": "plasma_cutter",
+          "quantity": 1
+        },
+        "craft_time_seconds": 90.0,
+        "required_skill_level": 5,
+        "station_kind": "fabricator",
+        "power_cost": 20.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 143,
+          "symbol": "craft_plasma_cutter",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "fusion_igniter"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_oxygen_filter",
+      "audit_definition": {
+        "recipe_id": "craft_oxygen_filter",
+        "display_name": "Layer Oxygen Filter",
+        "category": "life_support",
+        "ingredients": {
+          "synth_fiber": 3,
+          "ceramic_plate": 1,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "oxygen_filter",
+          "quantity": 1
+        },
+        "craft_time_seconds": 18.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "power_cost": 3.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 155,
+          "symbol": "craft_oxygen_filter",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber",
+        "ceramic_plate"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_sealant",
+      "audit_definition": {
+        "recipe_id": "craft_sealant",
+        "display_name": "Mix Vacuum Sealant",
+        "category": "repair",
+        "ingredients": {
+          "reactive_gel": 1,
+          "polymer_pellet": 2
+        },
+        "produces": {
+          "item_id": "sealant",
+          "quantity": 2
+        },
+        "craft_time_seconds": 10.0,
+        "required_skill_level": 0,
+        "station_kind": "workbench",
+        "power_cost": 1.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 167,
+          "symbol": "craft_sealant",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_data_core",
+      "audit_definition": {
+        "recipe_id": "craft_data_core",
+        "display_name": "Etch Data Core",
+        "category": "fabrication",
+        "ingredients": {
+          "memory_crystal": 2,
+          "circuit_board": 2,
+          "graphene_sheet": 1
+        },
+        "produces": {
+          "item_id": "data_core",
+          "quantity": 1
+        },
+        "craft_time_seconds": 35.0,
+        "required_skill_level": 3,
+        "station_kind": "fabricator",
+        "power_cost": 8.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 179,
+          "symbol": "craft_data_core",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "graphene_sheet"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_reactor_core",
+      "audit_definition": {
+        "recipe_id": "craft_reactor_core",
+        "display_name": "Forge Reactor Core",
+        "category": "fabrication",
+        "ingredients": {
+          "titanium_ingot": 4,
+          "fusion_igniter": 1,
+          "coolant_fluid": 2,
+          "radiation_shielding": 2
+        },
+        "produces": {
+          "item_id": "reactor_core",
+          "quantity": 1
+        },
+        "craft_time_seconds": 120.0,
+        "required_skill_level": 6,
+        "station_kind": "fabricator",
+        "power_cost": 30.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 191,
+          "symbol": "craft_reactor_core",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "fusion_igniter",
+        "coolant_fluid",
+        "radiation_shielding"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_medkit",
+      "audit_definition": {
+        "recipe_id": "craft_medkit",
+        "display_name": "Assemble Medkit",
+        "category": "medical",
+        "ingredients": {
+          "medical_gauze": 2,
+          "antiseptic_vial": 1,
+          "synth_fiber": 1
+        },
+        "produces": {
+          "item_id": "medkit",
+          "quantity": 1
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 1,
+        "station_kind": "medbay",
+        "power_cost": 2.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 203,
+          "symbol": "craft_medkit",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "medical_gauze",
+        "antiseptic_vial",
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_stimulant",
+      "audit_definition": {
+        "recipe_id": "craft_stimulant",
+        "display_name": "Synth Stimulant",
+        "category": "medical",
+        "ingredients": {
+          "enzyme_catalyst": 1,
+          "purified_water": 1,
+          "synthesizer_base": 1
+        },
+        "produces": {
+          "item_id": "stimulant",
+          "quantity": 1
+        },
+        "craft_time_seconds": 20.0,
+        "required_skill_level": 2,
+        "station_kind": "medbay",
+        "power_cost": 3.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 215,
+          "symbol": "craft_stimulant",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "enzyme_catalyst",
+        "synthesizer_base"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_nanite_patch",
+      "audit_definition": {
+        "recipe_id": "craft_nanite_patch",
+        "display_name": "Nanite Repair Patch",
+        "category": "medical",
+        "ingredients": {
+          "nanite_slurry": 1,
+          "medical_gauze": 1,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "nanite_patch",
+          "quantity": 1
+        },
+        "craft_time_seconds": 25.0,
+        "required_skill_level": 4,
+        "station_kind": "medbay",
+        "power_cost": 5.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 227,
+          "symbol": "craft_nanite_patch",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "nanite_slurry",
+        "medical_gauze"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "cook_basic_meal",
+      "audit_definition": {
+        "recipe_id": "cook_basic_meal",
+        "display_name": "Basic Cooked Meal",
+        "category": "cooking",
+        "ingredients": {
+          "ration_pack": 1,
+          "purified_water": 1
+        },
+        "produces": {
+          "item_id": "cooked_meal",
+          "quantity": 1
+        },
+        "craft_time_seconds": 10.0,
+        "required_skill_level": 0,
+        "station_kind": "kitchen",
+        "power_cost": 3.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 239,
+          "symbol": "cook_basic_meal",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "cook_protein_fry",
+      "audit_definition": {
+        "recipe_id": "cook_protein_fry",
+        "display_name": "Protein Fry",
+        "category": "cooking",
+        "ingredients": {
+          "scavenged_protein": 1,
+          "purified_water": 1
+        },
+        "produces": {
+          "item_id": "cooked_meal",
+          "quantity": 2
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 1,
+        "station_kind": "kitchen",
+        "power_cost": 5.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 251,
+          "symbol": "cook_protein_fry",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "scavenged_protein"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "cook_alien_flora",
+      "audit_definition": {
+        "recipe_id": "cook_alien_flora",
+        "display_name": "Cauterized Flora",
+        "category": "cooking",
+        "ingredients": {
+          "alien_flora": 2,
+          "purified_water": 1
+        },
+        "produces": {
+          "item_id": "cooked_meal",
+          "quantity": 1
+        },
+        "craft_time_seconds": 12.0,
+        "required_skill_level": 2,
+        "station_kind": "kitchen",
+        "power_cost": 4.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 263,
+          "symbol": "cook_alien_flora",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "synthesize_nutrient_paste",
+      "audit_definition": {
+        "recipe_id": "synthesize_nutrient_paste",
+        "display_name": "Nutrient Paste Batch",
+        "category": "synthesis",
+        "ingredients": {
+          "ration_pack": 2,
+          "synthesizer_base": 1
+        },
+        "produces": {
+          "item_id": "synthesized_paste",
+          "quantity": 3
+        },
+        "craft_time_seconds": 20.0,
+        "required_skill_level": 0,
+        "station_kind": "synthesizer",
+        "power_cost": 10.0,
+        "batch_size": 3,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 275,
+          "symbol": "synthesize_nutrient_paste",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synthesizer_base"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "synthesize_adhesive",
+      "audit_definition": {
+        "recipe_id": "synthesize_adhesive",
+        "display_name": "Synthesize Adhesive",
+        "category": "synthesis",
+        "ingredients": {
+          "polymer_pellet": 3,
+          "reactive_gel": 1
+        },
+        "produces": {
+          "item_id": "adhesive_paste",
+          "quantity": 2
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 1,
+        "station_kind": "synthesizer",
+        "power_cost": 6.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 287,
+          "symbol": "synthesize_adhesive",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "synthesize_coolant",
+      "audit_definition": {
+        "recipe_id": "synthesize_coolant",
+        "display_name": "Synthesize Coolant",
+        "category": "synthesis",
+        "ingredients": {
+          "purified_water": 2,
+          "reactive_gel": 1,
+          "coolant_fluid": 1
+        },
+        "produces": {
+          "item_id": "coolant_fluid",
+          "quantity": 2
+        },
+        "craft_time_seconds": 18.0,
+        "required_skill_level": 2,
+        "station_kind": "synthesizer",
+        "power_cost": 8.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 299,
+          "symbol": "synthesize_coolant",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "coolant_fluid"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "synthesize_nanite_slurry",
+      "audit_definition": {
+        "recipe_id": "synthesize_nanite_slurry",
+        "display_name": "Nanite Slurry Batch",
+        "category": "synthesis",
+        "ingredients": {
+          "graphene_sheet": 2,
+          "power_cell": 1,
+          "enzyme_catalyst": 1
+        },
+        "produces": {
+          "item_id": "nanite_slurry",
+          "quantity": 1
+        },
+        "craft_time_seconds": 60.0,
+        "required_skill_level": 5,
+        "station_kind": "synthesizer",
+        "power_cost": 25.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 311,
+          "symbol": "synthesize_nanite_slurry",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "graphene_sheet",
+        "enzyme_catalyst"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "field_bandage",
+      "audit_definition": {
+        "recipe_id": "field_bandage",
+        "display_name": "Field Bandage",
+        "category": "medical",
+        "ingredients": {
+          "synth_fiber": 2,
+          "medical_gauze": 1
+        },
+        "produces": {
+          "item_id": "field_bandage",
+          "quantity": 1
+        },
+        "craft_time_seconds": 8.0,
+        "required_skill_level": 0,
+        "station_kind": "field_crafting",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 323,
+          "symbol": "field_bandage",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber",
+        "medical_gauze"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "field_patch",
+      "audit_definition": {
+        "recipe_id": "field_patch",
+        "display_name": "Emergency Hull Patch",
+        "category": "repair",
+        "ingredients": {
+          "scrap_metal": 2,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "emergency_patch",
+          "quantity": 1
+        },
+        "craft_time_seconds": 12.0,
+        "required_skill_level": 0,
+        "station_kind": "field_crafting",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 335,
+          "symbol": "field_patch",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "field_splint",
+      "audit_definition": {
+        "recipe_id": "field_splint",
+        "display_name": "Improvised Splint",
+        "category": "medical",
+        "ingredients": {
+          "scrap_metal": 1,
+          "synth_fiber": 1
+        },
+        "produces": {
+          "item_id": "improvised_splint",
+          "quantity": 1
+        },
+        "craft_time_seconds": 6.0,
+        "required_skill_level": 0,
+        "station_kind": "field_crafting",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 347,
+          "symbol": "field_splint",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "field_filter_mask",
+      "audit_definition": {
+        "recipe_id": "field_filter_mask",
+        "display_name": "Filter Mask",
+        "category": "life_support",
+        "ingredients": {
+          "synth_fiber": 2,
+          "ceramic_plate": 1
+        },
+        "produces": {
+          "item_id": "filter_mask",
+          "quantity": 1
+        },
+        "craft_time_seconds": 10.0,
+        "required_skill_level": 1,
+        "station_kind": "field_crafting",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 359,
+          "symbol": "field_filter_mask",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber",
+        "ceramic_plate"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "deconstruct_scrap",
+      "audit_definition": {
+        "recipe_id": "deconstruct_scrap",
+        "display_name": "Break Down Scrap Metal",
+        "category": "deconstruction",
+        "ingredients": {
+          "scrap_metal": 1
+        },
+        "produces": {
+          "item_id": "ferrous_shard",
+          "quantity": 2
+        },
+        "craft_time_seconds": 5.0,
+        "required_skill_level": 0,
+        "station_kind": "workbench",
+        "power_cost": 0.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 371,
+          "symbol": "deconstruct_scrap",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "deconstruct_plating",
+      "audit_definition": {
+        "recipe_id": "deconstruct_plating",
+        "display_name": "Break Down Hull Plating",
+        "category": "deconstruction",
+        "ingredients": {
+          "plating": 1
+        },
+        "produces": {
+          "item_id": "scrap_metal",
+          "quantity": 3
+        },
+        "craft_time_seconds": 8.0,
+        "required_skill_level": 0,
+        "station_kind": "workbench",
+        "power_cost": 0.0,
+        "batch_size": 3,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 383,
+          "symbol": "deconstruct_plating",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "deconstruct_power_cell",
+      "audit_definition": {
+        "recipe_id": "deconstruct_power_cell",
+        "display_name": "Dismantle Power Cell",
+        "category": "deconstruction",
+        "ingredients": {
+          "power_cell": 1
+        },
+        "produces": {
+          "item_id": "wiring_bundle",
+          "quantity": 2
+        },
+        "craft_time_seconds": 10.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "power_cost": 0.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 395,
+          "symbol": "deconstruct_power_cell",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "deconstruct_sensor",
+      "audit_definition": {
+        "recipe_id": "deconstruct_sensor",
+        "display_name": "Dismantle Sensor Module",
+        "category": "deconstruction",
+        "ingredients": {
+          "sensor_module": 1
+        },
+        "produces": {
+          "item_id": "circuit_board",
+          "quantity": 1
+        },
+        "craft_time_seconds": 12.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 407,
+          "symbol": "deconstruct_sensor",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_graphene_weave",
+      "audit_definition": {
+        "recipe_id": "craft_graphene_weave",
+        "display_name": "Graphene Weave",
+        "category": "fabrication",
+        "ingredients": {
+          "graphene_sheet": 3,
+          "synth_fiber": 1
+        },
+        "produces": {
+          "item_id": "graphene_weave",
+          "quantity": 1
+        },
+        "craft_time_seconds": 25.0,
+        "required_skill_level": 3,
+        "station_kind": "fabricator",
+        "power_cost": 7.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 419,
+          "symbol": "craft_graphene_weave",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "graphene_sheet",
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_pneumatic_actuator",
+      "audit_definition": {
+        "recipe_id": "craft_pneumatic_actuator",
+        "display_name": "Pneumatic Actuator",
+        "category": "fabrication",
+        "ingredients": {
+          "hydraulic_piston": 1,
+          "pneumatic_valve": 1,
+          "scrap_metal": 2
+        },
+        "produces": {
+          "item_id": "pneumatic_actuator",
+          "quantity": 1
+        },
+        "craft_time_seconds": 30.0,
+        "required_skill_level": 2,
+        "station_kind": "fabricator",
+        "power_cost": 6.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 431,
+          "symbol": "craft_pneumatic_actuator",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "hydraulic_piston"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_cryo_unit",
+      "audit_definition": {
+        "recipe_id": "craft_cryo_unit",
+        "display_name": "Cryo Thermal Unit",
+        "category": "fabrication",
+        "ingredients": {
+          "cryo_stabilizer": 1,
+          "coolant_fluid": 2,
+          "ceramic_plate": 2
+        },
+        "produces": {
+          "item_id": "cryo_unit",
+          "quantity": 1
+        },
+        "craft_time_seconds": 40.0,
+        "required_skill_level": 3,
+        "station_kind": "fabricator",
+        "power_cost": 10.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 443,
+          "symbol": "craft_cryo_unit",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "cryo_stabilizer",
+        "coolant_fluid",
+        "ceramic_plate"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_radiation_suit",
+      "audit_definition": {
+        "recipe_id": "craft_radiation_suit",
+        "display_name": "Radiation Suit Lining",
+        "category": "fabrication",
+        "ingredients": {
+          "radiation_shielding": 2,
+          "synth_fiber": 3,
+          "graphene_sheet": 2
+        },
+        "produces": {
+          "item_id": "radiation_suit_lining",
+          "quantity": 1
+        },
+        "craft_time_seconds": 50.0,
+        "required_skill_level": 4,
+        "station_kind": "fabricator",
+        "power_cost": 12.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 455,
+          "symbol": "craft_radiation_suit",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "radiation_shielding",
+        "synth_fiber",
+        "graphene_sheet"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_memory_drive",
+      "audit_definition": {
+        "recipe_id": "craft_memory_drive",
+        "display_name": "Memory Drive",
+        "category": "fabrication",
+        "ingredients": {
+          "memory_crystal": 2,
+          "circuit_board": 1,
+          "graphene_sheet": 1
+        },
+        "produces": {
+          "item_id": "memory_drive",
+          "quantity": 1
+        },
+        "craft_time_seconds": 28.0,
+        "required_skill_level": 2,
+        "station_kind": "fabricator",
+        "power_cost": 6.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 467,
+          "symbol": "craft_memory_drive",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "graphene_sheet"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_solenoid_rig",
+      "audit_definition": {
+        "recipe_id": "craft_solenoid_rig",
+        "display_name": "Solenoid Rig",
+        "category": "fabrication",
+        "ingredients": {
+          "solenoid_coil": 2,
+          "scrap_metal": 2,
+          "wiring_bundle": 1
+        },
+        "produces": {
+          "item_id": "solenoid_rig",
+          "quantity": 1
+        },
+        "craft_time_seconds": 22.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 4.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 479,
+          "symbol": "craft_solenoid_rig",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "solenoid_coil"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_biomatter_filter",
+      "audit_definition": {
+        "recipe_id": "craft_biomatter_filter",
+        "display_name": "Biomatter Filter",
+        "category": "life_support",
+        "ingredients": {
+          "biomatter_residue": 2,
+          "synth_fiber": 2,
+          "ceramic_plate": 1
+        },
+        "produces": {
+          "item_id": "biomatter_filter",
+          "quantity": 1
+        },
+        "craft_time_seconds": 20.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 3.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 491,
+          "symbol": "craft_biomatter_filter",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber",
+        "ceramic_plate"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "cook_synth_stew",
+      "audit_definition": {
+        "recipe_id": "cook_synth_stew",
+        "display_name": "Synthesized Stew",
+        "category": "cooking",
+        "ingredients": {
+          "scavenged_protein": 1,
+          "alien_flora": 1,
+          "purified_water": 1
+        },
+        "produces": {
+          "item_id": "cooked_meal",
+          "quantity": 2
+        },
+        "craft_time_seconds": 18.0,
+        "required_skill_level": 2,
+        "station_kind": "kitchen",
+        "power_cost": 5.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 503,
+          "symbol": "cook_synth_stew",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "scavenged_protein"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "cook_nutrient_broth",
+      "audit_definition": {
+        "recipe_id": "cook_nutrient_broth",
+        "display_name": "Nutrient Broth",
+        "category": "cooking",
+        "ingredients": {
+          "ration_pack": 1,
+          "synthesizer_base": 1,
+          "purified_water": 2
+        },
+        "produces": {
+          "item_id": "cooked_meal",
+          "quantity": 3
+        },
+        "craft_time_seconds": 22.0,
+        "required_skill_level": 1,
+        "station_kind": "kitchen",
+        "power_cost": 6.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 515,
+          "symbol": "cook_nutrient_broth",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synthesizer_base"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_hydraulic_clamp",
+      "audit_definition": {
+        "recipe_id": "craft_hydraulic_clamp",
+        "display_name": "Hydraulic Clamp",
+        "category": "fabrication",
+        "ingredients": {
+          "hydraulic_piston": 1,
+          "scrap_metal": 2,
+          "pneumatic_valve": 1
+        },
+        "produces": {
+          "item_id": "hydraulic_clamp",
+          "quantity": 1
+        },
+        "craft_time_seconds": 25.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 5.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 527,
+          "symbol": "craft_hydraulic_clamp",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "hydraulic_piston"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_thermal_pad",
+      "audit_definition": {
+        "recipe_id": "craft_thermal_pad",
+        "display_name": "Thermal Pad",
+        "category": "medical",
+        "ingredients": {
+          "ceramic_plate": 1,
+          "coolant_fluid": 1,
+          "synth_fiber": 1
+        },
+        "produces": {
+          "item_id": "thermal_pad",
+          "quantity": 1
+        },
+        "craft_time_seconds": 12.0,
+        "required_skill_level": 1,
+        "station_kind": "medbay",
+        "power_cost": 2.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 539,
+          "symbol": "craft_thermal_pad",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "ceramic_plate",
+        "coolant_fluid",
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_filter_cartridge",
+      "audit_definition": {
+        "recipe_id": "craft_filter_cartridge",
+        "display_name": "Filter Cartridge",
+        "category": "life_support",
+        "ingredients": {
+          "synth_fiber": 2,
+          "ceramic_plate": 1,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "filter_cartridge",
+          "quantity": 1
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "power_cost": 2.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 551,
+          "symbol": "craft_filter_cartridge",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber",
+        "ceramic_plate"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "synthesize_graphene_ink",
+      "audit_definition": {
+        "recipe_id": "synthesize_graphene_ink",
+        "display_name": "Graphene Conductive Ink",
+        "category": "synthesis",
+        "ingredients": {
+          "graphene_sheet": 2,
+          "reactive_gel": 1,
+          "purified_water": 1
+        },
+        "produces": {
+          "item_id": "graphene_ink",
+          "quantity": 2
+        },
+        "craft_time_seconds": 20.0,
+        "required_skill_level": 3,
+        "station_kind": "synthesizer",
+        "power_cost": 8.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 563,
+          "symbol": "synthesize_graphene_ink",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "graphene_sheet"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "synthesize_fiber_strand",
+      "audit_definition": {
+        "recipe_id": "synthesize_fiber_strand",
+        "display_name": "Reinforced Fiber Strand",
+        "category": "synthesis",
+        "ingredients": {
+          "synth_fiber": 2,
+          "polymer_pellet": 1,
+          "enzyme_catalyst": 1
+        },
+        "produces": {
+          "item_id": "fiber_strand",
+          "quantity": 3
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 1,
+        "station_kind": "synthesizer",
+        "power_cost": 5.0,
+        "batch_size": 3,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 575,
+          "symbol": "synthesize_fiber_strand",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber",
+        "enzyme_catalyst"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_docking_brace",
+      "audit_definition": {
+        "recipe_id": "craft_docking_brace",
+        "display_name": "Docking Brace",
+        "category": "fabrication",
+        "ingredients": {
+          "titanium_ingot": 2,
+          "hydraulic_piston": 1,
+          "scrap_metal": 2
+        },
+        "produces": {
+          "item_id": "docking_brace",
+          "quantity": 1
+        },
+        "craft_time_seconds": 35.0,
+        "required_skill_level": 3,
+        "station_kind": "fabricator",
+        "power_cost": 8.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 587,
+          "symbol": "craft_docking_brace",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "hydraulic_piston"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_nav_chip",
+      "audit_definition": {
+        "recipe_id": "craft_nav_chip",
+        "display_name": "Navigation Chip",
+        "category": "fabrication",
+        "ingredients": {
+          "circuit_board": 2,
+          "memory_crystal": 1,
+          "graphene_sheet": 1
+        },
+        "produces": {
+          "item_id": "nav_chip",
+          "quantity": 1
+        },
+        "craft_time_seconds": 30.0,
+        "required_skill_level": 3,
+        "station_kind": "fabricator",
+        "power_cost": 7.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 599,
+          "symbol": "craft_nav_chip",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "graphene_sheet"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_propulsion_coupling",
+      "audit_definition": {
+        "recipe_id": "craft_propulsion_coupling",
+        "display_name": "Propulsion Coupling",
+        "category": "fabrication",
+        "ingredients": {
+          "titanium_ingot": 1,
+          "fuel_line": 1,
+          "hydraulic_piston": 1
+        },
+        "produces": {
+          "item_id": "propulsion_coupling",
+          "quantity": 1
+        },
+        "craft_time_seconds": 28.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 5.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 611,
+          "symbol": "craft_propulsion_coupling",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "hydraulic_piston"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_emergency_beacon",
+      "audit_definition": {
+        "recipe_id": "craft_emergency_beacon",
+        "display_name": "Emergency Beacon",
+        "category": "fabrication",
+        "ingredients": {
+          "power_cell": 1,
+          "circuit_board": 1,
+          "sensor_array": 1
+        },
+        "produces": {
+          "item_id": "emergency_beacon",
+          "quantity": 1
+        },
+        "craft_time_seconds": 25.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 4.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 623,
+          "symbol": "craft_emergency_beacon",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "sensor_array"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_survival_tent",
+      "audit_definition": {
+        "recipe_id": "craft_survival_tent",
+        "display_name": "Fold Survival Tent",
+        "category": "fabrication",
+        "ingredients": {
+          "synth_fiber": 4,
+          "scrap_metal": 2,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "survival_tent",
+          "quantity": 1
+        },
+        "craft_time_seconds": 20.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "power_cost": 2.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 635,
+          "symbol": "craft_survival_tent",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_breather_mask",
+      "audit_definition": {
+        "recipe_id": "craft_breather_mask",
+        "display_name": "Emergency Breather",
+        "category": "life_support",
+        "ingredients": {
+          "synth_fiber": 2,
+          "ceramic_plate": 1,
+          "oxygen_filter": 1
+        },
+        "produces": {
+          "item_id": "breather_mask",
+          "quantity": 1
+        },
+        "craft_time_seconds": 18.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 3.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 647,
+          "symbol": "craft_breather_mask",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber",
+        "ceramic_plate"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_radiation_badge",
+      "audit_definition": {
+        "recipe_id": "craft_radiation_badge",
+        "display_name": "Radiation Badge",
+        "category": "fabrication",
+        "ingredients": {
+          "circuit_board": 1,
+          "radiation_shielding": 1,
+          "sensor_array": 1
+        },
+        "produces": {
+          "item_id": "radiation_badge",
+          "quantity": 1
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 2.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 659,
+          "symbol": "craft_radiation_badge",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "radiation_shielding",
+        "sensor_array"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_portable_pump_upgrade",
+      "audit_definition": {
+        "recipe_id": "craft_portable_pump_upgrade",
+        "display_name": "Portable Pump Upgrade",
+        "category": "tool",
+        "ingredients": {
+          "portable_oxygen_pump": 1,
+          "power_cell": 1,
+          "circuit_board": 1,
+          "graphene_sheet": 1
+        },
+        "produces": {
+          "item_id": "portable_oxygen_pump_mk2",
+          "quantity": 1
+        },
+        "craft_time_seconds": 45.0,
+        "required_skill_level": 4,
+        "station_kind": "fabricator",
+        "power_cost": 10.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 671,
+          "symbol": "craft_portable_pump_upgrade",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "graphene_sheet"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_junction_calibrator_upgrade",
+      "audit_definition": {
+        "recipe_id": "craft_junction_calibrator_upgrade",
+        "display_name": "Junction Calibrator Mk2",
+        "category": "tool",
+        "ingredients": {
+          "junction_calibrator": 1,
+          "circuit_board": 2,
+          "sensor_array": 1,
+          "memory_crystal": 1
+        },
+        "produces": {
+          "item_id": "junction_calibrator_mk2",
+          "quantity": 1
+        },
+        "craft_time_seconds": 50.0,
+        "required_skill_level": 5,
+        "station_kind": "fabricator",
+        "power_cost": 12.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 683,
+          "symbol": "craft_junction_calibrator_upgrade",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "sensor_array"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "field_craft_fishing_line",
+      "audit_definition": {
+        "recipe_id": "field_craft_fishing_line",
+        "display_name": "Improvised Fishing Line",
+        "category": "survival",
+        "ingredients": {
+          "synth_fiber": 3,
+          "scrap_metal": 1
+        },
+        "produces": {
+          "item_id": "fishing_line",
+          "quantity": 1
+        },
+        "craft_time_seconds": 5.0,
+        "required_skill_level": 0,
+        "station_kind": "field_crafting",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 695,
+          "symbol": "field_craft_fishing_line",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "field_craft_torch",
+      "audit_definition": {
+        "recipe_id": "field_craft_torch",
+        "display_name": "Improvised Torch",
+        "category": "survival",
+        "ingredients": {
+          "scrap_metal": 1,
+          "synth_fiber": 1,
+          "reactive_gel": 1
+        },
+        "produces": {
+          "item_id": "improvised_torch",
+          "quantity": 1
+        },
+        "craft_time_seconds": 4.0,
+        "required_skill_level": 0,
+        "station_kind": "field_crafting",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 707,
+          "symbol": "field_craft_torch",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": true,
+      "missing_input_ids": [
+        "synth_fiber"
+      ],
+      "proposed_disposition": "review_required_source_or_explicit_defer",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "deconstruct_thruster",
+      "audit_definition": {
+        "recipe_id": "deconstruct_thruster",
+        "display_name": "Break Down Thruster Nozzle",
+        "category": "deconstruction",
+        "ingredients": {
+          "thruster_nozzle": 1
+        },
+        "produces": {
+          "item_id": "titanium_ingot",
+          "quantity": 1
+        },
+        "craft_time_seconds": 15.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 719,
+          "symbol": "deconstruct_thruster",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "deconstruct_welder",
+      "audit_definition": {
+        "recipe_id": "deconstruct_welder",
+        "display_name": "Break Down Welder",
+        "category": "deconstruction",
+        "ingredients": {
+          "welder": 1
+        },
+        "produces": {
+          "item_id": "scrap_metal",
+          "quantity": 2
+        },
+        "craft_time_seconds": 10.0,
+        "required_skill_level": 0,
+        "station_kind": "workbench",
+        "power_cost": 0.0,
+        "batch_size": 2,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 731,
+          "symbol": "deconstruct_welder",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "deconstruct_plasma_cutter",
+      "audit_definition": {
+        "recipe_id": "deconstruct_plasma_cutter",
+        "display_name": "Break Down Plasma Cutter",
+        "category": "deconstruction",
+        "ingredients": {
+          "plasma_cutter": 1
+        },
+        "produces": {
+          "item_id": "titanium_ingot",
+          "quantity": 1
+        },
+        "craft_time_seconds": 18.0,
+        "required_skill_level": 1,
+        "station_kind": "workbench",
+        "power_cost": 0.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 743,
+          "symbol": "deconstruct_plasma_cutter",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_hull_sealant",
+      "audit_definition": {
+        "recipe_id": "craft_hull_sealant",
+        "display_name": "Mix Hull Sealant",
+        "category": "repair",
+        "ingredients": {
+          "sealant": 2,
+          "adhesive_paste": 1
+        },
+        "produces": {
+          "item_id": "hull_sealant",
+          "quantity": 1
+        },
+        "craft_time_seconds": 12.0,
+        "required_skill_level": 2,
+        "station_kind": "workbench",
+        "power_cost": 2.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 755,
+          "symbol": "craft_hull_sealant",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    },
+    {
+      "recipe_id": "craft_fire_extinguisher",
+      "audit_definition": {
+        "recipe_id": "craft_fire_extinguisher",
+        "display_name": "Assemble Fire Extinguisher",
+        "category": "fabrication",
+        "ingredients": {
+          "scrap_metal": 2,
+          "power_cell": 1,
+          "reactive_gel": 1
+        },
+        "produces": {
+          "item_id": "fire_extinguisher",
+          "quantity": 1
+        },
+        "craft_time_seconds": 20.0,
+        "required_skill_level": 3,
+        "station_kind": "fabricator",
+        "power_cost": 3.0,
+        "batch_size": 1,
+        "evidence": {
+          "file": "SynapticSea/Assets/StreamingAssets/data/recipes/recipe_definitions.json",
+          "line": 767,
+          "symbol": "craft_fire_extinguisher",
+          "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48"
+        }
+      },
+      "source_blocked_upper_bound": false,
+      "missing_input_ids": [],
+      "proposed_disposition": "retain_potential_source_and_require_finite_physical_witness",
+      "work_packages": [
+        "F01",
+        "F02",
+        "F07"
+      ],
+      "acceptance_tests": [
+        "A01",
+        "A02",
+        "A11"
+      ],
+      "gate": "OPEN08 exact source/knowledge amendment; normal witness before required exposure",
+      "natural_acquisition_certified": false
+    }
+  ]
+}

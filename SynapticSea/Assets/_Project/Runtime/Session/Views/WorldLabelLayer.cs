@@ -163,6 +163,14 @@ namespace SynapticSea.Runtime.Session
                 bool show = e.Visible && anchor.HasValue && (e.Hazard || WithinCull(anchor.Value, player));
                 if (show && camera != null)
                 {
+                    if(player.HasValue && e.Id != "focused_interaction")
+                    {
+                        Vector3 from = player.Value + Vector3.up*1.3f;
+                        if(Mathf.Abs(anchor.Value.y-from.y)>2.8f) show=false;
+                        int blockers=(1<<PhysicsLayers.Structure)|(1<<PhysicsLayers.Portal)|(1<<PhysicsLayers.Walkable)|(1<<PhysicsLayers.ZoneBlocker);
+                        if(show && Physics.Linecast(from,anchor.Value,out RaycastHit hit,blockers,QueryTriggerInteraction.Ignore)
+                            && Vector3.Distance(hit.point,anchor.Value)>1.2f) show=false;
+                    }
                     Vector3 viewport = camera.WorldToViewportPoint(anchor.Value);
                     if (viewport.z < 0f || viewport.x < -0.1f || viewport.x > 1.1f || viewport.y < -0.1f || viewport.y > 1.1f) show = false;
                 }

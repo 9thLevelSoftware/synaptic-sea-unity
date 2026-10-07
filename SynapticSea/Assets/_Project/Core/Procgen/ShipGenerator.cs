@@ -47,6 +47,8 @@ namespace SynapticSea.Core.Procgen
 
         /// <summary>Generated derelicts are the away branch (atmosphere hook).</summary>
         public bool IsAway;
+        /// <summary>Witness that GameplaySliceBuilder produced this document; diagnostic archival preserves its separate contract.</summary>
+        public bool RuntimeGeneratedGameplay;
 
         /// <summary>
         /// Pipeline path: the exact layout.json text Godot wrote (<c>JSON.stringify(layout, "  ")</c>); null for the
@@ -103,12 +105,17 @@ namespace SynapticSea.Core.Procgen
         /// </summary>
         public IDerelictLayoutSource DerelictSource;
 
+        /// <summary>Offline reviewed Rust4 fixture admission only; never enabled by ordinary sessions.</summary>
+        public bool EnableReviewedFrozenVersion4;
+
         bool _worldgenKitLoaded;
         GdDict _worldgenKitDoc = new GdDict();
 
         /// <summary>Per-derelict run context forwarded to generate_with_options (empty = legacy bare geometry).</summary>
         public string BiomeId = "";
         public string DifficultyId = "";
+        public bool RichExpeditions;
+        public string ExpeditionProfile = ConstrainedExpedition.Profile;
 
         readonly GdDict _wrapperMapCache = new GdDict();
 
@@ -179,6 +186,7 @@ namespace SynapticSea.Core.Procgen
         {
             if (USE_WORLDGEN && DerelictSource != null) return GenerateViaWorldgen(seedValue, size, condition);
             var blueprint = new ShipBlueprint(size, condition, seedValue);
+            if (RichExpeditions && size >= 1 && size <= 2) blueprint.GenerationProfile = ExpeditionProfile;
             return Generate(blueprint);
         }
 
@@ -193,7 +201,8 @@ namespace SynapticSea.Core.Procgen
                 return null;
             }
             long generatorVersion = generator.GeneratorVersion();
-            if (generatorVersion != WORLDGEN_VERSION)
+            bool frozenV4 = EnableReviewedFrozenVersion4 && generator is FrozenDerelictLayoutSource && generatorVersion == 4;
+            if (generatorVersion != WORLDGEN_VERSION && !frozenV4)
             {
                 CoreServices.Log.Error("SHIP GENERATOR FAIL unsupported DerelictGenerator version: " + GdString.FormatInt(generatorVersion));
                 return null;
@@ -257,7 +266,14 @@ namespace SynapticSea.Core.Procgen
                 CoreServices.Log.Error("SHIP GENERATOR FAIL game loot registry is empty");
                 return null;
             }
-            if (!ResolveWorldgenLootContainers(gameplay, exportedGameplay, lootTables)) return null;
+            if (frozenV4)
+            {
+                if (!FrozenDerelictLayoutSource.ApplyAuthority(layout, gameplay, exportedGameplay, lootTables)) return null;
+                GdDict provenance = ((FrozenDerelictLayoutSource)generator).Provenance(seedValue, parameters);
+                layout["worldgen_fixture"] = provenance.DeepCopy();
+                gameplay["worldgen_fixture"] = provenance.DeepCopy();
+            }
+            else if (!ResolveWorldgenLootContainers(gameplay, exportedGameplay, lootTables)) return null;
 
             GdDict kit = LoadWorldgenKit();
             if (kit.IsEmpty) return null;
@@ -411,6 +427,7 @@ namespace SynapticSea.Core.Procgen
             // Build the gameplay slice first so builder-authored hazard links land on the layout before it is written
             // (the loader reads arc_zones from layout.json).
             GdDict gameplay = new GameplaySliceBuilder().Build(layout);
+            PurposefulExpedition.Furnish(layout, gameplay);
             object layoutArcs = layout.Get("arc_zones", new GdArray());
             object sliceArcs = gameplay.Get("arc_zones", new GdArray());
             if ((!(layoutArcs is GdArray la) || la.IsEmpty) && sliceArcs is GdArray sa && !sa.IsEmpty)
@@ -434,6 +451,7 @@ namespace SynapticSea.Core.Procgen
             // Generated derelicts are the away branch.
             return new ShipDocuments
             {
+                RuntimeGeneratedGameplay = true,
                 Layout = layoutDoc, Kit = kit, GameplaySlice = gameplayDoc, IsAway = true, KitPath = kitPath,
                 LayoutJson = layoutJson, GameplaySliceJson = gameplayJson, SourceLayout = layout,
             };

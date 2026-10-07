@@ -1,0 +1,484 @@
+{
+  "schema_version": "1",
+  "source_commit": "eb7845efffb9557e1e89352c534950c5d10d79b9",
+  "generator_version": 4,
+  "kit_id": "ship_structural_v0",
+  "layout_schema": "1.2.0",
+  "gameplay_schema": "1.1.0",
+  "provenance": {
+    "cargo_version": "cargo 1.95.0 (f2d3ce0bd 2026-03-21) (Homebrew)",
+    "rustc_version": "rustc 1.95.0 (59807616e 2026-04-14) (Homebrew)",
+    "cargo_lock_sha256": "5c891e85300a353ab1d5e4bf3a184671b9657f4d7800ef5acf8514ff970a69df",
+    "binary_sha256": "dbd5c5c9eaf01de5a70e982152fb1f0b0de78a45b0826b20632e03b8e899db60",
+    "build_command": "cargo build --manifest-path /Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-source/Cargo.toml --package derelict_cli --locked --offline --target-dir /Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target",
+    "status": "candidate exports; runtime/opportunity authority admission pending",
+    "generation_commands": [
+      {
+        "fixture_id": "seed-42-size-0-condition-0",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "42",
+          "--archetype",
+          "shuttle",
+          "--intactness",
+          "0.95",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-42-size-0-condition-0"
+        ],
+        "exit_code": 0
+      },
+      {
+        "fixture_id": "seed-42-size-0-condition-2",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "42",
+          "--archetype",
+          "shuttle",
+          "--intactness",
+          "0.20",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-42-size-0-condition-2"
+        ],
+        "exit_code": 0
+      },
+      {
+        "fixture_id": "seed-42-size-2-condition-0",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "42",
+          "--archetype",
+          "freighter",
+          "--intactness",
+          "0.95",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-42-size-2-condition-0"
+        ],
+        "exit_code": 0
+      },
+      {
+        "fixture_id": "seed-42-size-2-condition-2",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "42",
+          "--archetype",
+          "freighter",
+          "--intactness",
+          "0.20",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-42-size-2-condition-2"
+        ],
+        "exit_code": 0
+      },
+      {
+        "fixture_id": "seed-777-size-0-condition-0",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "777",
+          "--archetype",
+          "shuttle",
+          "--intactness",
+          "0.95",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-777-size-0-condition-0"
+        ],
+        "exit_code": 0
+      },
+      {
+        "fixture_id": "seed-777-size-0-condition-2",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "777",
+          "--archetype",
+          "shuttle",
+          "--intactness",
+          "0.20",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-777-size-0-condition-2"
+        ],
+        "exit_code": 0
+      },
+      {
+        "fixture_id": "seed-777-size-2-condition-0",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "777",
+          "--archetype",
+          "freighter",
+          "--intactness",
+          "0.95",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-777-size-2-condition-0"
+        ],
+        "exit_code": 0
+      },
+      {
+        "fixture_id": "seed-777-size-2-condition-2",
+        "argv": [
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/rust-target/debug/derelict_cli",
+          "--seed",
+          "777",
+          "--archetype",
+          "freighter",
+          "--intactness",
+          "0.20",
+          "--kit-id",
+          "ship_structural_v0",
+          "--export-dir",
+          "/Volumes/Untitled/SynapticSeaMigration/mac-baseline-evidence/procedural-export-gate/candidates/seed-777-size-2-condition-2"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "source_status_before": "clean",
+    "source_status_after": "clean"
+  },
+  "fixtures": [
+    {
+      "fixture_id": "seed-42-size-0-condition-0",
+      "seed": "42",
+      "size": 0,
+      "condition": 0,
+      "archetype_id": "shuttle",
+      "intactness_bp": 9500,
+      "layout_path": "seed-42-size-0-condition-0/layout.json",
+      "layout_sha256": "6513dc770725a9c8f21cc03b3da36a082811dc26cb467811459f4dbe861138aa",
+      "gameplay_path": "seed-42-size-0-condition-0/gameplay_slice.json",
+      "gameplay_sha256": "bb65252c5ea775fc606648ac8d38aba5069236effed2e888483990d694a26e5d",
+      "inspection": {
+        "room_count": 9,
+        "portal_count": 8,
+        "loot_count": 6,
+        "module_ids": [
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 55,
+        "authoritative_unique_placement_ids": 55,
+        "mirrored_floor_placement_count": 41,
+        "mirrored_ceiling_placement_count": 41,
+        "vertical_connection_count": 0,
+        "repeat_pair_hashes_match": true
+      }
+    },
+    {
+      "fixture_id": "seed-42-size-0-condition-2",
+      "seed": "42",
+      "size": 0,
+      "condition": 2,
+      "archetype_id": "shuttle",
+      "intactness_bp": 2000,
+      "layout_path": "seed-42-size-0-condition-2/layout.json",
+      "layout_sha256": "c31f4b285215cb4d169545e36ffde0d72b9f96b6ebef9049cb71d4c8320386a8",
+      "gameplay_path": "seed-42-size-0-condition-2/gameplay_slice.json",
+      "gameplay_sha256": "1ad8dfe09fab77a952518d1ecb2fe8c10edeac9da4c9ef8f9cf2cb77d0547458",
+      "inspection": {
+        "room_count": 8,
+        "portal_count": 7,
+        "loot_count": 6,
+        "module_ids": [
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 45,
+        "authoritative_unique_placement_ids": 45,
+        "mirrored_floor_placement_count": 36,
+        "mirrored_ceiling_placement_count": 36,
+        "vertical_connection_count": 0,
+        "repeat_pair_hashes_match": true
+      }
+    },
+    {
+      "fixture_id": "seed-42-size-2-condition-0",
+      "seed": "42",
+      "size": 2,
+      "condition": 0,
+      "archetype_id": "freighter",
+      "intactness_bp": 9500,
+      "layout_path": "seed-42-size-2-condition-0/layout.json",
+      "layout_sha256": "89366ce563460fdc50bfa3537580095a88c69ebe60434b6cae74d99a91aaa459",
+      "gameplay_path": "seed-42-size-2-condition-0/gameplay_slice.json",
+      "gameplay_sha256": "d716b86ef85f5c39b29e6bb4f34e9d9bf8303ba980ee358c691ff6ea8d5f83c3",
+      "inspection": {
+        "room_count": 33,
+        "portal_count": 31,
+        "loot_count": 76,
+        "module_ids": [
+          "doorway_frame_blocked_1x1",
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 223,
+        "authoritative_unique_placement_ids": 223,
+        "mirrored_floor_placement_count": 200,
+        "mirrored_ceiling_placement_count": 198,
+        "vertical_connection_count": 1,
+        "repeat_pair_hashes_match": true
+      }
+    },
+    {
+      "fixture_id": "seed-42-size-2-condition-2",
+      "seed": "42",
+      "size": 2,
+      "condition": 2,
+      "archetype_id": "freighter",
+      "intactness_bp": 2000,
+      "layout_path": "seed-42-size-2-condition-2/layout.json",
+      "layout_sha256": "67a96897e472f545de79d15ae1d0bc8aaa8f588a9ef6f30ee5f5b01747bfbe60",
+      "gameplay_path": "seed-42-size-2-condition-2/gameplay_slice.json",
+      "gameplay_sha256": "3a375b490476018533fbac7ba52995e0d6a3adba4c2bbc2eea4fae6123bfa4fb",
+      "inspection": {
+        "room_count": 27,
+        "portal_count": 24,
+        "loot_count": 45,
+        "module_ids": [
+          "doorway_frame_blocked_1x1",
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 178,
+        "authoritative_unique_placement_ids": 178,
+        "mirrored_floor_placement_count": 136,
+        "mirrored_ceiling_placement_count": 134,
+        "vertical_connection_count": 1,
+        "repeat_pair_hashes_match": true
+      }
+    },
+    {
+      "fixture_id": "seed-777-size-0-condition-0",
+      "seed": "777",
+      "size": 0,
+      "condition": 0,
+      "archetype_id": "shuttle",
+      "intactness_bp": 9500,
+      "layout_path": "seed-777-size-0-condition-0/layout.json",
+      "layout_sha256": "b989dd52260364df67e6ea7c7bf0c48547b29dff2083946451169e1e790c6f49",
+      "gameplay_path": "seed-777-size-0-condition-0/gameplay_slice.json",
+      "gameplay_sha256": "bb98818b0f2db7e93569116e4dd84d9394e0ae99f24c1c261e722db148ba1076",
+      "inspection": {
+        "room_count": 9,
+        "portal_count": 9,
+        "loot_count": 14,
+        "module_ids": [
+          "doorway_frame_blocked_1x1",
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 58,
+        "authoritative_unique_placement_ids": 58,
+        "mirrored_floor_placement_count": 46,
+        "mirrored_ceiling_placement_count": 46,
+        "vertical_connection_count": 0,
+        "repeat_pair_hashes_match": true
+      }
+    },
+    {
+      "fixture_id": "seed-777-size-0-condition-2",
+      "seed": "777",
+      "size": 0,
+      "condition": 2,
+      "archetype_id": "shuttle",
+      "intactness_bp": 2000,
+      "layout_path": "seed-777-size-0-condition-2/layout.json",
+      "layout_sha256": "20ada8c558804130fb02e1f5ca64d41b257935ede109f4f1950252f532cda883",
+      "gameplay_path": "seed-777-size-0-condition-2/gameplay_slice.json",
+      "gameplay_sha256": "187ca7f4292f89ab371058af73aceb2cb0fe3068a44b95d83f38c5741412361f",
+      "inspection": {
+        "room_count": 9,
+        "portal_count": 7,
+        "loot_count": 12,
+        "module_ids": [
+          "doorway_frame_blocked_1x1",
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 56,
+        "authoritative_unique_placement_ids": 56,
+        "mirrored_floor_placement_count": 34,
+        "mirrored_ceiling_placement_count": 34,
+        "vertical_connection_count": 0,
+        "repeat_pair_hashes_match": true
+      }
+    },
+    {
+      "fixture_id": "seed-777-size-2-condition-0",
+      "seed": "777",
+      "size": 2,
+      "condition": 0,
+      "archetype_id": "freighter",
+      "intactness_bp": 9500,
+      "layout_path": "seed-777-size-2-condition-0/layout.json",
+      "layout_sha256": "2aeef17623f8214232714778fce6fbb6ae2fab2d327e4ebb4f79de831de52b73",
+      "gameplay_path": "seed-777-size-2-condition-0/gameplay_slice.json",
+      "gameplay_sha256": "1e18e2ae58d3226184555aea7e31a6723a4bed72e7a29e1ac658aaba770c792c",
+      "inspection": {
+        "room_count": 39,
+        "portal_count": 37,
+        "loot_count": 80,
+        "module_ids": [
+          "doorway_frame_blocked_1x1",
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 270,
+        "authoritative_unique_placement_ids": 270,
+        "mirrored_floor_placement_count": 231,
+        "mirrored_ceiling_placement_count": 229,
+        "vertical_connection_count": 1,
+        "repeat_pair_hashes_match": true
+      }
+    },
+    {
+      "fixture_id": "seed-777-size-2-condition-2",
+      "seed": "777",
+      "size": 2,
+      "condition": 2,
+      "archetype_id": "freighter",
+      "intactness_bp": 2000,
+      "layout_path": "seed-777-size-2-condition-2/layout.json",
+      "layout_sha256": "6b60b071296d8a9d16bae3ab029dc09bf3ca0919de2164d37fbdabc809d56f3e",
+      "gameplay_path": "seed-777-size-2-condition-2/gameplay_slice.json",
+      "gameplay_sha256": "a67353f0a2795acd2a23c79741338fdaac82eec695e2d7e681c91438dd58baac",
+      "inspection": {
+        "room_count": 35,
+        "portal_count": 32,
+        "loot_count": 58,
+        "module_ids": [
+          "doorway_frame_blocked_1x1",
+          "doorway_frame_open_1x1",
+          "wall_straight_1x1"
+        ],
+        "unsupported_module_ids": [],
+        "raw_hazard_counts": {
+          "fire_zones": 0,
+          "breach_zones": 0,
+          "arc_zones": 0,
+          "radiation_zones": 0,
+          "blocked_links": 0,
+          "encounters": 0
+        },
+        "hazard_source": "runtime",
+        "loot_tables": [
+          "worldgen_seeded"
+        ],
+        "authoritative_placement_count": 241,
+        "authoritative_unique_placement_ids": 241,
+        "mirrored_floor_placement_count": 170,
+        "mirrored_ceiling_placement_count": 168,
+        "vertical_connection_count": 1,
+        "repeat_pair_hashes_match": true
+      }
+    }
+  ]
+}

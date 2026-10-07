@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91842b3caf2392c488539c8382ae5af9, type: 3}
+  m_Name: RuntimeVisualMaterials
+  m_EditorClassIdentifier: SynapticSea.Runtime::SynapticSea.Runtime.RuntimeVisualMaterialLibrary
+  litOpaque: {fileID: 2100000, guid: 957b6aee1b51f3c4b8626747c8b24317, type: 2}
+  litTransparent: {fileID: 2100000, guid: 7b44aee7898946141a01c1d9b680bd58, type: 2}
+  litEmissive: {fileID: 2100000, guid: 7c83275b93e7fa745956418e4f6957bb, type: 2}
+  litTransparentEmissive: {fileID: 2100000, guid: c886cea62f35c9c4f919927d6ed81007, type: 2}
+  unlitOpaque: {fileID: 2100000, guid: 1c78d13b9287ac54d98fba595e85fded, type: 2}
+  unlitTransparent: {fileID: 2100000, guid: fdc1e5f914c697e49a9d71de03624220, type: 2}
+  playerOcclusionSilhouette: {fileID: 2100000, guid: 5d30740f701ddf24899233131d20646d, type: 2}

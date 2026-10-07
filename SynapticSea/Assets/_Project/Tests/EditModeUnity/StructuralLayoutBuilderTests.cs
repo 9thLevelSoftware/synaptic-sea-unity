@@ -55,7 +55,7 @@ namespace SynapticSea.Tests.Unity
             var result = new StructuralLayoutBuilder().Build(layout, Kit(), _parent.transform);
             Assert.IsNotNull(result, "build failed");
             // Edges a relocated vertex wrapper's wing now walls build nothing of their own (VertexWrapperPlacement).
-            int covered = VertexWrapperPlacement.Resolve(plan).Covered.Count;
+            int covered = StructuralLayoutBuilder.ResolveForKit(plan, Kit()).Covered.Count;
             Assert.AreEqual(plan.GetArray("placements").Count - covered, result.EdgeCount);
             Assert.AreEqual(plan.GetArray("floor_placements").Count, result.FloorCount);
             Assert.AreEqual(plan.GetArrayOrEmpty("ceiling_placements").Count, result.CeilingCount);

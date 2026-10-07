@@ -19,22 +19,22 @@ namespace SynapticSea.Core.Systems
         GdDict _selected = new GdDict(); // index:int -> true
         long _anchor = -1;
 
-        /// <summary>Replace the ordered id list; drop any selection/anchor now out of range.</summary>
+        /// <summary>Replace rows while retaining selected identities and the range anchor through reorder.</summary>
         public void SetIds(GdArray pIds)
         {
+            GdArray selectedIds = GetSelectedIds();
+            string anchorId = _anchor >= 0 && _anchor < Ids.Count ? Ids[(int)_anchor] : null;
             Ids = new List<string>();
             if (pIds != null)
                 foreach (object v in pIds) Ids.Add(V.Str(v));
             var keep = new GdDict();
-            foreach (var kv in _selected)
+            foreach (object selectedId in selectedIds)
             {
-                long idx = V.I64(kv.Key);
-                if (idx >= 0 && idx < Ids.Count)
-                    keep[idx] = true;
+                int index = Ids.IndexOf(V.Str(selectedId));
+                if (index >= 0) keep[(long)index] = true;
             }
             _selected = keep;
-            if (_anchor >= Ids.Count)
-                _anchor = -1;
+            _anchor = anchorId == null ? -1 : Ids.IndexOf(anchorId);
         }
 
         public void Clear()

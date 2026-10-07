@@ -1,0 +1,9 @@
+# Constrained expedition composition v3
+
+New eligible expeditions use a bounded rectangular hull envelope, partitioned by seeded binary splits into usable rectangular rooms. This is a composition solver within a supported envelope, not a general free-form hull solver. Size controls envelope and room budgets; every split keeps both dimensions at least two 4 m cells. No geometry is stretched.
+
+The solver enumerates actual shared cardinal edges between partitions. A seeded spanning tree connects every room to the external dock. Medical/living and engineering/maintenance pairs are assigned to neighboring partitions and their links are mandatory. Additional selected edges provide physical alternate routes. Extra links exclude a chosen tree leaf so at least one deliberate exploration branch remains. Door placement chooses a real shared boundary away from corners where possible. Room area, partition geometry, route tree and extra links vary independently of orientation.
+
+Invariants before publication: unique floor ownership, connected rooms, one external dock exit, required functional roles and adjacency, at least two cycles and one branch, usable dimensions, and cardinal owned portal endpoints. Existing structural compilation, condition overlays, encounters, gameplay anchors and perimeter furnishing remain authoritative. Unity validation must cover physical paths and real assets as well as graph statistics.
+
+The saved profile `constrained_expedition_v3` is immutable. Legacy/v1/v2 generation remains unchanged. Failed attempts record a diagnostic and use the deterministic validated v2 geometry recipe under the saved v3 identity; fallback is explicitly marked, never reported as successful constraint composition. Unsupported sizes fail closed. No starter, class, loot quantity or survival balance changes belong to this slice.

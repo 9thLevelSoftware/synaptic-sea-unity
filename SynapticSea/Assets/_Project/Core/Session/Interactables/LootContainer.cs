@@ -30,6 +30,14 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public UniqueItemState UniqueState;
 
+        public GdDict FiniteSource;
+        public Func<bool> FiniteAccess;
+        public Func<Action> FiniteRollbackSnapshot;
+        public Action<string, GdArray> FiniteModelCommit;
+        public bool FiniteTransactionInProgress => _finiteBusy;
+        public bool FiniteSearchTrainingPending { get; private set; }
+        bool _finiteBusy;
+
         public bool Searched = false;
         public bool MarkerVisible = true;
 
@@ -100,6 +108,7 @@ namespace SynapticSea.Core.Session
 
         public bool TryInteract(Vec3 playerPosition)
         {
+            if (FiniteSource != null) return TryFiniteInteract(playerPosition);
             if (Searched || InventoryState == null)
                 return false;
             // Mirrors Interactable's validation bypass (derelict-placed sibling), not ToolPickup's stricter
@@ -115,6 +124,54 @@ namespace SynapticSea.Core.Session
             SetSearched(true);
             ContainerSearched?.Invoke(ContainerId, granted);
             return true;
+        }
+
+        bool TryFiniteInteract(Vec3 playerPosition)
+        {
+            if (_finiteBusy || Searched || InventoryState == null || !IsValid || !IsInsideTree
+                || !(GlobalPosition.DistanceTo(playerPosition) < (float)InteractionRadius) || FiniteAccess == null || !FiniteAccess()) return false;
+            _finiteBusy = true;
+            GdDict inventoryBefore = InventoryState.GetSummary().DeepCopy();
+            GdDict remaining = FiniteSource.GetDictOrEmpty("remaining");
+            GdDict remainingBefore = remaining.DeepCopy();
+            bool awardedBefore = FiniteSource.GetBool("search_training_awarded");
+            bool searchedBefore = Searched;
+            Action rollback = null;
+            bool committed = false;
+            try
+            {
+                rollback = FiniteRollbackSnapshot?.Invoke();
+                var granted = new GdArray();
+                foreach (object key in new GdArray(remaining.Keys))
+                {
+                    string id = V.Str(key); long requested = remaining.GetInt(id);
+                    if (requested <= 0) continue;
+                    long accepted = InventoryState.AddItem(id, requested);
+                    if (accepted < 0 || accepted > requested) throw new InvalidOperationException("invalid_finite_acceptance");
+                    if (accepted == 0) continue;
+                    remaining[id] = requested - accepted;
+                    granted.Add(new GdDict { { "item_id", id }, { "quantity", accepted }, { "seed_key", SeedSource + "|" + id } });
+                }
+                if (granted.IsEmpty) return false;
+                FiniteSearchTrainingPending = !awardedBefore;
+                FiniteSource["search_training_awarded"] = true;
+                Searched = FiniteLootState.Depleted(FiniteSource);
+                FiniteModelCommit?.Invoke(ContainerId, granted);
+                committed = true;
+                ContainerSearched?.Invoke(ContainerId, granted);
+                NotifyChanged();
+                return true;
+            }
+            catch
+            {
+                if (committed) throw;
+                InventoryState.ApplySummary(inventoryBefore);
+                remaining.Clear(); foreach (var pair in remainingBefore) remaining[pair.Key] = pair.Value;
+                FiniteSource["search_training_awarded"] = awardedBefore; Searched = searchedBefore;
+                rollback?.Invoke();
+                throw;
+            }
+            finally { FiniteSearchTrainingPending = false; _finiteBusy = false; }
         }
 
         GdArray GrantAuthoredContents()

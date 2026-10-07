@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><DefineConstants>SYNAPTIC_DOTNET_TESTS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../SynapticSea/Assets/_Project/Core/**/*.cs" />
+    <Compile Include="../../../SynapticSea/Assets/_Project/Tests/EditMode/Session/SessionTestHarness.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+</Project>

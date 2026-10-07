@@ -117,51 +117,60 @@ namespace SynapticSea.Core.Session
             return true;
         }
 
-        /// <summary>Explicit craft for a chosen recipe_id (picker confirm + validation seams).</summary>
-        public bool TryCraftRecipe(string recipeId)
+        /// <summary>The same existing model tier that BeginCraft reads; listing does not create or upgrade a station.</summary>
+        public long EffectiveTier => CraftingState?.GetStation(StationKind)?.EffectiveTier() ?? 0L;
+
+        /// <summary>Current spatial picker entries, including the single-active-craft gate.</summary>
+        public GdArray ListRecipeEntries()
+        {
+            if (CraftingState == null || InventoryState == null) return new GdArray();
+            GdArray entries = CraftingState.ListRecipeEntries(StationKind, InventoryState, PlayerSkill(), EffectiveTier);
+            if (CraftingState.IsCrafting())
+                foreach (object entry in entries)
+                    if (entry is GdDict row)
+                    {
+                        row["status"] = "busy";
+                        row["craftable"] = false;
+                    }
+            return entries;
+        }
+
+        /// <summary>Re-evaluates the existing picker gates against current skill, tier, inputs and output room.</summary>
+        public string GetRecipeAvailability(string recipeId)
         {
             if (string.IsNullOrEmpty(recipeId) || CraftingState == null || InventoryState == null)
-            {
-                CraftBlocked?.Invoke(StationKind, "no_craftable_recipe");
-                return false;
-            }
-            if (CraftingState.IsCrafting())
-            {
-                CraftBlocked?.Invoke(StationKind, "busy");
-                return false;
-            }
-            if (CraftingState.GetStationKind(recipeId) != StationKind)
-            {
-                CraftBlocked?.Invoke(StationKind, "wrong_station");
-                return false;
-            }
+                return "no_craftable_recipe";
+            if (CraftingState.IsCrafting()) return "busy";
+            if (CraftingState.GetRecipe(recipeId).IsEmpty) return "no_craftable_recipe";
+            if (CraftingState.GetStationKind(recipeId) != StationKind) return "wrong_station";
             if (V.Str(CraftingState.GetRecipe(recipeId).Get("category", "")) == "deconstruction")
+                return "deconstruction_not_here";
+            foreach (object entry in ListRecipeEntries())
+                if (entry is GdDict row && row.GetString("recipe_id") == recipeId)
+                    return row.GetString("status", "no_craftable_recipe");
+            return "no_craftable_recipe";
+        }
+
+        /// <summary>Explicit craft for a chosen recipe_id (picker confirm + validation seams).</summary>
+        public bool TryCraftRecipe(string recipeId) => TryCraftRecipe(recipeId, out _);
+
+        /// <summary>Returns the exact current rejection reason without another layer replacing it.</summary>
+        public bool TryCraftRecipe(string recipeId, out string reason)
+        {
+            reason = GetRecipeAvailability(recipeId);
+            if (reason != "ready")
             {
-                CraftBlocked?.Invoke(StationKind, "deconstruction_not_here");
-                return false;
-            }
-            if (!CraftingState.CanCraft(recipeId, InventoryState))
-            {
-                CraftBlocked?.Invoke(StationKind, "missing_ingredients");
-                return false;
-            }
-            if (CraftingState.GetRequiredSkillLevel(recipeId) > PlayerSkill())
-            {
-                CraftBlocked?.Invoke(StationKind, "insufficient_skill");
-                return false;
-            }
-            GdDict produces = CraftingState.GetProduces(recipeId);
-            if (!InventoryState.CanAccept(V.Str(produces.Get("item_id", "")), V.I64(produces.Get("quantity", 0L))))
-            {
-                CraftBlocked?.Invoke(StationKind, "output_full");
+                CraftBlocked?.Invoke(StationKind, reason);
                 return false;
             }
             if (CraftingState.BeginCraft(recipeId, InventoryState, MaterialState, PlayerSkill()))
             {
+                reason = "started";
                 CraftStarted?.Invoke(StationKind, recipeId);
                 return true;
             }
-            CraftBlocked?.Invoke(StationKind, "begin_failed");
+            reason = "begin_failed";
+            CraftBlocked?.Invoke(StationKind, reason);
             return false;
         }
 
@@ -172,7 +181,7 @@ namespace SynapticSea.Core.Session
                 return FirstReadySalvageId();
             if (CraftingState == null || InventoryState == null)
                 return "";
-            GdArray entries = CraftingState.ListRecipeEntries(StationKind, InventoryState, PlayerSkill());
+            GdArray entries = ListRecipeEntries();
             foreach (object entry in entries)
             {
                 if (entry is GdDict d && V.Bool(d.Get("craftable", false)))

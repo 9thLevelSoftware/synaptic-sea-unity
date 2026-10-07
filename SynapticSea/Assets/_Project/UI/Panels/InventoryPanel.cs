@@ -30,6 +30,10 @@ namespace SynapticSea.UI
         /// <summary>Emitted after any state mutation so the coordinator recomputes (before the re-render).</summary>
         public event Action TransferCompleted;
         public event Action<string, bool> UseRequested;
+        public event Action<string> StudyRequested;
+        public event Action<string> ManualViewRequested;
+        public bool ManualStudyEnabled { get; set; }
+        public event Action<string> ComponentInstallRequested;
 
         string _mode = "closed";
         InventoryState _playerInv;
@@ -38,6 +42,64 @@ namespace SynapticSea.UI
         string _containerLabel = "";
         Action<GdDict> _tooltipQueryPush;
         IUiAudio _audio;
+        IComponentInteractionHost _componentHost;
+        ComponentCatalog _componentCatalog;
+        string _componentContainerHolder = "";
+        readonly Dictionary<string, string> _cursorKey = new Dictionary<string, string>();
+        bool _renderingComponents;
+        string _componentActionMode = "", _componentActionPane = "", _componentActionRow = "";
+        List<string> _componentActionVerbs;
+
+        Func<GdDict> _bulkTransferGate;
+        public void BindBulkTransferGate(Func<GdDict> gate) => _bulkTransferGate = gate;
+        bool CanBulkTransfer()
+        {
+            GdDict result = _bulkTransferGate?.Invoke();
+            if (result == null || result.GetBool("ok")) return true;
+            Deny(result.GetString("reason", "Bulk transfer unavailable")); return false;
+        }
+
+        public void BindComponents(IComponentInteractionHost host, string containerHolderId = "")
+        {
+            if (!ReferenceEquals(_componentHost, host) || _componentContainerHolder != (containerHolderId ?? ""))
+                _componentActionVerbs = null;
+            _componentHost = host;
+            _componentContainerHolder = containerHolderId ?? "";
+            if (host != null && _componentCatalog == null)
+            {
+                _componentCatalog = new ComponentCatalog();
+                _componentCatalog.LoadDefault();
+            }
+            RefreshComponents();
+        }
+
+        public void RefreshComponents() { RebuildModels(); Render(); }
+        /// <summary>Refresh live model references after Continue while retaining the pane and identity selection.</summary>
+        public void RebindLiveModels(InventoryState inventory, EquipmentState equipment, CargoTransfer.ICargoHold container = null)
+        {
+            _playerInv = inventory;
+            _equip = equipment;
+            if (_mode == "transfer") _container = container;
+            RefreshComponents();
+        }
+
+        string ComponentHolder(string pane) => pane == PaneContainer ? _componentContainerHolder
+            : _componentHost?.GetComponentHolderIds().GetString("player", "") ?? "";
+
+        static bool IsInstanceKey(string key) => key != null && key.StartsWith("instance:", StringComparison.Ordinal);
+        static string InstanceId(string key) => IsInstanceKey(key) ? key.Substring(9) : "";
+        static string StackItemId(string key) => key != null && key.StartsWith("stack:", StringComparison.Ordinal) ? key.Substring(6) : key ?? "";
+
+        GdDict ComponentRow(string pane, string key)
+        {
+            if (_componentHost == null || !IsInstanceKey(key)) return new GdDict();
+            foreach (object item in _componentHost.ListComponentInstances(ComponentHolder(pane)))
+                if (item is GdDict row && row.GetString("instance_id") == InstanceId(key)) return row;
+            return new GdDict();
+        }
+
+        public static string ComponentConditionText(GdDict row) => row.GetString("condition_state") == "known"
+            ? GdString.FormatFixed(row.GetFloat("condition") * 100.0, 0) + "%" : "Unknown";
 
         readonly InventorySelectionModel _selSelf = new InventorySelectionModel();
         readonly InventorySelectionModel _selContainer = new InventorySelectionModel();
@@ -159,6 +221,7 @@ namespace SynapticSea.UI
 
         public void OpenSelf(InventoryState inv, EquipmentState equip)
         {
+            _bulkTransferGate = null;
             _playerInv = inv ?? throw new ArgumentNullException(nameof(inv), "InventoryState dependency must not be null");
             _equip = equip ?? throw new ArgumentNullException(nameof(equip), "EquipmentState dependency must not be null");
             _container = null;
@@ -172,6 +235,7 @@ namespace SynapticSea.UI
 
         public void OpenTransfer(InventoryState playerInv, CargoTransfer.ICargoHold containerHold, string containerLabel, EquipmentState equip)
         {
+            _bulkTransferGate = null;
             _playerInv = playerInv ?? throw new ArgumentNullException(nameof(playerInv), "Player inventory dependency must not be null");
             _container = containerHold ?? throw new ArgumentNullException(nameof(containerHold), "Container hold dependency must not be null");
             _containerLabel = containerLabel ?? "";
@@ -185,6 +249,7 @@ namespace SynapticSea.UI
 
         public void Close()
         {
+            _bulkTransferGate = null;
             _mode = "closed";
             CancelSplit();
             SetViewVisible(false);
@@ -204,7 +269,26 @@ namespace SynapticSea.UI
 
         // --- list/pane access ---
 
-        List<string> IdsForPane(string pane) => pane == PaneContainer ? SortedIds(_container) : SortedIds(_playerInv);
+        List<string> IdsForPane(string pane)
+        {
+            List<string> stacks = pane == PaneContainer ? SortedIds(_container) : SortedIds(_playerInv);
+            if (_componentHost == null) return stacks;
+            var ids = new List<string>();
+            var forms = new HashSet<string>(StringComparer.Ordinal);
+            string holder = ComponentHolder(pane);
+            if (holder.Length != 0)
+                foreach (object item in _componentHost.ListComponentInstances(holder))
+                    if (item is GdDict row && row.GetString("instance_id").Length != 0)
+                    {
+                        ids.Add("instance:" + row.GetString("instance_id"));
+                        forms.Add(row.GetString("item_form"));
+                    }
+            foreach (string item in stacks)
+                if (!forms.Contains(item) && (_componentCatalog == null || _componentCatalog.ComponentIdForItemForm(item).Length == 0))
+                    ids.Add("stack:" + item);
+            ids.Sort(StringComparer.Ordinal);
+            return ids;
+        }
 
         static GdDict ItemsOf(object inv)
         {
@@ -241,6 +325,7 @@ namespace SynapticSea.UI
             else if (additive) m.Toggle(index);
             else m.SelectSingle(index);
             _cursor[NormPane(pane)] = index;
+            if (index >= 0 && index < m.Ids.Count) _cursorKey[NormPane(pane)] = m.Ids[index];
             _activePane = NormPane(pane);
             Render();
             PushTooltipForSelection(pane);
@@ -253,7 +338,8 @@ namespace SynapticSea.UI
             if (_tooltipQueryPush == null) return;
             GdArray selected = ModelForPane(pane).GetSelectedIds();
             if (selected.Count == 1)
-                _tooltipQueryPush(new GdDict { { "subject_kind", "item" }, { "subject_id", V.Str(selected[0]) } });
+                _tooltipQueryPush(new GdDict { { "subject_kind", "item" }, { "subject_id", IsInstanceKey(V.Str(selected[0]))
+                    ? ComponentRow(pane, V.Str(selected[0])).GetString("item_form") : StackItemId(V.Str(selected[0])) } });
             else
                 PushTooltipClear();
         }
@@ -281,6 +367,8 @@ namespace SynapticSea.UI
         /// <summary>Atomic equip of an item already carried; on failure inventory and equipment are unchanged.</summary>
         bool EquipInInventory(string itemId)
         {
+            if (IsInstanceKey(itemId)) return false;
+            itemId = StackItemId(itemId);
             if (_playerInv == null || _equip == null) return false;
             if (_playerInv.GetQuantity(itemId) <= 0 || !_equip.CanEquip(itemId)) return false;
             GdDict res = _equip.Equip(itemId);
@@ -301,6 +389,8 @@ namespace SynapticSea.UI
         /// <summary>Equip-from-container (ADR-0026): one unit container → player, then equip; rolled back on failure.</summary>
         public bool EquipFromContainer(string itemId)
         {
+            if (IsInstanceKey(itemId)) { Deny("Component equipment needs an installation target"); return false; }
+            itemId = StackItemId(itemId);
             if (_container == null || _playerInv == null || _equip == null) return false;
             if (ItemDefs.EquipSlot(_defs, itemId).Length == 0) return false;
             if (_container.GetQuantity(itemId) <= 0) return false;
@@ -395,6 +485,7 @@ namespace SynapticSea.UI
                 PushTooltipForSelection(pane);
             }
             _cursor[NormPane(pane)] = index;
+            if (index >= 0 && index < m.Ids.Count) _cursorKey[NormPane(pane)] = m.Ids[index];
             _activePane = NormPane(pane);
             Render();
             VisualElement first = _actions.Query<Button>().First();
@@ -413,7 +504,7 @@ namespace SynapticSea.UI
                 string slot = target.Substring(5);
                 foreach (object id in data.GetArrayOrEmpty("ids"))
                 {
-                    if (_equip != null && ItemDefs.EquipSlot(_defs, V.Str(id)) == slot) return true;
+                    if (!IsInstanceKey(V.Str(id)) && _equip != null && ItemDefs.EquipSlot(_defs, StackItemId(V.Str(id))) == slot) return true;
                 }
                 return false;
             }
@@ -431,7 +522,7 @@ namespace SynapticSea.UI
                 foreach (object idV in data.GetArrayOrEmpty("ids"))
                 {
                     string id = V.Str(idV);
-                    if (_equip != null && ItemDefs.EquipSlot(_defs, id) == slot)
+                    if (!IsInstanceKey(id) && _equip != null && ItemDefs.EquipSlot(_defs, StackItemId(id)) == slot)
                     {
                         if (fromPane == PaneContainer)
                         {
@@ -449,12 +540,17 @@ namespace SynapticSea.UI
                 return;
             }
             if (_mode == "transfer" && target != fromPane && (fromPane == PaneSelf || fromPane == PaneContainer))
-                TransferSelected(fromPane);
+            {
+                if (_componentHost != null) TransferComponentRows(fromPane, data.GetArrayOrEmpty("ids"));
+                else TransferSelected(fromPane);
+            }
         }
 
         /// <summary>Moves every id in <paramref name="pane"/> to the other pane (manual; includes tools).</summary>
         public long TransferAllFrom(string pane)
         {
+            if (!CanBulkTransfer()) return 0;
+            if (_componentHost != null) return TransferComponentRows(pane, GdString.ToGdArray(IdsForPane(pane)));
             CargoTransfer.ICargoStore src = InvForPane(pane);
             CargoTransfer.ICargoStore dst = InvForPane(OtherPane(pane));
             if (src == null || dst == null) return 0;
@@ -474,6 +570,8 @@ namespace SynapticSea.UI
 
         public long PaneQuantity(string pane, string id)
         {
+            if (IsInstanceKey(id)) return ComponentRow(pane, id).IsEmpty ? 0 : 1;
+            id = StackItemId(id);
             CargoTransfer.ICargoStore inv = InvForPane(pane);
             return inv != null ? inv.GetQuantity(id) : 0;
         }
@@ -483,7 +581,17 @@ namespace SynapticSea.UI
         {
             List<string> ids = IdsForPane(pane);
             if (index < 0 || index >= ids.Count) return new List<string>();
-            return InventorySelectionModel.ContextActions(ids[index], _defs, _mode == "transfer", pane == PaneContainer, false);
+            if (IsInstanceKey(ids[index])) return _mode == "transfer" ? new List<string> { "transfer", "transfer_all" }
+                : new List<string> { "install" };
+            string item = StackItemId(ids[index]);
+            if (ManualStudyEnabled && ItemDefs.Category(_defs, item) == "book")
+            {
+                var actions = _mode == "transfer" ? new List<string> { "transfer", "transfer_all" } : new List<string>();
+                if (pane != PaneContainer) actions.Add("study");
+                actions.Add("view_manual");
+                return actions;
+            }
+            return InventorySelectionModel.ContextActions(item, _defs, _mode == "transfer", pane == PaneContainer, false);
         }
 
         /// <summary>Godot <c>_on_context_id</c>: runs one context action for a row.</summary>
@@ -491,8 +599,13 @@ namespace SynapticSea.UI
         {
             List<string> ids = IdsForPane(pane);
             string itemId = index >= 0 && index < ids.Count ? ids[index] : "";
+            if (IsInstanceKey(itemId) && action != "transfer" && action != "transfer_all" && action != "install")
+            { Deny("Unique component equipment cannot be split, used or worn"); return; }
             switch (action)
             {
+                case "install":
+                    if (IsInstanceKey(itemId)) ComponentInstallRequested?.Invoke(InstanceId(itemId));
+                    break;
                 case "transfer":
                     TransferSelected(pane);
                     break;
@@ -514,9 +627,15 @@ namespace SynapticSea.UI
                         EquipSelected();
                     }
                     break;
+                case "study":
+                    if (ManualStudyEnabled && pane != PaneContainer && itemId.Length != 0) StudyRequested?.Invoke(StackItemId(itemId));
+                    break;
+                case "view_manual":
+                    if (ManualStudyEnabled && itemId.Length != 0) ManualViewRequested?.Invoke(StackItemId(itemId));
+                    break;
                 case "use":
                 case "use_all":
-                    if (itemId.Length != 0) UseRequested?.Invoke(itemId, action == "use_all");
+                    if (itemId.Length != 0) UseRequested?.Invoke(StackItemId(itemId), action == "use_all");
                     break;
             }
         }
@@ -524,6 +643,8 @@ namespace SynapticSea.UI
         /// <summary>Split picker: quantity 1..stack, default max(1, stack/2); confirm moves that quantity.</summary>
         public void OpenSplitPicker(string pane, string itemId)
         {
+            if (IsInstanceKey(itemId)) { Deny("Unique component equipment cannot be split"); return; }
+            itemId = StackItemId(itemId);
             CargoTransfer.ICargoStore src = InvForPane(pane);
             if (src == null || itemId.Length == 0) return;
             long maxq = src.GetQuantity(itemId);
@@ -578,6 +699,7 @@ namespace SynapticSea.UI
         /// <summary>Moves every selected whole stack to the other pane. Returns the total moved.</summary>
         public long TransferSelected(string fromPane)
         {
+            if (_componentHost != null) return TransferComponentRows(fromPane, ModelForPane(fromPane).GetSelectedIds());
             if (_mode != "transfer") return 0;
             CargoTransfer.ICargoStore src = InvForPane(fromPane);
             CargoTransfer.ICargoStore dst = InvForPane(OtherPane(fromPane));
@@ -600,6 +722,8 @@ namespace SynapticSea.UI
         /// <summary>Split: moves exactly <paramref name="qty"/> of one id to the other pane.</summary>
         public long TransferQuantity(string fromPane, string itemId, long qty)
         {
+            if (IsInstanceKey(itemId)) { Deny("Unique component equipment cannot be split"); return 0; }
+            itemId = StackItemId(itemId);
             if (_mode != "transfer") return 0;
             CargoTransfer.ICargoStore src = InvForPane(fromPane);
             CargoTransfer.ICargoStore dst = InvForPane(OtherPane(fromPane));
@@ -620,7 +744,14 @@ namespace SynapticSea.UI
         /// <summary>"Deposit All": bulk part+supply (tools excluded) into the container.</summary>
         public long DepositAllToContainer()
         {
-            if (_mode != "transfer" || _playerInv == null || _container == null) return 0;
+            if (_mode != "transfer" || _playerInv == null || _container == null || !CanBulkTransfer()) return 0;
+            if (_componentHost != null)
+            {
+                var rows = new GdArray();
+                foreach (string key in IdsForPane(PaneSelf))
+                    if (IsInstanceKey(key) || ItemDefs.Category(_defs, StackItemId(key)) != "tool") rows.Add(key);
+                return TransferComponentRows(PaneSelf, rows);
+            }
             long moved = CargoTransfer.DepositAll(_playerInv, _container).GetInt("total_moved", 0);
             if (moved > 0)
             {
@@ -636,6 +767,35 @@ namespace SynapticSea.UI
 
         public GdDict BuildDragPayload(string pane) =>
             new GdDict { { "from_pane", pane }, { "ids", ModelForPane(pane).GetSelectedIds() } };
+
+        long TransferComponentRows(string fromPane, GdArray keys)
+        {
+            if (_mode != "transfer" || _componentHost == null) return 0;
+            string destination = ComponentHolder(OtherPane(fromPane));
+            if (destination.Length == 0) { Deny("Storage is not open or reachable"); return 0; }
+            long moved = 0;
+            string refusal = "";
+            foreach (object item in keys.DeepCopy())
+            {
+                string key = V.Str(item);
+                if (IsInstanceKey(key))
+                {
+                    if (ComponentRow(fromPane, key).IsEmpty) { refusal = "Selected component is no longer in this holder"; continue; }
+                    GdDict result = _componentHost.RequestComponentTransfer(InstanceId(key), destination);
+                    if (result.GetBool("ok") && result.GetBool("committed")) moved++;
+                    else refusal = result.GetString("reason", "Transfer refused");
+                }
+                else
+                {
+                    string id = StackItemId(key);
+                    CargoTransfer.ICargoStore source = InvForPane(fromPane), target = InvForPane(OtherPane(fromPane));
+                    if (source != null && target != null) moved += CargoTransfer.MoveItem(source, target, id, source.GetQuantity(id));
+                }
+            }
+            if (moved > 0) { AfterMutation(); SetStatus("Moved " + moved + (refusal.Length == 0 ? "" : "; " + refusal), refusal.Length == 0 ? Severity.Success : Severity.Caution); }
+            else Deny(refusal.Length != 0 ? refusal : "Nothing selected to transfer");
+            return moved;
+        }
 
         void Deny(string reason)
         {
@@ -661,13 +821,14 @@ namespace SynapticSea.UI
         public SelectableList ContainerList => _containerList;
         public SelectableList SlotList => _slotList;
         public string ActivePane => _activePane;
+        public void ShowManualText(string text) => _detailLines.text = text;
         public string DetailText => _detailName.text + "\n" + _detailLines.text;
         public IEnumerable<Button> ActionButtons => _actions.Query<Button>().ToList();
 
         void Render()
         {
             bool open = _mode != "closed";
-            SetTitle(_mode == "transfer" ? "TRANSFER  |  " + _containerLabel : "INVENTORY + GEAR");
+            SetTitle((_componentHost != null ? "DIAGNOSTIC  |  " : "") + (_mode == "transfer" ? "TRANSFER  |  " + _containerLabel : "INVENTORY + GEAR"));
             _weightLine.text = WeightLine();
             string badge = GetLoadBadge();
             SeverityText.Apply(_weightLine, badge == "OVERLOADED" ? Severity.Danger : badge == "HEAVY" ? Severity.Caution : Severity.None);
@@ -698,6 +859,7 @@ namespace SynapticSea.UI
 
         void RenderPane(SelectableList list, string pane)
         {
+            if (_componentHost != null) { RenderComponentPane(list, pane); return; }
             List<string> ids = IdsForPane(pane);
             InventorySelectionModel model = ModelForPane(pane);
             var items = new List<SelectableList.Item>(ids.Count);
@@ -773,6 +935,16 @@ namespace SynapticSea.UI
                 return;
             }
             string id = ids[cursor];
+            if (IsInstanceKey(id))
+            {
+                GdDict row = ComponentRow(_activePane, id);
+                _detailName.text = Name(row.GetString("item_form"));
+                _detailLines.text = "Condition " + ComponentConditionText(row) + "\nMass " + GdString.FormatFixed(row.GetFloat("mass"), 1)
+                    + " kg\nHolder " + row.GetString("holder") + "\nInstance " + row.GetString("instance_id")
+                    + (row.Has("slot_id") ? "\nInstalled " + row.GetString("ship_id") + " / " + row.GetString("slot_id") : "");
+                return;
+            }
+            id = StackItemId(id);
             _detailName.text = Name(id);
             var lines = new List<string>
             {
@@ -789,15 +961,32 @@ namespace SynapticSea.UI
 
         void RenderActions()
         {
-            _actions.Clear();
             List<string> ids = IdsForPane(_activePane);
             int cursor = _cursor[_activePane];
-            if (_mode == "closed" || ids.Count == 0) return;
+            if (_mode == "closed" || ids.Count == 0)
+            { _actions.Clear(); _componentActionVerbs = null; return; }
             string pane = _activePane;
-            foreach (string action in ContextActionsFor(pane, cursor))
+            string rowKey = ids[cursor];
+            List<string> verbs = ContextActionsFor(pane, cursor);
+            if (_componentHost != null)
+            {
+                bool same = _componentActionMode == _mode && _componentActionPane == pane && _componentActionRow == rowKey
+                    && _componentActionVerbs != null && _componentActionVerbs.Count == verbs.Count;
+                for (int i = 0; same && i < verbs.Count; i++) same = _componentActionVerbs[i] == verbs[i];
+                if (same) return; // Retain the mounted button and its pointer capture across live diagnostic refreshes.
+                _componentActionMode = _mode; _componentActionPane = pane; _componentActionRow = rowKey;
+                _componentActionVerbs = new List<string>(verbs);
+            }
+            else _componentActionVerbs = null;
+            _actions.Clear();
+            foreach (string action in verbs)
             {
                 string a = action;
-                _actions.Add(UiFactory.Button(ActionLabel(a), () => InvokeContextAction(a, pane, _cursor[pane]), "act:" + a));
+                _actions.Add(UiFactory.Button(ActionLabel(a), () =>
+                {
+                    int current = _componentHost == null ? _cursor[pane] : IdsForPane(pane).IndexOf(rowKey);
+                    if (current >= 0) InvokeContextAction(a, pane, current); else Deny("Selected item is no longer available");
+                }, "act:" + a));
             }
         }
 
@@ -806,23 +995,56 @@ namespace SynapticSea.UI
             switch (action)
             {
                 case "transfer": return "Transfer";
+                case "install": return "Choose installation target";
                 case "transfer_all": return "Transfer all";
                 case "split": return "Split…";
                 case "equip": return "Equip";
                 case "unequip": return "Unequip";
+                case "study": return "Study / pause / resume";
+                case "view_manual": return "View manual";
                 case "use": return "Use";
                 case "use_all": return "Use All";
                 default: return action;
             }
         }
 
-        string Name(string id) => ItemDefs.DisplayName(_defs, id);
+        string Name(string id) => ItemDefs.DisplayName(_defs, StackItemId(id));
+
+        void RenderComponentPane(SelectableList list, string pane)
+        {
+            List<string> ids = IdsForPane(pane);
+            var items = new List<SelectableList.Item>();
+            for (int i = 0; i < ids.Count; i++)
+            {
+                string key = ids[i];
+                GdDict row = ComponentRow(pane, key);
+                bool unique = IsInstanceKey(key);
+                string form = unique ? row.GetString("item_form") : StackItemId(key);
+                string category = ItemDefs.Category(_defs, form);
+                items.Add(new SelectableList.Item
+                {
+                    Id = key, Text = unique ? row.GetString("name", Name(form)) : Name(form), Chip = unique ? ComponentConditionText(row) : "x" + PaneQuantity(pane, key),
+                    Detail = unique ? ComponentConditionText(row) + " | " + GdString.FormatFixed(row.GetFloat("mass"), 1) + " kg | " + row.GetString("holder")
+                        : category + " | " + GdString.FormatFixed(ItemDefs.WeightEach(_defs, form), 1) + " kg each",
+                    Marked = ModelForPane(pane).IsSelected(i),
+                    Icon = UiIcons.ForItem(V.Str(ItemDefs.GetDefinition(_defs, form).Get("icon", "")), category),
+                });
+            }
+            int cursor = _cursor[pane];
+            if (_cursorKey.TryGetValue(pane, out string current) && ids.Contains(current)) cursor = ids.IndexOf(current);
+            cursor = ids.Count == 0 ? 0 : Math.Max(0, Math.Min(cursor, ids.Count - 1));
+            _cursor[pane] = cursor;
+            _renderingComponents = true;
+            try { list.SetItems(items, cursor); }
+            finally { _renderingComponents = false; }
+            foreach (VisualElement element in list.RowElements) _zones[element] = pane;
+        }
 
         // --- input ---
 
         void WireList(SelectableList list, string pane)
         {
-            list.SelectionRequested += i => SelectRow(pane, i, false, false);
+            list.SelectionRequested += i => { if (!_renderingComponents) SelectRow(pane, i, false, false); };
             list.ActivateRequested += i => PrimaryAction(pane, i);
             list.RowPointerDown += (i, e) =>
             {
@@ -865,6 +1087,7 @@ namespace SynapticSea.UI
             if (!ModelForPane(pane).IsSelected(index)) SelectRow(pane, index, false, false);
             List<string> actions = ContextActionsFor(pane, index);
             if (_mode == "transfer" && actions.Contains("transfer")) InvokeContextAction("transfer", pane, index);
+            else if (actions.Contains("install")) InvokeContextAction("install", pane, index);
             else if (actions.Contains("equip")) InvokeContextAction("equip", pane, index);
             else if (actions.Contains("use")) InvokeContextAction("use", pane, index);
             else Deny("No action for " + Name(ids[index]));

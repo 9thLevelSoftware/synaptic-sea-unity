@@ -1,0 +1,1667 @@
+{
+  "actual_fixture_discovery": [
+    {
+      "phase": "component-edit-green-3",
+      "fixtures": [
+        {
+          "passed": "22",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Procgen.LootContainerPositionOffsetTests",
+          "skipped": "0",
+          "total": "22"
+        },
+        {
+          "passed": "45",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Systems.ComponentTransferTests",
+          "skipped": "0",
+          "total": "45"
+        },
+        {
+          "passed": "88",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Systems.DomainTransactionTests",
+          "skipped": "0",
+          "total": "88"
+        },
+        {
+          "passed": "90",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Systems.ItemInstanceStateTests",
+          "skipped": "0",
+          "total": "90"
+        },
+        {
+          "passed": "5",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Unity.LootContainerFocusGeometryTests",
+          "skipped": "0",
+          "total": "5"
+        }
+      ]
+    },
+    {
+      "phase": "component-edit-final",
+      "fixtures": [
+        {
+          "passed": "22",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Procgen.LootContainerPositionOffsetTests",
+          "skipped": "0",
+          "total": "22"
+        },
+        {
+          "passed": "45",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Systems.ComponentTransferTests",
+          "skipped": "0",
+          "total": "45"
+        },
+        {
+          "passed": "88",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Systems.DomainTransactionTests",
+          "skipped": "0",
+          "total": "88"
+        },
+        {
+          "passed": "90",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Systems.ItemInstanceStateTests",
+          "skipped": "0",
+          "total": "90"
+        },
+        {
+          "passed": "5",
+          "failed": "0",
+          "name": "SynapticSea.Tests.Unity.LootContainerFocusGeometryTests",
+          "skipped": "0",
+          "total": "5"
+        }
+      ]
+    }
+  ],
+  "final_source_checks": [
+    {
+      "checks": [
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemInstanceState.cs",
+          "sha256": "460b6510cabefc7b89d70b6dd03117c459c053b75676da30686dfccc993f6354",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ComponentTransferService.cs",
+          "sha256": "be846cb6078bb5fa5b548d61cb861a6bb230b25460a7e6bc558a4050ca3e876a",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Session/DomainBundle.cs",
+          "sha256": "a50c919d9e441d298c95594cc0f9a091c92965087a85121a26a56ced8c99ad57",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Session/DomainTransactionCoordinator.cs",
+          "sha256": "df0a68da8e089a4fa37be12757306a9210686ef7f19ec6496cb984e5db83e534",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ItemInstanceStateTests.cs",
+          "sha256": "312f5beb6ecea702c799e288498990c0924846ece1fd7609455ca5c64d506bbb",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentTransferTests.cs",
+          "sha256": "1627fc4480f0cb7425effb261296ac5488e6f376c344ee3ce5b70195a6dc7a76",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/DomainTransactionTests.cs",
+          "sha256": "159f891220b26f7b35f6112ddf78d974ae336fd795201b4d1b737b61e0b4ebcf",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentDomainTestFixtures.cs",
+          "sha256": "3b7e511af3e6806c991dd45e2d47006539a3eb5c91bcb980c954126fc6034ae2",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Procgen/GeneratedShipLayout.cs",
+          "sha256": "b409eeb81d2a88b1b6ffeff85d4f7cbdb03bb7d6c1e5bfd2564e83e70a765e61",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Procgen/LootContainerPositionOffsetTests.cs",
+          "sha256": "776811d2c4ffd8b3bcd219a5420af41da30ddfa534e00237c767e6875f811966",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/LootContainerFocusGeometryTests.cs",
+          "sha256": "613e795ff019ef1cfa9cdf9f11b8403bd4a66168fadccbb7d8720d4328e0c041",
+          "matches_final_source": true
+        }
+      ],
+      "phase": "component-core-final"
+    },
+    {
+      "checks": [
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemInstanceState.cs",
+          "sha256": "460b6510cabefc7b89d70b6dd03117c459c053b75676da30686dfccc993f6354",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ComponentTransferService.cs",
+          "sha256": "be846cb6078bb5fa5b548d61cb861a6bb230b25460a7e6bc558a4050ca3e876a",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Session/DomainBundle.cs",
+          "sha256": "a50c919d9e441d298c95594cc0f9a091c92965087a85121a26a56ced8c99ad57",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Session/DomainTransactionCoordinator.cs",
+          "sha256": "df0a68da8e089a4fa37be12757306a9210686ef7f19ec6496cb984e5db83e534",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ItemInstanceStateTests.cs",
+          "sha256": "312f5beb6ecea702c799e288498990c0924846ece1fd7609455ca5c64d506bbb",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentTransferTests.cs",
+          "sha256": "1627fc4480f0cb7425effb261296ac5488e6f376c344ee3ce5b70195a6dc7a76",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/DomainTransactionTests.cs",
+          "sha256": "159f891220b26f7b35f6112ddf78d974ae336fd795201b4d1b737b61e0b4ebcf",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentDomainTestFixtures.cs",
+          "sha256": "3b7e511af3e6806c991dd45e2d47006539a3eb5c91bcb980c954126fc6034ae2",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Procgen/GeneratedShipLayout.cs",
+          "sha256": "b409eeb81d2a88b1b6ffeff85d4f7cbdb03bb7d6c1e5bfd2564e83e70a765e61",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Runtime/Session/Interaction/InteractableView.cs",
+          "sha256": "f6f228507d5873be0b3a062fada553975f4124452e3d049afc6892be88d56566",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Procgen/LootContainerPositionOffsetTests.cs",
+          "sha256": "776811d2c4ffd8b3bcd219a5420af41da30ddfa534e00237c767e6875f811966",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/LootContainerFocusGeometryTests.cs",
+          "sha256": "613e795ff019ef1cfa9cdf9f11b8403bd4a66168fadccbb7d8720d4328e0c041",
+          "matches_final_source": true
+        }
+      ],
+      "phase": "component-edit-final"
+    },
+    {
+      "checks": [
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemInstanceState.cs",
+          "sha256": "460b6510cabefc7b89d70b6dd03117c459c053b75676da30686dfccc993f6354",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ComponentTransferService.cs",
+          "sha256": "be846cb6078bb5fa5b548d61cb861a6bb230b25460a7e6bc558a4050ca3e876a",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Session/DomainBundle.cs",
+          "sha256": "a50c919d9e441d298c95594cc0f9a091c92965087a85121a26a56ced8c99ad57",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Session/DomainTransactionCoordinator.cs",
+          "sha256": "df0a68da8e089a4fa37be12757306a9210686ef7f19ec6496cb984e5db83e534",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ItemInstanceStateTests.cs",
+          "sha256": "312f5beb6ecea702c799e288498990c0924846ece1fd7609455ca5c64d506bbb",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentTransferTests.cs",
+          "sha256": "1627fc4480f0cb7425effb261296ac5488e6f376c344ee3ce5b70195a6dc7a76",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/DomainTransactionTests.cs",
+          "sha256": "159f891220b26f7b35f6112ddf78d974ae336fd795201b4d1b737b61e0b4ebcf",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentDomainTestFixtures.cs",
+          "sha256": "3b7e511af3e6806c991dd45e2d47006539a3eb5c91bcb980c954126fc6034ae2",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Core/Procgen/GeneratedShipLayout.cs",
+          "sha256": "b409eeb81d2a88b1b6ffeff85d4f7cbdb03bb7d6c1e5bfd2564e83e70a765e61",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Runtime/Session/Interaction/InteractableView.cs",
+          "sha256": "f6f228507d5873be0b3a062fada553975f4124452e3d049afc6892be88d56566",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditMode/Procgen/LootContainerPositionOffsetTests.cs",
+          "sha256": "776811d2c4ffd8b3bcd219a5420af41da30ddfa534e00237c767e6875f811966",
+          "matches_final_source": true
+        },
+        {
+          "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/LootContainerFocusGeometryTests.cs",
+          "sha256": "613e795ff019ef1cfa9cdf9f11b8403bd4a66168fadccbb7d8720d4328e0c041",
+          "matches_final_source": true
+        }
+      ],
+      "phase": "component-play-final"
+    }
+  ],
+  "excluded_domains": [
+    "fungible stacks",
+    "jobs",
+    "materials/debits",
+    "XP/progression",
+    "world/save generation",
+    "live UI",
+    "threaded publication"
+  ],
+  "probe_artifacts": [
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/installed-fixture.cs.meta.txt",
+      "sha256": "c970535456b69bec7605c62e1280777f286170d580fe813ba0b404fc3b8810f7"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/installed-fixture.cs.txt",
+      "sha256": "daa97a7a2e192060357a1c6a571f766d6c449029affa59796bd7116e5a303526"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/offset-grounding-61746e3e33914d7a8e63cee18bf5c91f/offset-grounding-diagnostic.txt",
+      "sha256": "9efd8f74e18c49b8deee1b4b060a00ded0915f4793211e5f72725be3425246b4"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/offset-grounding-61746e3e33914d7a8e63cee18bf5c91f/synthetic-empty-candidate-game-camera.png",
+      "sha256": "7ad2a2d7648dcb30ebaa8b42f962d10eaa81ce06b8ff9886ed0f712009c911dc"
+    }
+  ],
+  "catalog": {
+    "warning_count": 150,
+    "error_count": 166,
+    "sha256": "f6b53c65f73abf91af7a7385efe0bf487fcd0fa52edc3a75b29900a7e3a0495c",
+    "ok": false,
+    "path": "artifacts/component-foundation-2026-10-02/component-core-final/catalog-validation.json",
+    "code_counts": [
+      {
+        "code": "missing_book_mapping",
+        "rows": 1
+      },
+      {
+        "code": "missing_definition",
+        "rows": 45
+      },
+      {
+        "code": "missing_source",
+        "rows": 116
+      },
+      {
+        "code": "missing_tier_source",
+        "rows": 2
+      },
+      {
+        "code": "no_enumerated_source",
+        "rows": 91
+      },
+      {
+        "code": "potential_sources_only",
+        "rows": 1
+      },
+      {
+        "code": "tier_not_forwarded",
+        "rows": 2
+      },
+      {
+        "code": "unseeded_dependency",
+        "rows": 58
+      }
+    ],
+    "prior_catalog_sha256": "f6b53c65f73abf91af7a7385efe0bf487fcd0fa52edc3a75b29900a7e3a0495c"
+  },
+  "scope": "Unused typed in-memory registry/holder/machinery/receipt bundle and pure transfer/publication primitives; separate bounded optional root offset and loot-only focus geometry correction. No live stores/save migration/content activation.",
+  "compatibility": "New APIs require typed long Variant integer fields and safe acyclic graphs with immutable dictionary keys. Parsed JSON numeric representation is explicitly rejected; no existing game schema/load/save/migration changed. Existing descriptors without position_offset keep exact output.",
+  "not_run": [
+    "Full PlayMode suite",
+    "standalone player build",
+    "native OS input",
+    "earned acquisition/all-class home or first-ship route",
+    "live component UI/work integration",
+    "paid legacy overhaul",
+    "durable multi-file generation/migration fault matrices",
+    "long-term survival/performance"
+  ],
+  "phases": [
+    {
+      "counts": null,
+      "started_utc": "2026-10-02T09:15:18.7780297Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-red/console.log",
+          "sha256": "11fc49500f9d545840c928040a10a1c898302958bf5e9cffa71a6d131cbbcff1",
+          "bytes": 789
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-red/manifest.json",
+          "sha256": "000c88815017bab6faec9d37821e43db813ca18fb7df33ab9e3acc220c072b78",
+          "bytes": 1151
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-red/source-files.json",
+          "sha256": "1d4c9e112aaeeb07c9af38b523be85165cb1df2c1c155d3e1c368078a9645417",
+          "bytes": 111485
+        }
+      ],
+      "failure_names": [
+        null
+      ],
+      "assemblies": null,
+      "exit_code": 1,
+      "phase": "component-red",
+      "source_manifest_sha256": "1d4c9e112aaeeb07c9af38b523be85165cb1df2c1c155d3e1c368078a9645417",
+      "finished_utc": "2026-10-02T09:15:19.7649192Z",
+      "skips": null,
+      "assembly_sha256": "e027d49ef6f98193bf51299e84d3fbe1826f4f9f39d14b76f2d8260fe49f7b06"
+    },
+    {
+      "counts": {
+        "passed": "1",
+        "notExecuted": "0",
+        "failed": "172",
+        "total": "173"
+      },
+      "started_utc": "2026-10-02T09:16:24.9399356Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-red-2/component-red-2.trx",
+          "sha256": "e0828f6d7442f809fe4ad79d8731f0f368f7cfe130ff6ada229ed18fa7350b94",
+          "bytes": 449841
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-red-2/console.log",
+          "sha256": "a8d3926f0b684a4c075f0a92732b0cdc7659699bb0edbb77cfffb125a844daa4",
+          "bytes": 202515
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-red-2/manifest.json",
+          "sha256": "c1744c0071e960bf72aa638fabfcf0b3753ab9212cda2f7a0c9d5d93741e53dc",
+          "bytes": 214435
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-red-2/source-files.json",
+          "sha256": "393155d2547a5d37d620c87307a08cf169bf49b8f9d5787a0b55cccf7d7c7a09",
+          "bytes": 111485
+        }
+      ],
+      "failure_names": [
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"receipt_result\")",
+        "FaultAtEveryPrepublicationBoundaryDiscardsCandidateAndKeepsCompleteOldBundle(\"registry\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"schema_string\")",
+        "Bundle_DefensiveInputSummaryAndProjectionCopies",
+        "InvalidDomainRecords_CannotProduceCandidate(\"missing_holder\")",
+        "StaleExpectedRevision_IsNonmutating(\"expected_instance_revision\",\"stale_instance\")",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"condition_state\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"origin_array\")",
+        "MalformedCommand_IsNonmutating(\"schema\")",
+        "FaultAtEveryPrepublicationBoundaryDiscardsCandidateAndKeepsCompleteOldBundle(\"holders\")",
+        "InvalidDomainRecords_CannotProduceCandidate(\"holder_identity\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_above_one\")",
+        "MalformedCommand_IsNonmutating(\"negative_revision\")",
+        "BlankIdentifiersCannotReplaceRegistry(\"holder\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"schema_float\")",
+        "Swap_EvaluatesCompleteCandidateInsteadOfTransientDoubleOccupancy",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"holder_revision\")",
+        "NumericIdentifiersCannotReplaceRegistry(\"definition_id\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"provenance_empty_dictionary\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"capacity_mass\")",
+        "GetReturnsDeepDefensiveRecord",
+        "ApplySummaryReplacesWithoutMergingOrGeneratingIds",
+        "IncompatibleSlotForm_RejectsTransferAndSwap(False)",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"string_schema\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"capacity_count\")",
+        "MalformedCommand_IsNonmutating(\"same_holder\")",
+        "RevisionOverflow_CannotWrapCandidateRevisions(\"domain\")",
+        "MalformedCondition_IsRejectedBeforePreparingAnyMove(\"known_nan\")",
+        "ValidRowThenInvalidRowCannotPartiallyReplaceExistingRegistry",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"receipt_identity\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"schema_zero\")",
+        "MalformedCondition_IsRejectedBeforePreparingAnyMove(\"known_null\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"holder_owner\")",
+        "RevisionOverflow_CannotWrapCandidateRevisions(\"instance\")",
+        "ConstructorReturnsCanonicalEmptyRegistryAndEmptyImportSucceeds",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"origin\")",
+        "KnownConditionIncludesBothExactBoundaries(1.0d)",
+        "MalformedRowCannotReplaceLoadedRegistry(\"mass_nan\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"holder_key_mismatch\")",
+        "HigherRevisionImportCannotForgetCommittedCommand",
+        "ReentrantMutationAtEveryStageRejectsWithoutDisturbingOuterCommit(\"holders\")",
+        "KnownConditionIncludesBothExactBoundaries(0.0d)",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_boolean\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"revision_null\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"revision_negative\")",
+        "BlankIdentifiersCannotReplaceRegistry(\"definition_id\")",
+        "SameFormDifferentConditions_KeepExactIdentityAcrossShipsAndReturn",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"item_form\")",
+        "StaleExpectedRevision_IsNonmutating(\"expected_domain_revision\",\"stale_domain\")",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"future_schema\")",
+        "InvalidDomainRecords_CannotProduceCandidate(\"machinery_owner\")",
+        "MalformedCommand_IsNonmutating(\"bool_revision\")",
+        "MalformedCondition_IsRejectedBeforePreparingAnyMove(\"unknown_numeric\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"slot_duplicate_forms\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"missing_holder\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"origin_empty_string\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"holder_kind\")",
+        "ImportValidatesBeforeReplacementAndFailedImportKeepsPendingCandidate",
+        "GetSummaryReturnsDeepDefensiveRegistry",
+        "FullDestination_LeavesSourceMountedAndUnchanged(\"capacity_mass\")",
+        "UnknownNullCondition_CannotInstallInTransferOrSwap(False)",
+        "IncompatibleSlotForm_RejectsTransferAndSwap(True)",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"mass\")",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"mismatched_key\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"revision_fraction\")",
+        "PrepareAndExternalCandidateAliasesCannotPublishOrChangeInternalCandidate",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"machinery_missing\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"revision_fractional\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"mass_zero\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"state_future\")",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"non_dictionary_row\")",
+        "OriginAndProvenancePreserveTheirExplicitStringOrDictionaryShape(True)",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"registry_missing\")",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"definition_id\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"mass_null\")",
+        "KnownZeroCondition_RemainsKnownAndMayInstall",
+        "UnknownNullCondition_CanTransferToNonSlotWithoutInventingCondition",
+        "MalformedCommand_IsNonmutating(\"float_revision\")",
+        "UnknownExplicitNullIsDistinctFromKnownZero",
+        "StaleExpectedRevision_IsNonmutating(\"expected_destination_revision\",\"stale_destination\")",
+        "FullDestination_LeavesSourceMountedAndUnchanged(\"capacity_count\")",
+        "NotificationFailureCannotUndoOrReplayPublishedDomainEffects",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"condition\")",
+        "FaultAtEveryPrepublicationBoundaryDiscardsCandidateAndKeepsCompleteOldBundle(\"validation\")",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"missing_instances\")",
+        "MalformedCommand_IsNonmutating(\"operation\")",
+        "Bundle_UsesSoleLocationAuthorityAndIndependentHealthProjections",
+        "MissingOptionalCapacity_DoesNotInventHardPlayerLimits",
+        "UnknownComponentRemainsNullAndCannotSupplyMachineHealth",
+        "RevisionOverflow_CannotWrapCandidateRevisions(\"holder\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"receipt_duplicate_command\")",
+        "PendingCommandIdentityRejectsDuplicateAndCompetingCandidateBecomesStale",
+        "MalformedRowCannotReplaceLoadedRegistry(\"mass_string\")",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"missing_schema\")",
+        "ReadersSeeCompleteOldUntilPublicationAndCompleteNewAtNotification",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"provenance\")",
+        "NumericIdentifiersCannotReplaceRegistry(\"holder\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_string\")",
+        "NumericIdentifiersCannotReplaceRegistry(\"instance_id\")",
+        "SourceHolderMustMatchCanonicalInstanceHolder",
+        "MalformedRowCannotReplaceLoadedRegistry(\"mass_boolean\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"schema_future\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"slot_forms\")",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"revision\")",
+        "ReentrantMutationAtEveryStageRejectsWithoutDisturbingOuterCommit(\"validation\")",
+        "CommittedCommandIdentity_CannotBeReinterpreted",
+        "SuppliedAndReturnedNestedObjects_HaveNoMutationAliases",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"duplicate_record_identity\")",
+        "InvalidDomainRecords_CannotProduceCandidate(\"schema\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"machinery_duplicate_link\")",
+        "SwapCannotNameTheSameInstanceTwice",
+        "FaultAtEveryPrepublicationBoundaryDiscardsCandidateAndKeepsCompleteOldBundle(\"publication\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"duplicate_slot\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"schema_future\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"parallel_membership\")",
+        "NumericIdentifiersCannotReplaceRegistry(\"item_form\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"machinery_key_mismatch\")",
+        "ImportRejectsDecreaseAndDifferentSameRevisionButAcceptsExactReplayAndHigherCompleteState",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"slot_wrong_form\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"provenance_empty_string\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_positive_infinity\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"unknown_string_null\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"revision_string\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"state_boolean\")",
+        "SwapCounterpartMustActuallyOccupyDestination",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"machinery_health\")",
+        "ReentrantMutationAtEveryStageRejectsWithoutDisturbingOuterCommit(\"publication\")",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"instance_id\")",
+        "ImportCopiesCallerSummaryAndNestedOriginProvenance",
+        "MalformedCommand_IsNonmutating(\"blank_id\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"state_blank\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_negative\")",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"schema_version\")",
+        "MalformedCondition_IsRejectedBeforePreparingAnyMove(\"missing\")",
+        "HigherRevisionImportCannotRewriteReceipt",
+        "UnknownNullCondition_CannotInstallInTransferOrSwap(True)",
+        "ReentrantMutationAtEveryStageRejectsWithoutDisturbingOuterCommit(\"receipt\")",
+        "BlankIdentifiersCannotReplaceRegistry(\"item_form\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"machinery_owner\")",
+        "ReentrantMutationAtEveryStageRejectsWithoutDisturbingOuterCommit(\"machinery\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"capacity_overflow\")",
+        "OccupiedSlot_RequiresExplicitNamedSwap",
+        "MalformedRowCannotReplaceLoadedRegistry(\"revision_negative\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"bad_instance\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"schema_missing\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_negative_infinity\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_nan\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"provenance_boolean\")",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"numeric_key\")",
+        "ReentrantMutationAtEveryStageRejectsWithoutDisturbingOuterCommit(\"registry\")",
+        "StaleExpectedRevision_IsNonmutating(\"expected_source_revision\",\"stale_source\")",
+        "InvalidDomainRecords_CannotProduceCandidate(\"duplicate_owner_slot\")",
+        "SameFormInstancesRetainSeparateIdentityConditionMassAndMetadata",
+        "ReceiptReplayReturnsOneEffectAndCannotReinterpretConflictingCommand",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"slot_overfull\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"mass_negative\")",
+        "Bundle_RejectsCompleteMalformedSnapshotBeforeOwnership(\"receipt_revision\")",
+        "FaultAtEveryPrepublicationBoundaryDiscardsCandidateAndKeepsCompleteOldBundle(\"receipt\")",
+        "OriginAndProvenancePreserveTheirExplicitStringOrDictionaryShape(False)",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"null_summary\")",
+        "MalformedSummaryCannotReplaceLoadedRegistry(\"array_instances\")",
+        "MissingRequiredRowFieldRejectsWithoutDefaults(\"holder\")",
+        "StaleExpectedRevision_IsNonmutating(\"expected_swap_instance_revision\",\"stale_swap\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"origin_empty_dictionary\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"unknown_numeric\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"revision_boolean\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"known_null\")",
+        "FaultAtEveryPrepublicationBoundaryDiscardsCandidateAndKeepsCompleteOldBundle(\"machinery\")",
+        "MalformedCommand_IsNonmutating(\"missing_revision\")",
+        "MalformedRowCannotReplaceLoadedRegistry(\"mass_positive_infinity\")",
+        "Swap_ChangesOnlyBothHoldersAndMovedRevisionsOnce",
+        "BlankIdentifiersCannotReplaceRegistry(\"instance_id\")"
+      ],
+      "assemblies": null,
+      "exit_code": 1,
+      "phase": "component-red-2",
+      "source_manifest_sha256": "393155d2547a5d37d620c87307a08cf169bf49b8f9d5787a0b55cccf7d7c7a09",
+      "finished_utc": "2026-10-02T09:16:28.9767284Z",
+      "skips": null,
+      "assembly_sha256": "77f13404014b7ca3e7f0cfb23c954e57ea30fa7af9e941032cbe027b0a457cb2"
+    },
+    {
+      "counts": {
+        "failed": "25",
+        "total": "205",
+        "passed": "180",
+        "notExecuted": "0"
+      },
+      "started_utc": "2026-10-02T09:31:13.3803975Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-review-red/component-review-red.trx",
+          "sha256": "86f58811db2ac27efe89ab281d33cbdbcca1cfc37aea7e96a461ba54c4382f8d",
+          "bytes": 307173
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-review-red/console.log",
+          "sha256": "eedd4f3db4b270d60548241d683b1512aecb6e90f97cd1752153703b1dd4e610",
+          "bytes": 25102
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-review-red/manifest.json",
+          "sha256": "fdd6e1930cd9ecce4c5b36b3e15006ee1f3eba647315ea247ffeceb643c87677",
+          "bytes": 27001
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-review-red/source-files.json",
+          "sha256": "551564e0c8161a07692789911edc948fa151054ac061c028f24a0fb7c841d8ba",
+          "bytes": 111873
+        }
+      ],
+      "failure_names": [
+        "MutableDictionaryKeysRejectWholeDomainImportAndKeepPendingCandidate(\"registry\",\"dictionary\")",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"row_extension\",False)",
+        "IntegralDoubleDomainIntegerFieldsAreRejected(\"schema_version\")",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"provenance\",True)",
+        "MutableDictionaryKeysRejectWholeDomainImportAndKeepPendingCandidate(\"registry\",\"array\")",
+        "MutableDictionaryKeysRejectWholeDomainImportAndKeepPendingCandidate(\"origin\",\"array\")",
+        "MutableDictionaryKeysRejectWholeDomainImportAndKeepPendingCandidate(\"origin\",\"dictionary\")",
+        "IntegralDoubleDomainIntegerFieldsAreRejected(\"revision\")",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"summary_extension\",False)",
+        "MutableDictionaryKeysRejectWholeDomainImportAndKeepPendingCandidate(\"provenance\",\"array\")",
+        "IntegralDoubleDomainIntegerFieldsAreRejected(\"capacity_count\")",
+        "MutableDictionaryKeyInNestedDomainMetadata_IsRejectedBeforeCopy",
+        "MutableCommandDictionaryKeysRejectBeforeCoordinatorCopyWithoutReservingIdentity(\"array\")",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"summary_extension\",True)",
+        "ReceiptReplayReturnsOneEffectAndCannotReinterpretConflictingCommand",
+        "MutableArrayKeyInCommandExtension_IsRejectedBeforeCopy",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"origin\",False)",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"row_extension\",True)",
+        "MutableCommandDictionaryKeysRejectBeforeCoordinatorCopyWithoutReservingIdentity(\"dictionary\")",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"origin\",True)",
+        "MutableDictionaryKeysRejectWholeDomainImportAndKeepPendingCandidate(\"provenance\",\"dictionary\")",
+        "IntegralDoubleDomainIntegerFieldsAreRejected(\"holder_revision\")",
+        "MutableKeysNestedThroughMetadataArraysRejectWithoutInputOrRegistryMutation(\"provenance\",False)",
+        "IntegralDoubleDomainIntegerFieldsAreRejected(\"receipt_revision\")",
+        "IntegralDoubleDomainIntegerFieldsAreRejected(\"receipt_schema\")"
+      ],
+      "assemblies": null,
+      "exit_code": 1,
+      "phase": "component-review-red",
+      "source_manifest_sha256": "551564e0c8161a07692789911edc948fa151054ac061c028f24a0fb7c841d8ba",
+      "finished_utc": "2026-10-02T09:31:16.7983879Z",
+      "skips": null,
+      "assembly_sha256": "a537dce226fe368e57b92f5a91f823889e71d791d952dbbb576fe8e2b4896c59"
+    },
+    {
+      "counts": {
+        "failed": "1",
+        "notExecuted": "0",
+        "total": "1",
+        "passed": "0"
+      },
+      "started_utc": "2026-10-02T09:33:55.700961Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/notification-red/console.log",
+          "sha256": "5389b64996fe42659ff8c2353e13cf182a2c1fce4f4ea290d2a2fc29aad742b0",
+          "bytes": 1384
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/notification-red/manifest.json",
+          "sha256": "3de26ae8f918c45e827a731be5a7154978a7f3092415fefa17395f667e8a5233",
+          "bytes": 2064
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/notification-red/notification-red.trx",
+          "sha256": "0b2002ad465c48ad5e4a2aedb4be34735f033f0cabdb133dbfb8f334e3fa2c12",
+          "bytes": 3816
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/notification-red/source-files.json",
+          "sha256": "4cea2e1934dfdcb3f011845d50cf8095c147cbd3eba15e4f07ffd93a1ae808ad",
+          "bytes": 111873
+        }
+      ],
+      "failure_names": [
+        "NotificationFailureWithThrowingMessageStillReturnsReceiptOwnedCommittedOutcome"
+      ],
+      "assemblies": null,
+      "exit_code": 1,
+      "phase": "notification-red",
+      "source_manifest_sha256": "4cea2e1934dfdcb3f011845d50cf8095c147cbd3eba15e4f07ffd93a1ae808ad",
+      "finished_utc": "2026-10-02T09:33:59.0099438Z",
+      "skips": null,
+      "assembly_sha256": "5d0f6f7aa8cbd94b362534c935f9dd3408a5c858776b0a2682d023867b5304c8"
+    },
+    {
+      "counts": {
+        "total": "22",
+        "failed": "19",
+        "notExecuted": "0",
+        "passed": "3"
+      },
+      "started_utc": "2026-10-02T09:31:33.7417517Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-core-red/console.log",
+          "sha256": "4b925755cb1e5823c9f88ac17cc3a48a232958c5a154ca257c42b263f61ebc75",
+          "bytes": 16158
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-core-red/manifest.json",
+          "sha256": "212a712f4649af408f01887930064200305038a6917f6bb70e208bc253cdbd02",
+          "bytes": 17492
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-core-red/offset-core-red.trx",
+          "sha256": "d0e5df8627b59885ac6ee9a1ededac767b40ae71e87ff4ace90af1e48c198319",
+          "bytes": 46617
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-core-red/source-files.json",
+          "sha256": "551564e0c8161a07692789911edc948fa151054ac061c028f24a0fb7c841d8ba",
+          "bytes": 111873
+        }
+      ],
+      "failure_names": [
+        "NegativeInfinityOffsetRejectsRow",
+        "DictionaryCoordinateRejectsRow",
+        "LongOffsetRejectsRow",
+        "FiniteOffsetWhoseResolvedFloat32RootOverflowsRejectsOnlyItsRow",
+        "NaNOffsetRejectsRow",
+        "ShortOffsetRejectsRow",
+        "PositiveInfinityOffsetRejectsRow",
+        "BoolOffsetRejectsRow",
+        "VectorLeafOffsetRejectsRow",
+        "Float32OffsetOverflowRejectsRow",
+        "PresentOffsetPreservesExplicitContentsAndSlotMetadata",
+        "DictionaryOffsetRejectsRow",
+        "StringOffsetRejectsRow",
+        "EmptyOffsetRejectsRow",
+        "PresentNullOffsetRejectsRow",
+        "OffsetMovesShipLocalRootAfterFloorProjection(1.0d,-0.125d,-2.0d,21.0d,3.995d,2.0d)",
+        "OffsetMovesShipLocalRootAfterFloorProjection(-0.75d,0.25d,1.25d,19.25d,4.37d,5.25d)",
+        "NullCoordinateRejectsRow",
+        "NumericStringOffsetRejectsRow"
+      ],
+      "assemblies": null,
+      "exit_code": 1,
+      "phase": "offset-core-red",
+      "source_manifest_sha256": "551564e0c8161a07692789911edc948fa151054ac061c028f24a0fb7c841d8ba",
+      "finished_utc": "2026-10-02T09:31:34.8907729Z",
+      "skips": null,
+      "assembly_sha256": "a537dce226fe368e57b92f5a91f823889e71d791d952dbbb576fe8e2b4896c59"
+    },
+    {
+      "counts": {
+        "passed": "2",
+        "skipped": "0",
+        "total": "5",
+        "inconclusive": "0",
+        "failed": "3"
+      },
+      "started_utc": "2026-10-02T09:34:12.7896607Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-ui-red/manifest.json",
+          "sha256": "e149ca7a14210f4a6fdb95bf745bfa07243092464e361a75c36a2e9e5e5a5baa",
+          "bytes": 4487
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-ui-red/offset-ui-red.log",
+          "sha256": "f56ca96be44659079468acd76d7af62451f199bf57d146ea6a8fe57cda7ff142",
+          "bytes": 406892
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-ui-red/offset-ui-red.xml",
+          "sha256": "ef021508ee715a61ed9ab1571f5e1f0c3e1e0e9c447a45ddc5695350d0ee64ef",
+          "bytes": 10094
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-ui-red/source-files.json",
+          "sha256": "0938e9d108e82b2005342f53129e1cd1c6fe3200fa3342f5f7d39556be70a376",
+          "bytes": 135478
+        }
+      ],
+      "failure_names": [
+        "SynapticSea.Tests.Unity.LootContainerFocusGeometryTests.GroundedCrateKeepsFloorContactThroughFocusWithoutMovingItsRoot",
+        "SynapticSea.Tests.Unity.LootContainerFocusGeometryTests.LootFocusLeavesEveryTransformRendererAndSensorInvariant(\"synthetic_empty\")",
+        "SynapticSea.Tests.Unity.LootContainerFocusGeometryTests.LootFocusLeavesEveryTransformRendererAndSensorInvariant(\"corpse_synthetic_empty\")"
+      ],
+      "assemblies": [
+        {
+          "sha256": "494005b9f269b7ef67399025d25ca8eccfdb00a98c46462df26d0e76370efb97",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "a74b70d8b23607cf4ceffd3f3c72d1c08defcc6dd446c19884c7f3dd4eadb444",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "e5d43cb1c0deb5ea5c7584554b7fc0d162f486ac67c54e28c93db297cd81f4bf",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "234116754682e61e368185378cca51b544edf54ecf20b25bc60664043be3f50c",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "ea1cc896455e04db06bae3d61215c18ebd34f94a41bf57dde8149e3d57fa5421",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "b4deeeaea707fa919464e25b8fd7392c84742eb22575cc1c385b885fa70123ec",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "6812a521c5460d3cc18be504f8fe3f7d26fae431ffd881210a9c6d65b60f2b2c",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "e0ef2ee1dbcb25160df4a1d7f1db598fc0a71b3993a456e4943727b868432156",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "668bd7ccd73593156f27303f5aba7565853aafa85b5f8fc51e6ef59cd2ef2344",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "04375096818e600c269c83d5dfdb25e14c5001900e7881bf9488cd3ce5174114",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "exit_code": 2,
+      "phase": "offset-ui-red",
+      "source_manifest_sha256": "0938e9d108e82b2005342f53129e1cd1c6fe3200fa3342f5f7d39556be70a376",
+      "finished_utc": "2026-10-02T09:35:11.4035129Z",
+      "skips": [],
+      "assembly_sha256": null
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "passed": "245",
+        "failed": "0",
+        "total": "245"
+      },
+      "started_utc": "2026-10-02T09:44:08.3952574Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-green/component-green.trx",
+          "sha256": "39a5633cc85073e67ac219f64f6cbfc910a118e9dac5b837bf422c70955084b3",
+          "bytes": 335131
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-green/console.log",
+          "sha256": "de1f55c1dcefd7fb3da10966f93558e9fb754aca4c5a5aa536ae7f362c6142bc",
+          "bytes": 594
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-green/manifest.json",
+          "sha256": "dacb0d34915ece9c6a9c95a20e90473f92e032202956e1f5a21e9bde2a7d8fe8",
+          "bytes": 1390
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-green/source-files.json",
+          "sha256": "5b232b17ed822311fee4bc7adc827bb178fed8e9b32066d92f4d837c6a5bdc90",
+          "bytes": 111873
+        }
+      ],
+      "failure_names": [],
+      "assemblies": null,
+      "exit_code": 0,
+      "phase": "component-green",
+      "source_manifest_sha256": "5b232b17ed822311fee4bc7adc827bb178fed8e9b32066d92f4d837c6a5bdc90",
+      "finished_utc": "2026-10-02T09:44:11.9148794Z",
+      "skips": null,
+      "assembly_sha256": "4b52ae9891379fc6fd26d2e6c6e62b56e42836289570a5e7cacd47621930b68d"
+    },
+    {
+      "counts": null,
+      "started_utc": "2026-10-02T09:44:43.4625049Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green/component-edit-green.log",
+          "sha256": "d41acf6634a547fd1b65ab067d089e323977f4f56f527d6cc75ebe5b82c4b2f3",
+          "bytes": 199801
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green/manifest.json",
+          "sha256": "c970a276e5a16da74c03e380849c81f409e4d4fb9050a7d1a75571f66eea9671",
+          "bytes": 3061
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green/source-files.json",
+          "sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+          "bytes": 135478
+        }
+      ],
+      "failure_names": [
+        null
+      ],
+      "assemblies": [
+        {
+          "sha256": "e5c8eecde7227e9476a55c71c34c528be4187c25cf7a509478f895b5d84eb58c",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "2566df1e13d1197ea3eb9e58e726a7f0a966408f9846eac7d9464202e7d405e3",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "a999251a7dc6003eb6bb0c602fa49ae6259f83de8f9bc2bbdff4e373ac2db289",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "8cd6d3f6d23a9766ca458ccce969662e719ecee4518a8d3cfa7b70b892babede",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "a04b8f180d8ac18d1c0a5b3dfe01814850a68a257b340cbc7b5ad00206471008",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "d2ad2f277aefffa4d572d9ed6fa1cf4de8c64d75ba9c1d990c9e9926a20fd25f",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "dcb9bf7c995674ab80204248b9021e1d8700d0e0076abb3cf02e074431600a05",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "3f58ab62798aa5c0345e184e241ccba915ee0b33ed872f922c8feb2fabbdc395",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "993674e9e2f6926af56b9454f05d608210fda16666853d2e9ea8801d1855d28d",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "ff7b09f58577f2c26c7325ef34cae97f36853d4746afcad93b60de259ccee81b",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "exit_code": 1,
+      "phase": "component-edit-green",
+      "source_manifest_sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+      "finished_utc": "2026-10-02T09:44:55.7715282Z",
+      "skips": null,
+      "assembly_sha256": null
+    },
+    {
+      "counts": {
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "passed": "162",
+        "total": "162"
+      },
+      "started_utc": "2026-10-02T09:47:49.7236599Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-2/component-edit-green-2.log",
+          "sha256": "f8aa4063ec1d2edbd030dcf2316e20810edf95f8febdac4fe44c67030ede4f0c",
+          "bytes": 56495
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-2/component-edit-green-2.xml",
+          "sha256": "fb3cce9a2c31621e95322644693ae1d62bfbbd823ea112a873e0f1f3be6f4007",
+          "bytes": 137094
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-2/manifest.json",
+          "sha256": "895678e83abccc4291e8593618e912f0cae83acc4bdc68282afb483e5930deed",
+          "bytes": 3236
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-2/source-files.json",
+          "sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+          "bytes": 135478
+        }
+      ],
+      "failure_names": [],
+      "assemblies": [
+        {
+          "sha256": "e5c8eecde7227e9476a55c71c34c528be4187c25cf7a509478f895b5d84eb58c",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "2566df1e13d1197ea3eb9e58e726a7f0a966408f9846eac7d9464202e7d405e3",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "a999251a7dc6003eb6bb0c602fa49ae6259f83de8f9bc2bbdff4e373ac2db289",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "8cd6d3f6d23a9766ca458ccce969662e719ecee4518a8d3cfa7b70b892babede",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "a04b8f180d8ac18d1c0a5b3dfe01814850a68a257b340cbc7b5ad00206471008",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "d2ad2f277aefffa4d572d9ed6fa1cf4de8c64d75ba9c1d990c9e9926a20fd25f",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "dcb9bf7c995674ab80204248b9021e1d8700d0e0076abb3cf02e074431600a05",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "3f58ab62798aa5c0345e184e241ccba915ee0b33ed872f922c8feb2fabbdc395",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "993674e9e2f6926af56b9454f05d608210fda16666853d2e9ea8801d1855d28d",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "ff7b09f58577f2c26c7325ef34cae97f36853d4746afcad93b60de259ccee81b",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "exit_code": 0,
+      "phase": "component-edit-green-2",
+      "source_manifest_sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+      "finished_utc": "2026-10-02T09:48:13.0864081Z",
+      "skips": [],
+      "assembly_sha256": null
+    },
+    {
+      "counts": {
+        "total": "250",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "passed": "250"
+      },
+      "started_utc": "2026-10-02T09:53:55.9446242Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-3/component-edit-green-3.log",
+          "sha256": "b59a5025d37d0b827aa0ecb93a6347437b4988ffbc1f080e8f44f244df5a5ddc",
+          "bytes": 59540
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-3/component-edit-green-3.xml",
+          "sha256": "6551363c2f7a13a5c307edbc04baa05b74255a13c763997a6491f2b3fd7647c2",
+          "bytes": 212508
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-3/manifest.json",
+          "sha256": "8e54ebeb0b5ec16808785c1324326e515d8ef41756b31b2e60378903392fdc7e",
+          "bytes": 3236
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-green-3/source-files.json",
+          "sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+          "bytes": 135478
+        }
+      ],
+      "failure_names": [],
+      "assemblies": [
+        {
+          "sha256": "06d0dac1b74ad84bb60471463a1191a45d42e37e356d92d8a92b706f7a71b46f",
+          "name": "SynapticSea.App.dll"
+        },
+        {
+          "sha256": "99a23fabeaeb88526681a23054eae532b983d485e4391e1fa96373f9d4c78ac3",
+          "name": "SynapticSea.Core.dll"
+        },
+        {
+          "sha256": "23abbcf8924e8099422e344b5c21d2b14bd48a501f706bc59f782529e202b61c",
+          "name": "SynapticSea.Editor.dll"
+        },
+        {
+          "sha256": "aedfaa14917e0995bf1cbd3636af0abb28ade383af1311dc74e349e828c44d65",
+          "name": "SynapticSea.Game.dll"
+        },
+        {
+          "sha256": "b7b98abee0a31652b49a907da3b0223f47fb538fb9bb70c54d091d15319f63a7",
+          "name": "SynapticSea.Runtime.dll"
+        },
+        {
+          "sha256": "ced08c6b172ffab9a42a4525e0b94bc25bb07f1b24a637e59c5f1e5edd78f7c9",
+          "name": "SynapticSea.Tests.EditMode.dll"
+        },
+        {
+          "sha256": "13a963d2dea78642de98ad7a310cbce3ea0905d23ff1afc4d165b6365feba6f8",
+          "name": "SynapticSea.Tests.EditModeUnity.dll"
+        },
+        {
+          "sha256": "0b7d63315241399d78552853991fd2d17f5febcb37728b812d0639aa2c0fb299",
+          "name": "SynapticSea.Tests.PlayMode.dll"
+        },
+        {
+          "sha256": "13d094bc68c190cf89e761647d15b0d65e9ac5a2754ebc6fe86e8e62f6a5354f",
+          "name": "SynapticSea.UI.dll"
+        },
+        {
+          "sha256": "e7936a6734305a7e454d8f7435caa003a14ff630896b0fb1ffae2ab5636bd820",
+          "name": "SynapticSea.UI.Presenters.dll"
+        }
+      ],
+      "exit_code": 0,
+      "phase": "component-edit-green-3",
+      "source_manifest_sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+      "finished_utc": "2026-10-02T09:54:19.3546527Z",
+      "skips": [],
+      "assembly_sha256": null
+    },
+    {
+      "counts": {
+        "failed": "0",
+        "inconclusive": "0",
+        "passed": "1",
+        "skipped": "0",
+        "total": "1"
+      },
+      "started_utc": "2026-10-02T09:56:33.2780647Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/manifest.json",
+          "sha256": "fe9322db0a2f1dc8956b8ac948cb28e0bf7929e36e1d1f73b0331008a92ff9e8",
+          "bytes": 2990
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/offset-grounding-probe.log",
+          "sha256": "6a74c85de9d9bf3b31c087cb04f636d190c747b8fc2f651b5e51e8e8e2c7a548",
+          "bytes": 274366
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/offset-grounding-probe.xml",
+          "sha256": "784a2a5ef9af9377340722c6685588fc03a0b56f503a389cf17a5800a370afdb",
+          "bytes": 17567
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/offset-grounding-probe/source-files.json",
+          "sha256": "9db9d972eaf8731f1b72007cb0e95474f7cf0f7d0fc970609c717af3a3ca6acc",
+          "bytes": 135685
+        }
+      ],
+      "failure_names": [],
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "06d0dac1b74ad84bb60471463a1191a45d42e37e356d92d8a92b706f7a71b46f"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "99a23fabeaeb88526681a23054eae532b983d485e4391e1fa96373f9d4c78ac3"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "23abbcf8924e8099422e344b5c21d2b14bd48a501f706bc59f782529e202b61c"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "aedfaa14917e0995bf1cbd3636af0abb28ade383af1311dc74e349e828c44d65"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "b7b98abee0a31652b49a907da3b0223f47fb538fb9bb70c54d091d15319f63a7"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "ced08c6b172ffab9a42a4525e0b94bc25bb07f1b24a637e59c5f1e5edd78f7c9"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "13a963d2dea78642de98ad7a310cbce3ea0905d23ff1afc4d165b6365feba6f8"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "e308518120ce9b84a6e3b7fabc9ed06e7ea69b56fd4815e0c0753832cbeddb3b"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "13d094bc68c190cf89e761647d15b0d65e9ac5a2754ebc6fe86e8e62f6a5354f"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "e7936a6734305a7e454d8f7435caa003a14ff630896b0fb1ffae2ab5636bd820"
+        }
+      ],
+      "exit_code": 0,
+      "phase": "offset-grounding-probe",
+      "source_manifest_sha256": "9db9d972eaf8731f1b72007cb0e95474f7cf0f7d0fc970609c717af3a3ca6acc",
+      "finished_utc": "2026-10-02T09:57:00.6249064Z",
+      "skips": [],
+      "assembly_sha256": null
+    },
+    {
+      "counts": {
+        "notExecuted": "0",
+        "passed": "1182",
+        "failed": "0",
+        "total": "1182"
+      },
+      "started_utc": "2026-10-02T09:59:26.1319128Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-core-final/component-core-final.trx",
+          "sha256": "0cadae492bac09e6698880a2775537b65cdabd569d95f12d69078be60ae3d426",
+          "bytes": 1606212
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-core-final/console.log",
+          "sha256": "5e76717e02fd6e8388cf035d157e804f45f2661110602015345c589458b3c562",
+          "bytes": 606
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-core-final/manifest.json",
+          "sha256": "c49dbf5536e8390fd63b8b1e402216ac651f9f1712d485e141c221c189ad24de",
+          "bytes": 1032
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-core-final/source-files.json",
+          "sha256": "5b232b17ed822311fee4bc7adc827bb178fed8e9b32066d92f4d837c6a5bdc90",
+          "bytes": 111873
+        }
+      ],
+      "failure_names": [],
+      "assemblies": null,
+      "exit_code": 0,
+      "phase": "component-core-final",
+      "source_manifest_sha256": "5b232b17ed822311fee4bc7adc827bb178fed8e9b32066d92f4d837c6a5bdc90",
+      "finished_utc": "2026-10-02T10:00:33.6223708Z",
+      "skips": null,
+      "assembly_sha256": "4b52ae9891379fc6fd26d2e6c6e62b56e42836289570a5e7cacd47621930b68d"
+    },
+    {
+      "counts": {
+        "skipped": "17",
+        "inconclusive": "0",
+        "passed": "1479",
+        "total": "1496",
+        "failed": "0"
+      },
+      "started_utc": "2026-10-02T10:00:51.1195753Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-final/component-edit-final.log",
+          "sha256": "bf0769ca081243491b56cad944697f4bb266742991956e0caa8130baddb164c9",
+          "bytes": 650707
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-final/component-edit-final.xml",
+          "sha256": "75c35474d5fa701d279af51420837104d44f56f814ec7013ad491506e34f176c",
+          "bytes": 1281020
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-final/manifest.json",
+          "sha256": "1682e362ae5d3a22584d6282e70a1b13a73f0658d21644013d569de85759e1e2",
+          "bytes": 6040
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-edit-final/source-files.json",
+          "sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+          "bytes": 135478
+        }
+      ],
+      "failure_names": [],
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "06d0dac1b74ad84bb60471463a1191a45d42e37e356d92d8a92b706f7a71b46f"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "99a23fabeaeb88526681a23054eae532b983d485e4391e1fa96373f9d4c78ac3"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "23abbcf8924e8099422e344b5c21d2b14bd48a501f706bc59f782529e202b61c"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "aedfaa14917e0995bf1cbd3636af0abb28ade383af1311dc74e349e828c44d65"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "b7b98abee0a31652b49a907da3b0223f47fb538fb9bb70c54d091d15319f63a7"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "ced08c6b172ffab9a42a4525e0b94bc25bb07f1b24a637e59c5f1e5edd78f7c9"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "13a963d2dea78642de98ad7a310cbce3ea0905d23ff1afc4d165b6365feba6f8"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "0b7d63315241399d78552853991fd2d17f5febcb37728b812d0639aa2c0fb299"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "13d094bc68c190cf89e761647d15b0d65e9ac5a2754ebc6fe86e8e62f6a5354f"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "e7936a6734305a7e454d8f7435caa003a14ff630896b0fb1ffae2ab5636bd820"
+        }
+      ],
+      "exit_code": 0,
+      "phase": "component-edit-final",
+      "source_manifest_sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+      "finished_utc": "2026-10-02T10:02:53.2668874Z",
+      "skips": [
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.AllSkeletonBindAndMotionImportsReportNoProblems",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.AnimatorDrivesBonesFromController",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.BindPosePlacesEveryMeshOnItsSnapFrame",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.ClipsHaveNoHorizontalRootMotion",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.CollisionUsesNeutralPoseAndAnimationBoundsCoverBindAndNeutral",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.ConnectorBendsWithTheChildBranch",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.CreaturesRunAtTheirOwnRunSpeed",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.DraftCandidateLibraryIsRejectedByRuntimeDefault",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.DraggerHandsHoldThroughInstantTurns",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.EveryPartAndConnectorKeepsOneRendererAndAtMostTwoMaterials",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.EveryPoolAssemblesHundredSeedsWithinBudget",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.FrameProbeSnapsCoincideWithBranchRootBones",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.GaitPhaseDrivesTheLocomotionOverlayClock",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.ImportReportsNoProblems",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.LibraryTests.RuntimeLegsPlantFeetAtGameSpeed",
+          "reason": "OneTimeSetUp: no built critter library (run `critter library build`)"
+        },
+        {
+          "name": "CritterCrafter.Tests.PrototypeImportTests.AsymmetricConnectorImportsAsOneNormalizedTwoBoneTwoMaterialRenderer",
+          "reason": "binding connector fixture is not available"
+        },
+        {
+          "name": "CritterCrafter.Tests.PrototypeImportTests.ExportedSkeletonMatchesCatalogBindAndSocketFrames",
+          "reason": "Set CRITTER_PROTOTYPE_FBX and CRITTER_PROTOTYPE_CATALOG to run the export probe."
+        }
+      ],
+      "assembly_sha256": null
+    },
+    {
+      "counts": {
+        "skipped": "0",
+        "total": "14",
+        "passed": "14",
+        "inconclusive": "0",
+        "failed": "0"
+      },
+      "started_utc": "2026-10-02T10:03:48.0230748Z",
+      "artifacts": [
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-play-final/component-play-final.log",
+          "sha256": "85f01fcf6a63d8af243a44f398501ba0a84e986ac41b38cd68396fd9aae4031e",
+          "bytes": 443805
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-play-final/component-play-final.xml",
+          "sha256": "c037e256a64cee006b0ce7d5b6f9e65149680933944d74ba5267793d9f516b7a",
+          "bytes": 27856
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-play-final/manifest.json",
+          "sha256": "ea303c14e706aea56e651fd0d63adaf3607c0e2a89f637a1a7e04b659dbd8808",
+          "bytes": 4064
+        },
+        {
+          "path": "artifacts/component-foundation-2026-10-02/component-play-final/source-files.json",
+          "sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+          "bytes": 135478
+        }
+      ],
+      "failure_names": [],
+      "assemblies": [
+        {
+          "name": "SynapticSea.App.dll",
+          "sha256": "06d0dac1b74ad84bb60471463a1191a45d42e37e356d92d8a92b706f7a71b46f"
+        },
+        {
+          "name": "SynapticSea.Core.dll",
+          "sha256": "99a23fabeaeb88526681a23054eae532b983d485e4391e1fa96373f9d4c78ac3"
+        },
+        {
+          "name": "SynapticSea.Editor.dll",
+          "sha256": "23abbcf8924e8099422e344b5c21d2b14bd48a501f706bc59f782529e202b61c"
+        },
+        {
+          "name": "SynapticSea.Game.dll",
+          "sha256": "aedfaa14917e0995bf1cbd3636af0abb28ade383af1311dc74e349e828c44d65"
+        },
+        {
+          "name": "SynapticSea.Runtime.dll",
+          "sha256": "b7b98abee0a31652b49a907da3b0223f47fb538fb9bb70c54d091d15319f63a7"
+        },
+        {
+          "name": "SynapticSea.Tests.EditMode.dll",
+          "sha256": "ced08c6b172ffab9a42a4525e0b94bc25bb07f1b24a637e59c5f1e5edd78f7c9"
+        },
+        {
+          "name": "SynapticSea.Tests.EditModeUnity.dll",
+          "sha256": "13a963d2dea78642de98ad7a310cbce3ea0905d23ff1afc4d165b6365feba6f8"
+        },
+        {
+          "name": "SynapticSea.Tests.PlayMode.dll",
+          "sha256": "0b7d63315241399d78552853991fd2d17f5febcb37728b812d0639aa2c0fb299"
+        },
+        {
+          "name": "SynapticSea.UI.dll",
+          "sha256": "13d094bc68c190cf89e761647d15b0d65e9ac5a2754ebc6fe86e8e62f6a5354f"
+        },
+        {
+          "name": "SynapticSea.UI.Presenters.dll",
+          "sha256": "e7936a6734305a7e454d8f7435caa003a14ff630896b0fb1ffae2ab5636bd820"
+        }
+      ],
+      "exit_code": 0,
+      "phase": "component-play-final",
+      "source_manifest_sha256": "882bc76e1bfa88d5a2b628312beb7b515e9eafecb2a1afc686f0a18714ae7255",
+      "finished_utc": "2026-10-02T10:04:10.1358497Z",
+      "skips": [],
+      "assembly_sha256": null
+    }
+  ],
+  "offset_commit": "9b7d8be65e853345907a08f5c48e6e982482afb2",
+  "generated_utc": "2026-10-02T10:18:52.0915519Z",
+  "phase_notes": {
+    "component-edit-green-2": "162 passed but88 omitted because3 malformed metadata GUIDs; incomplete evidence.",
+    "offset-grounding-probe": "Synthetic afterboot empty crate, bounded paths with deliberate fixture teleports; support-floor face contact only. Camera image excludes HUD/native-input proof.",
+    "component-red-2": "Empty-stub contract red:173 discovered,172 fail,1 lookup control pass.",
+    "notification-red": "Postpublication throwing-Message bug reproduced1/1failed.",
+    "component-review-red": "Review regressions:205 discovered,25 fail,180 pass. JSON replay input failed before its documented typed-input correction.",
+    "component-red": "Compile-only failure; no discovery; any DLL hash is a preexisting file, not a built/pass claim.",
+    "component-edit-green": "Bee rsp write failure before discovery/no XML; no C# errorCS."
+  },
+  "remaining": [
+    "F04A work kernel before later component work consumers",
+    "sole real publisher/live holder and inventory adapters",
+    "actual selected-instance extract/carry/install/swap UI",
+    "unknown Inspect/paid Overhaul and independent legacy preflight",
+    "complete all-slot durable generation and binding/migration",
+    "final authored kit/source row occupancy qualification",
+    "existing catalog/source defects and broader audit findings remain"
+  ],
+  "baseline_head": "6ec9e5262f1997aef748f907ffee44801ac5f885",
+  "review_artifacts": [
+    {
+      "path": "artifacts/component-foundation-2026-10-02/shared-scope-review.md",
+      "sha256": "0de05d30c58b9ab3598a8f460d09d41377dcee7bec5dc43df07ab04b96db9acf"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/final-review.md",
+      "sha256": "b8f217526b99d44d3e519f7e8af444d56f45f8aef87812c2b02663244c9749a3"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-review.md",
+      "sha256": "5f4dd0296d73dbb43678ed633f646095419caf365639e8625d62ba24f4bf3b6f"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/component-final-2-review-package.md",
+      "sha256": "cc85385df9a76ffed190ca0e414b57723909d8af568461668343ee856dab85f3"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-final-review-package.md",
+      "sha256": "d6a22d23f096674f9be110982f0ad8d2f18f5ad6c3051ca36ec59e5f758d1884"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/shared-contract.md",
+      "sha256": "aeb35ecb95fb041fb95de515e358c2599877bdb6058dbdaa004d11428d5ad754"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/reviewed-plan-packet/preservation.json",
+      "sha256": "4c2611166be82047f158e1f3d5f59d855f897270da2a178f58fe4746f071c3fa"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/settings-restoration.json",
+      "sha256": "04629b137b478fbe71857be17a3d36ce33be139618981dd6eca2b1945265fc6d"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/cache-preservation.json",
+      "sha256": "4cddde4c0cd54868f91363be4f2bf0bbf800d1dd3e5c6a04569713e38bc82815"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-probe-installation.json",
+      "sha256": "956666fbea6162b983e3efc1fdee79868984438569e7a087df13e865abb2262b"
+    },
+    {
+      "path": "artifacts/component-foundation-2026-10-02/offset-probe-removal.json",
+      "sha256": "1c761eb9298249ff26a990e53cc8f0e36d37d9764f3df19757f57657d24f649a"
+    }
+  ],
+  "component_commit": "63891b2a4e28d216eb5380e438b27fbeeb22562e",
+  "product_inventory": [
+    {
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemInstanceState.cs",
+      "sha256": "460b6510cabefc7b89d70b6dd03117c459c053b75676da30686dfccc993f6354",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "f59f372ea9a842a9a6ef054a902a0853",
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ItemInstanceState.cs.meta",
+      "sha256": "14d99f4f09278368f296f0743941b4014d30e2dd68b58d1129da4d801871ecf0",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ComponentTransferService.cs",
+      "sha256": "be846cb6078bb5fa5b548d61cb861a6bb230b25460a7e6bc558a4050ca3e876a",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "b6b488278e0f445a9c6ef9a7ef5c23e4",
+      "path": "SynapticSea/Assets/_Project/Core/Systems/Inventory/ComponentTransferService.cs.meta",
+      "sha256": "4d67c27191829bc3cba9f70bfacc09a36f55085b7c75d697e4749d33f7d8e9bc",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Core/Session/DomainBundle.cs",
+      "sha256": "a50c919d9e441d298c95594cc0f9a091c92965087a85121a26a56ced8c99ad57",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "478d6e0ee6d547d2825977f829456609",
+      "path": "SynapticSea/Assets/_Project/Core/Session/DomainBundle.cs.meta",
+      "sha256": "eed8f350a9eab74455d48e031825f9a39c7ddc3e500b3f96bfb9a38705bd4bb6",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Core/Session/DomainTransactionCoordinator.cs",
+      "sha256": "df0a68da8e089a4fa37be12757306a9210686ef7f19ec6496cb984e5db83e534",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "718a6825ec8a4c9fad813721727c2dbd",
+      "path": "SynapticSea/Assets/_Project/Core/Session/DomainTransactionCoordinator.cs.meta",
+      "sha256": "fead55c69c0330b175872f5c3a1c659a0afba3039bc9ed8b5a6632656ec4db44",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ItemInstanceStateTests.cs",
+      "sha256": "312f5beb6ecea702c799e288498990c0924846ece1fd7609455ca5c64d506bbb",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "49c50b13a9df42d594d336d1c283f3db",
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ItemInstanceStateTests.cs.meta",
+      "sha256": "e5a634c38c796fc091919d323b1bd8a1242cb78683c0a4de26788093a9bd9bd0",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentTransferTests.cs",
+      "sha256": "1627fc4480f0cb7425effb261296ac5488e6f376c344ee3ce5b70195a6dc7a76",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "7845579c345a433ab4ce5f5d4d12702f",
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentTransferTests.cs.meta",
+      "sha256": "d6cef18c5b09ceb0af0420c5398efbeb3de416c1512a2ae4b5c8e4a7f193f907",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/DomainTransactionTests.cs",
+      "sha256": "159f891220b26f7b35f6112ddf78d974ae336fd795201b4d1b737b61e0b4ebcf",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "5d599995c7b2423183e32bdd4b9f1fb5",
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/DomainTransactionTests.cs.meta",
+      "sha256": "65f84839a2d67227b9ef66c953cc32c6e658fc957b0a94c7554e8ef84d8685ae",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentDomainTestFixtures.cs",
+      "sha256": "3b7e511af3e6806c991dd45e2d47006539a3eb5c91bcb980c954126fc6034ae2",
+      "unit": "unused_component_A"
+    },
+    {
+      "guid": "e72ef7300d674b8cb6a4c00ae14b3ccb",
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Systems/Inventory/ComponentDomainTestFixtures.cs.meta",
+      "sha256": "3f646028db564702cbc8113d8a4a403880dc01dd37fb9d15c499d4c083b9acdf",
+      "unit": "unused_component_A"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Core/Procgen/GeneratedShipLayout.cs",
+      "sha256": "b409eeb81d2a88b1b6ffeff85d4f7cbdb03bb7d6c1e5bfd2564e83e70a765e61",
+      "unit": "offset_focus"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Runtime/Session/Interaction/InteractableView.cs",
+      "sha256": "f6f228507d5873be0b3a062fada553975f4124452e3d049afc6892be88d56566",
+      "unit": "offset_focus"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Procgen/LootContainerPositionOffsetTests.cs",
+      "sha256": "776811d2c4ffd8b3bcd219a5420af41da30ddfa534e00237c767e6875f811966",
+      "unit": "offset_focus"
+    },
+    {
+      "guid": "284e48fc1a2d4f809840e1e4ff17833a",
+      "path": "SynapticSea/Assets/_Project/Tests/EditMode/Procgen/LootContainerPositionOffsetTests.cs.meta",
+      "sha256": "27b8b4adcda78c672751a573e682b2114116a7b1f4b2f9dc653972930d2d7656",
+      "unit": "offset_focus"
+    },
+    {
+      "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/LootContainerFocusGeometryTests.cs",
+      "sha256": "613e795ff019ef1cfa9cdf9f11b8403bd4a66168fadccbb7d8720d4328e0c041",
+      "unit": "offset_focus"
+    },
+    {
+      "guid": "b527bcf90c8445169560a9e01e592c75",
+      "path": "SynapticSea/Assets/_Project/Tests/EditModeUnity/LootContainerFocusGeometryTests.cs.meta",
+      "sha256": "83b860134bfb748c93c9c9370bc52867126f6cf16c09720d64681a337487c4f3",
+      "unit": "offset_focus"
+    }
+  ],
+  "schema": "synaptic-component-foundation-verification-1"
+}

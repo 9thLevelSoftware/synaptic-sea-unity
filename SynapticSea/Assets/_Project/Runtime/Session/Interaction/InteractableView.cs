@@ -2,6 +2,7 @@
 // scripts/interaction/sealed_hatch.gd @ 96ecb2b0): sphere collision, marker mesh, visibility and collider state.
 using System.Collections.Generic;
 using SynapticSea.Core.Session;
+using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 using UnityEngine;
 
@@ -91,6 +92,12 @@ namespace SynapticSea.Runtime.Session
             if (Model == null) return;
             bool live = Model.IsValid && Model.IsInsideTree;
             transform.position = Frame.ToUnity(Model.GlobalPosition);
+            if(Model is SealedHatch)
+            {
+                var basis=Model.Parent!=null?Model.Parent.GlobalTransform.Basis:Basis3.Identity;
+                transform.rotation=Frame.BasisRotation(new Vec3(basis.Row0.X,basis.Row1.X,basis.Row2.X),
+                    new Vec3(basis.Row0.Y,basis.Row1.Y,basis.Row2.Y),new Vec3(basis.Row0.Z,basis.Row1.Z,basis.Row2.Z));
+            }
             bool markerShown = live && MarkerShown(Model);
             if (_marker != null && _marker.activeSelf != markerShown) _marker.SetActive(markerShown);
             bool sensorOn = live && !CollisionDisabled(Model);
@@ -108,7 +115,9 @@ namespace SynapticSea.Runtime.Session
         {
             if (Focused == focused) return;
             Focused = focused;
-            if (_marker != null) _marker.transform.localScale = focused ? _markerScale * 1.15f : _markerScale;
+            // The existing HUD/world label identifies focused loot without moving its grounded mesh.
+            if (_marker != null && !(Model is LootContainer))
+                _marker.transform.localScale = focused ? _markerScale * 1.15f : _markerScale;
         }
 
         /// <summary>The prompt the HUD shows while this view has focus.</summary>
@@ -119,6 +128,8 @@ namespace SynapticSea.Runtime.Session
                 switch (Model)
                 {
                     case ObjectiveInteractable o: return o.PromptText;
+                    case HomeJoinControl c: return c.Prompt;
+                    case DeckTransition d: return d.Prompt;
                     case RepairPoint rp: return "Repair: " + rp.SubcomponentId;
                     case BreachSealPoint sp: return "Seal breach: " + sp.CompartmentId;
                     case FireSuppressionPoint fp: return "Extinguish: " + fp.CompartmentId;
@@ -127,7 +138,7 @@ namespace SynapticSea.Runtime.Session
                     case CraftingStation cs: return "Use: " + cs.StationKind;
                     case ProductionStation ps: return "Use: " + ps.StationKind;
                     case LootContainer _: return "Search";
-                    case SealedHatch h: return h.Bypassed ? "Reseal hatch" : "Bypass hatch (" + h.LockKind + ")";
+                    case SealedHatch h: return h.Bypassed ? "Reseal hatch" : "Bypass hatch: use " + (h.LockKind == SealedHatch.MECHANICAL ? "lockpick set" : "hack chip") + " (craft at workbench)";
                     case ToolPickup t: return "Pick up: " + t.ToolId;
                     case HangarBayControl _: return "Hangar bay";
                     case CargoHoldControl _: return "Cargo hold";
@@ -143,6 +154,8 @@ namespace SynapticSea.Runtime.Session
             switch (model.Kind)
             {
                 case "dock_port_barrier": return "dock_barrier";
+                case "deck_transition": return "deck_transition";
+                case "home_join_control": return "home_join";
                 case "bridge_terminal": return "bridge_terminal";
                 case "fire_suppression_point": return "fire_suppression_point";
                 case "repair_point": return "repair_point";
@@ -209,6 +222,9 @@ namespace SynapticSea.Runtime.Session
                 case LootContainer lc:
                     _marker = GameplayProp(lc.PropId);
                     break;
+                case HomeJoinControl _:
+                    _marker = GameplayProp("breach_patch_panel");
+                    break;
                 case CraftingStation _:
                     _marker = GameplayProp("workbench");
                     break;
@@ -221,6 +237,9 @@ namespace SynapticSea.Runtime.Session
                 case ToolPickup _:
                     _marker = GameplayProp("tool_case");
                     break;
+                case DeckTransition _:
+                    _marker = Box(new Vector3(0.5f, 1f, 0.5f), new Color(0.2f, 0.7f, 0.95f, 0.7f));
+                    break;
                 case SealedHatch _:
                     _marker = GameplayProp("hatch_wheel");
                     var blockerGo = new GameObject("HatchBlocker") { layer = PhysicsLayers.ZoneBlocker };
@@ -228,6 +247,7 @@ namespace SynapticSea.Runtime.Session
                     _blocker = blockerGo.AddComponent<BoxCollider>();
                     _blocker.size = new Vector3(r, r * 2f, 0.4f);
                     _blocker.center = new Vector3(0f, r, 0f);
+                    NavMeshBlocker.Attach(_blocker);
                     break;
                 case RepairPoint _:
                     _marker = Box(new Vector3(r * 0.5f, r * 0.5f, r * 0.5f), new Color(0.95f, 0.45f, 0.15f, 0.7f));
@@ -286,13 +306,14 @@ namespace SynapticSea.Runtime.Session
         }
 
         /// <summary>Views grouped by registry order then distance (the focus rule).</summary>
-        public static InteractableView PickFocus(IEnumerable<InteractableView> candidates, Vector3 playerWorld)
+        public static InteractableView PickFocus(IEnumerable<InteractableView> candidates, Vector3 playerWorld, System.Func<SessionInteractable, bool> eligible = null)
         {
             InteractableView best = null;
             float bestD = float.MaxValue;
             foreach (InteractableView v in candidates)
             {
                 if (v == null || v.Model == null || !v.Model.IsValid || v.HandlerId == null || !v.PlayerOverlap) continue;
+                if (eligible != null && !eligible(v.Model)) continue;
                 float d = Vector3.Distance(v.transform.position, playerWorld);
                 if (best == null || v.HandlerOrder < best.HandlerOrder || (v.HandlerOrder == best.HandlerOrder && d < bestD))
                 {

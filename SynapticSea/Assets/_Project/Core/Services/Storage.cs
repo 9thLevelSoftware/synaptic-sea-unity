@@ -40,6 +40,13 @@ namespace SynapticSea.Core.Services
         string ReadText(string resPath);
     }
 
+    /// <summary>Optional read-only directory capability; wrappers forward logical file names without exposing filesystem paths.</summary>
+    public interface IResourceDirectoryReader
+    {
+        bool DirExists(string path);
+        IReadOnlyList<string> ListFiles(string dir);
+    }
+
     /// <summary>Godot path helpers.</summary>
     public static class ResPath
     {
@@ -195,11 +202,16 @@ namespace SynapticSea.Core.Services
         {
             string full = Globalize(path);
             Directory.CreateDirectory(Path.GetDirectoryName(full));
-            // Write-then-rename so a crash mid-write never leaves a truncated save.
+            // Stage in the same directory/volume, and flush before publishing. This requests a data flush;
+            // it is not a guarantee about directory metadata or hardware behavior on power loss.
             string tmp = full + ".tmp";
-            File.WriteAllText(tmp, text ?? string.Empty, Utf8NoBom);
-            if (File.Exists(full)) File.Delete(full);
-            File.Move(tmp, full);
+            byte[] bytes = Utf8NoBom.GetBytes(text ?? string.Empty);
+            using (var stream = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.Read))
+            {
+                stream.Write(bytes, 0, bytes.Length);
+                stream.Flush(true);
+            }
+            PublishFile(tmp, full);
         }
 
         public bool Delete(string path)
@@ -215,9 +227,38 @@ namespace SynapticSea.Core.Services
             string f = Globalize(from), t = Globalize(to);
             if (!File.Exists(f)) return false;
             Directory.CreateDirectory(Path.GetDirectoryName(t));
-            if (File.Exists(t)) File.Delete(t);
-            File.Move(f, t);
+            PublishFile(f, t);
             return true;
+        }
+
+        static void PublishFile(string source, string destination)
+        {
+            if (!File.Exists(destination))
+            {
+                // Do not overwrite a destination that appeared after the existence check.
+                File.Move(source, destination);
+                return;
+            }
+            // Windows ReplaceFile can lose the old name on a late failure when no backup is supplied.
+            // Keep the old file through replacement; never fall back to delete-then-move.
+            string backup = destination + ".replace.bak";
+            try
+            {
+                File.Replace(source, destination, backup);
+            }
+            catch
+            {
+                if (!File.Exists(destination) && File.Exists(backup))
+                {
+                    try { File.Move(backup, destination); }
+                    catch { /* Retain the backup when the filesystem also prevents restoring its name. */ }
+                }
+                throw;
+            }
+            // Publication succeeded. Cleanup cannot turn a confirmed write into a false save failure.
+            try { File.Delete(backup); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
         }
 
         public void MakeDirRecursive(string path) => Directory.CreateDirectory(Globalize(path));
@@ -254,7 +295,7 @@ namespace SynapticSea.Core.Services
     /// at call time. Directory listing (<c>ProcgenCompat</c>, <c>InfraCompat</c>) keeps using <see cref="Root"/> for
     /// <c>res://</c> directories.
     /// </summary>
-    public sealed class FileSystemResourceReader : IResourceReader
+    public sealed class FileSystemResourceReader : IResourceReader, IResourceDirectoryReader
     {
         static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
         readonly string _root;
@@ -280,6 +321,9 @@ namespace SynapticSea.Core.Services
             if (IsUserPath(resPath)) return UserStorage?.FileExists(resPath) ?? false;
             return File.Exists(Full(resPath));
         }
+
+        public bool DirExists(string dir) => IsUserPath(dir)
+            ? UserStorage?.DirExists(dir) == true : Directory.Exists(Full(dir));
 
         /// <summary>File names directly inside a <c>res://</c> or <c>user://</c> directory, sorted ordinally (empty when missing).</summary>
         public IReadOnlyList<string> ListFiles(string dir)

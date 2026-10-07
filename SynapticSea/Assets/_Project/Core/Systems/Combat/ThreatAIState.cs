@@ -24,6 +24,8 @@ namespace SynapticSea.Core.Systems
 
         public string InstanceId = "";
         public string ArchetypeId = "";
+        /// <summary>Optional visual identity; saved recipes are authoritative, independent of AI and movement.</summary>
+        public GdDict CreatureVisual = new GdDict();
         public string DisplayName = "Threat";
         public string RoomId = "";
         public GdArray Cell = GdArray.Of(0L, 0L);
@@ -101,6 +103,7 @@ namespace SynapticSea.Core.Systems
             AwarenessScore = GdMath.Clampf(V.F64(config.Get("awareness_score", AwarenessScore)), 0.0, 3.0);
             LastKnownRoom = V.Str(config.Get("last_known_room", LastKnownRoom));
             StatusOnHit = V.Str(config.Get("status_on_hit", StatusOnHit));
+            CreatureVisual = config.Get("creature_visual", null) is GdDict visual ? visual.DeepCopy() : new GdDict();
             object armor = config.Get("armor", config.Get("armor_profile", ArmorProfile));
             ArmorProfile = armor is GdDict armorDict ? armorDict.DeepCopy() : new GdDict();
             object rawTags = config.Get("tags", Tags);
@@ -152,6 +155,12 @@ namespace SynapticSea.Core.Systems
             // Telegraph windup resolves into attack
             if (State == STATE_TELEGRAPH)
             {
+                if (!V.Bool(context.Get(SimKeys.SameRoom, true)) || V.F64(context.Get("player_distance", 0.0)) > AttackRange)
+                {
+                    TelegraphRemaining = 0.0;
+                    ChangeState(STATE_HUNT);
+                    return true;
+                }
                 TelegraphRemaining = Math.Max(0.0, TelegraphRemaining - delta);
                 if (TelegraphRemaining <= 0.0)
                     ChangeState(STATE_ATTACK);
@@ -213,6 +222,11 @@ namespace SynapticSea.Core.Systems
 
         void ResolveEngagement(double playerDistance)
         {
+            if (playerDistance > AttackRange)
+            {
+                ChangeState(STATE_HUNT);
+                return;
+            }
             // Stalk: keep hunting until within stalk_range (or attack_range if stalk unset).
             if (StalkRange > 0.0 && playerDistance > StalkRange)
             {
@@ -246,7 +260,7 @@ namespace SynapticSea.Core.Systems
         {
             double damage = Math.Max(0.0, V.F64(payload.Get("final_damage", payload.Get("amount", 0.0))));
             Health = Math.Max(0.0, Health - damage);
-            if (payload.Has("armor_profile") && payload.Get("armor_profile") is GdDict armor)
+            if (payload.Get("profile", payload.Get("armor_profile", null)) is GdDict armor)
                 ArmorProfile = armor.DeepCopy();
             double stunSeconds = Math.Max(0.0, V.F64(payload.Get("stun_seconds", 0.0)));
             if (stunSeconds > 0.0)
@@ -274,7 +288,7 @@ namespace SynapticSea.Core.Systems
 
         public GdDict GetSummary()
         {
-            return new GdDict
+            var summary = new GdDict
             {
                 { "instance_id", InstanceId },
                 { "archetype_id", ArchetypeId },
@@ -317,6 +331,8 @@ namespace SynapticSea.Core.Systems
                 { "telegraph_remaining", TelegraphRemaining },
                 { "player_verb", PlayerVerb },
             };
+            if (CreatureVisual.Count > 0) summary["creature_visual"] = CreatureVisual.DeepCopy();
+            return summary;
         }
 
         public double EffectiveMoveSpeed()

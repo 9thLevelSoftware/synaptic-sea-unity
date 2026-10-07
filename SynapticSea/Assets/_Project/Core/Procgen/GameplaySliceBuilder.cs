@@ -156,7 +156,8 @@ namespace SynapticSea.Core.Procgen
             {
                 string rid2 = V.Str(room.Get("id", ""));
                 string role2 = V.Str(room.Get("room_role", ""));
-                if (rid2 == startRoom || rid2 == goalRoom || IsConnective(role2))
+                bool purposefulSupplies = layout.GetString("generation_profile") == ConstrainedExpedition.Profile && (role2 == "medical" || (role2 == "crew_quarters" && rid2 == "crew_quarters_01") || (role2 == "maintenance" && rid2 == "maintenance_01"));
+                if (rid2 == startRoom || (rid2 == goalRoom && !purposefulSupplies) || IsConnective(role2))
                 {
                     roomIndex += 1;
                     continue;
@@ -177,6 +178,26 @@ namespace SynapticSea.Core.Procgen
                     { "approach_cell", cell2 },
                     { "loot_table", LootTableForRoom(room, kind2) },
                 };
+                if (layout.GetString("generation_profile") == ConstrainedExpedition.Profile && role2 == "medical")
+                {
+                    // Purposeful medical interiors provide finite usable care, not generic industrial
+                    // rolls. The existing container identity keeps searched-save state authoritative.
+                    lootEntry["contents"] = GdArray.Of(
+                        new GdDict { { "item_id", "field_medkit" }, { "qty", 2L } },
+                        new GdDict { { "item_id", "bandage_kit" }, { "qty", 2L } });
+                }
+                if (layout.GetString("generation_profile") == ConstrainedExpedition.Profile && role2 == "crew_quarters" && rid2 == "crew_quarters_01")
+                    // A habitable crew store has finite food/water, supporting a long repair expedition
+                    // through existing consumables rather than disabling survival attrition.
+                    lootEntry["contents"] = GdArray.Of(
+                        new GdDict { { "item_id", "ration_pack" }, { "qty", 8L } },
+                        new GdDict { { "item_id", "purified_water" }, { "qty", 8L } });
+                if (layout.GetString("generation_profile") == ConstrainedExpedition.Profile && role2 == "maintenance" && rid2 == "maintenance_01")
+                    lootEntry["contents"] = GdArray.Of(
+                        new GdDict { { "item_id", "reactor_core" }, { "qty", 1L } },
+                        new GdDict { { "item_id", "power_cell" }, { "qty", 2L } },
+                        new GdDict { { "item_id", "oxygen_filter" }, { "qty", 2L } },
+                        new GdDict { { "item_id", "sealant" }, { "qty", 1L } });
                 if (V.Str(lootPick.Get("slot_kind", "")).Length != 0)
                 {
                     lootEntry["slot_kind"] = V.Str(lootPick.Get("slot_kind", ""));

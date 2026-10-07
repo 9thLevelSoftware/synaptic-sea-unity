@@ -1,0 +1,173 @@
+{
+  "schema": "synaptic-design-artifact-hashes-1",
+  "revision": "840f14fb4450dcfba2a0bbce7cb8527e7dfa8e48",
+  "observed_current_head": "6ec9e5262f1997aef748f907ffee44801ac5f885",
+  "scope": "Complete documentation revision3 including registers/scripts/original baseline/concurrent observations; excludes this manifest. No implementation acceptance implied.",
+  "files": [
+    {
+      "path": "docs/design/formal-build-2026-10-02/acceptance-tests.json",
+      "bytes": 57124,
+      "sha256": "af8fb371669c4271747452cff1185600498f059c2ba624a5b26d31ee791580d5"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/acceptance.md",
+      "bytes": 6411,
+      "sha256": "9bec820d447a3cc798d565dac8997ab90e1108b65eb916e4dfbd965881604050"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/amendments/f02-sources.md",
+      "bytes": 10332,
+      "sha256": "a83f987b716d8a2d89fc98efe61a2687fbca1703246a0ffe639c86b4d1ad9460"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/amendments/f03-operability.md",
+      "bytes": 6668,
+      "sha256": "6ccf0d5b458b4016a2c918ba523c4d23a2bb6df3b716875ea2d6c6ec689116ec"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/amendments/f08-class-routes.md",
+      "bytes": 10416,
+      "sha256": "ae41202815db06d950d2607a34a2f83b643aff197dea8fac3d0c6e82ac14781d"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/build_registers.py",
+      "bytes": 50251,
+      "sha256": "39b2504072d4183b18b50af23a26cd80e76525412dd3e59c16cc4654aa8d3c38"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/catalog-dispositions.json",
+      "bytes": 87295,
+      "sha256": "45d0b58427c736a05535364660b7c2a465ba68d147a125afb903b15a54d8bd98"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/class-bootstrap.json",
+      "bytes": 28668,
+      "sha256": "7fd4f4a7807506430decb752d5983a8e6ff36195e28f58c8fc36cc7268ad301c"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/concurrent-engineering-scope.json",
+      "bytes": 7992,
+      "sha256": "086733ca6069e0a88c26b0d2cde046e433e5753ea5099a05de28feeb8913e6c0"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/contracts.md",
+      "bytes": 24553,
+      "sha256": "7335d5fb897d2c71c8995d4028223b001c35cf0456213989aa4c5e63fd96ced1"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/decisions.md",
+      "bytes": 9011,
+      "sha256": "438c58662608b1da1add42e4386483adf7301d79562a807c378d3620d80c8169"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/evidence.md",
+      "bytes": 9413,
+      "sha256": "eaf370d5f08a011dbf515ceda0ea5f239ca127f7060915425df20a8a4430f296"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/implementer-handoff.md",
+      "bytes": 8349,
+      "sha256": "4064341e5bad5303edac930679df05a70f185090b8e7ff40fe20607be4fba917"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/persistence.md",
+      "bytes": 15006,
+      "sha256": "42e66b191b26aefd27fea8a2fc129753c737e5ef77ec3903ed915234b5f9bfef"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/preservation-baseline.json",
+      "bytes": 863005,
+      "sha256": "365fd3460fad1e19b0a9debd3054c8f5b83ce322b6c63ce6e476fa836a9643e4"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/provenance.json",
+      "bytes": 3796,
+      "sha256": "bc71dce7c4d00fa65b0aadbd90cc24fbd70a200234fa028523f61f740de0aa4c"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/README.md",
+      "bytes": 6224,
+      "sha256": "231845319cea6500b3e76cc6f401fbced9c23f4f99b2a9599839a4e30d8b3df7"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/review-amendments.md",
+      "bytes": 5120,
+      "sha256": "30bb577bab1b561d00fa6d3091bf08bbd3d92cae29db19a0243db67eab200882"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/review-closure-v3.md",
+      "bytes": 8151,
+      "sha256": "5b161061836f31a142460a6178bf77e377e1c2a22ac91d41820917f034f1497b"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/roadmap.md",
+      "bytes": 8085,
+      "sha256": "b265b9f3614967cc29eb6e161c08b6f2c239cd34e60c7e5c78ed760da4147cdf"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/subsystems/generation-companion.md",
+      "bytes": 4848,
+      "sha256": "ff35e0024e200b484c413f09a3c566d2ba77aa09b32b6b69b43a4b2a1c7b8c89"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/subsystems/habitat-topology-mobility.md",
+      "bytes": 7075,
+      "sha256": "67eacd50f3901c1252c8cff8d0f15712f3d249f91e6da2fea5324d204e8d8d7b"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/subsystems/presentation-lifecycle.md",
+      "bytes": 4362,
+      "sha256": "b14f5d552b8c67ef4c4b9681e5c3ff3111b08e23fee8d5bb4d444dbbde60435e"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/subsystems/README.md",
+      "bytes": 1296,
+      "sha256": "abec74bb9c1250b60cbef60c2f72b73a12edce7717fd844e62e0a2af3a01139e"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/subsystems/simulation-survival-biomass.md",
+      "bytes": 6217,
+      "sha256": "b145ad4437879fe1f29a19b1c9c1b2d827c4e3edf00e5a525554aa81d68bd4d9"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/traceability.csv",
+      "bytes": 23400,
+      "sha256": "17ef1e332c7daeb2c8656cd6ae8670ebdeea3d130d2d644891ccb6c2a9b68c58"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/traceability.json",
+      "bytes": 59109,
+      "sha256": "2ad5f9021cd5608c15246bc042bbb30920f82901486a16b85963689ff7ce1c21"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/validate_artifacts.py",
+      "bytes": 18223,
+      "sha256": "4d15017e5834dc0f19b5f7824a6bda452e9ea551cc3d6cf02f450df04712f4c0"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/validation-report.json",
+      "bytes": 11785,
+      "sha256": "da3ece1f92a5c436b59a188ce023aee15b3e109deb3b009b0b40d0fbaf98b49f"
+    },
+    {
+      "path": "docs/design/formal-build-2026-10-02/work-packages.json",
+      "bytes": 39057,
+      "sha256": "a37f50e64f79bca8155a0d7ab7477fd8cd26ee05a33cfc908c434dc74bdcd440"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-synaptic-sea-foundation.md",
+      "bytes": 31828,
+      "sha256": "60455fea1d9d1d435664972202ad896d6fd49495b934e6a084020c1a2cd0a8fd"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-02-synaptic-sea-foundation-design.md",
+      "bytes": 17065,
+      "sha256": "b71c358baca40dffbef091de27246f987c6579a85bf5e99bcd04166e43600653"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-02-synaptic-sea-master-design.md",
+      "bytes": 14236,
+      "sha256": "5db00aadafbb1a89f0e50b1628e1ebced59475c9346cd25c1f590d050bec40ea"
+    }
+  ]
+}

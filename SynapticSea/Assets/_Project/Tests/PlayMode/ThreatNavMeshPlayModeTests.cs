@@ -92,6 +92,7 @@ namespace SynapticSea.Tests.PlayMode
             _session.ThreatManager.InjectValidationEncounter(GdArray.Of(archetype), spot.Value - new Vec3(4f, 0f, 0f));
             Assert.AreEqual(1, _session.ThreatManager.Threats.Count, "validation encounter spawned");
             ThreatAIState threat = _session.ThreatManager.Threats[0];
+            threat.RoomId = _session.ResolvePlayerRoom(spot.Value);
             Vec3 at = ThreatPosition(threat);
             Assert.Less(at.DistanceTo(spot.Value), 1e-3, "the threat stands on the chosen spot");
             return threat;

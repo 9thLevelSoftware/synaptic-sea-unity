@@ -2,6 +2,7 @@
 // (3770-3848, 4149-4880), ship modification (3988-4105), module-integrity scene consequences (4917-4963, 7466-7479).
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
@@ -54,6 +55,9 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public GdDict RunWorkAction(string actionId, string targetId, GdDict inventoryOverride = null)
         {
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
+            if (ComponentIntegrationEnabled && (actionId == "mount_component" || actionId == "dismount_component" || actionId == "unbolt_component"))
+                return ComponentFailure("named_component_work_required");
             if (WorkActionDriver == null)
             {
                 WorkActionDriver = new WorkActionDriver();
@@ -91,6 +95,7 @@ namespace SynapticSea.Core.Session
             if (!WorkActionDriver.StartAction(actionId, targetId, ctx))
                 return new GdDict { { "ok", false }, { "reason", "start_failed" } };
             _workRequiresHold = false;
+            _workAwaitingResume = false;
             WorkActionDriver.Tick(999.0, new GdDict { { "work_speed_mult", V.F64(ctx.Get("work_speed_mult", 1.0)) } });
             GdDict res = WorkActionDriver.Complete(ModuleIntegrityMap, inv);
             RefreshWorkActionHud();
@@ -136,12 +141,22 @@ namespace SynapticSea.Core.Session
                 { "verb", verb },
                 { "progress", WorkActionDriver.ProgressRatio() },
                 { "status", st },
+                { "block_reason", WorkActionDriver.Work?.BlockReason ?? "" },
                 { "noise", noise },
             });
         }
 
         // ------------------------------------------------------------------ B3: hold vs tap (Unity-port input API)
         bool _workHoldInput;
+        bool _workAwaitingResume;
+        string _restoredWorkLocation = "";
+        WorkActionState _workSiteWork;
+        ShipInstance _workSiteShip;
+        string _workSiteShipId = "";
+        IShipSceneRoot _workSiteRoot;
+        ModuleIntegrityMap _workSiteModules;
+        ComponentPlacementState _workSiteComponents;
+        string _workSiteRoomCenterId = "";
 
         /// <summary>
         /// True when work actions need interact held (the default); false when <see cref="SettingsState"/>
@@ -165,7 +180,18 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public bool BeginWorkHold()
         {
+            if (ComponentGenerationRestoreInProgress) return false;
+            if (ManualStudyEnabled && GetManualStudyState().GetDictOrEmpty("job").GetString("status") == "paused")
+                return RequestManualStudy(GetManualStudyState().GetDictOrEmpty("job").GetString("book_id")).GetBool("committed");
+            if (ManualStudyRunning) return true;
+            if (ComponentIntegrationEnabled && ComponentTerminalPending) { _workHoldInput = false; return false; }
             _workHoldInput = true;
+            if (ComponentIntegrationEnabled && ResumeComponentWork()) return true;
+            if (_workAwaitingResume && WorkActionDriver?.Work != null)
+            {
+                ResumeRestoredWork();
+                return true;
+            }
             if (WorkActionDriver == null || !WorkActionDriver.IsWorking())
                 return false;
             if (!HoldToWorkEnabled)
@@ -176,16 +202,23 @@ namespace SynapticSea.Core.Session
         /// <summary>The input layer calls this on interact release: in hold mode progress pauses until the next hold.</summary>
         public void EndWorkHold()
         {
+            if (ComponentGenerationRestoreInProgress) return;
+            if (ManualStudyRunning) PauseManualStudy("released");
             _workHoldInput = false;
         }
 
         /// <summary>Cancels the in-progress work action (interrupt; progress is lost). False when nothing was in progress.</summary>
         public bool CancelWorkAction()
         {
-            if (WorkActionDriver == null || !WorkActionDriver.IsWorking())
+            if (ComponentGenerationRestoreInProgress) return false;
+            if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
+            { PauseComponentWork("cancelled"); RefreshWorkActionHud(); return true; }
+            if (WorkActionDriver?.Work == null || (!WorkActionDriver.IsWorking() && !_workAwaitingResume))
                 return false;
             WorkActionDriver.Work?.Interrupt();
             _workRequiresHold = false;
+            if (_workAwaitingResume) WorkActionDriver.Work.BlockReason = "";
+            _workAwaitingResume = false;
             PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
             RefreshWorkActionHud();
             return true;
@@ -196,6 +229,17 @@ namespace SynapticSea.Core.Session
         {
             if (!HasPlayer || WorkActionDriver == null)
                 return false;
+            if (ComponentIntegrationEnabled)
+            {
+                GdDict candidate = ListInstallTargets("").OfType<GdDict>()
+                    .Where(row => row.GetBool("occupied") && row.GetDictOrEmpty("requirements").GetBool("in_range") && row.GetDictOrEmpty("requirements").GetBool("has_los"))
+                    .OrderBy(row => row.Get("world_position") is Vec3 position ? position.DistanceSquaredTo(playerPos) : double.MaxValue).FirstOrDefault();
+                if (candidate != null)
+                {
+                    GdDict result = RequestComponentRemoval(candidate.GetString("instance_id"));
+                    return result.GetBool("ok");
+                }
+            }
             if (WorkActionDriver.IsWorking())
             {
                 WorkActionDriver.Work?.Interrupt();
@@ -210,8 +254,9 @@ namespace SynapticSea.Core.Session
             string actionId = "";
             string toolClass = "";
             string targetId = "";
+            string workRoomCenterId = "";
             bool hasWrench = V.I64(inv.Get("wrench", 0L)) > 0 || V.I64(inv.Get("tool_wrench", 0L)) > 0;
-            if (hasWrench && ComponentPlacementState != null)
+            if (!ComponentIntegrationEnabled && hasWrench && ComponentPlacementState != null)
             {
                 GdDict remount = NearestRemountTarget(layout, playerPos, inv, WORK_ACTION_INTERACT_RANGE);
                 if (!remount.IsEmpty)
@@ -245,6 +290,7 @@ namespace SynapticSea.Core.Session
                     if (!damaged.IsEmpty)
                     {
                         targetId = V.Str(damaged.Get("module_id", ""));
+                        workRoomCenterId = damaged.GetString("room_center_site");
                         string dkind = V.Str(damaged.Get("kind", "wall_straight_1x1"));
                         if (targetId.Length > 0)
                         {
@@ -292,6 +338,7 @@ namespace SynapticSea.Core.Session
                 return false;
             if (VitalsState != null && VitalsState.Stamina <= 0.001)
             {
+                BlockWorkAction(actionId,targetId,"exhausted");
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
                 return false;
             }
@@ -308,11 +355,15 @@ namespace SynapticSea.Core.Session
             };
             if (!WorkActionDriver.StartAction(actionId, targetId, ctx))
             {
+                RefreshWorkActionHud();
                 PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
                 return false;
             }
             // Unity port (B3): hold-to-work unless the player chose hold_to_tap (then the action runs on its own).
             _workRequiresHold = HoldToWorkEnabled;
+            _workAwaitingResume = false;
+            CaptureWorkSite();
+            _workSiteRoomCenterId = workRoomCenterId;
             RefreshWorkActionHud();
             PlaySfx(AudioEventSeam.SFX_TOOL_USE);
             return true;
@@ -586,6 +637,232 @@ namespace SynapticSea.Core.Session
 
         GdDict InventoryQtyDictForWork() => InventoryState == null ? new GdDict() : InventoryState.Items.DeepCopy();
 
+        // Work-site authority stays in the session. The existing v1 summary carries the target; no input latch is saved.
+        static bool IsHomeWork(string actionId) => actionId == "secure_connection"
+            || actionId == "commission_home_propulsion" || actionId == "cut_web_attachment";
+
+        void CaptureWorkSite()
+        {
+            _workSiteWork = WorkActionDriver?.Work;
+            _workSiteShip = CurrentShip;
+            _workSiteShipId = CurrentShip?.ShipId ?? "";
+            _workSiteRoot = CurrentShip?.SceneRoot ?? Loader;
+            _workSiteModules = ModuleIntegrityMap;
+            _workSiteComponents = ComponentPlacementState;
+            _workSiteRoomCenterId = "";
+        }
+
+        bool HasOriginalWorkContext()
+        {
+            WorkActionState work = WorkActionDriver?.Work;
+            if (work == null || !ReferenceEquals(work, _workSiteWork)
+                || !ReferenceEquals(CurrentShip, _workSiteShip) || (CurrentShip?.ShipId ?? "") != _workSiteShipId
+                || !ReferenceEquals(CurrentShip?.SceneRoot ?? Loader, _workSiteRoot)
+                || (_workSiteRoot != null && !_workSiteRoot.IsValid)) return false;
+            if (work.ActionId == "mount_component" || work.ActionId == "dismount_component" || work.ActionId == "unbolt_component")
+                return ReferenceEquals(ComponentPlacementState, _workSiteComponents);
+            return ReferenceEquals(ModuleIntegrityMap, _workSiteModules);
+        }
+
+        // Resolve only the original target with the same anchor rules as selection. Never select a nearest replacement.
+        bool TryGenericWorkSite(WorkActionState work, out Vec3 position, out string moduleKind)
+        {
+            position = Vec3.Inf;
+            moduleKind = "";
+            GdDict layout = ActiveLayoutForWork();
+            if (layout.IsEmpty || work == null) return false;
+            if (work.ActionId == "mount_component" || work.ActionId == "dismount_component" || work.ActionId == "unbolt_component")
+            {
+                if (ComponentPlacementState == null) return false;
+                GdDict centers = RoomWorldCenters(layout);
+                long index = 0;
+                foreach (object row in ComponentPlacementState.Placed)
+                {
+                    if (row is GdDict entry)
+                    {
+                        bool mounted = entry.GetBool("mounted", true);
+                        string form = V.Str(entry.Get("item_form", entry.Get("component_id", "")));
+                        string target = work.ActionId == "mount_component"
+                            ? entry.GetString("room_id") + "|" + V.Str(entry.Get("slot_kind", "wall")) + "|"
+                                + V.I64(entry.Get("slot_index", 0L)) + "|" + form
+                            : entry.GetString("component_instance_id");
+                        if (target == work.TargetId && mounted == (work.ActionId != "mount_component"))
+                        {
+                            position = ComponentMarkerWorld(layout, entry, centers, index);
+                            return position != Vec3.Inf;
+                        }
+                    }
+                    index++;
+                }
+                return false;
+            }
+            if (ModuleIntegrityMap == null || ModuleIntegrityMap.GetState(work.TargetId) == "destroyed")
+                return false;
+            // Secondary legacy weld selection uses a room-center anchor even when that module has a per-room
+            // placement. Keep the policy actually selected at start; it must not switch to a different anchor mid-job.
+            if (work.ActionId == "weld_patch" && _workSiteRoomCenterId.Length > 0)
+            {
+                ModuleIntegrityState module = ModuleIntegrityMap.GetModule(work.TargetId);
+                GdDict centers = RoomWorldCenters(layout);
+                if (module == null || !(centers.Get(_workSiteRoomCenterId, null) is Vec3 center)) return false;
+                position = center;
+                moduleKind = module.Kind;
+                return true;
+            }
+            foreach (object roomV in layout.GetArrayOrEmpty("rooms"))
+            {
+                if (!(roomV is GdDict room)) continue;
+                foreach (object placementV in room.GetArrayOrEmpty("structural_placements"))
+                {
+                    if (!(placementV is GdDict placement)) continue;
+                    string kind = V.Str(placement.Get("module_id", placement.Get("module", "")));
+                    if (kind.Length == 0 || room.GetString("id") + "/" + V.Str(placement.Get("name", kind)) != work.TargetId)
+                        continue;
+                    object posV = placement.Get("world_position", placement.Get("position", null));
+                    if (posV is Vec3 pos) position = pos;
+                    else if (posV is GdArray array && array.Count >= 3)
+                        position = new Vec3(V.F64(array[0]), V.F64(array[1]), V.F64(array[2]));
+                    if (position == Vec3.Inf) return false;
+                    moduleKind = kind;
+                    if (CurrentShip != null && RootValid(CurrentShip.SceneRoot)) position = ToGlobal(CurrentShip.SceneRoot, position);
+                    return true;
+                }
+            }
+            position = CompiledWrapperWorldPosition(work.TargetId);
+            if (position != Vec3.Inf)
+            {
+                IShipLoaderView root = CurrentShip?.SceneRoot as IShipLoaderView ?? Loader;
+                moduleKind = FindStructuralModuleNode(root.StructuralModuleNodes(), work.TargetId)?.ModuleKind ?? "";
+                return true;
+            }
+            // The legacy weld selector also permits map-only damaged walls at their existing room-center anchor.
+            if (work.ActionId == "weld_patch")
+            {
+                ModuleIntegrityState module = ModuleIntegrityMap.GetModule(work.TargetId);
+                if (module == null) return false;
+                moduleKind = module.Kind;
+                string roomId = module.RoomId.Length > 0 ? module.RoomId : SliceBeforeSlash(work.TargetId);
+                if (roomId == "floor" || roomId == "edge" || roomId == "ceiling") return false;
+                GdDict centers = RoomWorldCenters(layout);
+                if (centers.Get(roomId, null) is Vec3 center) { position = center; return true; }
+            }
+            return false;
+        }
+
+        bool ValidateWorkSite(out string reason)
+        {
+            reason = "left_work_site";
+            WorkActionState work = WorkActionDriver?.Work;
+            if (!HasPlayer || work == null) return false;
+            if (IsHomeWork(work.ActionId))
+            {
+                var control = HomeJoinControls.Find(c => c.IsValid && c.ActionId == work.ActionId && c.ShipId == work.TargetId);
+                return control != null && HasInteractionSightAndReach(control);
+            }
+            if (!HasOriginalWorkContext()) { reason = "work_context_changed"; return false; }
+            return TryGenericWorkSite(work, out Vec3 position, out _) && PlayerPos.DistanceTo(position) <= WORK_ACTION_INTERACT_RANGE;
+        }
+
+        void RestoreWorkAction(GdDict pack, string savedLocation)
+        {
+            _workHoldInput = false;
+            _frame.InteractHeld = false;
+            _workRequiresHold = false;
+            _workAwaitingResume = false;
+            _restoredWorkLocation = savedLocation ?? "";
+            WorkActionDriver?.Reset();
+            _workSiteWork = null;
+            if (WorkActionDriver == null || pack == null || !pack.GetBool("active")
+                || !(pack.Get("summary", null) is GdDict summary)) return;
+            var work = new WorkActionState();
+            if (!work.ApplySummary(summary)) return;
+            WorkActionDriver.Work = work;
+            // Completed/idle summaries are not resumable and cannot replay effects through the work stage.
+            if (work.Status == WorkActionState.STATUS_ACTIVE || work.Status == WorkActionState.STATUS_INTERRUPTED)
+            {
+                work.Status = WorkActionState.STATUS_INTERRUPTED;
+                work.BlockReason = "resume_required";
+                _workRequiresHold = HoldToWorkEnabled;
+                _workAwaitingResume = true;
+                CaptureWorkSite();
+            }
+            RefreshWorkActionHud();
+        }
+
+        void ResumeRestoredWork()
+        {
+            WorkActionState work = WorkActionDriver.Work;
+            // Manual reload starts at home; a world reload may activate a saved away vessel afterward. The existing
+            // snapshot location is the only saved owner qualifier. Unknown/mismatched legacy owners fail closed.
+            bool matchingOwner = _restoredWorkLocation == "home"
+                ? CurrentShip != null && CurrentShip == HomeShip
+                : _restoredWorkLocation.Length > 0 && CurrentShip?.MarkerId == _restoredWorkLocation;
+            if (!matchingOwner)
+            {
+                work.BlockReason = "work_context_changed";
+                RefreshWorkActionHud();
+                return;
+            }
+            CaptureWorkSite();
+            if (work.ActionId == "weld_patch")
+            {
+                GdDict candidate = NearestDamagedWallModule(ActiveLayoutForWork(), PlayerPos, WORK_ACTION_INTERACT_RANGE);
+                if (candidate.GetString("module_id") == work.TargetId)
+                    _workSiteRoomCenterId = candidate.GetString("room_center_site");
+            }
+            if (!ValidateWorkSite(out string reason))
+            {
+                work.BlockReason = reason;
+                RefreshWorkActionHud();
+                return;
+            }
+            GdDict inventory = InventoryQtyDictForWork();
+            if (work.ActionId == "weld_patch" && inventory.GetInt("hull_plate") < 1)
+                inventory["hull_plate"] = Math.Max(inventory.GetInt("plating_plate"), inventory.GetInt("hull_plate_kit"));
+            string tool = work.Definition.GetString("tool_class");
+            bool hasTool = tool.Length == 0 || inventory.GetInt(tool) > 0 || inventory.GetInt("tool_" + tool) > 0;
+            if (IsHomeWork(work.ActionId) && tool == "welder") hasTool |= inventory.GetInt("welding_lance") > 0;
+            if (IsHomeWork(work.ActionId))
+            {
+                ShipInstance ship = FindShipByIdInternal(work.TargetId);
+                if (ship == null || !(work.ActionId == "cut_web_attachment" ? CanCutWeb(ship) : ship.GetAccess().HasAccess(PLAYER_LOCAL_ID)))
+                {
+                    work.BlockReason = "access";
+                    RefreshWorkActionHud();
+                    return;
+                }
+            }
+            string skill = work.Definition.GetString("min_skill");
+            if (work.ActionId == "mount_component")
+            {
+                List<string> parts = GdString.Split(work.TargetId, "|");
+                if (parts.Count < 4 || inventory.GetInt(parts[3]) < 1)
+                {
+                    work.BlockReason = "materials";
+                    RefreshWorkActionHud();
+                    return;
+                }
+            }
+            var context = new GdDict
+            {
+                { "tool_class", hasTool ? tool : "" }, { "skill_id", skill },
+                { "skill_level", PlayerProgression?.GetSkillLevel(skill) ?? 0L }, { "inventory", inventory },
+            };
+            if (VitalsState != null && VitalsState.Stamina <= 0.001) work.BlockReason = "exhausted";
+            else if (work.CanStart(context))
+            {
+                // Pristine per-room modules are omitted by the existing sparse save. Re-register only an exact live
+                // structural target, with its authored kind, after resume eligibility succeeds.
+                if (!IsHomeWork(work.ActionId) && TryGenericWorkSite(work, out _, out string kind) && kind.Length > 0)
+                    ModuleIntegrityMap.EnsureModule(work.TargetId, kind, new GdDict(), SliceBeforeSlash(work.TargetId));
+                _workAwaitingResume = false;
+                _workRequiresHold = HoldToWorkEnabled;
+                work.Status = WorkActionState.STATUS_ACTIVE;
+                work.BlockReason = "";
+            }
+            RefreshWorkActionHud();
+        }
+
         GdDict NearestDamagedWallModule(GdDict layout, Vec3 playerPos, double maxRange)
         {
             GdDict cand = NearestWorkableWallModule(layout, playerPos, maxRange);
@@ -607,6 +884,7 @@ namespace SynapticSea.Core.Session
                     continue;
                 ModuleIntegrityState m = ModuleIntegrityMap.GetModule(id);
                 Vec3 pos = CompiledWrapperWorldPosition(id);
+                string roomCenterId = "";
                 if (pos == Vec3.Inf)
                 {
                     string rid = m != null ? m.RoomId : "";
@@ -620,13 +898,14 @@ namespace SynapticSea.Core.Session
                     if (!roomCenters.Has(rid))
                         continue;
                     pos = (Vec3)roomCenters[rid];
+                    roomCenterId = rid;
                 }
                 double d = playerPos.DistanceTo(pos);
                 if (d <= bestD)
                 {
                     bestD = d;
                     string kind = m != null ? m.Kind : "wall";
-                    best = new GdDict { { "module_id", id }, { "kind", kind }, { "distance", d } };
+                    best = new GdDict { { "module_id", id }, { "kind", kind }, { "distance", d }, { "room_center_site", roomCenterId } };
                 }
             }
             return best;
@@ -728,10 +1007,20 @@ namespace SynapticSea.Core.Session
         /// <summary>PKG-B2.2b: advance in-progress work (both branches; hold-to-work freezes progress on release).</summary>
         void TickWorkAction(double delta)
         {
+            if (ComponentIntegrationEnabled && ComponentTerminalPending) return;
+            if (TickComponentWork(delta)) return;
             if (WorkActionDriver == null || delta <= 0.0)
                 return;
             if (!WorkActionDriver.IsWorking())
                 return;
+            if (!ValidateWorkSite(out string siteReason))
+            {
+                if (IsHomeWork(WorkActionDriver.Work.ActionId)) HomeWorkFailure(siteReason);
+                else InterruptWorkOnDamage(siteReason);
+                _workRequiresHold = false;
+                RefreshWorkActionHud();
+                return;
+            }
             // Unity port (B3): switching to hold_to_tap mid-action releases the hold requirement.
             if (_workRequiresHold && !HoldToWorkEnabled)
                 _workRequiresHold = false;
@@ -747,7 +1036,7 @@ namespace SynapticSea.Core.Session
             {
                 if (VitalsState.Stamina <= 0.001)
                 {
-                    InterruptWorkOnDamage();
+                    InterruptWorkOnDamage("exhausted");
                     _workRequiresHold = false;
                     return;
                 }
@@ -766,7 +1055,8 @@ namespace SynapticSea.Core.Session
                 GdDict inv = InventoryQtyDictForWork();
                 GdDict res;
                 string actionId = WorkActionDriver.Work != null ? WorkActionDriver.Work.ActionId : "";
-                if (actionId == "dismount_component" || actionId == "unbolt_component")
+                if(actionId=="secure_connection" || actionId=="commission_home_propulsion" || actionId=="cut_web_attachment") res=CompleteHomeWork(actionId);
+                else if (actionId == "dismount_component" || actionId == "unbolt_component")
                 {
                     res = ComponentMountResolver.ResolveDismount(WorkActionDriver.Work, ComponentPlacementState, inv);
                     if (res.GetBool("ok"))
@@ -937,11 +1227,15 @@ namespace SynapticSea.Core.Session
             PlaySfx(AudioEventSeam.SFX_TOOL_PICKUP);
         }
 
-        void InterruptWorkOnDamage()
+        void InterruptWorkOnDamage(string reason="damage")
         {
+            if (ManualStudyRunning) { PauseManualStudy(reason); return; }
+            if (ComponentIntegrationEnabled && _componentDomain != null && GetComponentWorkState().GetString("status") == "active")
+            { PauseComponentWork(reason); PlaySfx(AudioEventSeam.UI_PANEL_CLOSE); RefreshWorkActionHud(); return; }
             if (WorkActionDriver == null || !WorkActionDriver.IsWorking())
                 return;
             WorkActionDriver.Work?.Interrupt();
+            if(WorkActionDriver.Work!=null)WorkActionDriver.Work.BlockReason=reason;
             PlaySfx(AudioEventSeam.UI_PANEL_CLOSE);
             RefreshWorkActionHud();
         }
@@ -1016,6 +1310,8 @@ namespace SynapticSea.Core.Session
         /// <summary>A ship-mod install: mirror the panel bag into InventoryState, restore the linked sub, tiers, plating.</summary>
         public void OnShipModInstalled(string componentId, string itemForm)
         {
+            if (ComponentGenerationRestoreInProgress) return;
+            if (ComponentIntegrationEnabled) return;
             if (InventoryState != null && !string.IsNullOrEmpty(itemForm) && InventoryState.GetQuantity(itemForm) > 0)
                 InventoryState.RemoveItem(itemForm, 1);
             ApplyShipModSystemLink(componentId, true);
@@ -1028,6 +1324,8 @@ namespace SynapticSea.Core.Session
         /// <summary>A ship-mod uninstall: add back returned items (panel bag minus live inventory), strip the linked sub.</summary>
         public void OnShipModUninstalled(string componentId, GdDict panelBag)
         {
+            if (ComponentGenerationRestoreInProgress) return;
+            if (ComponentIntegrationEnabled) return;
             if (InventoryState != null && panelBag != null)
             {
                 foreach (object itemId in panelBag.Keys)
@@ -1046,6 +1344,7 @@ namespace SynapticSea.Core.Session
 
         void ApplyShipModSystemLink(string componentId, bool installing)
         {
+            if (ComponentIntegrationEnabled) return;
             if (string.IsNullOrEmpty(componentId) || ComponentCatalog == null || ShipSystemsManager == null)
                 return;
             GdDict def = ComponentCatalog.GetComponent(componentId);
@@ -1092,6 +1391,7 @@ namespace SynapticSea.Core.Session
         /// <summary>After save/load: restore linked hub subs + station tiers from the ship-mod manifest.</summary>
         void ReapplyShipModRuntimeEffects()
         {
+            if (ComponentIntegrationEnabled) { RefreshStationTiersFromShipMod(); return; }
             if (ShipModificationState == null)
                 return;
             foreach (object e in ShipModificationState.Installed)

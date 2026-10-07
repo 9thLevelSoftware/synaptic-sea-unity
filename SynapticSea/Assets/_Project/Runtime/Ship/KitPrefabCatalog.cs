@@ -21,6 +21,7 @@ namespace SynapticSea.Runtime
         }
 
         public string kitId;
+        public bool useAsLocalOverride;
         public float gridStepMetres = 4f;
         public List<Entry> modules = new List<Entry>();
 

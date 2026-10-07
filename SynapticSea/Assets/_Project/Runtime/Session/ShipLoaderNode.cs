@@ -154,7 +154,13 @@ namespace SynapticSea.Runtime.Session
         public void SetCollisionEnabled(bool enabled)
         {
             if (Module == null) return;
-            foreach (Collider c in Module.GetComponentsInChildren<Collider>(true)) c.enabled = enabled;
+            bool changed=false;
+            foreach (Collider c in Module.GetComponentsInChildren<Collider>(true))
+            {
+                bool next=enabled && !Module.ConnectionOpening && !Module.DockOverlapOpening && !Module.DockOverlapColliders.Contains(c);
+                changed|=c.enabled!=next;c.enabled=next;
+            }
+            if(changed && _root.IsValid)ShipNavMesh.StructureCollisionChanged(_root.GameObject);
         }
 
         public void SetMeta(string key, object value)
@@ -182,6 +188,8 @@ namespace SynapticSea.Runtime.Session
         public string PortalId => Portal.portalId;
         public string PortalKind => Portal.portalKind;
         public bool IsExterior => Portal.isExterior;
+        public bool IsOpen => Portal.isOpen;
+        public bool IsInRange(Vec3 playerPosition) => UnityEngine.Vector3.Distance(Portal.transform.position, Frame.ToUnity(playerPosition)) <= AuthoredPortalRuntime.DetectionRadius;
         public string RequiredFlag() => Portal.RequiredFlag();
         public Vec3 GlobalPosition => _root.GlobalTransform * Portal.GodotPosition;
         public GdDict TryInteract(GdDict flags, Vec3 playerPosition) => Portal.TryInteractAt(flags, Frame.ToUnity(playerPosition));

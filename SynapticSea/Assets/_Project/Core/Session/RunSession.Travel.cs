@@ -16,6 +16,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Resolves visible markers at the gated detail level (current systems + scanner skill); records web-chart views.</summary>
         public GdDict Scan()
         {
+            if (ComponentGenerationRestoreInProgress) return new GdDict { { "detail_level", 0L }, { "markers", new GdArray() } };
             if (CurrentShip == null || SynapticSeaWorld == null || ScannerState == null)
                 return new GdDict { { "detail_level", 0L }, { "markers", new GdArray() } };
             GdDict ops = CurrentSystemsOps();
@@ -31,6 +32,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Travel to an in-range marker by id; {success:false, reason:"unknown_marker"} otherwise.</summary>
         public GdDict TravelToMarkerId(string markerId)
         {
+            if (ComponentGenerationRestoreInProgress) return new GdDict { { "success", false }, { "reason", "restore_in_progress" } };
             if (SynapticSeaWorld == null || ScannerState == null)
                 return new GdDict { { "success", false }, { "reason", "not_ready" } };
             foreach (ShipMarker m in SynapticSeaWorld.MarkersInRange(ScannerState.RangeRadius))
@@ -56,14 +58,16 @@ namespace SynapticSea.Core.Session
         {
             CatchUpShip(inst);
             inst.SceneRoot = newRoot;
+            RememberShipGenerationDocuments(inst);
             ShipHost?.AttachShipRoot(newRoot);
-            ShipHost?.SetShipRootPosition(newRoot, DERELICT_DOCK_OFFSET);
+            ShipHost?.SetShipRootPosition(newRoot, DerelictScenePosition(newRoot));
             if (inst.BuiltLayout.IsEmpty && newRoot != null)
                 inst.BuiltLayout = newRoot.GetLayoutCopy();
+            if(inst.Mobility.IsEmpty) inst.Mobility = AssemblyMobility.CreateSpecification(inst, true);
             CurrentShip = inst;
             AwayFromStart = true;
             ResetTooltipFocus();
-            if (PilotedShip != null)
+            if (PilotedShip != null && !RestoringConnections)
             {
                 GdDict carry = CapturePlayerCarry();
                 List<SubtreeCapture> childCarry = CaptureSubtree();
@@ -111,6 +115,7 @@ namespace SynapticSea.Core.Session
             BuildFireZones();
             BuildFireSuppressionPoints();
             BuildExtinguisherRechargePort();
+            RebuildHomeJoinControls();
             if (_lastDerelictHazardBudget < 0 || _lastDerelictHazardBudget > 2)
             {
                 BuildArcZone();
@@ -127,6 +132,7 @@ namespace SynapticSea.Core.Session
         /// <summary>Validates + executes a jump to a marker (gated by the PILOTED ship's propulsion).</summary>
         public GdDict TravelTo(ShipMarker marker)
         {
+            if (ComponentGenerationRestoreInProgress) return new GdDict { { "success", false }, { "reason", "restore_in_progress" } };
             if (CurrentShip == null || SynapticSeaWorld == null || TravelController == null || ShipGenerator == null)
                 return new GdDict { { "success", false }, { "reason", "not_ready" } };
             if (PilotedShip != null && CurrentShip == PilotedShip && marker.MarkerId == CurrentShip.MarkerId)
@@ -135,11 +141,25 @@ namespace SynapticSea.Core.Session
                 return new GdDict { { "success", false }, { "reason", "already_here" } };
             }
             RecomputeOccupancy();
-            if (PilotedShip != null && CurrentOccupancy != PilotedShip)
+            if (PilotedShip != null && CurrentOccupancy != PilotedShip
+                && !(PilotedShip==HomeShip && IsHomeMember(CurrentOccupancy)))
             {
                 EmitTravelDeniedSfx();
                 return new GdDict { { "success", false }, { "reason", "not_aboard_ship" } };
             }
+            var capacity = TravelCapability();
+            if (!capacity.GetBool("success"))
+            {
+                EmitTravelDeniedSfx();
+                return new GdDict { { "success", false }, { "reason", capacity.GetString("reason") }, { "capability", capacity } };
+            }
+            if(PilotedShip==HomeShip) return TravelHomeAssembly(marker,capacity);
+            // A revisit regenerates the saved profile, never upgrades an existing legacy wreck in place.
+            ShipGenerator.ExpeditionProfile = VisitedShips.ContainsKey(marker.MarkerId)
+                ? VisitedShips[marker.MarkerId].Blueprint.GenerationProfile : ConstrainedExpedition.Profile;
+            ShipGenerator.RichExpeditions = VisitedShips.ContainsKey(marker.MarkerId)
+                ? ShipGenerator.ExpeditionProfile.Length != 0 : VisitedShips.Count > 0;
+            long originalMarkerSeed = marker.SeedValue;
             GdDict firstRunResult = ApplyFirstRunContractToMarker(marker);
             if (firstRunResult.GetBool("applicable") && !firstRunResult.GetBool("success"))
             {
@@ -162,15 +182,22 @@ namespace SynapticSea.Core.Session
                 if (!contractCtx.IsEmpty) runCtx = contractCtx;
             }
             ShipGenerator.ConfigureRunContext(V.Str(runCtx.Get("biome", "")), V.Str(runCtx.Get("difficulty", "")));
-            TravelAttemptResult result = TravelController.AttemptTravel(marker, opsT, SynapticSeaWorld, ShipGenerator, ScannerState.RangeRadius);
+            TravelAttemptResult result = TravelController.AttemptTravel(marker, opsT, SynapticSeaWorld, FirstRunGenerator(), ScannerState.RangeRadius);
             if (!result.Success)
             {
+                if (firstRunContractApplied) marker.SeedValue = originalMarkerSeed;
                 EmitTravelDeniedSfx();
                 return result.ToDict();
             }
             IShipLoaderView newRoot = result.Ship is ShipDocuments docs ? BuildShipSceneFromDocuments(docs) : result.Ship as IShipLoaderView;
             if (newRoot == null)
             {
+                if (firstRunContractApplied)
+                {
+                    marker.SeedValue = originalMarkerSeed;
+                    SynapticSeaWorld.SetPlayerPosition(prevPlayerPos);
+                    if (!wasGenerated) SynapticSeaWorld.UnmarkGenerated(marker.MarkerId);
+                }
                 EmitTravelDeniedSfx();
                 return new GdDict { { "success", false }, { "reason", "generation_failed" } };
             }
@@ -179,14 +206,24 @@ namespace SynapticSea.Core.Session
             {
                 GdDict targetLocal = DockPorts.ForDerelict(newRoot.GetLayoutCopy(), marker.SeedValue, marker.Condition);
                 GdDict lbLocal = PilotedPortLocal();
-                if (!DockPorts.PortsCompatible(targetLocal, lbLocal))
+                string dockFailure = "";
+                if (!DockPorts.PortsCompatible(targetLocal, lbLocal)) dockFailure = "dock_incompatible";
+                else
+                {
+                    ShipInstance target = VisitedShips.ContainsKey(marker.MarkerId) ? VisitedShips[marker.MarkerId]
+                        : ShipInstance.Create("ship_" + marker.MarkerId, marker.MarkerId, null, null, newRoot);
+                    var preflight = DockingManager.CanDock(target, PilotedShip, targetLocal, lbLocal);
+                    if (!preflight.GetBool("success")) dockFailure = preflight.GetString("reason");
+                }
+                if (dockFailure.Length > 0)
                 {
                     ShipHost?.FreeShipRoot(newRoot);
+                    if (firstRunContractApplied) marker.SeedValue = originalMarkerSeed;
                     SynapticSeaWorld.SetPlayerPosition(prevPlayerPos);
                     if (!wasGenerated)
                         SynapticSeaWorld.UnmarkGenerated(marker.MarkerId);
                     EmitTravelDeniedSfx();
-                    return new GdDict { { "success", false }, { "reason", "dock_incompatible" } };
+                    return new GdDict { { "success", false }, { "reason", dockFailure } };
                 }
             }
             SyncCurrentShipCombatSummary();
@@ -201,7 +238,7 @@ namespace SynapticSea.Core.Session
                 if (HasPlayer)
                     _homePlayerPosition = PlayerPos;
             }
-            else if (leaving != PilotedShip && RootValid(leaving.SceneRoot))
+            else if (leaving != PilotedShip && !IsHomeMember(leaving) && RootValid(leaving.SceneRoot))
             {
                 ShipHost?.FreeShipRoot(leaving.SceneRoot);
                 leaving.SceneRoot = null;
@@ -215,12 +252,14 @@ namespace SynapticSea.Core.Session
             else
             {
                 var newBp = new ShipBlueprint(marker.SizeClass, marker.Condition, marker.SeedValue);
+                newBp.GenerationProfile = newRoot.GetLayoutCopy().GetString("generation_profile");
                 var newMgr = new ShipSystemsManager();
                 newMgr.Configure(newMgr.LoadDefinitions(), newBp.ShipCondition, newBp.SeedValue);
                 inst = ShipInstance.Create("ship_" + mid, mid, newBp, newMgr, null);
                 VisitedShips[mid] = inst;
                 SeedShipModels(inst);
             }
+            if (PilotedShip == LifeboatShip) LifeboatCommissioned = true;
             AttachDerelictActive(inst, newRoot, playerOxygenBeforeTransition);
             ConfigureThreatRuntimeForCurrentShip();
             RecomputeOccupancy();
@@ -229,11 +268,65 @@ namespace SynapticSea.Core.Session
             return result.ToDict();
         }
 
+        /// <summary>The scanner's "return home" action. Dormant: only the removed reviewed first-away profile enabled it.</summary>
+        public bool HomeNavigationAvailable => false;
+
+        /// <summary>Deliberate navigation from the player's live lifeboat cockpit, using the existing home berth transition.</summary>
+        public GdDict ReturnHomeFromNavigation()
+        {
+            string reason = "";
+            if (ComponentGenerationRestoreInProgress) reason = "restore_in_progress";
+            else if (CompleteGenerationEnabled && ComponentTerminalPending) reason = "terminal_pending";
+            else if (!HomeNavigationAvailable || SliceComplete) reason = "home_navigation_unavailable";
+            else if (!HasPlayer || PilotedShip == null || PilotedShip != LifeboatShip || !RootValid(PilotedShip.SceneRoot)) reason = "lifeboat_not_piloted";
+            else if (!PilotedShip.GetAccess().HasAccess(PLAYER_LOCAL_ID)) reason = "ship_access_denied";
+            if (reason.Length == 0)
+            {
+                RecomputeOccupancy();
+                if (CurrentOccupancy != PilotedShip) reason = "return_to_lifeboat";
+                else if (!BridgeTerminals.Exists(terminal => terminal.ShipId == PilotedShip.ShipId
+                    && ReferenceEquals(terminal.Parent, PilotedShip.SceneRoot) && HasInteractionSightAndReach(terminal))) reason = "return_to_lifeboat_cockpit";
+            }
+            GdDict capacity = null;
+            if (reason.Length == 0)
+            {
+                capacity = TravelCapability();
+                if (!capacity.GetBool("success")) reason = capacity.GetString("reason");
+            }
+            if (reason.Length > 0)
+            {
+                EmitTravelDeniedSfx();
+                return new GdDict { { "success", false }, { "reason", reason }, { "capability", capacity ?? new GdDict() } };
+            }
+            bool returned = TravelHome();
+            if (returned) SynapticSeaWorld.SetPlayerPosition(HomeSeaPosition);
+            return new GdDict { { "success", returned }, { "reason", returned ? "ok" : "home_berth_unavailable" }, { "capability", capacity } };
+        }
+
         /// <summary>Returns to the home ship: frees the derelict scene, re-docks the ride home, rebuilds home interactables.</summary>
         public bool TravelHome()
         {
-            if (!AwayFromStart || HomeShip == null)
-                return false;
+            if (ComponentGenerationRestoreInProgress) return false;
+            if(PilotedShip==HomeShip)
+            { SetHazardFeedbackLine("You are already aboard the mobile home. Select a surveyed contact to move the assembly.");return false; }
+            if (!AwayFromStart || HomeShip == null) return false;
+            if(PilotedShip!=null && PilotedShip!=LifeboatShip && PilotedShip!=HomeShip)
+                return MoorRecoveredVesselAtHome();
+            // Reject an impossible berth before clearing active state or detaching the departing subtree.
+            if (PilotedShip != null)
+            {
+                var hostPort = DockingManager.HostPortToWorld(HomeShip,
+                    DockPorts.ForDerelict(HomeShip.BuiltLayout, ShipSeed(HomeShip), 0));
+                var mobilePort = PilotedPortLocal();
+                var preflight = DockPorts.PortsCompatible(hostPort, mobilePort)
+                    ? DockingManager.CanDock(HomeShip, PilotedShip, hostPort, mobilePort)
+                    : new GdDict { { "success", false }, { "reason", "dock_incompatible" } };
+                if (!preflight.GetBool("success"))
+                {
+                    EmitTravelDeniedSfx(); Log.Warning("Travel home denied before transition: " + preflight.GetString("reason"));
+                    return false;
+                }
+            }
             double playerOxygenBeforeTransition = OxygenState != null ? V.F64(OxygenState.GetSummary().Get("oxygen", -1.0)) : -1.0;
             SyncCurrentShipCombatSummary();
             SyncCurrentShipArcSummary();
@@ -251,13 +344,14 @@ namespace SynapticSea.Core.Session
             {
                 if (leaving.SceneRoot is IShipLoaderView leavingLoader)
                     Events.RaiseAffordancesCleared(leavingLoader);
-                if (leaving != PilotedShip && RootValid(leaving.SceneRoot))
+                if (leaving != PilotedShip && !IsHomeMember(leaving) && RootValid(leaving.SceneRoot))
                 {
                     ShipHost?.FreeShipRoot(leaving.SceneRoot);
                     leaving.SceneRoot = null;
                 }
             }
             CurrentShip = HomeShip;
+            RestoreAuthoredPortalStates();
             AwayFromStart = false;
             RestoreModuleIntegrityForCurrentShip();
             RestoreOrPopulateComponentPlacementForCurrentShip();
@@ -283,6 +377,7 @@ namespace SynapticSea.Core.Session
             BuildHallucinationRuntime();
             BuildFireSuppressionPoints();
             BuildExtinguisherRechargePort();
+            RebuildHomeJoinControls();
             BuildCraftingStations();
             BuildProductionStations();
             if (Loader != null)
@@ -299,6 +394,7 @@ namespace SynapticSea.Core.Session
             SpawnDockBarrier(HomeShip);
             CurrentOccupancy = PilotedShip ?? HomeShip;
             RecomputeOccupancy();
+            if(HomeSeaMarkerId.Length>0 || HasSecuredHomeExtension())SynapticSeaWorld?.SetPlayerPosition(HomeSeaPosition);
             EmitDockLandSfx();
             return true;
         }
@@ -391,6 +487,7 @@ namespace SynapticSea.Core.Session
             if (CurrentShip != null && !CurrentShip.ComponentPlacementSummary.IsEmpty)
             {
                 ComponentPlacementState.ApplySummary(CurrentShip.ComponentPlacementSummary);
+                if (ComponentIntegrationEnabled) BindComponentIntegrationForCurrentShip();
                 RebuildComponentMarkers();
                 return;
             }
@@ -407,6 +504,7 @@ namespace SynapticSea.Core.Session
                 ComponentPlacementState.LinkShipSystems(systemsDoc, ComponentCatalog);
             if (CurrentShip != null && ComponentPlacementState.Placed.Count > 0)
                 CurrentShip.ComponentPlacementSummary = ComponentPlacementState.GetSummary();
+            if (ComponentIntegrationEnabled) BindComponentIntegrationForCurrentShip();
             RebuildComponentMarkers();
         }
 
@@ -446,6 +544,7 @@ namespace SynapticSea.Core.Session
             {
                 ThreatManager.ApplySummary(CurrentShip.CombatSummary);
                 ThreatManager.ConfigureNavGraph(CombatLayoutForCurrentShip());
+                ThreatManager.ConfigureSpatialPerception(CombatLayoutForCurrentShip());
             }
             else
             {
@@ -491,7 +590,7 @@ namespace SynapticSea.Core.Session
             if (inst == null || ShipGenerator == null)
                 return false;
             ApplyRunContextFromBlueprint(inst.Blueprint);
-            IShipLoaderView newRoot = GenerateShipScene(inst.Blueprint);
+            IShipLoaderView newRoot = CompleteGenerationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
             if (newRoot == null)
                 return false;
             AttachDerelictActive(inst, newRoot);
@@ -517,14 +616,17 @@ namespace SynapticSea.Core.Session
             if (inst.MarkerId == "" || RootValid(inst.SceneRoot))
                 return;
             ApplyRunContextFromBlueprint(inst.Blueprint);
-            IShipLoaderView newRoot = GenerateShipScene(inst.Blueprint);
+            IShipLoaderView newRoot = CompleteGenerationEnabled ? BuildRetainedGenerationShip(inst) : GenerateShipScene(inst.Blueprint);
             if (newRoot == null)
                 return;
             inst.SceneRoot = newRoot;
+            RememberShipGenerationDocuments(inst);
             ShipHost?.AttachShipRoot(newRoot);
             ShipHost?.SetShipRootPosition(newRoot, DERELICT_DOCK_OFFSET);
             if (inst.BuiltLayout.IsEmpty)
                 inst.BuiltLayout = newRoot.GetLayoutCopy();
+            if (inst.Mobility.IsEmpty)
+                inst.Mobility = AssemblyMobility.CreateSpecification(inst, true);
             SpawnBridgeTerminal(inst);
             SpawnHangarControl(inst);
             SpawnCargoHoldControl(inst);

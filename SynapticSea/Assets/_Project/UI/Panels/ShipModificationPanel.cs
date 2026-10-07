@@ -24,6 +24,7 @@ namespace SynapticSea.UI
         public event Action PanelClosed;
         public event Action<string, string, string> InstallRequested;
         public event Action<string, string, string> UninstallRequested;
+        public event Action<GdDict> ComponentWorkStarted;
 
         ShipModificationState _modState;
         GdDict _inventory = new GdDict();
@@ -31,6 +32,66 @@ namespace SynapticSea.UI
         bool _open;
         int _selected;
         string _status = "";
+        IComponentInteractionHost _componentHost;
+        string _selectedInstanceId = "";
+        string _selectedTargetKey = "";
+        GdDict _lastCommandResult = new GdDict();
+        bool _renderingComponents;
+        readonly SelectableList _componentList;
+
+        public void BindComponents(IComponentInteractionHost host)
+        {
+            _componentHost = host;
+            Render();
+        }
+
+        public string GetSelectedInstanceId() => _selectedInstanceId;
+        public GdDict LastCommandResult => _lastCommandResult.DeepCopy();
+        public SelectableList ComponentList => _componentList;
+
+        public bool SelectComponent(string instanceId)
+        {
+            foreach (object item in ComponentRows())
+                if (item is GdDict row && row.GetString("instance_id") == instanceId)
+                { _selectedInstanceId = instanceId; Render(); return true; }
+            _selectedInstanceId = "";
+            _status = "Selected component is no longer carried";
+            Render();
+            return false;
+        }
+
+        public bool SelectTarget(string shipId, string slotId)
+        {
+            List<GdDict> rows = SlotRows();
+            for (int i = 0; i < rows.Count; i++)
+                if (rows[i].GetString("ship_id") == shipId && rows[i].GetString("slot_id") == slotId)
+                { _selected = i; _selectedTargetKey = TargetKey(rows[i]); Render(); return true; }
+            // Preserve the missing named target as a refusal; rendering must never substitute its first row.
+            _selectedTargetKey = (shipId ?? "") + ":" + (slotId ?? "");
+            _status = "Installation target is no longer available";
+            Render();
+            return false;
+        }
+
+        public void OpenForComponent(string instanceId)
+        {
+            Open();
+            SelectComponent(instanceId);
+        }
+
+        public void OpenForTarget(string shipId, string slotId)
+        {
+            Open();
+            SelectTarget(shipId, slotId);
+        }
+
+        static string TargetKey(GdDict row) => row.GetString("ship_id") + ":" + row.GetString("slot_id");
+
+        GdArray ComponentRows()
+        {
+            if (_componentHost == null) return new GdArray();
+            return _componentHost.ListComponentInstances(_componentHost.GetComponentHolderIds().GetString("player"));
+        }
 
         /// <summary>Candidate empty slots the panel can install into (the coordinator may set).</summary>
         public List<string> CandidateSlots = new List<string> { "hub_slot_0", "hub_slot_1", "hub_slot_2" };
@@ -46,6 +107,11 @@ namespace SynapticSea.UI
             Body.Add(_power);
             _summary = UiFactory.Text("", UiClasses.LabelSecondary, UiClasses.LabelMono);
             Body.Add(_summary);
+            _componentList = new SelectableList("component-instance", "No component equipment carried.");
+            Body.Add(_componentList);
+            UiFactory.SetShown(_componentList, false);
+            _componentList.SelectionRequested += SelectComponentAt;
+            _componentList.ActivateRequested += SelectComponentAt;
             _list = new SelectableList("slot", "No slots.");
             Body.Add(_list);
             _bag = UiFactory.Text("", UiClasses.LabelSecondary);
@@ -56,12 +122,16 @@ namespace SynapticSea.UI
             Body.Add(tools);
             _list.SelectionRequested += i =>
             {
+                if (_renderingComponents) return;
                 _selected = i;
+                if (_componentHost != null && i >= 0 && i < SlotRows().Count) _selectedTargetKey = TargetKey(SlotRows()[i]);
                 Render();
             };
             _list.ActivateRequested += i =>
             {
+                if (_renderingComponents) return;
                 _selected = i;
+                if (_componentHost != null && i >= 0 && i < SlotRows().Count) _selectedTargetKey = TargetKey(SlotRows()[i]);
                 ActivateSelected();
             };
             Render();
@@ -92,6 +162,7 @@ namespace SynapticSea.UI
             _open = true;
             SetViewVisible(true);
             _selected = 0;
+            if (_componentHost != null) _selectedTargetKey = "";
             _status = "";
             Render();
         }
@@ -117,6 +188,7 @@ namespace SynapticSea.UI
 
         public string GetSelectedSlotId()
         {
+            if (_componentHost != null) return SelectedTarget().GetString("slot_id");
             List<GdDict> rows = SlotRows();
             if (_selected < 0 || _selected >= rows.Count) return "";
             return V.Str(rows[_selected].Get("slot_id", ""));
@@ -132,12 +204,20 @@ namespace SynapticSea.UI
                 return;
             }
             _selected = (int)GdMath.Clampi(_selected + delta, 0, n - 1);
+            if (_componentHost != null) _selectedTargetKey = TargetKey(SlotRows()[_selected]);
             Render();
         }
 
         /// <summary>Uninstalls the selected occupied slot into the panel inventory bag.</summary>
         public bool UninstallSelected()
         {
+            if (_componentHost != null)
+            {
+                GdDict selected = SelectedTarget();
+                string instanceId = selected.GetString("instance_id");
+                if (!selected.GetBool("occupied") || instanceId.Length == 0) return ComponentRefused("No installed component selected");
+                return ShowComponentResult(_componentHost.RequestComponentRemoval(instanceId));
+            }
             string slotId = GetSelectedSlotId();
             if (slotId.Length == 0 || _modState == null)
             {
@@ -171,6 +251,7 @@ namespace SynapticSea.UI
         /// <summary>Installs into the selected empty slot (or the first empty candidate when it is occupied).</summary>
         public bool InstallIntoSelected(string componentId, string itemForm, double powerDraw = 5.0, double mass = 10.0, bool plating = false)
         {
+            if (_componentHost != null) return ComponentRefused("Choose an exact component instance and installation target");
             if (_modState == null)
             {
                 _status = "no mod state";
@@ -202,6 +283,7 @@ namespace SynapticSea.UI
         /// <summary>Installs the first bag item matching a known component form (then any stack as a last resort).</summary>
         public bool InstallFromInventory(ComponentCatalog catalog = null, IReadOnlyList<string> preferredForms = null)
         {
+            if (_componentHost != null) return InstallSelectedComponent();
             preferredForms = preferredForms ?? DefaultPreferredForms;
             if (_inventory.IsEmpty)
             {
@@ -256,6 +338,11 @@ namespace SynapticSea.UI
 
         void ActivateSelected()
         {
+            if (_componentHost != null)
+            {
+                if (SelectedTarget().GetBool("occupied")) UninstallSelected(); else InstallSelectedComponent();
+                return;
+            }
             GdDict row = RowForSlot(GetSelectedSlotId());
             if (row.GetBool("occupied", false)) UninstallSelected();
             else InstallFromInventory(_catalog);
@@ -263,6 +350,13 @@ namespace SynapticSea.UI
 
         public List<string> GetStatusLines()
         {
+            if (_componentHost != null)
+            {
+                var diagnostic = new List<string> { "DIAGNOSTIC COMPONENT INTEGRATION", "Selected instance: " + _selectedInstanceId };
+                foreach (GdDict target in SlotRows()) diagnostic.Add(TargetKey(target) + " | " + target.GetString("reason"));
+                if (_status.Length != 0) diagnostic.Add("Status: " + _status);
+                return diagnostic;
+            }
             var lines = new List<string>();
             if (_modState == null)
             {
@@ -299,6 +393,13 @@ namespace SynapticSea.UI
 
         List<GdDict> SlotRows()
         {
+            if (_componentHost != null)
+            {
+                var targets = new List<GdDict>();
+                foreach (object item in _componentHost.ListInstallTargets(_selectedInstanceId))
+                    if (item is GdDict row) targets.Add(row.DeepCopy());
+                return targets;
+            }
             var rows = new List<GdDict>();
             var seen = new HashSet<string>(StringComparer.Ordinal);
             if (_modState != null)
@@ -346,6 +447,8 @@ namespace SynapticSea.UI
 
         void Render()
         {
+            if (_componentHost != null) { RenderComponents(); return; }
+            UiFactory.SetShown(_componentList, false);
             SetTitle("SHIP MODIFICATION");
             if (_modState == null)
             {
@@ -404,5 +507,99 @@ namespace SynapticSea.UI
         }
 
         protected override VisualElement InitialFocusElement() => _list.Count > 0 ? _list.RowAt(Math.Max(0, _list.SelectedIndex)) : CloseButton;
+
+        void SelectComponentAt(int index)
+        {
+            if (_renderingComponents) return;
+            GdArray rows = ComponentRows();
+            if (index >= 0 && index < rows.Count && rows[index] is GdDict row) SelectComponent(row.GetString("instance_id"));
+        }
+
+        GdDict SelectedTarget()
+        {
+            List<GdDict> rows = SlotRows();
+            foreach (GdDict row in rows) if (TargetKey(row) == _selectedTargetKey) return row;
+            if (_selectedTargetKey.Length != 0) return new GdDict();
+            return _selected >= 0 && _selected < rows.Count ? rows[_selected] : new GdDict();
+        }
+
+        public bool InstallSelectedComponent()
+        {
+            if (_componentHost == null) return ComponentRefused("Component command host is unavailable");
+            if (_selectedInstanceId.Length == 0) return ComponentRefused("Choose a component instance first");
+            GdDict target = SelectedTarget();
+            if (target.IsEmpty) return ComponentRefused("Choose an actual installation target");
+            // The owner rechecks every gate. A displayed refusal never redirects to another slot.
+            return ShowComponentResult(_componentHost.RequestComponentInstall(_selectedInstanceId, target.GetString("ship_id"), target.GetString("slot_id")));
+        }
+
+        bool ComponentRefused(string reason)
+        {
+            _lastCommandResult = new GdDict { { "ok", false }, { "committed", false }, { "reason", reason } };
+            _status = reason; Render(); return false;
+        }
+
+        bool ShowComponentResult(GdDict result)
+        {
+            _lastCommandResult = result?.DeepCopy() ?? new GdDict { { "ok", false }, { "reason", "Component command returned no result" } };
+            bool ok = _lastCommandResult.GetBool("ok");
+            bool committed = _lastCommandResult.GetBool("committed");
+            _status = ok && !committed && _lastCommandResult.GetString("reason") == "started"
+                ? "Work started. Hold Interact to continue; release pauses." : _lastCommandResult.GetString("reason", "Command refused");
+            Render();
+            if (ok && !committed && _lastCommandResult.GetString("reason") == "started") ComponentWorkStarted?.Invoke(_lastCommandResult.DeepCopy());
+            return ok;
+        }
+
+        void RenderComponents()
+        {
+            _renderingComponents = true;
+            try
+            {
+            SetTitle("DIAGNOSTIC  |  COMPONENT EQUIPMENT");
+            UiFactory.SetShown(_componentList, true);
+            var components = new List<SelectableList.Item>();
+            int selectedComponent = -1;
+            foreach (object item in ComponentRows())
+            {
+                if (!(item is GdDict row)) continue;
+                if (row.GetString("instance_id") == _selectedInstanceId) selectedComponent = components.Count;
+                components.Add(new SelectableList.Item
+                {
+                    Id = "instance:" + row.GetString("instance_id"), Text = row.GetString("name", row.GetString("item_form")),
+                    Chip = InventoryPanel.ComponentConditionText(row),
+                    Detail = GdString.FormatFixed(row.GetFloat("mass"), 1) + " kg | " + row.GetString("holder"),
+                });
+            }
+            _componentList.SetItems(components, selectedComponent < 0 ? 0 : selectedComponent);
+            // Retain explicit identity even if its row vanishes; the owner will refuse instead of substituting a sibling.
+            List<GdDict> targets = SlotRows();
+            var slots = new List<SelectableList.Item>();
+            int targetIndex = -1;
+            foreach (GdDict row in targets)
+            {
+                if (TargetKey(row) == _selectedTargetKey) targetIndex = slots.Count;
+                slots.Add(new SelectableList.Item
+                {
+                    Id = TargetKey(row), Text = row.GetString("ship_id") + " / " + row.GetString("slot_id"),
+                    Chip = row.GetBool("occupied") ? "Installed" : "Empty",
+                    Detail = row.GetBool("occupied") ? row.GetString("instance_id") + " | " + row.GetString("reason") : row.GetString("reason"),
+                    Muted = !row.GetBool("ok"), Severity = row.GetBool("ok") ? Severity.None : Severity.Caution,
+                });
+            }
+            _selected = targetIndex >= 0 ? targetIndex : Math.Max(0, Math.Min(_selected, Math.Max(0, slots.Count - 1)));
+            if (_selectedTargetKey.Length == 0 && targets.Count > 0) _selectedTargetKey = TargetKey(targets[_selected]);
+            _list.SetItems(slots, _selected);
+            _power.Set(0, 1, "", Meter.Severity.Normal);
+            _summary.text = "Choose an instance and a physical target. Installation/removal uses timed work.";
+            GdDict work = _componentHost.GetComponentWorkState();
+            if (work.GetString("status").Length != 0 && work.GetString("status") != "idle")
+                _summary.text += "\nWork " + work.GetString("status") + " | " + work.GetString("instance_id") + " | " + work.GetString("reason");
+            _bag.text = "Selected instance: " + (_selectedInstanceId.Length == 0 ? "none" : _selectedInstanceId);
+            StatusText.Set(_status, _status.Length == 0 ? Severity.None : _lastCommandResult.GetBool("committed") ? Severity.Success
+                : _lastCommandResult.GetBool("ok") ? Severity.Info : Severity.Caution);
+            }
+            finally { _renderingComponents = false; }
+        }
     }
 }

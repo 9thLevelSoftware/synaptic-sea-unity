@@ -8,9 +8,9 @@ namespace SynapticSea.Core.Systems
 {
     /// <summary>
     /// REQ-PM-002 / ADR-0033 deterministic training-event bus. A pure ordered log of TrainingEvent records,
-    /// each resolved through <c>data/player/training_actions.json</c> to a (skill_id, base_xp, category) triple
-    /// and forwarded to <see cref="PlayerProgressionState.GrantXp"/>.
-    /// No RNG; events are processed in insertion order; replaying the same sequence yields the same XP awards.
+    /// ordinary events resolve through <c>data/player/training_actions.json</c> and forward progression grants.
+    /// Receipt-owned records log effects already applied elsewhere and never grant or replay XP.
+    /// No RNG; ordinary events are processed and replayed in insertion order.
     /// </summary>
     public class TrainingEventBus
     {
@@ -33,7 +33,7 @@ namespace SynapticSea.Core.Systems
         public Func<string, bool> SkillGate;
 
         readonly GdDict _actionsById = new GdDict(); // event_id -> {target_skill, base_xp, category}
-        readonly GdArray _log = new GdArray();       // ordered list of resolved events
+        GdArray _log = new GdArray();               // sole ordered authority, including already-applied receipts
         long _dropped = 0;
         long _xpTotal = 0;
 
@@ -132,7 +132,34 @@ namespace SynapticSea.Core.Systems
             return record;
         }
 
-        /// <summary>Replays the log into <paramref name="progression"/> for deterministic restoration.</summary>
+        /// <summary>
+        /// Record an already-applied receipt-owned event without delivering progression effects.
+        /// Malformed input throws ArgumentException; a conflicting retained receipt throws InvalidOperationException.
+        /// </summary>
+        public void RecordApplied(GdDict eventRecord, string commitId)
+        {
+            if (string.IsNullOrWhiteSpace(commitId) || eventRecord == null || !IsSafeSnapshot(eventRecord) ||
+                !ValidResolvedEvent(eventRecord) ||
+                (eventRecord.Has("commit_id") && !(eventRecord.Get("commit_id") is string suppliedId && suppliedId == commitId)) ||
+                (eventRecord.Has("receipt_owned") && !(eventRecord.Get("receipt_owned") is bool suppliedOwned && suppliedOwned)))
+                throw new ArgumentException("Invalid already-applied event or receipt identity.");
+
+            GdDict candidate = eventRecord.DeepCopy();
+            candidate["receipt_owned"] = true;
+            candidate["commit_id"] = commitId;
+            candidate["sequence"] = (long)_log.Count;
+            foreach (object item in _log)
+            {
+                if (!(item is GdDict prior) || !(prior.Get("receipt_owned") is bool owned && owned) ||
+                    prior.Get("commit_id") as string != commitId) continue;
+                if (!SameReceiptPayload(prior, candidate))
+                    throw new InvalidOperationException("Conflicting already-applied receipt payload.");
+                return;
+            }
+            _log.Append(candidate);
+        }
+
+        /// <summary>Replays ordinary log rows; receipt-owned rows already have their progression effect.</summary>
         public long ReplayInto(PlayerProgressionState progression)
         {
             if (progression == null)
@@ -141,6 +168,8 @@ namespace SynapticSea.Core.Systems
             foreach (object recordVariant in _log)
             {
                 GdDict record = recordVariant as GdDict ?? new GdDict();
+                if (record.Get("receipt_owned") is bool owned && owned)
+                    continue; // Progression was already published by the receipt owner.
                 string skillId = V.Str(record.Get("skill_id", ""));
                 long baseXp = V.I64(record.Get("base_xp", 0L));
                 bool isCross = V.Bool(record.Get("is_cross_training", false));
@@ -212,12 +241,13 @@ namespace SynapticSea.Core.Systems
             };
         }
 
-        /// <summary>Restores the log. Used by save/load to recover replayable state.</summary>
+        /// <summary>Validate receipt rows and preserve retained receipt identities before replacing the log/counters.</summary>
         public bool ApplySummary(GdDict summary)
         {
-            if (summary == null)
+            if (summary == null || !IsSafeSnapshot(summary))
                 return false;
-            _log.Clear();
+            var candidate = new GdArray();
+            var receipts = new Dictionary<string, GdDict>(StringComparer.Ordinal);
             object logVariant = summary.Get("log", new GdArray());
             if (logVariant is GdArray entries)
             {
@@ -225,11 +255,136 @@ namespace SynapticSea.Core.Systems
                 {
                     if (!(entry is GdDict e))
                         continue;
-                    _log.Append(e.DeepCopy());
+                    if (e.Has("receipt_owned") || e.Has("commit_id"))
+                    {
+                        if (!(e.Get("receipt_owned") is bool owned && owned) ||
+                            !(e.Get("commit_id") is string commitId) || string.IsNullOrWhiteSpace(commitId) ||
+                            !ValidResolvedEvent(e)) return false;
+                        if (receipts.TryGetValue(commitId, out GdDict prior) && !SameReceiptPayload(prior, e))
+                            return false;
+                        receipts[commitId] = e;
+                    }
+                    candidate.Append(e.DeepCopy());
                 }
             }
-            _dropped = V.I64(summary.Get("dropped", 0L));
-            _xpTotal = V.I64(summary.Get("xp_total", 0L));
+            // Import may replace ordinary history and counters, but only Reset may forget confirmed receipts.
+            // Compare every retained row, including identical repeats; sequence is already excluded by the
+            // canonical comparison and receipt-local numeric equivalence preserves the validated XP value.
+            foreach (object item in _log)
+            {
+                if (!(item is GdDict retained) || !(retained.Get("receipt_owned") is bool owned && owned))
+                    continue;
+                if (!(retained.Get("commit_id") is string retainedId) ||
+                    !receipts.TryGetValue(retainedId, out GdDict incomingReceipt) ||
+                    !SameReceiptPayload(retained, incomingReceipt))
+                    return false;
+            }
+            long dropped = V.I64(summary.Get("dropped", 0L));
+            long xpTotal = V.I64(summary.Get("xp_total", 0L));
+            _log = candidate;
+            _dropped = dropped;
+            _xpTotal = xpTotal;
+            return true;
+        }
+
+        static bool ValidResolvedEvent(GdDict row) =>
+            NonemptyString(row.Get("event_id")) && NonemptyString(row.Get("target_id")) &&
+            NonemptyString(row.Get("skill_id")) && ReceiptXp(row.Get("base_xp"), out _) &&
+            row.Get("category") is string && row.Get("is_cross_training") is bool && row.Get("gated") is bool;
+
+        static bool NonemptyString(object value) => value is string text && text.Length != 0;
+
+        // This is the receipt-local numeric seam, not a general JSON codec. Validate the exclusive Int64 upper
+        // bound before casting: converting long.MaxValue to double rounds it to the first out-of-range value.
+        static bool ReceiptXp(object value, out long amount)
+        {
+            if (value is long integer) { amount = integer; return integer >= 0; }
+            if (value is double number && !double.IsNaN(number) && !double.IsInfinity(number) &&
+                number >= 0 && number < 9223372036854775808.0 && Math.Truncate(number) == number)
+            {
+                amount = (long)number;
+                return true;
+            }
+            amount = 0;
+            return false;
+        }
+
+        static bool SameReceiptPayload(GdDict left, GdDict right)
+        {
+            int leftCount = left.Count - (left.Has("sequence") ? 1 : 0);
+            int rightCount = right.Count - (right.Has("sequence") ? 1 : 0);
+            if (leftCount != rightCount) return false;
+            foreach (var entry in left)
+            {
+                if (entry.Key is string sequence && sequence == "sequence") continue;
+                if (!right.TryGetValue(entry.Key, out object other)) return false;
+                if (entry.Key is string field && field == "base_xp")
+                {
+                    if (!ReceiptXp(entry.Value, out long first) || !ReceiptXp(other, out long second) || first != second)
+                        return false;
+                }
+                else if (!ExactValue(entry.Value, other)) return false;
+            }
+            return true;
+        }
+
+        // Opaque metadata compares by exact Variant type/value. Only the declared base_xp field uses the
+        // validated long/double equivalence above; never round adjacent large integers through double.
+        static bool ExactValue(object left, object right)
+        {
+            if (ReferenceEquals(left, right)) return true;
+            if (left == null || right == null || left.GetType() != right.GetType()) return false;
+            if (left is GdDict dictionary)
+            {
+                var other = (GdDict)right;
+                if (dictionary.Count != other.Count) return false;
+                foreach (var entry in dictionary)
+                    if (!other.TryGetValue(entry.Key, out object value) || !ExactValue(entry.Value, value)) return false;
+                return true;
+            }
+            if (left is GdArray array)
+            {
+                var other = (GdArray)right;
+                if (array.Count != other.Count) return false;
+                for (int i = 0; i < array.Count; i++)
+                    if (!ExactValue(array[i], other[i])) return false;
+                return true;
+            }
+            return left.Equals(right);
+        }
+
+        // Keep this boundary local: the detached F04A bus does not depend on component-owned services.
+        // DeepCopy retains dictionary keys, so mutable keys and cyclic values must reject before copying.
+        static bool IsSafeSnapshot(object snapshot) => IsSafeSnapshot(snapshot, new HashSet<object>());
+
+        static bool IsSafeSnapshot(object snapshot, HashSet<object> ancestors)
+        {
+            if (snapshot is GdDict dictionary)
+            {
+                if (!ancestors.Add(dictionary)) return false;
+                foreach (var entry in dictionary)
+                {
+                    if (entry.Key is GdDict || entry.Key is GdArray || !IsSafeSnapshot(entry.Value, ancestors))
+                    {
+                        ancestors.Remove(dictionary);
+                        return false;
+                    }
+                }
+                ancestors.Remove(dictionary);
+            }
+            else if (snapshot is GdArray array)
+            {
+                if (!ancestors.Add(array)) return false;
+                foreach (object value in array)
+                {
+                    if (!IsSafeSnapshot(value, ancestors))
+                    {
+                        ancestors.Remove(array);
+                        return false;
+                    }
+                }
+                ancestors.Remove(array);
+            }
             return true;
         }
     }
