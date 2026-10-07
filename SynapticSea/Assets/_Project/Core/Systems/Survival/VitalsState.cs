@@ -147,6 +147,8 @@ namespace SynapticSea.Core.Systems
         {
             if (deltaSeconds <= 0.0) return false;
             if (context == null) context = new GdDict();
+            // Hunger and thirst follow game time; everything else (stamina, hazards, starvation damage) stays real-time.
+            double gameDelta = context.Has(SimKeys.GameDelta) ? V.F64(context.Get(SimKeys.GameDelta, deltaSeconds)) : deltaSeconds;
             bool changed = false;
             // Hunger -> stamina recovery (curve, not cliff).
             double staminaRecoveryMult = HungerStaminaRecoveryCurve(Hunger, MaxHunger);
@@ -220,7 +222,7 @@ namespace SynapticSea.Core.Systems
             }
             // Hunger (cold cascade via temperature_hunger_mult)
             double hgrMult = V.F64(context.Get(SimKeys.TemperatureHungerMult, 1.0));
-            double hgrDrain = HungerDrainRate * Math.Max(0.0, hgrMult) * deltaSeconds;
+            double hgrDrain = HungerDrainRate * Math.Max(0.0, hgrMult) * gameDelta;
             if (hgrDrain > 0.0 && Hunger > 0.0)
             {
                 Hunger = Math.Max(0.0, Hunger - hgrDrain);
@@ -229,7 +231,7 @@ namespace SynapticSea.Core.Systems
             // Thirst (temperature + wounds)
             double tMult = V.F64(context.Get(SimKeys.TemperatureThirstMult, 1.0));
             double woundT = V.F64(context.Get(SimKeys.WoundThirstMult, 1.0));
-            double tDrain = ThirstDrainRate * Math.Max(0.0, tMult) * Math.Max(0.0, woundT) * deltaSeconds;
+            double tDrain = ThirstDrainRate * Math.Max(0.0, tMult) * Math.Max(0.0, woundT) * gameDelta;
             if (tDrain > 0.0 && Thirst > 0.0)
             {
                 Thirst = Math.Max(0.0, Thirst - tDrain);

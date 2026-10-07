@@ -498,6 +498,7 @@ namespace SynapticSea.Core.Session
             ReconcileCaptionsWithSettings();
             if (VitalsState != null && !snapshot.VitalsSummary.IsEmpty)
                 VitalsState.ApplySummary(snapshot.VitalsSummary);
+            ApplySurvivalTuning();
             if (SanityState != null && !snapshot.SanitySummary.IsEmpty)
                 SanityState.ApplySummary(snapshot.SanitySummary);
             if (RadiationState != null && !snapshot.RadiationSummary.IsEmpty)
@@ -599,6 +600,7 @@ namespace SynapticSea.Core.Session
         void ApplyPortSnapshotExtensions(RunSnapshot snapshot)
         {
             ApplyRunContextSummary(snapshot.RunContext);
+            ApplySurvivalTuning(); // the run context may carry the clock scale, so re-apply once it is final
             if (WoundState != null && !snapshot.WoundSummary.IsEmpty)
             {
                 WoundState.ApplySummary(snapshot.WoundSummary);
@@ -736,6 +738,7 @@ namespace SynapticSea.Core.Session
             FireSuppressionState?.Configure(LoadJsonDict(SHIP_SUBSYSTEM_TUNING_PATH).GetDictOrEmpty("fire_suppression"));
             ElectricalArcState?.Configure(ArcConfig(new GdArray()));
             VitalsState?.Configure(new GdDict());
+            ApplySurvivalTuning();
             SanityState?.Configure(new GdDict());
             RadiationState?.Configure(new GdDict());
             BodyTemperatureState?.Configure(new GdDict());

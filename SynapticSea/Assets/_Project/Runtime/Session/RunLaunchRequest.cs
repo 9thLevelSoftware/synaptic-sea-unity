@@ -100,8 +100,9 @@ namespace SynapticSea.Runtime.Session
 
         public static RunLaunchRequest NewRun() => new RunLaunchRequest { Mode = RunLaunchMode.NewRun };
 
-        public static RunLaunchRequest NewRun(long seed, string biomeId, string difficultyId) =>
-            new RunLaunchRequest { Mode = RunLaunchMode.NewRun, Seed = seed, BiomeId = biomeId ?? "", DifficultyId = difficultyId ?? DefaultDifficultyId };
+        /// <summary>A New Run from the title setup. <paramref name="timeScale"/> defaults to 60 (1 real minute = 1 game hour); 1.0 is the real-time "off" pacing.</summary>
+        public static RunLaunchRequest NewRun(long seed, string biomeId, string difficultyId, double timeScale = WorldClock.DefaultNewRunScale) =>
+            new RunLaunchRequest { Mode = RunLaunchMode.NewRun, Seed = seed, BiomeId = biomeId ?? "", DifficultyId = difficultyId ?? DefaultDifficultyId, TimeScale = timeScale };
 
         /// <summary>Test-only new run on the golden <c>coherent_ship_001</c> layout (no generation).</summary>
         public static RunLaunchRequest GoldenShip() => new RunLaunchRequest { Mode = RunLaunchMode.NewRun, LayoutOverridePath = GoldenShipDir + "layout.json", BiomeId = "" };

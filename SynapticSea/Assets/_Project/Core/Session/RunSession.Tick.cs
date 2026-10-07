@@ -24,6 +24,9 @@ namespace SynapticSea.Core.Session
         /// <c>_process</c> (repair/seal/extinguish/breach channels, recharge port) runs, as Godot processed those children
         /// after the coordinator every frame regardless of its early returns.
         /// </summary>
+        /// <summary>Game seconds the world clock advanced this tick (real delta times the clock scale); what <see cref="TimeDomain.Game"/> stages receive.</summary>
+        public double GameDeltaThisTick { get; private set; }
+
         public void Tick(in TickContext ctx)
         {
             if (ComponentGenerationRestoreInProgress || CompleteGenerationEnabled && ComponentTerminalPending) return;
@@ -33,7 +36,7 @@ namespace SynapticSea.Core.Session
             {
                 if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile)) RecomputeOccupancy();
                 double delta = ctx.Delta;
-                GameClock.Advance(delta);
+                GameDeltaThisTick = GameClock.Advance(delta);
                 if (PlayableStarted && !SliceComplete)
                     RunPlayTimeSeconds += delta;
                 SessionLocation location = AwayFromStart ? SessionLocation.Away : SessionLocation.Home;
@@ -42,7 +45,8 @@ namespace SynapticSea.Core.Session
                 {
                     foreach (string id in TickOrder.OrderFor(location))
                     {
-                        TickOrder.Get(id).Run(this, location, delta);
+                        ITickStage stage = TickOrder.Get(id);
+                        stage.Run(this, location, stage.Domain == TimeDomain.Game ? GameDeltaThisTick : delta);
                         StageRan?.Invoke(id, location);
                     }
                 }
@@ -323,6 +327,7 @@ namespace SynapticSea.Core.Session
                 encumbDrain = Encumbrance.HealthDrainPerSecond(InventoryState.GetLoadRatio());
             VitalsState.Tick(delta, new GdDict
             {
+                { SimKeys.GameDelta, GameDeltaThisTick },
                 { "temperature_thirst_mult", tempMult },
                 { SimKeys.TemperatureHungerMult, hungerMult },
                 { "radiation_health_drain", radDrain },
@@ -387,11 +392,13 @@ namespace SynapticSea.Core.Session
         /// <summary>Domain 3: spoilage + in-progress production (both branches; deliberately not paused while away).</summary>
         void TickFoodRuntime(double delta)
         {
-            SpoilageState?.Tick(delta);
+            // delta is game seconds (TimeDomain.Game); authored durations are stretched at scaled pacing (SurvivalTuning).
+            SpoilageState?.Tick(delta / _survivalTuning.SpoilageDivisor(GameClock));
+            double productionDelta = delta / _survivalTuning.ProductionDivisor(GameClock);
             if (HydroponicsState != null && HydroponicsState.CurrentState == (long)HydroponicsState.State.PLANTED)
-                HydroponicsState.Tick(delta);
+                HydroponicsState.Tick(productionDelta);
             if (WaterRecyclerState != null && WaterRecyclerState.CurrentState == (long)WaterRecyclerState.State.RECYCLING)
-                WaterRecyclerState.Tick(delta);
+                WaterRecyclerState.Tick(productionDelta);
         }
 
         /// <summary>Domain 1: terminal stake — incapacitation ends the run as a death (idempotent).</summary>

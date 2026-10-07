@@ -199,8 +199,33 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual("engineer", request.ClassId);
             Assert.AreEqual("", request.LayoutOverridePath, "Title New Run has no layout override; the hub is applied at boot");
             Assert.IsNull(request.SettingsSummary, "untouched title settings are not handed off");
+            Assert.AreEqual(60.0, request.TimeScale, "a New Run defaults to 1 real minute = 1 game hour");
             Assert.AreSame(request, RunLaunchRequest.Consume());
             Assert.IsNull(RunLaunchRequest.Pending);
+        }
+
+        [UnityTest]
+        public IEnumerator NewRunSetupTimeScaleRowCyclesThroughTheOfferedPacings()
+        {
+            yield return BootToTitle();
+            MenuCoordinator c = _title.Coordinator;
+            c.MenuState.SetFocusIndex(RowIndex(c, "start"));
+            c.HandleUiInput(UiCommand.Accept);
+            NewRunSetupPanel setup = _title.NewRunSetup;
+            Assert.IsNotNull(setup);
+            Assert.AreEqual(60.0, setup.TimeScale);
+            Assert.AreEqual("1 min = 1 hour", setup.RowValue(NewRunSetupPanel.RowTimeScale));
+            setup.FocusRow(NewRunSetupPanel.RowTimeScale);
+            setup.Cycle(1);
+            Assert.AreEqual(120.0, setup.TimeScale);
+            setup.Cycle(1);
+            Assert.AreEqual(1.0, setup.TimeScale);
+            Assert.AreEqual("Off (real time)", setup.RowValue(NewRunSetupPanel.RowTimeScale));
+            setup.Cycle(1);
+            Assert.AreEqual(30.0, setup.TimeScale);
+            Assert.AreEqual("2 min = 1 hour", setup.RowValue(NewRunSetupPanel.RowTimeScale));
+            Assert.AreEqual(30.0, setup.BuildRequest().TimeScale, "the request carries the chosen pacing");
+            yield return null;
         }
 
         [UnityTest]

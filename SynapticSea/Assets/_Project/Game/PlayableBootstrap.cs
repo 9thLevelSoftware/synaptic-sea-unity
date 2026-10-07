@@ -394,6 +394,7 @@ namespace SynapticSea.Game
             if (_leaving) return;
             RunLaunchRequest next = RunLaunchRequest.NewRun();
             next.ClassId = Launch.ClassId;
+            next.TimeScale = Session != null ? Session.GameClock.Scale : Launch.TimeScale; // the next run keeps this run's pacing
             if (Results != null && ResultsSummary != null)
                 RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());
             _leaving = true;

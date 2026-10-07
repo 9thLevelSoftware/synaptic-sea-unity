@@ -25,6 +25,7 @@ namespace SynapticSea.UI
         readonly Label _workLine = new Label();
         readonly Label _damageIndicator = new Label();
         readonly Label _weaponLine = new Label();
+        readonly Label _clockLine = new Label();
         readonly VisualElement _effectIcons = new VisualElement();
         readonly List<string> _effectIconIds = new List<string>();
 
@@ -35,6 +36,9 @@ namespace SynapticSea.UI
         public Meter Oxygen => _oxygen;
         public Meter Stamina => _stamina;
         public string WorkLine => _workLine.text;
+
+        /// <summary>The in-game day and time ("Day 2  14:05"); empty (hidden) at real-time pacing.</summary>
+        public string ClockLine => _clockLine.style.display == DisplayStyle.None ? "" : _clockLine.text;
 
         /// <summary>The combat line (Godot hotbar_panel text: weapon | ammo | threat awareness | combat/stealth).</summary>
         public string WeaponLine => _weaponLine.text;
@@ -82,6 +86,13 @@ namespace SynapticSea.UI
             _weaponLine.AddToClassList("ss-label--mono");
             _weaponLine.style.display = DisplayStyle.None;
             Add(_weaponLine);
+            _clockLine.name = "hud-clock-line";
+            _clockLine.AddToClassList("ss-label");
+            _clockLine.AddToClassList("ss-label--secondary");
+            _clockLine.AddToClassList("ss-label--mono");
+            _clockLine.style.display = DisplayStyle.None;
+            _clockLine.pickingMode = PickingMode.Ignore;
+            Add(_clockLine);
             QuickUseSlot.AddToClassList("hud-quick-use");
             QuickUseSlot.pickingMode = PickingMode.Ignore;
             Add(QuickUseSlot);
@@ -181,6 +192,14 @@ namespace SynapticSea.UI
         {
             _weaponLine.text = text ?? "";
             _weaponLine.style.display = string.IsNullOrEmpty(text) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        /// <summary>Shows the in-game clock text; "" hides the line.</summary>
+        public void SetClockLine(string text)
+        {
+            text = text ?? "";
+            if (_clockLine.text != text) _clockLine.text = text;
+            _clockLine.style.display = text.Length == 0 ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
         /// <summary>The transient damage chip at the top of the cluster; "" hides it.</summary>
