@@ -1,5 +1,6 @@
 // Launch contract between the Title scene and the Playable scene (replaces title_main.gd's in-process
 // MAIN_SCENE.instantiate() + request_load() + apply_ui_settings_summary() handoff @ 96ecb2b0).
+using SynapticSea.Core.Systems;
 using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Runtime.Session
@@ -65,6 +66,9 @@ namespace SynapticSea.Runtime.Session
 
         /// <summary>Difficulty profile id (standard / hardened / deep_dive).</summary>
         public string DifficultyId = DefaultDifficultyId;
+
+        /// <summary>Game seconds per real second (Phase 1.1). 1.0 keeps game time equal to real time.</summary>
+        public double TimeScale = WorldClock.DefaultScale;
 
         /// <summary>Starting class: the meta-progression selected class, else <see cref="DefaultClassId"/>.</summary>
         public string ClassId = DefaultClassId;

@@ -167,6 +167,8 @@ namespace SynapticSea.Core.Session
             snapshot.VisitedShips = WorldSnapshotAssembler.VisitedShipsForSave(s);
             // ADR-0046: real slot metadata.
             snapshot.PlayTimeSeconds = s.RunPlayTimeSeconds;
+            // Phase 1.1: only saved when it cannot be rebuilt from play time (otherwise a manual load restores WorldTime from play_time_seconds).
+            if (!s.GameClock.IsDefaultConfiguration || s.GameClock.GameSeconds != s.RunPlayTimeSeconds) snapshot.WorldClock = s.GameClock.GetSummary();
             snapshot.CurrentLocation = "home";
             if (s.CurrentShip != null && s.CurrentShip.MarkerId != "")
                 snapshot.CurrentLocation = s.CurrentShip.MarkerId;
@@ -205,7 +207,12 @@ namespace SynapticSea.Core.Session
             if (s.UniqueItemState != null && !snapshot.UniqueItemSummary.IsEmpty)
                 s.UniqueItemState.ApplySummary(snapshot.UniqueItemSummary);
             if (!snapshot.VisitedShips.IsEmpty)
+            {
                 WorldSnapshotAssembler.ApplyVisitedShips(s, snapshot.VisitedShips);
+                // A save without world_clock seeds the clock from play time, which can trail a ship's last simulated time; never run the clock behind a ship.
+                foreach (var ship in s.VisitedShips.Values)
+                    if (ship.LastSimTime > s.GameClock.GameSeconds) s.GameClock.GameSeconds = ship.LastSimTime;
+            }
         }
     }
 }

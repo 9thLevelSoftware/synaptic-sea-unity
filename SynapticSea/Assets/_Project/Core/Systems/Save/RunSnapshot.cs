@@ -70,6 +70,8 @@ namespace SynapticSea.Core.Systems
         public GdDict HomeShipInventory = new GdDict();
         public GdDict HomeFiniteLoot = new GdDict();
         public GdDict HomePortalState = new GdDict();
+        /// <summary>Optional (Phase 1.1): the world clock. Written only when it cannot be rebuilt from <see cref="PlayTimeSeconds"/>; empty = seed the clock from play time.</summary>
+        public GdDict WorldClock = new GdDict();
         public GdDict RunContext = new GdDict();
         // gate2-current-run-6: the rest of what only rode world.json (home carts, the home breach environment, meta
         // progression, unique items and the retained-ship registry), so a manual slot restores them too.
@@ -221,6 +223,7 @@ namespace SynapticSea.Core.Systems
             };
             if (!HomeFiniteLoot.IsEmpty) result["home_finite_loot"] = HomeFiniteLoot.DeepCopy();
             if (!HomePortalState.IsEmpty) result["home_portal_state"] = HomePortalState.DeepCopy();
+            if (!WorldClock.IsEmpty) result["world_clock"] = WorldClock.DeepCopy();
             if (SliceVersion == ComponentIntegrationVersion)
             {
                 result["component_domain"] = ComponentDomain.DeepCopy(); result["generation_id"] = GenerationId; result["capture_revision"] = CaptureRevision;
@@ -325,6 +328,7 @@ namespace SynapticSea.Core.Systems
             snapshot.UniqueItemSummary = DeepCopyDict(dict.Get("unique_item_summary", new GdDict()));
             snapshot.VisitedShips = DeepCopyDict(dict.Get("visited_ships", new GdDict()));
             snapshot.PlayTimeSeconds = V.F64(dict.Get("play_time_seconds", 0.0));
+            if (dict.Get("world_clock") is GdDict worldClock) snapshot.WorldClock = worldClock.DeepCopy();
             snapshot.CurrentLocation = V.Str(dict.Get("current_location", ""));
             snapshot.WorldSeed = V.I64(dict.Get("world_seed", 0L));
             snapshot.SlotId = V.Str(dict.Get("slot_id", ""));

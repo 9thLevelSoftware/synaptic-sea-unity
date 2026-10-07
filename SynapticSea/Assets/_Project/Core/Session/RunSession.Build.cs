@@ -85,7 +85,7 @@ namespace SynapticSea.Core.Session
         void BuildRuntimeNodes()
         {
             // Unity port (C4): the run context (difficulty / biome / seed) is known before any model reads it.
-            ApplyRunContext(Deps.DifficultyId, Deps.BiomeId, Deps.RunSeed);
+            ApplyRunContext(Deps.DifficultyId, Deps.BiomeId, Deps.RunSeed, Deps.TimeScale);
             ShipSystemsManager = new ShipSystemsManager();
             ShipBlueprint bp = LoadBlueprintForSystems();
             ShipSystemsManager.Configure(ShipSystemsManager.LoadDefinitions(), bp.ShipCondition, bp.SeedValue);
