@@ -26,6 +26,28 @@ Product and design choices that code and tests must not silently undo. `OPEN` it
 6. **Paid crafting is deleted** (0.3f), with the `EnablePaidCrafting` and `EnableManualStudy` flags and the schema 3/4/5 domains. Saves made with component integration and paid crafting both on (only tests created them) now fail to load as `corrupt_generation` and drop out of the slot list. Orphaned `.paid-craft-generations` folders are harmless. The save payload, commit and pointer versions were not bumped.
 7. **Books do not teach recipes yet.** Ordinary crafting has no knowledge gate (`CanCraft(..., knowledge: null)`), so every recipe is already craftable. Gating recipes by books is a later-phase feature.
 
+## Phase 0.4 outcome (dead code)
+
+The master plan's 0.4 list came from file headers, written before 0.3. Each item was checked against the code before deletion.
+
+**Deleted:**
+- Work kernel: `WorkEligibility`, `WorkTransactionState`, `IWorkCommitPort` and `WorkKernelTests` (0.4a).
+- Infra ledgers: `AutomatedPlaytestRubric`, `BalanceLedger`, `ReleaseReadinessLedger`, `ProductAuditReport`, `IntegrationMatrix`, and the matrix half of `DependencyValidator` (which keeps `VerifyCatalogSources`) (0.4b).
+- First-generation graph pipeline: `RoomGraphGenerator`, `StructuralPlacer`, `RoomGraph`, plus unused `LayoutMutator`, `ShipGenerator.GenerateLayout` and `LifeBoatBuilder.BuildGraph` members and their Godot stage-parity fixtures (0.4c).
+- Rust worldgen seam: `FrozenDerelictLayoutSource`, `IDerelictLayoutSource`, the `ShipGenerator` worldgen path and the 5.5 MB `StreamingAssets/data/worldgen-fixtures` dump, which shipped in player builds. It stays in git history (0.4d).
+
+**Not deleted, despite the master plan:**
+- `PinnedAdmissionResourceScope`, `AuxiliaryWorkRuntime*`, `AuxReplay*` and `AuxiliaryEvidence*` do not exist on `main-next`; they live only on the archive branch.
+- `DomainTransactionCoordinator`, `ComponentTransferService`, `ItemInstanceState` and `SaveCommitCoordinator` are labelled "Unused" but component integration reaches them. The headers were corrected.
+- `ShipLayoutGenerator`, `TemplateSelector`, `RoomAssigner`, `TopologyTemplate`, `CellLayoutEngine` and the overlay/wreck parts of `LayoutMutator` are the live path for every first away wreck and every size-0 wreck.
+- `TuningCatalog` is unused but kept as the loader for Phase 1.3's `balance/survival.json`.
+
+**Later candidates (test-only, not in the master plan):** `StartSceneBuilder`, `SeedDeterminismContract`.
+
+**Formal-build validator retired.** `docs/design/formal-build-2026-10-02/validate_artifacts.py` fails on any deleted file in its preservation baseline, and nothing in CI or `tools/mac` runs it. The packet is a historical record; do not recapture its baseline.
+
+**Size:** about 3,500 lines of product code and tests plus the 258k-line fixture dump, not the master plan's 20k-line estimate.
+
 ## Known issues, deferred
 
 - **`RepairPoint.TryStart`** (`Core/Session/Interactables/RepairPoint.cs:140-146`) returns `true` on `insufficient_skill`, and `repair_point` is checked before `breach_seal_point` (`InteractionRegistry.cs`). A breach seal on the same spot as a skill-gated repair point therefore never starts. For the Phase 2 interaction catalog.

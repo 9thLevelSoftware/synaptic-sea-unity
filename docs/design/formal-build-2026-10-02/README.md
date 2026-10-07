@@ -1,5 +1,7 @@
 # Synaptic Sea formal build program
 
+**Historical record (Phase 0.4, 2026-10-07).** This packet is kept as a record of the Oct-2 audit. `validate_artifacts.py` is no longer a gate: Phase 0.4 deleted dead code that its preservation baseline lists (Infra ledgers, work kernel, `RoomGraphGenerator`, the Rust worldgen seam and others), so strict mode now fails by design. Nothing in CI or `tools/mac` runs it. Do not recapture the baseline. Current decisions live in `docs/design/decisions.md`.
+
 **Status: documentation revision 3, bounded follow-up closure for review.** Audit/authoring baseline 840f14f remains immutable. Prior independently approved a52a347 delivers only bounded F01/F04/F05 corrections; current tier commit 15b09d7 adds only actual station-tier propagation, leaving full F07 incomplete. Full package gameplay acceptance remains pending. C1-C5 are independently cleared; this addendum fixes C6 and selects the reviewed provisional defaults, with tunable numerical hypotheses. This documentation task performs no publication, source/balance edits or save conversion.
 
 The game is persistent survival in space: explore dangerous derelicts, salvage and repair useful equipment, make vessels habitable, weld them into homes, and move a sufficiently powered assembly. Small craft remain useful. Every starting class must be able to establish a home and repair a first ship solo through earned resources and meaningful specialization. Returning and finishing onboarding continue the same life.

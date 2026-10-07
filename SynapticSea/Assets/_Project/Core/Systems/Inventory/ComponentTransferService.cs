@@ -5,7 +5,7 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Core.Systems
 {
     /// <summary>
-    /// Unused, detached component preparation. Instance holders are the sole membership authority;
+    /// Detached component preparation (called from DomainTransactionCoordinator.Prepare, component integration only). Instance holders are the sole membership authority;
     /// publication and completion receipts belong to DomainTransactionCoordinator.
     /// </summary>
     public sealed class ComponentTransferService

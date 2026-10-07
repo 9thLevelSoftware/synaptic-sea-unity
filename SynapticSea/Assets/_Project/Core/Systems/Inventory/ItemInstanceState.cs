@@ -5,7 +5,7 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Core.Systems
 {
     /// <summary>
-    /// Unused standalone component registry. Imports replace the complete validated state; all read boundaries
+    /// Standalone component registry (instance form used by component integration; the static IsSafeSnapshot is also used by ordinary play via CanonicalHash). Imports replace the complete validated state; all read boundaries
     /// return defensive snapshots. Catalog acquisition, holder capabilities and live-store bindings are external.
     /// </summary>
     public sealed class ItemInstanceState

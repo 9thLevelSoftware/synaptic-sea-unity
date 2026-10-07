@@ -19,8 +19,6 @@ namespace SynapticSea.Core.Session
         }
         public GdDict GetSummary() { return _summary.DeepCopy(); }
         public GdDict GetProjections() => _projections.DeepCopy();
-        internal GdDict GetParticipantProjection(string key) => _summary.GetDictOrEmpty("participating_state").GetDictOrEmpty(key).DeepCopy();
-        internal long SchemaVersion => _summary.GetInt("schema_version");
         // Preparation validates with a private prospective receipt. Published/imported bundles never use this seam.
         internal static bool TryCreatePreparation(GdDict summary, GdDict command, out DomainBundle bundle, out string reason)
         {

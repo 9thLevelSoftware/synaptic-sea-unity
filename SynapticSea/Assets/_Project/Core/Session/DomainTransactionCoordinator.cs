@@ -5,7 +5,7 @@ using SynapticSea.Core.Variant;
 
 namespace SynapticSea.Core.Session
 {
-    /// <summary>Unused in-memory sole publisher for the bounded component domain.</summary>
+    /// <summary>In-memory sole publisher for the bounded component domain; reached only when <c>EnableComponentIntegration</c> is on (RunSession.Components).</summary>
     public sealed class DomainTransactionCoordinator
     {
         DomainBundle _current;
@@ -36,8 +36,6 @@ namespace SynapticSea.Core.Session
 
         public GdDict GetSummary() => _current.GetSummary();
         public GdDict GetProjections() => _current.GetProjections();
-        internal GdDict GetParticipantProjection(string key) => _current.GetParticipantProjection(key);
-        internal long SchemaVersion => _current.SchemaVersion;
 
         internal GdDict PrepareLive(GdDict command, Func<GdDict, GdDict> stageEffects)
         {
@@ -186,8 +184,6 @@ namespace SynapticSea.Core.Session
                 { "transaction_id", receipt.Get("transaction_id") }, { "command_id", receipt.Get("command_id") },
                 { "revision", receipt.Get("revision") }, { "commit_id", receipt.Get("commit_id", receipt.Get("transaction_id")) }, { "result", receipt.GetDictOrEmpty("result").DeepCopy() },
                 { "presentation_failed", false }, { "presentation_error", "" } };
-            foreach (string key in new[] { "job_id", "reconciliation_id", "recipe_id" })
-                if (receipt.GetDictOrEmpty("result").Has(key)) result[key] = receipt.GetDictOrEmpty("result").Get(key);
             return result;
         }
 

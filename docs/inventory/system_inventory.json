@@ -3545,61 +3545,6 @@
       "port_status": "ported"
     },
     {
-      "id": "structural_placer",
-      "file": "SynapticSea/Assets/_Project/Core/Procgen/StructuralPlacer.cs",
-      "name": "Structural Placer (lifeboat geometry)",
-      "domain": "procgen",
-      "kind": "simulation",
-      "model_exists": true,
-      "smoke": "scripts/validation/structural_placer_smoke.gd",
-      "reachable": true,
-      "driven": true,
-      "driven_at": "life_boat.gd:64",
-      "input": {
-        "live": true,
-        "desc": "RoomGraph + seed + biome via place_structure(graph, 0, biome)",
-        "at": "life_boat.gd:64"
-      },
-      "output": {
-        "live": true,
-        "desc": "BFS-grid Node3D 'ShipStructure' tree (real walkable lifeboat geometry) returned to LifeBoatBuilder and parented under lifeboat_ship.scene_root (the player's actual ride)",
-        "at": "playable_generated_ship.gd:4950"
-      },
-      "confidence": "V",
-      "loops": [
-        "travel"
-      ],
-      "integrations": [
-        {
-          "to": "room_graph",
-          "via": "place_structure(graph) reads rooms/links + get_connected_rooms for BFS layout",
-          "at": "structural_placer.gd:142-193",
-          "health": "healthy"
-        },
-        {
-          "to": "kit_catalog",
-          "via": "_ensure_kit_catalog -> kits_for_role/has_role_for for per-role module lists",
-          "at": "structural_placer.gd:378-396",
-          "health": "healthy"
-        },
-        {
-          "to": "life_boat",
-          "via": "LifeBoatBuilder.build -> StructuralPlacer.new().place_structure",
-          "at": "life_boat.gd:63-64",
-          "health": "healthy"
-        }
-      ],
-      "content": "partial",
-      "content_note": "RE-VERIFIED V. life_boat.gd:63-64 confirmed StructuralPlacerScript.new().place_structure(graph, 0, biome). Live path confirmed: playable_generated_ship.gd:4852 _build_lifeboat_at_home() (called during home-ship build) -> :4178 LifeBoatBuilderScript.build(_resolve_current_loot_biome_id()) -> life_boat.gd:64. structural_placer.gd:378-384 _ensure_kit_catalog/configure and :395-396 has_role_for/kits_for_role confirmed. Output is real walkable lifeboat geometry parented as the player's ride. Main derelict path bypasses StructuralPlacer (uses CellLayoutEngine + generated_ship_loader). V holds.",
-      "functional": null,
-      "gaps": [
-        "Still lifeboat-only by design; derelicts use layout.json pipeline."
-      ],
-      "subsystems": [],
-      "godot_file": "scripts/procgen/structural_placer.gd",
-      "port_status": "ported"
-    },
-    {
       "id": "kit_catalog",
       "file": "SynapticSea/Assets/_Project/Core/Procgen/KitCatalog.cs",
       "name": "Kit Catalog (structural module skins)",
@@ -3624,14 +3569,7 @@
       "loops": [
         "travel"
       ],
-      "integrations": [
-        {
-          "to": "structural_placer",
-          "via": "has_role_for + kits_for_role drive module selection",
-          "at": "structural_placer.gd:395-396",
-          "health": "healthy"
-        }
-      ],
+      "integrations": [],
       "content": "partial",
       "content_note": "RE-VERIFIED V. structural_placer.gd:378-384 _ensure_kit_catalog: KitCatalogScript.new() + configure('res://data/kits/') (process-wide static cache _shared_kit_catalog). :387-398 _modules_for_role prefers kit_catalog.kits_for_role(role, biome) when has_role_for(role, biome) is true (:395-396), else falls through to ROOM_MODULES const. Live only on the lifeboat path (via StructuralPlacer at playable_generated_ship.gd:4950). For default v0 kit has_role_for returns true so the kit list is used. V holds.",
       "functional": null,
@@ -3640,55 +3578,6 @@
       ],
       "subsystems": [],
       "godot_file": "scripts/procgen/kit_catalog.gd",
-      "port_status": "ported"
-    },
-    {
-      "id": "room_graph",
-      "file": "SynapticSea/Assets/_Project/Core/Procgen/RoomGraph.cs",
-      "name": "Room Graph (adjacency model)",
-      "domain": "procgen",
-      "kind": "simulation",
-      "model_exists": true,
-      "smoke": "scripts/validation/room_graph_smoke.gd",
-      "reachable": true,
-      "driven": true,
-      "driven_at": "life_boat.gd:51",
-      "input": {
-        "live": true,
-        "desc": "3 rooms + 2 links added in LifeBoatBuilder.build (airlock->cockpit->engine_bay)",
-        "at": "life_boat.gd:51-57"
-      },
-      "output": {
-        "live": true,
-        "desc": "rooms[]/links[] + get_connected_rooms() consumed by StructuralPlacer.place_structure(graph) -> real lifeboat geometry",
-        "at": "life_boat.gd:64"
-      },
-      "confidence": "V",
-      "loops": [
-        "travel"
-      ],
-      "integrations": [
-        {
-          "to": "structural_placer",
-          "via": "graph passed to place_structure; get_connected_rooms drives BFS",
-          "at": "life_boat.gd:64",
-          "health": "healthy"
-        },
-        {
-          "to": "life_boat",
-          "via": "RoomGraph.new() + add_room/add_link in build()",
-          "at": "life_boat.gd:51-57",
-          "health": "healthy"
-        }
-      ],
-      "content": "partial",
-      "content_note": "RE-VERIFIED V. life_boat.gd:51 RoomGraphScript.new(); :52-53 add_room over ROOMS const; :56-57 add_link airlock_01->cockpit_01->engine_bay_01; :64 graph consumed by place_structure. Live via playable_generated_ship.gd:4852 _build_lifeboat_at_home -> :4178. Pure RefCounted adjacency model, no external data file (rooms hardcoded in life_boat.ROOMS). Main pipeline uses CellLayoutEngine instead. V holds.",
-      "functional": null,
-      "gaps": [
-        "main procgen pipeline uses CellLayoutEngine, not RoomGraph; RoomGraph is live only via the fixed lifeboat (and room_graph_generator)"
-      ],
-      "subsystems": [],
-      "godot_file": "scripts/procgen/room_graph.gd",
       "port_status": "ported"
     },
     {
@@ -3717,12 +3606,6 @@
         "travel"
       ],
       "integrations": [
-        {
-          "to": "structural_placer",
-          "via": "BFS grid lay rooms",
-          "at": "life_boat.gd:17",
-          "health": "healthy"
-        },
         {
           "to": "kit_catalog",
           "via": "biome skin",
@@ -3823,47 +3706,6 @@
       ],
       "subsystems": [],
       "godot_file": "scripts/procgen/readability_prop_factory.gd",
-      "port_status": "ported"
-    },
-    {
-      "id": "room_graph_generator",
-      "file": "SynapticSea/Assets/_Project/Core/Procgen/RoomGraphGenerator.cs",
-      "name": "Room Graph Generator (DEPRECATED, test-only)",
-      "domain": "procgen",
-      "kind": "simulation",
-      "model_exists": true,
-      "smoke": "scripts/validation/room_graph_generator_smoke.gd",
-      "reachable": false,
-      "driven": false,
-      "driven_at": null,
-      "input": {
-        "live": false,
-        "desc": "seed/archetype -> room graph (legacy generator, DEPRECATED Domain 7)",
-        "at": null
-      },
-      "output": {
-        "live": false,
-        "desc": "room graph; superseded by CellLayoutEngine pipeline. DEPRECATED Domain 7: file carries DEPRECATED banner (room_graph_generator.gd:4); excluded from travel loop and completion %.",
-        "at": null
-      },
-      "confidence": "V",
-      "loops": [],
-      "integrations": [
-        {
-          "to": "room_graph",
-          "via": "builds graph",
-          "at": "room_graph_generator.gd",
-          "health": "weak"
-        }
-      ],
-      "content": "none",
-      "content_note": "DEPRECATED Domain 7 (2026-07-01). Orphaned from the live generation pipeline; the live path is TemplateSelector -> RoomAssigner -> CellLayoutEngine -> WallDoorResolver -> LayoutSerializer -> GeneratedShipLoader. Only exercised by smokes/dumps. File carries a DEPRECATED banner at line 4. Excluded from the travel loop steps and completion % (loops: [], reachable: false, driven: false).",
-      "functional": null,
-      "gaps": [
-        "DEPRECATED: orphaned from live pipeline (Domain 7); superseded by ShipLayoutGenerator/CellLayoutEngine; retained for smoke/dump tooling only"
-      ],
-      "subsystems": [],
-      "godot_file": "scripts/procgen/room_graph_generator.gd",
       "port_status": "ported"
     },
     {
@@ -6587,40 +6429,6 @@
       "port_status": "ported"
     },
     {
-      "id": "release_readiness_ledger",
-      "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/ReleaseReadinessLedger.cs",
-      "name": "Release Readiness Ledger",
-      "domain": "infra",
-      "kind": "infra",
-      "model_exists": true,
-      "smoke": "scripts/validation/release_readiness_ledger_smoke.gd",
-      "reachable": false,
-      "driven": false,
-      "driven_at": null,
-      "input": {
-        "live": false,
-        "desc": "configure(checklist) only invoked in release_readiness_ledger_smoke; data/release/release_checklist.json exists (2219 bytes)",
-        "at": null
-      },
-      "output": {
-        "live": false,
-        "desc": "ledger rows are a CI/gate-review audit trail; no runtime consumer (grep: only release_readiness_ledger_smoke.gd)",
-        "at": null
-      },
-      "confidence": "V",
-      "functional": true,
-      "content": "partial",
-      "content_note": "data/release/release_checklist.json verified 2219 bytes (pre/launch/post categories). Confirmed zero non-smoke references.",
-      "integrations": [],
-      "gaps": [
-        "host-side release tooling only; not part of any runtime loop"
-      ],
-      "loops": [],
-      "subsystems": [],
-      "godot_file": "scripts/systems/release_readiness_ledger.gd",
-      "port_status": "ported"
-    },
-    {
       "id": "crash_report_bundle",
       "file": "SynapticSea/Assets/_Project/Core/Systems/Save/CrashReportBundle.cs",
       "name": "Crash Report Bundle",
@@ -6655,40 +6463,6 @@
       "port_status": "ported"
     },
     {
-      "id": "integration_matrix",
-      "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/IntegrationMatrix.cs",
-      "name": "Integration Matrix",
-      "domain": "infra",
-      "kind": "tooling",
-      "model_exists": true,
-      "smoke": "scripts/validation/cross_system_dependency_smoke.gd",
-      "reachable": false,
-      "driven": false,
-      "driven_at": null,
-      "input": {
-        "live": false,
-        "desc": "configure(data) from data/integration/cross_system_integration_matrix.json, loaded only by cross_system_dependency_smoke / product_audit_smoke",
-        "at": null
-      },
-      "output": {
-        "live": false,
-        "desc": "normalized package rows consumed by DependencyValidator + ProductAuditReport in smokes only",
-        "at": null
-      },
-      "confidence": "V",
-      "functional": true,
-      "content": "sufficient",
-      "content_note": "data/integration/cross_system_integration_matrix.json verified 17130 bytes. Confirmed only two non-system references, both smokes (cross_system_dependency_smoke, product_audit_smoke).",
-      "integrations": [],
-      "gaps": [
-        "host-side audit tooling; not constructed in the runtime coordinator"
-      ],
-      "loops": [],
-      "subsystems": [],
-      "godot_file": "scripts/systems/integration_matrix.gd",
-      "port_status": "ported"
-    },
-    {
       "id": "dependency_validator",
       "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/DependencyValidator.cs",
       "name": "Dependency Validator",
@@ -6713,129 +6487,13 @@
       "functional": true,
       "content": "none",
       "content_note": "validator has no own data file; operates on integration matrix rows. Confirmed single non-system reference (cross_system_dependency_smoke).",
-      "integrations": [
-        {
-          "to": "integration_matrix",
-          "via": "configure(matrix) -> matrix.get_entries()",
-          "at": "dependency_validator.gd:14",
-          "health": "healthy"
-        }
-      ],
+      "integrations": [],
       "gaps": [
         "headless host-file validator; not part of runtime"
       ],
       "loops": [],
       "subsystems": [],
       "godot_file": "scripts/systems/dependency_validator.gd",
-      "port_status": "ported"
-    },
-    {
-      "id": "product_audit_report",
-      "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/ProductAuditReport.cs",
-      "name": "Product Audit Report",
-      "domain": "infra",
-      "kind": "tooling",
-      "model_exists": true,
-      "smoke": "scripts/validation/product_audit_smoke.gd",
-      "reachable": false,
-      "driven": false,
-      "driven_at": null,
-      "input": {
-        "live": false,
-        "desc": "configure(report,manifest) from data/integration/product_audit_report.json; only product_audit_smoke",
-        "at": null
-      },
-      "output": {
-        "live": false,
-        "desc": "validate_against_matrix verdict consumed by smoke marker only",
-        "at": null
-      },
-      "confidence": "V",
-      "functional": true,
-      "content": "partial",
-      "content_note": "data/integration/product_audit_report.json verified 4375 bytes. validate_against_matrix at product_audit_report.gd:37; line 38 is the matrix guard calling get_entry_count(). Confirmed single non-system reference (product_audit_smoke).",
-      "integrations": [
-        {
-          "to": "integration_matrix",
-          "via": "validate_against_matrix(matrix) -> matrix.get_entry_count() entry-count/coverage check",
-          "at": "product_audit_report.gd:38",
-          "health": "healthy"
-        }
-      ],
-      "gaps": [
-        "audit artifact validator; not constructed at runtime"
-      ],
-      "loops": [],
-      "subsystems": [],
-      "godot_file": "scripts/systems/product_audit_report.gd",
-      "port_status": "ported"
-    },
-    {
-      "id": "automated_playtest_rubric",
-      "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/AutomatedPlaytestRubric.cs",
-      "name": "Automated Playtest Rubric",
-      "domain": "infra",
-      "kind": "tooling",
-      "model_exists": true,
-      "smoke": "scripts/validation/e2e_survival_loop_smoke.gd",
-      "reachable": false,
-      "driven": false,
-      "driven_at": null,
-      "input": {
-        "live": false,
-        "desc": "configure() + evaluate_scenario() fed scripted scenario summaries only by e2e_*_smoke scripts (e2e_survival_loop, e2e_combat_loot_craft, e2e_ship_meta_loop)",
-        "at": null
-      },
-      "output": {
-        "live": false,
-        "desc": "score/pass dict consumed by e2e smoke markers; no runtime consumer",
-        "at": null
-      },
-      "confidence": "V",
-      "functional": true,
-      "content": "partial",
-      "content_note": "data/integration/automated_playtest_rubric.json verified 745 bytes. Confirmed references only in three e2e_*_smoke scripts.",
-      "integrations": [],
-      "gaps": [
-        "scorer for scripted e2e scenarios; no live playtest feed"
-      ],
-      "loops": [],
-      "subsystems": [],
-      "godot_file": "scripts/systems/automated_playtest_rubric.gd",
-      "port_status": "ported"
-    },
-    {
-      "id": "balance_ledger",
-      "file": "SynapticSea/Assets/_Project/Core/Systems/Infra/BalanceLedger.cs",
-      "name": "Balance Ledger",
-      "domain": "infra",
-      "kind": "tooling",
-      "model_exists": true,
-      "smoke": "scripts/validation/e2e_survival_loop_smoke.gd",
-      "reachable": false,
-      "driven": false,
-      "driven_at": null,
-      "input": {
-        "live": false,
-        "desc": "configure() + evaluate_scenario(id,metrics) from data/integration/balance_ledger.json; only e2e_survival_loop_smoke",
-        "at": null
-      },
-      "output": {
-        "live": false,
-        "desc": "pass/fail threshold results consumed by smoke marker only",
-        "at": null
-      },
-      "confidence": "V",
-      "functional": true,
-      "content": "partial",
-      "content_note": "data/integration/balance_ledger.json verified 1736 bytes. Confirmed single non-system reference (e2e_survival_loop_smoke).",
-      "integrations": [],
-      "gaps": [
-        "balance threshold checker; not wired into runtime telemetry"
-      ],
-      "loops": [],
-      "subsystems": [],
-      "godot_file": "scripts/systems/balance_ledger.gd",
       "port_status": "ported"
     },
     {

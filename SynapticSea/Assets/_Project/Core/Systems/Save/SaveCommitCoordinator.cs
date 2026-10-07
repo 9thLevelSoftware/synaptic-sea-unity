@@ -19,7 +19,7 @@ namespace SynapticSea.Core.Systems
     }
 
     /// <summary>
-    /// Unused supplied-payload F05 prerequisite. Exact supplied document bytes are immutable; a verified
+    /// Supplied-payload generation store, reached only when component integration is on (SaveLoadService.ComponentCoordinator). Exact supplied document bytes are immutable; a verified
     /// shared slot pointer selects one complete generation. Live capture, migration and reclaim are external.
     /// </summary>
     public sealed partial class SaveCommitCoordinator
