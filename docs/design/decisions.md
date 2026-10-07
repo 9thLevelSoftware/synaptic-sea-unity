@@ -58,6 +58,7 @@ The master plan's 0.4 list came from file headers, written before 0.3. Each item
 - **Standalone-player PlayMode:** `tools/mac/test.sh playmode` in the default standalone-player mode loses the player after a forced recompile and produces no result XML. Use `--playmode-target editor` until it is fixed.
 - **Study job is not saved:** an in-progress study job is dropped on save and load; books already read persist.
 - **Study and crafting:** ordinary crafting is not blocked while a study runs.
+- **Ship catch-up (Phase 1.2):** an absent derelict catches up on revisit in real-equivalent seconds (elapsed game seconds divided by the clock scale), capped at 1800 s and stepped at most 360 times. Its life-support O2, web and hull, and its own fire (spread, extinguishing at breached compartments, damage to the mapped system) advance. Not replayed: closed hatches and structural-module fire damage (live-scene state), and power drain, because `PowerGridState` stores no energy, so a battery or fuel model is a Phase 5 item. Cargo spoilage needs no per-ship catch-up, since it is one run-level `SpoilageState` keyed by item id that ticks on game time wherever the food is. Breach environment is a static snapshot of the oxygen flags, and the time-dependent part (venting) is the ship's O2 above. A web-attached derelict's hull breaches during catch-up and puts out its fire.
 
 ## OPEN
 

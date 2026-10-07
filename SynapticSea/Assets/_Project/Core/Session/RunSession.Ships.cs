@@ -51,17 +51,27 @@ namespace SynapticSea.Core.Session
                 opts.ModuleIntegrity = ModuleIntegrityMap;
                 opts.SkipWebTick = HomeSpawnSafetyActive;
             }
+            else
+            {
+                opts.FireStep = step => AdvanceAbsentShipFire(ship, step);
+            }
             var rt = new ShipRuntime();
             rt.Configure(ship, opts);
             return rt;
         }
 
-        /// <summary>Live Persistent Ships Phase 4: fast-forward an absent ship's sim.</summary>
-        void CatchUpShip(ShipInstance inst)
+        /// <summary>
+        /// Live Persistent Ships Phase 4: fast-forward an absent ship's sim. Phase 1.2: <c>WorldTime</c>/<c>LastSimTime</c> are
+        /// game seconds, so the absence is converted to real-equivalent seconds with the clock scale before the ship's
+        /// real-time-rate models (O2, web, fire) advance. Spoilage needs no per-ship catch-up: it is one run-level
+        /// <see cref="SpoilageState"/> keyed by item id that ticks on game time wherever the food is. Power has no stored
+        /// energy to drain, so there is nothing to catch up (Phase 5).
+        /// </summary>
+        internal void CatchUpShip(ShipInstance inst)
         {
             if (inst == null || inst == HomeShip)
                 return;
-            RuntimeFor(inst).CatchUp(WorldTime);
+            RuntimeFor(inst).CatchUp(WorldTime, GameClock.Scale);
         }
 
         /// <summary>

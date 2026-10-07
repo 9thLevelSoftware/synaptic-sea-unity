@@ -101,5 +101,99 @@ namespace SynapticSea.Tests.Systems
             Assert.AreEqual(1L, rt.LazyBandFires);
             Assert.AreEqual(2L, rt.SlowBandFires);
         }
+
+        // ---- Phase 1.2: catch-up measures game seconds and converts them to real-equivalent seconds with the clock scale.
+
+        [Test]
+        public void CatchUpAtScale60_ConvertsGameTimeToRealEquivalent()
+        {
+            // 3600 game seconds at 60x is 60 real-equivalent seconds: the same 20 lazy steps and the same end state as 60 s at 1x.
+            ShipInstance scaled = MakeShip("scaled");
+            ShipInstance plain = MakeShip("plain");
+            scaled.GetWeb().Coverage = 0.2;
+            plain.GetWeb().Coverage = 0.2;
+            var scaledRt = new ShipRuntime();
+            scaledRt.Configure(scaled);
+            var plainRt = new ShipRuntime();
+            plainRt.Configure(plain);
+
+            scaledRt.CatchUp(3600.0, 60.0);
+            plainRt.CatchUp(60.0, 1.0);
+
+            Assert.AreEqual(3600.0, scaled.LastSimTime, "LastSimTime stays in game seconds");
+            Assert.AreEqual(20L, scaledRt.FrameBandFires);
+            Assert.AreEqual(plainRt.FrameBandFires, scaledRt.FrameBandFires);
+            Assert.AreEqual(plain.GetWeb().Coverage, scaled.GetWeb().Coverage, 1e-12);
+            Assert.AreEqual(plain.GetHull().AverageIntegrity(), scaled.GetHull().AverageIntegrity(), 1e-12);
+        }
+
+        [Test]
+        public void LongAbsence_IsCappedAtRealEquivalentAndBoundedInCost()
+        {
+            double cap = ShipRuntime.MAX_CATCHUP_SECONDS;
+            foreach (double scale in new[] { 1.0, 60.0, 120.0 })
+            {
+                // Ten times the cap, in game seconds at this scale.
+                ShipInstance ship = MakeShip("long_" + scale);
+                ship.GetWeb().Coverage = 0.1;
+                var rt = new ShipRuntime();
+                rt.Configure(ship);
+                double advanced = 0.0;
+                rt.FireStep = step => advanced += step;
+                rt.CatchUp(cap * scale * 10.0, scale);
+
+                Assert.AreEqual(cap * scale * 10.0, ship.LastSimTime, "the absence is consumed, even the part past the cap");
+                Assert.LessOrEqual(rt.FrameBandFires, ShipRuntime.MAX_CATCHUP_STEPS + 1L, "bounded Advance count at scale " + scale);
+                Assert.AreEqual(cap, advanced, 1e-6, "only the cap is simulated, in real-equivalent seconds (scale " + scale + ")");
+            }
+        }
+
+        [Test]
+        public void CatchUpAtTheCap_StepsNoLargerThanTheOriginalSubstep()
+        {
+            ShipInstance ship = MakeShip("cap");
+            var rt = new ShipRuntime();
+            rt.Configure(ship);
+            double largest = 0.0;
+            rt.FireStep = step => largest = System.Math.Max(largest, step);
+            rt.CatchUp(ShipRuntime.MAX_CATCHUP_SECONDS * 3, 1.0);
+            Assert.LessOrEqual(largest, ShipRuntime.CATCHUP_SUBSTEP_SECONDS + 1e-9);
+            Assert.LessOrEqual(rt.FrameBandFires, ShipRuntime.MAX_CATCHUP_STEPS + 1L);
+        }
+
+        [Test]
+        public void ScaleOne_IsIdenticalToTheOriginalThreeSecondStepping()
+        {
+            ShipInstance viaCatchUp = MakeShip("a");
+            viaCatchUp.GetWeb().Coverage = 0.2;
+            var rt = new ShipRuntime();
+            rt.Configure(viaCatchUp);
+            rt.CatchUp(65.0);
+
+            // 65 s in 3 s quanta is 21 full steps plus a 2 s remainder; replay exactly that by hand.
+            ShipInstance exact = MakeShip("c");
+            exact.GetWeb().Coverage = 0.2;
+            var exactRt = new ShipRuntime();
+            exactRt.Configure(exact);
+            for (int i = 0; i < 21; i++)
+                exactRt.Advance(3.0, 65.0);
+            exactRt.Advance(2.0, 65.0);
+
+            Assert.AreEqual(22L, rt.FrameBandFires);
+            Assert.AreEqual(exact.GetWeb().Coverage, viaCatchUp.GetWeb().Coverage, 1e-12);
+            Assert.AreEqual(exact.GetHull().AverageIntegrity(), viaCatchUp.GetHull().AverageIntegrity(), 1e-12);
+        }
+
+        [Test]
+        public void InvalidScale_FallsBackToRealTime()
+        {
+            ShipInstance ship = MakeShip("bad_scale");
+            var rt = new ShipRuntime();
+            rt.Configure(ship);
+            double advanced = 0.0;
+            rt.FireStep = step => advanced += step;
+            rt.CatchUp(30.0, 0.0);
+            Assert.AreEqual(30.0, advanced, 1e-9);
+        }
     }
 }

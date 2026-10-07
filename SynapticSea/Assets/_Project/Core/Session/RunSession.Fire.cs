@@ -64,6 +64,45 @@ namespace SynapticSea.Core.Session
                 TriggerTutorial("hazard_entered", "fire");
         }
 
+        /// <summary>
+        /// Phase 1.2 catch-up step for an absent ship's own fire. Same rules the active away ship plays under
+        /// (<see cref="BuildFireContext"/> with <c>AwayFromStart</c>): fires spread to oxygenated neighbours and go out where
+        /// the hull is breached; there is no powered suppression, damage-driven ignition or arc cascade. Burning compartments
+        /// damage the ship's mapped system (<see cref="ApplyFireSystemDamage"/>). Closed hatches and structural-module fire
+        /// damage belong to the live scene and are not replayed.
+        /// </summary>
+        internal void AdvanceAbsentShipFire(ShipInstance ship, double step)
+        {
+            FireSuppressionState fire = ship?.Fire;
+            if (fire == null || fire.ActiveFires.IsEmpty || step <= 0.0)
+                return;
+            var breached = new GdArray();
+            HullIntegrityState hull = ship.GetHull();
+            foreach (object cid in hull.Compartments.Keys)
+            {
+                if ((hull.Compartments[cid] as GdDict ?? new GdDict()).GetBool("breach_open"))
+                    breached.Add(V.Str(cid));
+            }
+            fire.Tick(step, new GdDict
+            {
+                { "powered_ratio", 0.0 },
+                { "ship_oxygen_present", true },
+                { "breached_compartments", breached },
+                { "damaged_compartments", new GdArray() },
+                { "closed_links", new GdArray() },
+                { "arc_arcing", false },
+            });
+            if (ship.SystemsManager == null)
+                return;
+            foreach (object cid in fire.GetBurningCompartments())
+            {
+                string sid = V.Str(FIRE_COMPARTMENT_SYSTEM.Get(V.Str(cid), ""));
+                if (sid.Length == 0)
+                    continue;
+                ship.SystemsManager.DamageSystem(sid, FIRE_SYSTEM_DAMAGE_PER_SECOND * fire.GetIntensity(V.Str(cid)) * step);
+            }
+        }
+
         GdDict FireTuning()
         {
             GdDict tuning = LoadJsonDict(SHIP_SUBSYSTEM_TUNING_PATH);
