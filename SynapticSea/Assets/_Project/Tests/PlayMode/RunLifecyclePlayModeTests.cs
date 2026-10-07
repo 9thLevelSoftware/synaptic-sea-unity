@@ -858,10 +858,10 @@ namespace SynapticSea.Tests.PlayMode
             long startingRepair = _s.PlayerProgression.GetSkillLevel("repair");
             for (int guard = 0; guard < 24 && needed.Any(id => !_s.ShipSystemsManager.IsOperational(id)); guard++)
             {
-                var next = repairPoints.Where(r => !r.Repaired && r.MinSkill <= _s.PlayerProgression.GetSkillLevel("repair"))
+                // Repair is universal (D6): skill sets speed and quality, so any broken required part is a valid next job.
+                var next = repairPoints.Where(r => !r.TargetManager.GetSystem(r.SystemId).GetSubcomponent(r.SubcomponentId).IsFunctional())
                     .OrderBy(r => r.MinSkill).FirstOrDefault();
-                Assert.IsNotNull(next, "normal repair XP unlocks every required remaining repair");
-                Assert.GreaterOrEqual(_s.PlayerProgression.GetSkillLevel("repair"), next.MinSkill, "earned skill meets the real gate");
+                Assert.IsNotNull(next, "every required remaining repair is available at any skill");
                 yield return WalkAndFinishChannel(next.GlobalPosition);
             }
             foreach (string id in needed) Assert.IsTrue(_s.ShipSystemsManager.IsOperational(id), id + " repaired through normal channels");

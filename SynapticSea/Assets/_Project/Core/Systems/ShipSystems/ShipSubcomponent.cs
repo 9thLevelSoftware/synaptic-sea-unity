@@ -39,6 +39,35 @@ namespace SynapticSea.Core.Systems
             OperationalThreshold = pOperationalThreshold;
         }
 
+        /// <summary>
+        /// True after an under-skilled repair left the part below full health. Such a part can be repaired again
+        /// by someone whose skill reaches a higher <see cref="QualityFor"/>. Persisted only while true.
+        /// </summary>
+        public bool ReducedQuality;
+
+        /// <summary>
+        /// Health a repair leaves behind. Meeting <paramref name="minSkill"/> restores full health; each missing
+        /// skill level costs quality, but never below 0.5 so the part stays operational.
+        /// </summary>
+        public static double QualityFor(long skillLevel, long minSkill)
+        {
+            if (skillLevel >= minSkill) return 1.0;
+            return GdMath.Clampf(0.5 + 0.5 * (double)(Math.Max(0L, skillLevel) + 1) / (double)(minSkill + 1), 0.5, 1.0);
+        }
+
+        /// <summary>Seconds multiplier for a repair: faster above the requirement, slower below it.</summary>
+        public static double DurationMultiplier(long skillLevel, long minSkill)
+        {
+            if (skillLevel >= minSkill) return 1.0 / (1.0 + 0.1 * (double)(skillLevel - minSkill));
+            return 1.0 + 0.25 * (double)(minSkill - Math.Max(0L, skillLevel));
+        }
+
+        /// <summary>Health this skill would leave (never below the operational threshold).</summary>
+        public double RepairQuality(long skillLevel) => Math.Max(OperationalThreshold, QualityFor(skillLevel, MinSkill));
+
+        /// <summary>Broken, or repaired earlier at lower quality than this skill can achieve.</summary>
+        public bool NeedsRepair(long skillLevel) => !IsFunctional() || (ReducedQuality && RepairQuality(skillLevel) > Health + 0.0001);
+
         public bool IsFunctional() => Health >= OperationalThreshold;
         public bool IsOperationallyFunctional() => EffectiveHealth >= OperationalThreshold;
 
@@ -50,7 +79,7 @@ namespace SynapticSea.Core.Systems
         {
             availableParts = availableParts ?? new GdArray();
             availableTools = availableTools ?? new GdArray();
-            if (IsFunctional())
+            if (!NeedsRepair(skillLevel))
                 return Result(false, "already_functional", 0.0);
             foreach (string part in RequiredParts)
                 if (!availableParts.Contains(part))
@@ -58,18 +87,17 @@ namespace SynapticSea.Core.Systems
             foreach (string tool in RequiredTools)
                 if (!availableTools.Contains(tool))
                     return Result(false, "missing_tools", 0.0);
-            if (skillLevel < MinSkill)
-                return Result(false, "insufficient_skill", 0.0);
-            Health = 1.0;
-            double factor = 1.0 + 0.1 * (double)Math.Max(0L, skillLevel - MinSkill);
-            return Result(true, "ok", RepairSeconds / factor);
+            Health = RepairQuality(skillLevel);
+            ReducedQuality = Health < 1.0 - 0.0001;
+            return Result(true, "ok", RepairSeconds * DurationMultiplier(skillLevel, MinSkill));
         }
 
         static GdDict Result(bool success, string reason, double seconds) =>
             new GdDict { { "success", success }, { "reason", reason }, { "seconds", seconds } };
 
-        public GdDict GetSummary() =>
-            new GdDict
+        public GdDict GetSummary()
+        {
+            var summary = new GdDict
             {
                 { "subcomponent_id", SubcomponentId },
                 { "health", Health },
@@ -79,6 +107,9 @@ namespace SynapticSea.Core.Systems
                 { "min_skill", MinSkill },
                 { "repair_seconds", RepairSeconds },
             };
+            if (ReducedQuality) summary["reduced_quality"] = true;
+            return summary;
+        }
 
         /// <summary>
         /// Restores mutable runtime state (health) from a summary. Static config (requirements/threshold)
@@ -89,6 +120,7 @@ namespace SynapticSea.Core.Systems
             if (summary == null || summary.IsEmpty)
                 return false;
             bool changed = false;
+            ReducedQuality = V.Bool(summary.Get("reduced_quality", false));
             double newHealth = GdMath.Clampf(V.F64(summary.Get("health", Health)), 0.0, 1.0);
             if (Math.Abs(newHealth - Health) > 0.0001)
             {

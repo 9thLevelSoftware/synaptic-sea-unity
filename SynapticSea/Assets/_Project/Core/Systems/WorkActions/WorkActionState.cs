@@ -22,6 +22,10 @@ namespace SynapticSea.Core.Systems
         public string Status = STATUS_IDLE;
         public double Progress = 0.0;
         public double Duration = 1.0;
+        /// <summary>Repair work below the required repair skill progresses 1/<c>SkillSlowdown</c> as fast (D6). 1.0 = no penalty.</summary>
+        public double SkillSlowdown = 1.0;
+        /// <summary>Seconds the work takes at normal pace, including the skill slowdown.</summary>
+        public double EffectiveDuration => Duration * SkillSlowdown;
         public string TargetId = "";
         public string BlockReason = "";
 
@@ -62,7 +66,9 @@ namespace SynapticSea.Core.Systems
                 string skillId = V.Str(context.Get("skill_id", ""));
                 long skillLevel = V.I64(context.Get("skill_level", 0L));
                 long need = V.I64(Definition.Get("min_skill_level", 0L));
-                if (skillId != minSkill || skillLevel < need)
+                // Repair work is universal (D6): too little repair skill slows the job instead of blocking it.
+                bool universal = minSkill == "repair";
+                if (skillId != minSkill || (skillLevel < need && !universal))
                 {
                     BlockReason = "skill";
                     return false;
@@ -102,9 +108,19 @@ namespace SynapticSea.Core.Systems
             }
             TargetId = pTargetId;
             Progress = 0.0;
+            SkillSlowdown = SkillDeficitDurationMultiplier(context);
             Status = STATUS_ACTIVE;
             BlockReason = "";
             return true;
+        }
+
+        /// <summary>Repair work below the required repair skill takes 25% longer per missing level (D6).</summary>
+        double SkillDeficitDurationMultiplier(GdDict context)
+        {
+            if (context == null || V.Str(Definition.Get("min_skill", "")) != "repair") return 1.0;
+            long need = V.I64(Definition.Get("min_skill_level", 0L));
+            long have = Math.Max(0L, V.I64(context.Get("skill_level", 0L)));
+            return have >= need ? 1.0 : 1.0 + 0.25 * (double)(need - have);
         }
 
         public string Tick(double delta, GdDict context = null)
@@ -121,7 +137,7 @@ namespace SynapticSea.Core.Systems
                 return Status;
             // Optional work-speed mult (wounds/arm injury later).
             double speed = Math.Max(0.05, V.F64(context.Get("work_speed_mult", 1.0)));
-            Progress = Math.Min(Duration, Progress + delta * speed);
+            Progress = Math.Min(Duration, Progress + delta * speed / Math.Max(1.0, SkillSlowdown));
             if (Progress >= Duration - 0.0001)
             {
                 Status = STATUS_COMPLETED;
@@ -171,8 +187,9 @@ namespace SynapticSea.Core.Systems
             return new GdDict();
         }
 
-        public GdDict GetSummary() =>
-            new GdDict
+        public GdDict GetSummary()
+        {
+            var summary = new GdDict
             {
                 { "action_id", ActionId },
                 { "status", Status },
@@ -182,6 +199,9 @@ namespace SynapticSea.Core.Systems
                 { "block_reason", BlockReason },
                 { "definition", Definition.DeepCopy() },
             };
+            if (SkillSlowdown > 1.0) summary["skill_slowdown"] = SkillSlowdown;
+            return summary;
+        }
 
         public bool ApplySummary(GdDict summary)
         {
@@ -193,6 +213,7 @@ namespace SynapticSea.Core.Systems
             Duration = Math.Max(0.1, V.F64(summary.Get("duration", Duration)));
             TargetId = V.Str(summary.Get("target_id", ""));
             BlockReason = V.Str(summary.Get("block_reason", ""));
+            SkillSlowdown = Math.Max(1.0, V.F64(summary.Get("skill_slowdown", 1.0)));
             object def = summary.Get("definition", new GdDict());
             if (def is GdDict defDict)
                 Definition = defDict.DeepCopy();

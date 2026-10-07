@@ -169,7 +169,7 @@ namespace SynapticSea.Core.Session
             var consumed=def.GetDictOrEmpty("materials_consumed");
             if(ship==null||control==null||!HasInteractionSightAndReach(control)||!(action=="cut_web_attachment" ? CanCutWeb(ship) : ship.GetAccess().HasAccess(PLAYER_LOCAL_ID))
                 ||InventoryState==null || !(action=="cut_web_attachment" ? InventoryState.GetQuantity("plasma_cutter")>0 : InventoryState.GetQuantity("welder")>0||InventoryState.GetQuantity("welding_lance")>0)
-                ||PlayerProgression.GetSkillLevel("repair")<def.GetInt("min_skill_level")) return HomeWorkFailure("conditions_changed");
+                ) return HomeWorkFailure("conditions_changed");
             foreach(var item in consumed) if(InventoryState.GetQuantity(V.Str(item.Key))<V.I64(item.Value)) return HomeWorkFailure("materials_changed");
             if(action=="cut_web_attachment")
             {

@@ -266,9 +266,10 @@ namespace SynapticSea.Tests.Session
             s.BeginWorkHold();Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));Assert.IsFalse(s.WorkActionDriver.IsWorking(),"missing cutter blocks work");
             Assert.AreEqual("tool",s.WorkActionDriver.Work.BlockReason);
             s.InventoryState.AddItem("plasma_cutter",1);
-            Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));Assert.IsFalse(s.WorkActionDriver.IsWorking(),"real repair skill gate remains");
-            Assert.AreEqual("skill",s.WorkActionDriver.Work.BlockReason);
-            s.PlayerProgression.Skills["repair"]=2L;
+            Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));Assert.IsTrue(s.WorkActionDriver.IsWorking(),"repair work is universal: too little skill is slower, not blocked");
+            Assert.AreEqual(4.0*1.25,s.WorkActionDriver.Work.EffectiveDuration,1e-9,"one missing repair level adds 25% to the 4 s cut");
+            s.EndWorkHold();Assert.IsTrue(s.CancelWorkAction());
+            s.PlayerProgression.Skills["repair"]=2L;s.BeginWorkHold();
             GdDict workHud=null;s.Events.WorkActionHudState+=state=>workHud=state;
             s.VitalsState.Stamina=0;
             Assert.IsTrue(s.TryHomeJoinWork(rig.Scene.PlayerPosition));Assert.IsFalse(s.WorkActionDriver.IsWorking());

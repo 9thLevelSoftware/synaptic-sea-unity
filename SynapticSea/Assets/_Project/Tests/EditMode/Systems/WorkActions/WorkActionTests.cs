@@ -59,6 +59,41 @@ namespace SynapticSea.Tests.Systems
             Assert.IsTrue(V.VariantEquals(snap, restored.GetSummary()));
         }
 
+        [TestCase("secure_connection", 6.0, 2L, 0L, 6.0 * 1.5)]
+        [TestCase("secure_connection", 6.0, 2L, 1L, 6.0 * 1.25)]
+        [TestCase("secure_connection", 6.0, 2L, 2L, 6.0)]
+        [TestCase("commission_home_propulsion", 8.0, 4L, 0L, 8.0 * 2.0)]
+        [TestCase("cut_web_attachment", 4.0, 2L, 0L, 4.0 * 1.5)]
+        public void RepairWork_IsSlowerBelowTheRequiredSkillButNeverBlocked(string actionId, double baseSeconds, long need, long have, double expected)
+        {
+            GdDict def = _cat.GetAction(actionId);
+            Assert.AreEqual(baseSeconds, def.GetFloat("duration"), 1e-9);
+            Assert.AreEqual(need, def.GetInt("min_skill_level"));
+            string tool = def.GetString("tool_class");
+            var work = new WorkActionState();
+            work.ConfigureAction(actionId, def);
+            var inventory = new GdDict();
+            if (def.Get("materials_consumed", null) is GdDict mats) foreach (object k in mats.Keys) inventory[V.Str(k)] = mats[k];
+            var ctx = new GdDict { { "tool_class", tool }, { "skill_id", "repair" }, { "skill_level", have }, { "inventory", inventory } };
+            Assert.IsTrue(work.Start("target", ctx), work.BlockReason);
+            Assert.AreEqual(baseSeconds, work.Duration, 1e-9, "the authored duration is unchanged");
+            Assert.AreEqual(expected, work.EffectiveDuration, 1e-9);
+            work.Tick(baseSeconds, new GdDict());
+            Assert.AreEqual(baseSeconds / expected, work.ProgressRatio(), 1e-9, "progress runs at 1/slowdown");
+            var restored = new WorkActionState();
+            Assert.IsTrue(restored.ApplySummary(work.GetSummary()));
+            Assert.AreEqual(expected, restored.EffectiveDuration, 1e-9, "the slowdown survives a save");
+        }
+
+        [Test]
+        public void NonRepairSkillGatesStillBlock()
+        {
+            var unbolt = new WorkActionState();
+            unbolt.ConfigureAction("unbolt_component", _cat.GetAction("unbolt_component")); // salvage 1
+            Assert.IsFalse(unbolt.CanStart(Ctx("wrench", "salvage")));
+            Assert.AreEqual("skill", unbolt.BlockReason);
+        }
+
         [Test]
         public void Gates_Progress_Interrupt_Complete()
         {
