@@ -33,7 +33,7 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(loot.TryInteract(Vec3.Zero));
             Assert.AreEqual(2, loot.FiniteSource.GetDictOrEmpty("remaining").GetInt("scrap_metal")); Assert.IsFalse(loot.Searched); Assert.AreEqual(1, training);
             var snapshot = new RunSnapshot { HomeFiniteLoot = state.DeepCopy(), SliceVersion = "finite-test", GodotVersion = "test" };
-            var restored = RunSnapshot.FromDict(PaidSnapshotCodec.Parse(PaidSnapshotCodec.Stringify(snapshot.ToDict())), "finite-test", "test");
+            var restored = RunSnapshot.FromDict((GdDict)GdJson.Parse(GdJson.Stringify(snapshot.ToDict()), true), "finite-test", "test");
             Assert.IsNotNull(restored); state = restored.HomeFiniteLoot;
             Assert.IsTrue(FiniteLootState.TryBind(ref state, "ship_start", "kit", Spec(), out GdDict row)); loot.FiniteSource = row;
             inventory.RemoveItem("scrap_metal", 2);

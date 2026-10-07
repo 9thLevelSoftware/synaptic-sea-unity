@@ -58,11 +58,6 @@ setup_dotnet() {
 LFS_DIR="$MIGRATION_ROOT/tools/git-lfs-3.8.0/git-lfs-3.8.0"
 if [ -x "$LFS_DIR/git-lfs" ]; then PATH="$LFS_DIR:$PATH"; export PATH; fi
 
-# Evidence directory read by PaidCraftNativeUtf8Tests; only default it when the caller has not set it.
-if [ -z "${SYNAPTIC_NATIVE_UTF8_EVIDENCE_DIR:-}" ] && [ -d "$MIGRATION_ROOT/mac-baseline-evidence/native-utf8" ]; then
-    export SYNAPTIC_NATIVE_UTF8_EVIDENCE_DIR="$MIGRATION_ROOT/mac-baseline-evidence/native-utf8"
-fi
-
 require_editor_closed() {
     if pgrep -f "projectPath $PROJECT" >/dev/null 2>&1 || pgrep -f "projectpath $PROJECT" >/dev/null 2>&1; then
         die "A Unity process already has $PROJECT open. Close it first."

@@ -9,7 +9,7 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Tests.Session
 {
     // Provisioned Core admission regressions. Physical acquisition/input proof belongs to the pinned checkpoint.
-    public class WorkTargetSelectionTests : PaidCraftFixture
+    public class WorkTargetSelectionTests : SessionFixture
     {
         sealed class Sight : ILineOfSightProbe
         {
@@ -17,9 +17,9 @@ namespace SynapticSea.Tests.Session
             public bool HasSpace => true;
             public bool IntersectRay(Vec3 from, Vec3 to, out Vec3 hit) { hit = (from + to) * .5f; return Blocked; }
         }
-        RunSession WorkBoot(bool paid = false, bool study = false)
+        RunSession WorkBoot()
         {
-            var session = Boot(paid: paid, manualStudy: study);
+            var session = Boot();
             session.PlayerProgression.Configure(ClassDefinition.LoadAll()["cook"], PlayerProgressionState.LoadSkillsCatalog(), PlayerProgressionState.LoadBooksCatalog());
             Assert.AreEqual(3, session.RepairPoints.Single(p => p.SystemId == "gravity" && p.SubcomponentId == "field_emitter").MinSkill);
             return session;
@@ -138,17 +138,9 @@ namespace SynapticSea.Tests.Session
             NoSeal(s, seal, "work_busy");
         }
         [Test]
-        public void PausedPaidOrdinaryJobCannotBeRedirected()
-        {
-            var s = WorkBoot(paid: true); Provision(s); string id = Start(s);
-            Assert.IsTrue(s.RestorePaidCraftingDomain(s.CapturePaidCraftingDomain()));
-            Assert.AreEqual("paused", Job(s, id).GetString("status"));
-            var seal = Cargo(s); Stand(s, seal); NoSeal(s, seal, "work_busy");
-        }
-        [Test]
         public void PausedStudyCannotBeRedirected()
         {
-            var s = WorkBoot(paid: true, study: true); s.InventoryState.AddItem("fabrication_schematic_basic", 1);
+            var s = WorkBoot(); s.InventoryState.AddItem("fabrication_schematic_basic", 1);
             Assert.IsTrue(s.RequestManualStudy("fabrication_schematic_basic").GetBool("committed"));
             Assert.IsTrue(s.PauseManualStudy("released").GetBool("committed"));
             var seal = Cargo(s); Stand(s, seal); NoSeal(s, seal, "work_busy");
@@ -161,7 +153,7 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual("unsupported_target", result.GetString("reason")); Assert.IsFalse(result.GetBool("handled")); Assert.IsFalse(loot.Searched);
         }
     }
-    public class WorkbenchTargetSelectionTests : PaidCraftFixture
+    public class WorkbenchTargetSelectionTests : SessionFixture
     {
         sealed class Sight : ILineOfSightProbe
         {
@@ -193,7 +185,7 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void ExactWorkbenchOpensOneNormalRecipeIntentWithoutCraftingOrPayment()
         {
-            var s = Boot(paid: false); var st = Bench(s); Stand(s, st); st.SetPowered(false);
+            var s = Boot(); var st = Bench(s); Stand(s, st); st.SetPowered(false);
             // The picker may open with no inputs and insufficient recipe skill: recipe confirmation owns those gates.
             s.PlayerProgression.Skills["fabrication"] = 0L;
             var inventory = s.InventoryState.GetSummary(); var xp = s.PlayerProgression.GetSummary(); var materials = s.MaterialState.GetSummary();
@@ -225,7 +217,7 @@ namespace SynapticSea.Tests.Session
         [TestCase("crafting")][TestCase("materials")][TestCase("inventory")][TestCase("resolver")][TestCase("progression")]
         public void EachCurrentWorkbenchBindingIsRequired(string binding)
         {
-            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            var s = Boot(); var st = Bench(s); Stand(s, st);
             if (binding == "crafting") st.CraftingState = null;
             if (binding == "materials") st.MaterialState = null;
             if (binding == "inventory") st.InventoryState = null;
@@ -236,7 +228,7 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void WorkbenchRequiresExactCurrentReferenceAndHomeOwnerAfterContinue()
         {
-            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            var s = Boot(); var st = Bench(s); Stand(s, st);
             var clone = new CraftingStation();
             clone.Configure("workbench", st.CraftingState, st.MaterialState, st.InventoryState, st.DeconstructionResolver, st.PlayerProgression, st.LocalPosition, st.InteractionRadius);
             clone.Parent = st.Parent;
@@ -249,7 +241,7 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void WorkbenchUsesCurrentStrictRangeAndLineOfSight()
         {
-            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            var s = Boot(); var st = Bench(s); Stand(s, st);
             CollectionAssert.Contains(s.ListNearbyWorkTargets(), st);
             ((FakeSceneState)s.Scene).PlayerPosition += new Vec3(20, 0, 0); st.CandidatePlayerInRange = true;
             Refuse(s, st, "out_of_range"); CollectionAssert.DoesNotContain(s.ListNearbyWorkTargets(), st);
@@ -259,7 +251,7 @@ namespace SynapticSea.Tests.Session
         [TestCase("recipe")][TestCase("scanner")][TestCase("inventory")][TestCase("menu")]
         public void ExistingOtherUiPreventsRecipeOpening(string panel)
         {
-            var s = Boot(paid: false); var st = Bench(s); Stand(s, st); var ui = new Ui(); s.Deps.UiState = ui;
+            var s = Boot(); var st = Bench(s); Stand(s, st); var ui = new Ui(); s.Deps.UiState = ui;
             if (panel == "recipe") ui.RecipePickerOpen = true;
             if (panel == "scanner") ui.ScannerOpen = true;
             if (panel == "inventory") ui.InventoryOpen = true;
@@ -269,31 +261,23 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void ActiveAndRestoredPausedWorkPreventWorkbenchOpening()
         {
-            var s = Boot(paid: false); var st = Bench(s); Stand(s, st);
+            var s = Boot(); var st = Bench(s); Stand(s, st);
             s.WorkActionDriver.Work = new WorkActionState { Status = WorkActionState.STATUS_ACTIVE };
             Refuse(s, st, "work_busy");
             s.WorkActionDriver.Work.Status = WorkActionState.STATUS_INTERRUPTED;
             typeof(RunSession).GetField("_workAwaitingResume", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(s, true);
             Refuse(s, st, "work_busy");
         }
-        [Test]
-        public void PausedPaidOrdinaryJobPreventsWorkbenchOpening()
-        {
-            var s = Boot(); Provision(s); string id = Start(s);
-            Assert.IsTrue(s.RestorePaidCraftingDomain(s.CapturePaidCraftingDomain()));
-            Assert.AreEqual("paused", Job(s, id).GetString("status"));
-            var st = Bench(s); Stand(s, st); Refuse(s, st, "work_busy");
-        }
         [TestCase("medbay")][TestCase("fabricator")]
         public void OtherStationsCannotEnterExactWorkbenchDispatch(string kind)
         {
-            var s = Boot(paid: false); var st = s.CraftingStations.Single(row => row.StationKind == kind); Stand(s, st);
+            var s = Boot(); var st = s.CraftingStations.Single(row => row.StationKind == kind); Stand(s, st);
             Refuse(s, st, "unsupported_target"); CollectionAssert.DoesNotContain(s.ListNearbyWorkTargets(), st);
         }
         [Test]
         public void NormalHigherPriorityHomeJoinStaysFirstWhileExactWorkbenchHasNoHomeWorkEffects()
         {
-            var s = Boot(paid: false); Assert.IsTrue(s.CompleteAllObjectives()); s.RebuildHomeJoinControls();
+            var s = Boot(); Assert.IsTrue(s.CompleteAllObjectives()); s.RebuildHomeJoinControls();
             var join = s.HomeJoinControls.Single(c => c.ActionId == "commission_home_propulsion");
             var st = Bench(s); st.Parent = join.Parent; st.LocalPosition = join.LocalPosition; Stand(s, st);
             Assert.AreEqual("home_join", s.RequestInteract());

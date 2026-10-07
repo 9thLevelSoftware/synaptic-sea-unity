@@ -25,5 +25,4 @@ Every Unity run rewrites a few tracked files (`ProjectSettings/*.asset`, the URP
 save that diff to `builds/logs/unity-<suite>-generated-changes.patch` and revert those files, but only if they had no local edits beforehand.
 
 ## Evidence directories
-Some EditMode tests read directories that only exist outside the repo. `env.sh` sets `SYNAPTIC_NATIVE_UTF8_EVIDENCE_DIR` to the Mac evidence folder when it is
-not already set. `SYNAPTIC_PAID_CHECKPOINT_DIAGNOSTIC_DIR` and `SYNAPTIC_CATALOG_EVIDENCE_DIR` are not set, so the tests that need them fail until Phase 0.3 removes them.
+Some EditMode tests read directories that only exist outside the repo. `SYNAPTIC_PAID_CHECKPOINT_DIAGNOSTIC_DIR` and `SYNAPTIC_CATALOG_EVIDENCE_DIR` are not set by `env.sh`, so the tests that need them fail until they are removed.
