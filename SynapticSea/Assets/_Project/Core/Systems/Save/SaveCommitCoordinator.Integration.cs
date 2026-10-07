@@ -108,8 +108,7 @@ namespace SynapticSea.Core.Systems
         {
             GdDict result = Success(candidate, "selected");
             result["manifest_sha256"] = Hash(candidate.ManifestText); result["selected_pointer_sha256"] = pointerHash;
-            result["payloads_sha256"] = SaveGenerationArtifacts.Hash(_allowPaidCrafting ? PaidSnapshotCodec.Stringify(candidate.Request) : GdJson.Stringify(candidate.Request));
-            if (_allowPaidCrafting) result["save_mode"] = candidate.Request.GetDictOrEmpty("binding").GetString("save_mode");
+            result["payloads_sha256"] = SaveGenerationArtifacts.Hash(GdJson.Stringify(candidate.Request));
             return result;
         }
 
@@ -162,58 +161,34 @@ namespace SynapticSea.Core.Systems
                     GdDict terminal = ReadTerminal(candidate.Run);
                     if (terminal == null && _storage.FileExists(TerminalIntent(candidate.Run))) terminal = ParseMetadata(_storage.ReadText(TerminalIntent(candidate.Run)));
                     return new GdDict { { "ok", true }, { "run_id", candidate.Run }, { "slot_id", candidate.Slot }, { "frozen", frozen },
-                        { "epitaph", terminal?.GetString("epitaph") ?? "" }, { "run_snapshot", (_allowPaidCrafting ? PaidSnapshotCodec.Parse(candidate.Request.GetString("run_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, false)) : ParseObject(candidate.Request.GetString("run_text"))) } };
+                        { "epitaph", terminal?.GetString("epitaph") ?? "" }, { "run_snapshot", ParseObject(candidate.Request.GetString("run_text")) } };
                 }
                 catch (Exception e) { return Failure(e, "", slotId); }
             }
         }
 
-        Candidate ValidateIntegrationRequest(GdDict supplied, string run, string slot, bool paid = false)
+        Candidate ValidateIntegrationRequest(GdDict supplied, string run, string slot)
         {
             if (supplied == null || !SafeGraph(supplied) || supplied.Count != 13) throw new Refusal("invalid_request");
             GdDict request = supplied.DeepCopy();
             GdDict binding = request.GetDictOrEmpty("binding");
-            string mode = _allowComponentIntegration ? PaidSnapshotCodec.DiagnosticMode : PaidSnapshotCodec.OrdinaryMode;
-            if (paid && binding.GetString("save_mode") != mode) throw new Refusal("binding_mismatch");
-            GdDict active = paid ? PaidSnapshotCodec.Parse(request.GetString("run_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, false)) : ParseObject(request.GetString("run_text"));
-            GdDict world = paid ? PaidSnapshotCodec.Parse(request.GetString("world_text"), PaidSnapshotCodec.SnapshotPolicy(_allowComponentIntegration, true)) : ParseObject(request.GetString("world_text"));
+            GdDict active = ParseObject(request.GetString("run_text"));
+            GdDict world = ParseObject(request.GetString("world_text"));
             string runVersion = _allowComponentIntegration ? RunSnapshot.ComponentIntegrationVersion : SaveLoadService.CURRENT_SLICE_VERSION;
             string worldVersion = _allowComponentIntegration ? WorldSnapshot.ComponentIntegrationVersion : WorldSnapshot.WorldSliceVersion;
             if (active == null || world == null || active.GetString("slice_version") != runVersion ||
                 world.GetString("slice_version") != worldVersion) throw new Refusal("unsupported_schema");
             GdDict home = world.GetDictOrEmpty("home_ship");
-            if (home.GetString("slice_version") != runVersion || binding.Count != (paid ? 11 : 10) ||
+            if (home.GetString("slice_version") != runVersion || binding.Count != 10 ||
                 binding.GetString("binding_version") != "component-generation-binding-1" ||
                 !(request.Get("domain_revision") is long capture) || capture < 0) throw new Refusal("binding_mismatch");
             GdDict domain;
-            if (paid)
-            {
-                GdDict envelope = active.GetDictOrEmpty("crafting_summary").GetDictOrEmpty("paid_craft");
-                if (envelope.Count != 3 || !(envelope.Get("schema_version") is long version) || version != 1L ||
-                    envelope.GetString("save_mode") != mode || !PaidSnapshotCodec.Same(envelope, home.GetDictOrEmpty("crafting_summary").Get("paid_craft")) ||
-                    !ComponentDomainCodec.TryDecode(envelope.GetDictOrEmpty("domain"), out domain, out _) ||
-                    !DomainBundle.TryCreate(domain, out _, out _) || (domain.GetInt("schema_version") != 3 && domain.GetInt("schema_version") != 4 && domain.GetInt("schema_version") != 5) ||
-                    domain.GetString("domain_mode") != (_allowComponentIntegration ? "components_and_craft" : "craft_only") ||
-                    !RunSession.ValidatePaidMirrors(domain.GetDictOrEmpty("participating_state"))) throw new Refusal("binding_mismatch");
-                GdDict paidState = domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting");
-                if (paidState.GetString("run_id") != run || paidState.GetString("actor_id") != RunSession.PLAYER_LOCAL_ID)
-                    throw new Refusal("binding_mismatch");
-                if (_allowComponentIntegration && (!PaidSnapshotCodec.Same(envelope.Get("domain"), active.Get("component_domain")) ||
-                    !PaidSnapshotCodec.Same(envelope.Get("domain"), home.Get("component_domain")) ||
-                    !PaidSnapshotCodec.Same(envelope.Get("domain"), world.Get("component_domain")))) throw new Refusal("binding_mismatch");
-                if (!_allowComponentIntegration && (active.Has("component_domain") || home.Has("component_domain") || world.Has("component_domain") ||
-                    active.Has("generation_id") || home.Has("generation_id") || world.Has("generation_id") ||
-                    active.Has("capture_revision") || home.Has("capture_revision") || world.Has("capture_revision"))) throw new Refusal("binding_mismatch");
-            }
-            else
-            {
-                if (active.GetDictOrEmpty("crafting_summary").Has("paid_craft") || home.GetDictOrEmpty("crafting_summary").Has("paid_craft"))
-                    throw new Refusal("binding_mismatch");
-                if (!V.VariantEquals(active.Get("component_domain"), world.Get("component_domain")) || !V.VariantEquals(home.Get("component_domain"), world.Get("component_domain")) ||
-                    !ComponentDomainCodec.TryDecode(world.GetDictOrEmpty("component_domain"), out domain, out _) ||
-                    !DomainBundle.TryCreate(domain, out _, out _) || domain.GetInt("schema_version") != 2) throw new Refusal("binding_mismatch");
-                if (SavePayloadAssembler.HasUnverifiedCraft(active.GetDictOrEmpty("crafting_summary")) || SavePayloadAssembler.HasUnverifiedCraft(domain)) throw new Refusal("craft_payment_unverified");
-            }
+            if (active.GetDictOrEmpty("crafting_summary").Has("paid_craft") || home.GetDictOrEmpty("crafting_summary").Has("paid_craft"))
+                throw new Refusal("binding_mismatch");
+            if (!V.VariantEquals(active.Get("component_domain"), world.Get("component_domain")) || !V.VariantEquals(home.Get("component_domain"), world.Get("component_domain")) ||
+                !ComponentDomainCodec.TryDecode(world.GetDictOrEmpty("component_domain"), out domain, out _) ||
+                !DomainBundle.TryCreate(domain, out _, out _) || domain.GetInt("schema_version") != 2) throw new Refusal("binding_mismatch");
+            if (SavePayloadAssembler.HasUnverifiedCraft(active.GetDictOrEmpty("crafting_summary")) || SavePayloadAssembler.HasUnverifiedCraft(domain)) throw new Refusal("craft_payment_unverified");
             if (!(domain.Get("revision") is long commandRevision) || binding.GetString("component_revision") != Decimal(commandRevision)) throw new Refusal("binding_mismatch");
             if (_allowComponentIntegration && (active.GetString("capture_revision") != Decimal(capture) || world.GetString("capture_revision") != Decimal(capture) || home.GetString("capture_revision") != Decimal(capture) ||
                 active.GetString("generation_id") != request.GetString("generation_id") || world.GetString("generation_id") != request.GetString("generation_id") || home.GetString("generation_id") != request.GetString("generation_id"))) throw new Refusal("binding_mismatch");
@@ -226,7 +201,7 @@ namespace SynapticSea.Core.Systems
                 if (holder.GetString("kind") != "player" && !registered.Contains(holder.GetString("owner_id"))) throw new Refusal("binding_mismatch");
             foreach (GdDict machine in domain.GetDictOrEmpty("machinery").Values.OfType<GdDict>())
                 if (!registered.Contains(machine.GetString("owner_id"))) throw new Refusal("binding_mismatch");
-            ValidateComponentMirrors(domain, active, world, home, paid);
+            ValidateComponentMirrors(domain, active, world, home);
             var artifacts = new Dictionary<string, GdDict>(StringComparer.Ordinal);
             var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (object value in request.GetArrayOrEmpty("artifacts"))
@@ -297,11 +272,11 @@ namespace SynapticSea.Core.Systems
             if (mobile.GetInt("version") != 1 || !ValidMobility(mobile.GetDictOrEmpty("home_mobility"), "ship_start")) throw new Refusal("invalid_payload");
             if (mobile.Has("starting_home_anchor")) throw new Refusal("invalid_payload");
             oldWorld.Erase("mobile_home_state");
-            legacy["run_text"] = paid ? PaidSnapshotCodec.Stringify(oldActive) : GdJson.Stringify(oldActive); legacy["world_text"] = paid ? PaidSnapshotCodec.Stringify(oldWorld) : GdJson.Stringify(oldWorld);
+            legacy["run_text"] = GdJson.Stringify(oldActive); legacy["world_text"] = GdJson.Stringify(oldWorld);
             GdDict oldBinding = legacy.GetDictOrEmpty("binding"); oldBinding.Erase("binding_version"); oldBinding.Erase("component_revision"); oldBinding.Erase("player_pose_owner_id"); oldBinding.Erase("save_mode"); oldBinding["ship_references"] = oldRefs;
             var needed = new HashSet<string>(); foreach (GdDict r in oldRefs.Values.OfType<GdDict>()) if (r.GetBool("present")) { needed.Add(r.GetString("layout_path")); needed.Add(r.GetString("gameplay_slice_path")); needed.Add(r.GetString("kit_path")); }
             legacy["artifacts"] = new GdArray(legacy.GetArrayOrEmpty("artifacts").OfType<GdDict>().Where(a => needed.Contains(a.GetString("logical_path"))));
-            ValidateRequest(legacy, run, slot, true, paid); // Structural adapter retains exact paid numeric types and values.
+            ValidateRequest(legacy, run, slot, true);
             var candidate = new Candidate(request);
             candidate.Entries.Add(new Entry("run", "", "run_snapshot", runVersion, request.GetString("run_text")));
             candidate.Entries.Add(new Entry("world", "", "world_snapshot", worldVersion, request.GetString("world_text")));
@@ -311,7 +286,7 @@ namespace SynapticSea.Core.Systems
             return candidate;
         }
         static GdDict LegacyRun(GdDict run)
-        { GdDict old = run.DeepCopy(); old["slice_version"] = SaveLoadService.CURRENT_SLICE_VERSION; old.Erase("component_domain"); old.Erase("generation_id"); old.Erase("capture_revision"); old.GetDictOrEmpty("crafting_summary").Erase("paid_craft"); return old; }
+        { GdDict old = run.DeepCopy(); old["slice_version"] = SaveLoadService.CURRENT_SLICE_VERSION; old.Erase("component_domain"); old.Erase("generation_id"); old.Erase("capture_revision"); return old; }
 
         static bool ValidRuntimeGameplay(GdDict layout, GdDict gameplay, GdDict blueprint)
         {
@@ -412,9 +387,9 @@ namespace SynapticSea.Core.Systems
             }
             return V.VariantEquals(owned, wire);
         }
-        static void ValidateComponentMirrors(GdDict domain, GdDict active, GdDict world, GdDict home, bool paid = false)
+        static void ValidateComponentMirrors(GdDict domain, GdDict active, GdDict world, GdDict home)
         {
-            bool Equal(object owned, object wire) => paid ? PaidSnapshotCodec.Same(owned, wire) : SameComponentMirror(owned, wire);
+            bool Equal(object owned, object wire) => SameComponentMirror(owned, wire);
             string mismatch = "", context = "active";
             string Difference(object owned, object wire, string path)
             {
@@ -452,8 +427,7 @@ namespace SynapticSea.Core.Systems
             {
                 context = ReferenceEquals(snapshot, active) ? "active" : "home";
                 GdDict inventory = snapshot.GetDictOrEmpty("inventory_summary").DeepCopy(), crafting = snapshot.GetDictOrEmpty("crafting_summary").DeepCopy();
-                inventory.Erase("combat_hotbar_text"); inventory.Erase("threat_summary"); crafting.Erase("field_crafting"); crafting.Erase("paid_craft");
-                if (paid && !Same(participants.Get("spoilage"), snapshot.Get("spoilage_summary"), "spoilage_summary")) throw Failure("participant.spoilage");
+                inventory.Erase("combat_hotbar_text"); inventory.Erase("threat_summary"); crafting.Erase("field_crafting");
                 if (!Same(participants.Get("inventory"), inventory, "inventory_summary") ||
                     !Same(participants.Get("progression"), snapshot.Get("player_progression_summary"), "player_progression_summary") ||
                     !Same(participants.Get("crafting"), crafting, "crafting_summary") ||

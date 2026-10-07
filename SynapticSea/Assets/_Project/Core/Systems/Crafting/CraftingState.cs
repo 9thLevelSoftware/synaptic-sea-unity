@@ -28,12 +28,6 @@ namespace SynapticSea.Core.Systems
         GdDict _activeCraft = new GdDict();                                           // recipe_id, station_kind, progress tracking
         /// <summary>Transient optional session preflight; absent in ordinary crafting and never persisted.</summary>
         public Func<GdDict, string> RecipePreflight;
-        internal Func<string, GdDict> PaidBegin;
-        internal Func<string, string> PaidAvailability;
-        internal Func<string, long, long> PaidEnqueue;
-        internal Action<double> PaidAdvance;
-        internal Action PaidCancel;
-        public bool HasPaidOwner => PaidBegin != null;
         public string RecipeBlockedReason(string recipeId) => RecipePreflight?.Invoke(GetRecipe(recipeId).DeepCopy()) ?? "";
 
         public CraftingState()
@@ -113,7 +107,6 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public bool CanCraft(string recipeId, CargoTransfer.ICargoStore inventory, RecipeKnowledgeState knowledge = null, long stationTier = 0)
         {
-            if (PaidAvailability != null) return PaidAvailability(recipeId) == "ready";
             GdDict recipe = GetRecipe(recipeId);
             if (recipe.IsEmpty)
                 return false;
@@ -253,11 +246,7 @@ namespace SynapticSea.Core.Systems
                     ingredients = ingredientsRaw.ShallowCopy();
                 string status = "ready";
                 string preflight = RecipeBlockedReason(rid);
-                if (PaidAvailability != null)
-                {
-                    status = PaidAvailability(rid);
-                }
-                else if (preflight.Length > 0)
+                if (preflight.Length > 0)
                 {
                     status = preflight;
                 }
@@ -346,7 +335,6 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public bool BeginCraft(string recipeId, CargoTransfer.ICargoStore inventory, MaterialState materialState, long playerSkillLevel)
         {
-            if (PaidBegin != null) return PaidBegin(recipeId).GetBool("ok");
             GdDict recipe = GetRecipe(recipeId);
             if (recipe.IsEmpty)
                 return false;
@@ -391,7 +379,6 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public long EnqueueCraft(string recipeId, long count = 1)
         {
-            if (PaidEnqueue != null) return PaidEnqueue(recipeId, count);
             GdDict recipe = GetRecipe(recipeId);
             if (recipe.IsEmpty || count <= 0)
                 return 0;
@@ -415,7 +402,6 @@ namespace SynapticSea.Core.Systems
         /// <summary>Ticks the active station. Returns true when the craft completes.</summary>
         public bool Tick(double deltaSeconds)
         {
-            if (PaidAdvance != null) { PaidAdvance(deltaSeconds); return false; }
             if (_activeCraft.IsEmpty)
                 return false;
             string stationKind = V.Str(_activeCraft.Get("station_kind", ""));
@@ -434,7 +420,6 @@ namespace SynapticSea.Core.Systems
         /// </summary>
         public GdDict FinishCraft()
         {
-            if (HasPaidOwner) return new GdDict(); // Owner already publishes output/reward; never return an independently applicable delta.
             if (_activeCraft.IsEmpty)
                 return new GdDict();
             string stationKind = V.Str(_activeCraft.Get("station_kind", ""));
@@ -481,7 +466,6 @@ namespace SynapticSea.Core.Systems
 
         public void CancelCraft()
         {
-            if (PaidCancel != null) { PaidCancel(); return; }
             _activeCraft.Clear();
             foreach (string stationKind in _stationOrder)
             {
@@ -542,19 +526,6 @@ namespace SynapticSea.Core.Systems
                 }
             }
             return changed || accepted;
-        }
-
-        internal void ApplyOwnedSummary(GdDict summary)
-        {
-            _activeCraft = summary.GetDictOrEmpty("active_craft").DeepCopy();
-            var retained = new System.Collections.Generic.HashSet<string>();
-            foreach (var pair in summary.GetDictOrEmpty("station_summaries"))
-            {
-                string kind = V.Str(pair.Key); retained.Add(kind);
-                StationState station = GetOrCreateStation(kind);
-                station.ApplyPaidProjection((GdDict)pair.Value);
-            }
-            foreach (string kind in new List<string>(_stationOrder)) if (!retained.Contains(kind)) RemoveStation(kind);
         }
 
         public IReadOnlyList<string> GetStatusLines()

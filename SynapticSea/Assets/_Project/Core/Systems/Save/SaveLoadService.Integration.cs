@@ -12,18 +12,16 @@ namespace SynapticSea.Core.Systems
     {
         public const string ComponentGenerationRoot = "user://saves/.component-live-generations";
         public bool ComponentIntegrationEnabled { get; }
-        public const string PaidGenerationRoot = "user://saves/.paid-craft-generations";
-        public bool PaidCraftingEnabled { get; }
         /// <summary>Explicit reviewed profile capability; off preserves the prior compatibility catalog.</summary>
-        public bool CompleteGenerationEnabled => ComponentIntegrationEnabled || PaidCraftingEnabled;
-        string GenerationRoot => ComponentIntegrationEnabled ? ComponentGenerationRoot : PaidGenerationRoot;
-        string AdmissionVersion => ComponentIntegrationEnabled ? "component-run-admission-1" : "paid-run-admission-1";
-        string CreationKind => ComponentIntegrationEnabled ? "diagnostic_new_run" : "ordinary_new_run";
+        public bool CompleteGenerationEnabled => ComponentIntegrationEnabled;
+        const string GenerationRoot = ComponentGenerationRoot;
+        const string AdmissionVersion = "component-run-admission-1";
+        const string CreationKind = "diagnostic_new_run";
         internal GdDict ReadSelectedSnapshot(GdDict selected, string role)
         {
             if (role != "run" && role != "world") return null;
             string text = selected.GetDictOrEmpty("payloads").GetString(role + "_text");
-            return PaidCraftingEnabled ? PaidSnapshotCodec.Parse(text, PaidSnapshotCodec.SnapshotPolicy(ComponentIntegrationEnabled, role == "world")) : GdJson.ParseString(text) as GdDict;
+            return GdJson.ParseString(text) as GdDict;
         }
         Func<string, string, string, bool> _componentSave;
         string _authorizedDiagnosticNewRun = "";
@@ -37,14 +35,14 @@ namespace SynapticSea.Core.Systems
         {
             var compatibility = new GdDict
         {
-            { "engine_version", EngineVersionString }, { "catalog_id", ComponentIntegrationEnabled ? "component-live-diagnostic" : "paid-crafting-ordinary" }, { "catalog_version", "1" },
+            { "engine_version", EngineVersionString }, { "catalog_id", "component-live-diagnostic" }, { "catalog_version", "1" },
             { "library_id", "" }, { "library_version", "" },
             { "profiles", new GdDict { { ConstrainedExpedition.Profile, ConstrainedExpedition.Profile }, { ConstrainedExpedition.LegacyProfile, ConstrainedExpedition.LegacyProfile } } }
         };
             return compatibility;
         }
         internal SaveCommitCoordinator ComponentCoordinator(Action<string> fault = null)
-            => new SaveCommitCoordinator(Storage, GenerationRoot, new ComponentTerminalAuthority(this), ComponentCompatibility(), fault, ComponentIntegrationEnabled, PaidCraftingEnabled);
+            => new SaveCommitCoordinator(Storage, GenerationRoot, new ComponentTerminalAuthority(this), ComponentCompatibility(), fault, ComponentIntegrationEnabled);
         internal GdDict ReadComponentCommitParent(string run, string slot) => ComponentCoordinator().ReadCommitParent(run, slot);
         public string GetComponentEpitaph(string slotId)
         {
@@ -65,8 +63,8 @@ namespace SynapticSea.Core.Systems
                 if (_service.Storage.FileExists(path))
                 {
                     string text = _service.Storage.ReadText(path);
-                    GdDict declaration = _service.PaidCraftingEnabled ? PaidSnapshotCodec.Parse(text) : GdJson.ParseString(text) as GdDict;
-                    if (declaration == null || declaration.GetString("schema_version") != _service.AdmissionVersion || declaration.GetString("run_id") != runId || declaration.GetString("creation_kind") != _service.CreationKind)
+                    GdDict declaration = GdJson.ParseString(text) as GdDict;
+                    if (declaration == null || declaration.GetString("schema_version") != AdmissionVersion || declaration.GetString("run_id") != runId || declaration.GetString("creation_kind") != CreationKind)
                         return Answer(false, "ambiguous", runId, slotId);
                     admitted = true;
                 }
@@ -114,7 +112,7 @@ namespace SynapticSea.Core.Systems
         {
             if (!CompleteGenerationEnabled) return new GdDict { { "ok", false }, { "reason", "component_integration_not_enabled" } };
             GdDict selected = ComponentCoordinator().ReadSelected(slotId);
-            if (!PaidCraftingEnabled && selected.GetString("reason") == "not_found") return LegacyComponentPreflight(slotId);
+            if (selected.GetString("reason") == "not_found") return LegacyComponentPreflight(slotId);
             return selected.DeepCopy();
         }
         public GdDict ReadGeneration(string runId, string slotId, string generationId, string manifestSha256)
@@ -131,7 +129,7 @@ namespace SynapticSea.Core.Systems
                 try
                 {
                     var declaration = new GdDict { { "schema_version", AdmissionVersion }, { "run_id", run }, { "creation_kind", CreationKind } };
-                    Storage.WriteText(admission, PaidCraftingEnabled ? PaidSnapshotCodec.Stringify(declaration) : GdJson.Stringify(declaration));
+                    Storage.WriteText(admission, GdJson.Stringify(declaration));
                 }
                 catch (Exception e) { LastGenerationResult = new GdDict { { "ok", false }, { "reason", "admission_write_failed" }, { "detail", e.GetType().Name } }; return LastGenerationResult.DeepCopy(); }
             }

@@ -184,7 +184,7 @@ namespace SynapticSea.Core.Session
             DeconstructionResolver = new DeconstructionResolver();
             _loot_tables = LootRoller.LoadTablesWithOverlays();
             // REQ-012: current-run save/load service (constructed before the HUD shell binds it).
-            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled);
+            SaveLoadService = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled);
             GdDict bootSelection = _selectedGeneration ?? Deps.SelectedSaveGeneration;
             _runId = CompleteGenerationEnabled && bootSelection != null ? bootSelection.GetString("run_id") : GenerateRunId();
             SaveLoadService.SetActiveRunId(_runId);
@@ -522,8 +522,7 @@ namespace SynapticSea.Core.Session
             Log.Info("PLAYABLE SHIP READY player_spawned=" + (HasPlayer ? "true" : "false") + " camera_spawned=" + (HasPlayer ? "true" : "false")
                      + " objectives=" + Interactables.Count + " collision_shapes=" + Loader.CountCollisionShapes());
             if (ComponentIntegrationEnabled && !ComponentGenerationRestoreInProgress) InitializeComponentIntegration();
-            if (PaidCraftingEnabled && !ComponentGenerationRestoreInProgress) InitializePaidCrafting();
-            if (!PaidCraftingEnabled || !ComponentGenerationRestoreInProgress) PlayableReady?.Invoke(GetPlayableSummary());
+            PlayableReady?.Invoke(GetPlayableSummary());
         }
 
         void OnLoaderFailed(string reason)
@@ -576,7 +575,7 @@ namespace SynapticSea.Core.Session
             {
                 GdDict layout = GdJson.ParseString(retainedBoat.GetString("layout_text")) as GdDict;
                 built = RetainedLifeboatBuild(layout, retainedBoat.GetString("kit_path"));
-                lbRoot = built == null ? null : TakeStagedGenerationRoot("lifeboat") ?? (_paidRestoreOperation != null ? null : ShipHost?.BuildLifeboatScene(built));
+                lbRoot = built == null ? null : TakeStagedGenerationRoot("lifeboat") ?? ShipHost?.BuildLifeboatScene(built);
             }
             else
             {

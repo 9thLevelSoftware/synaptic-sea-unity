@@ -18,9 +18,6 @@ namespace SynapticSea.Core.Systems
     public sealed class FieldCraftingState : IStatusLineProvider
     {
         readonly CraftingState _craftingState = new CraftingState();
-        internal void BindPaidOwner(Func<string, GdDict> begin, Func<string, string> availability, Action<double> advance, Action cancel)
-        { _craftingState.PaidBegin = begin; _craftingState.PaidAvailability = availability; _craftingState.PaidAdvance = advance; _craftingState.PaidCancel = cancel; }
-        internal void ApplyOwnedSummary(GdDict summary) => _craftingState.ApplyOwnedSummary(summary.GetDictOrEmpty("field_crafting"));
         public Func<GdDict, string> RecipePreflight { get => _craftingState.RecipePreflight; set => _craftingState.RecipePreflight = value; }
         public string RecipeBlockedReason(string recipeId) => _craftingState.RecipeBlockedReason(recipeId);
 
@@ -58,7 +55,6 @@ namespace SynapticSea.Core.Systems
         /// <summary>Begins a field craft. Quality is resolved with station_level=0 and powered=false.</summary>
         public bool BeginCraft(string recipeId, CargoTransfer.ICargoStore inventory, MaterialState materialState, long playerSkillLevel)
         {
-            if (_craftingState.PaidBegin != null) return _craftingState.PaidBegin(recipeId).GetBool("ok");
             GdDict recipe = _craftingState.GetRecipe(recipeId);
             if (recipe.IsEmpty)
                 return false;

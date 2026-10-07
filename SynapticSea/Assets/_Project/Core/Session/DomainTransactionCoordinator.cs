@@ -38,7 +38,6 @@ namespace SynapticSea.Core.Session
         public GdDict GetProjections() => _current.GetProjections();
         internal GdDict GetParticipantProjection(string key) => _current.GetParticipantProjection(key);
         internal long SchemaVersion => _current.SchemaVersion;
-        internal bool HasExecutablePaidChannel(string channel) => _current.HasExecutablePaidChannel(channel);
 
         internal GdDict PrepareLive(GdDict command, Func<GdDict, GdDict> stageEffects)
         {
@@ -87,88 +86,13 @@ namespace SynapticSea.Core.Session
             finally { _busy = false; }
         }
 
-        /// <summary>Concrete paid-operation preparation; the session supplies current gates and staged effects privately.</summary>
-        internal GdDict PrepareCraft(GdDict command, Func<GdDict, GdDict> stage)
-        {
-            if (_busy) return Failure("reentrant_mutation");
-            if (command == null || !ItemInstanceState.IsSafeSnapshot(command) || string.IsNullOrWhiteSpace(command.GetString("command_id"))) return Failure("invalid_command");
-            GdDict before = _current.GetSummary();
-            if (!PaidCraftingState.IsDomainVersion(before.GetInt("schema_version"))) return Failure("paid_crafting_inactive");
-            foreach (object entry in before.GetDictOrEmpty("receipts").Values)
-            {
-                GdDict prior = (GdDict)entry;
-                if (prior.GetString("command_id") != command.GetString("command_id")) continue;
-                return prior.GetString("command_hash") == PaidCraftingState.Hash(command) ? ExpandedResult(CommittedResult(prior)) : Failure("command_collision");
-            }
-            if (before.GetInt("revision") == long.MaxValue) return Failure("revision_overflow");
-            _busy = true;
-            try
-            {
-                GdDict candidate; candidate = before.DeepCopy(); candidate["revision"] = before.GetInt("revision") + 1;
-                GdDict effect = stage(candidate);
-                if (!effect.GetBool("ok", true)) return effect;
-                if (command.GetBool("internal"))
-                {
-                    effect["internal"] = true;
-                    effect["progress_seconds"] = PaidCraftingState.State(candidate).GetDictOrEmpty("jobs").GetDictOrEmpty(effect.GetString("job_id")).GetFloat("progress_seconds");
-                }
-                PaidCraftingState.PruneInternalReceipts(candidate, command, effect);
-                string id = effect.GetString("operation") == "craft_complete"
-                    ? PaidCraftingState.State(candidate).GetDictOrEmpty("jobs").GetDictOrEmpty(effect.GetString("job_id")).GetString("completion_commit_id")
-                    : "craft:" + command.GetString("command_id");
-                if (!PaidCraftingState.Conserved(before, candidate, effect)) return Failure("invalid_craft_transition");
-                candidate.GetDictOrEmpty("receipts")[id] = new GdDict { { "schema_version", 1L }, { "transaction_id", id }, { "commit_id", id },
-                    { "command_id", command.Get("command_id") }, { "command", command.DeepCopy() }, { "command_hash", PaidCraftingState.Hash(command) },
-                    { "revision", candidate.Get("revision") }, { "result", effect.DeepCopy() } };
-                if (!DomainBundle.TryCreate(candidate, out _, out string reason)) return Failure("invalid_candidate:" + reason);
-                _pending[id] = new Pending(command, candidate, effect, _current.Revision); _pendingCommands.Add(command.GetString("command_id"));
-                return new GdDict { { "ok", true }, { "committed", false }, { "transaction_id", id }, { "candidate", candidate.DeepCopy() } };
-            }
-            catch (Exception e) { var failure = Failure("staging_failed"); failure["detail"] = Describe(e); return failure; }
-            finally { _busy = false; }
-        }
-
-        internal GdDict PrepareStudy(GdDict command, Func<GdDict, GdDict> stage)
-        {
-            if (_busy) return Failure("reentrant_mutation");
-            if (command == null || !ItemInstanceState.IsSafeSnapshot(command) || string.IsNullOrWhiteSpace(command.GetString("command_id"))) return Failure("invalid_command");
-            GdDict before = _current.GetSummary();
-            if (before.GetInt("schema_version") != 4 && before.GetInt("schema_version") != 5) return Failure("manual_study_inactive");
-            foreach (object entry in before.GetDictOrEmpty("receipts").Values)
-            {
-                GdDict prior = (GdDict)entry;
-                if (prior.GetString("command_id") != command.GetString("command_id")) continue;
-                return prior.GetString("command_hash") == PaidCraftingState.Hash(command) ? ExpandedResult(CommittedResult(prior)) : Failure("command_collision");
-            }
-            if (before.GetInt("revision") == long.MaxValue) return Failure("revision_overflow");
-            _busy = true;
-            try
-            {
-                GdDict candidate; candidate = before.DeepCopy(); candidate["revision"] = before.GetInt("revision") + 1;
-                GdDict effect = stage(candidate);
-                if (!effect.GetBool("ok", true)) return effect;
-                PaidManualStudyProof.PruneProgress(candidate, command);
-                string id = effect.GetString("operation") == "study_complete"
-                    ? PaidManualStudyProof.CompletionId(PaidManualStudyProof.State(candidate), command.GetString("book_id")) : "manual_study:" + command.GetString("command_id");
-                if (!PaidManualStudyProof.Conserved(before, candidate, effect)) return Failure("invalid_study_transition");
-                candidate.GetDictOrEmpty("receipts")[id] = new GdDict { { "schema_version", 1L }, { "transaction_id", id }, { "commit_id", id },
-                    { "command_id", command.Get("command_id") }, { "command", command.DeepCopy() }, { "command_hash", PaidCraftingState.Hash(command) },
-                    { "revision", candidate.Get("revision") }, { "result", effect.DeepCopy() } };
-                if (!DomainBundle.TryCreate(candidate, out _, out string reason)) return Failure("invalid_candidate:" + reason);
-                _pending[id] = new Pending(command, candidate, effect, _current.Revision); _pendingCommands.Add(command.GetString("command_id"));
-                return new GdDict { { "ok", true }, { "committed", false }, { "transaction_id", id }, { "candidate", candidate.DeepCopy() } };
-            }
-            catch (Exception e) { var failure = Failure("staging_failed"); failure["detail"] = Describe(e); return failure; }
-            finally { _busy = false; }
-        }
-
         public GdDict Commit(string transactionId)
         {
             if (string.IsNullOrWhiteSpace(transactionId)) return Failure("missing_transaction");
             // A receipt read has no mutation or notification, including a same-ID read from a notification callback.
             GdDict current = _current.GetSummary();
             if (current.GetDictOrEmpty("receipts").Get(transactionId) is GdDict committedReceipt)
-                return ExpandedResult(_outcomes.TryGetValue(transactionId, out GdDict prior) ? prior : CommittedResult(committedReceipt));
+                return (_outcomes.TryGetValue(transactionId, out GdDict prior) ? prior : CommittedResult(committedReceipt)).DeepCopy();
             if (_busy) return Failure("reentrant_mutation", transactionId);
             if (!_pending.TryGetValue(transactionId, out Pending pending)) return Failure("missing_transaction", transactionId);
             string commandId = pending.Command.GetString("command_id");
@@ -178,10 +102,7 @@ namespace SynapticSea.Core.Session
             try
             {
                 if (_current.Revision != pending.ExpectedRevision) return Failure("stale_domain", transactionId, commandId);
-                bool study = PaidManualStudyProof.IsOperation(pending.Result.GetString("operation"));
-                bool craft = PaidCraftingState.IsOperation(pending.Result.GetString("operation")) || study;
-                if (craft ? !DomainBundle.TryCreate(pending.Candidate, out _, out _) || !(study ? PaidManualStudyProof.Conserved(current, pending.Candidate, pending.Result) : PaidCraftingState.Conserved(current, pending.Candidate, pending.Result))
-                    : !DomainBundle.TryCreatePreparation(pending.Candidate, pending.Command, out _, out _) || !ConservedTransition(current, pending.Candidate, pending.Command) || !MatchesEffect(pending.Result, pending.Command))
+                if (!DomainBundle.TryCreatePreparation(pending.Candidate, pending.Command, out _, out _) || !ConservedTransition(current, pending.Candidate, pending.Command) || !MatchesEffect(pending.Result, pending.Command))
                     return Failure("invalid_preparation", transactionId, commandId);
 
                 // Staging remains private. Readers at every hook see _current, never any per-field candidate.
@@ -198,9 +119,8 @@ namespace SynapticSea.Core.Session
                     staged["command_sequence"] = pending.Candidate.Get("command_sequence");
                     staged["registered_owners"] = pending.Candidate.GetArrayOrEmpty("registered_owners").DeepCopy(); _stageHook?.Invoke("progression");
                 }
-                if (PaidCraftingState.IsDomainVersion(pending.Candidate.GetInt("schema_version"))) staged["domain_mode"] = pending.Candidate.Get("domain_mode");
                 GdDict receipts; receipts = pending.Candidate.GetDictOrEmpty("receipts").DeepCopy();
-                GdDict receipt = craft ? receipts.GetDictOrEmpty(transactionId) : new GdDict { { "schema_version", 1L }, { "transaction_id", transactionId }, { "command_id", commandId },
+                GdDict receipt = new GdDict { { "schema_version", 1L }, { "transaction_id", transactionId }, { "command_id", commandId },
                     { "revision", pending.Candidate.Get("revision") }, { "result", pending.Result.DeepCopy() } };
                 if (pending.Candidate.GetInt("schema_version") >= 2) receipt["commit_id"] = transactionId;
                 receipts[transactionId] = receipt; staged["receipts"] = receipts; _stageHook?.Invoke("receipt");
@@ -211,17 +131,14 @@ namespace SynapticSea.Core.Session
                 _publishViews?.Invoke(complete.GetSummary());
                 _current = complete; // The sole publication assignment: all participating state and its receipt.
                 published = true;
-                if (craft)
-                    foreach (object oldId in current.GetDictOrEmpty("receipts").Keys)
-                        if (!receipts.Has(oldId)) _outcomes.Remove(V.Str(oldId));
 
-                try { _notification?.Invoke(ExpandedResult(publishedResult)); }
+                try { _notification?.Invoke(publishedResult.DeepCopy()); }
                 catch (Exception e)
                 {
                     publishedResult["presentation_failed"] = true; publishedResult["presentation_error"] = Describe(e);
                 }
                 _outcomes[transactionId] = publishedResult.DeepCopy();
-                return ExpandedResult(publishedResult);
+                return publishedResult.DeepCopy();
             }
             catch (Exception e)
             {
@@ -230,7 +147,7 @@ namespace SynapticSea.Core.Session
                 {
                     publishedResult["presentation_failed"] = true; publishedResult["presentation_error"] = Describe(e);
                     _outcomes[transactionId] = publishedResult.DeepCopy();
-                    return ExpandedResult(publishedResult);
+                    return publishedResult.DeepCopy();
                 }
                 GdDict failure = Failure("staging_failed", transactionId, commandId); failure["detail"] = Describe(e);
                 return failure;
@@ -262,14 +179,6 @@ namespace SynapticSea.Core.Session
 
         static GdDict Failure(string reason, string transactionId = "", string commandId = "")
             => new GdDict { { "ok", false }, { "committed", false }, { "reason", reason }, { "transaction_id", transactionId }, { "command_id", commandId } };
-
-        GdDict ExpandedResult(GdDict compact)
-        {
-            GdDict result; result = compact.DeepCopy();
-            if (result.GetDictOrEmpty("result").GetString("operation") == "craft_complete")
-                result["result"] = PaidCraftRewardProof.Expand(PaidCraftingState.State(_current.GetSummary()), result.GetDictOrEmpty("result"));
-            return result;
-        }
 
         static GdDict CommittedResult(GdDict receipt)
         {
@@ -304,15 +213,9 @@ namespace SynapticSea.Core.Session
                 GdDict oldParticipants = before.GetDictOrEmpty("participating_state"), newParticipants = candidate.GetDictOrEmpty("participating_state");
                 foreach (string key in new[] { "items", "tool_ids", "active_effects", "drain_multiplier", "max_weight" })
                     if (!V.VariantEquals(oldParticipants.GetDictOrEmpty("inventory").Get(key), newParticipants.GetDictOrEmpty("inventory").Get(key))) return false;
-                foreach (string key in new[] { "stacks", "crafting", "field_crafting", "spoilage", "manual_study" })
+                foreach (string key in new[] { "stacks", "crafting", "field_crafting" })
                     if (!V.VariantEquals(oldParticipants.Get(key), newParticipants.Get(key))) return false;
-                if (PaidCraftingState.IsDomainVersion(before.GetInt("schema_version")))
-                {
-                    GdDict oldPaid = oldParticipants.GetDictOrEmpty("paid_crafting").DeepCopy(), nextPaid = newParticipants.GetDictOrEmpty("paid_crafting").DeepCopy();
-                    oldPaid.Erase("reward_history"); nextPaid.Erase("reward_history");
-                    if (!V.VariantEquals(oldPaid, nextPaid) || !PaidCraftRewardProof.Conserved(oldParticipants, newParticipants)) return false;
-                }
-                if (before.GetInt("schema_version") != candidate.GetInt("schema_version") || !V.VariantEquals(before.Get("domain_mode"), candidate.Get("domain_mode"))) return false;
+                if (before.GetInt("schema_version") != candidate.GetInt("schema_version")) return false;
                 if (!ComponentRewardConserved(before, candidate, command)) return false;
                 double oldWeight = oldParticipants.GetDictOrEmpty("inventory").GetFloat("total_weight");
                 double weight = newParticipants.GetDictOrEmpty("inventory").GetFloat("total_weight");
@@ -384,11 +287,7 @@ namespace SynapticSea.Core.Session
             var progression = new PlayerProgressionState(); var classes = ClassDefinition.LoadAll();
             if (!classes.TryGetValue(a.GetDictOrEmpty("progression").GetString("class_id"), out ClassDefinition definition)) return false;
             progression.Configure(definition, PlayerProgressionState.LoadSkillsCatalog());
-            if (PaidCraftingState.IsDomainVersion(after.GetInt("schema_version")))
-            {
-                if (!PaidCraftRewardProof.CopyProgressionExact(progression, a.GetDictOrEmpty("progression"))) return false;
-            }
-            else progression.ApplySummary(a.GetDictOrEmpty("progression"));
+            progression.ApplySummary(a.GetDictOrEmpty("progression"));
             if (command.Get("xp_multipliers") is GdDict multipliers)
             { progression.XpMultipliers.Clear(); foreach (var entry in multipliers) progression.XpMultipliers[entry.Key] = entry.Value; }
             var emitter = new TrainingEventBus(); emitter.Configure(); if (!emitter.ApplySummary(a.GetDictOrEmpty("training"))) return false;

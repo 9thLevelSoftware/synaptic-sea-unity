@@ -15,22 +15,9 @@ namespace SynapticSea.Core.Session
     {
         /// <summary><c>_build_run_snapshot(use_home_arc_summary)</c>; null when not started / complete / no save service.</summary>
         public static RunSnapshot Build(RunSession s, bool useHomeArcSummary = false)
-            => BuildCore(s, useHomeArcSummary, true);
-
-        internal static RunSnapshot BuildDetached(RunSession s, RunSession.PaidRestoreOperation operation, bool useHomeArcSummary = false)
         {
-            s.RequirePaidRestoreOperation(operation);
-            return BuildCore(s, useHomeArcSummary, false);
-        }
-
-        // Diagnostic observation only: no synchronization and no save admission for a terminal run.
-        internal static RunSnapshot ObserveTerminalHome(RunSession s, bool useHomeArcSummary = false)
-            => BuildCore(s, useHomeArcSummary, false, true);
-
-        static RunSnapshot BuildCore(RunSession s, bool useHomeArcSummary, bool synchronize, bool observeTerminal = false)
-        {
-            if (synchronize && s.ComponentGenerationRestoreInProgress) return null;
-            if (!s.PlayableStarted || s.SliceComplete && !observeTerminal)
+            if (s.ComponentGenerationRestoreInProgress) return null;
+            if (!s.PlayableStarted || s.SliceComplete)
                 return null;
             if (s.SaveLoadService == null)
                 return null;
@@ -80,7 +67,7 @@ namespace SynapticSea.Core.Session
             }
             else if (s.ElectricalArcState != null)
             {
-                if (synchronize) s.SyncArcSummaryForSave();
+                s.SyncArcSummaryForSave();
                 snapshot.ElectricalArcSummary = s.ElectricalArcState.GetSummary();
             }
             if (s.ObjectiveProgressState != null)
@@ -123,7 +110,7 @@ namespace SynapticSea.Core.Session
                 snapshot.AmmoSummary = s.AmmoState.GetSummary();
             if (s.UtilityItemState != null)
                 snapshot.UtilitySummary = s.UtilityItemState.GetSummary();
-            if (synchronize) s.SyncPillarSummariesForSave();
+            s.SyncPillarSummariesForSave();
             if (s.ModuleIntegrityMap != null)
                 snapshot.ModuleIntegritySummary = s.ModuleIntegrityMap.GetSummary();
             else if (s.CurrentShip != null && !s.CurrentShip.ModuleIntegritySummary.IsEmpty)
@@ -206,7 +193,6 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public static void ApplyManualSlotWorldState(RunSession s, RunSnapshot snapshot)
         {
-            if (s.PaidCraftingEnabled) { s.RefusePaidRestore(); return; }
             if (s.HomeShip != null)
             {
                 if (!snapshot.HomeBreachEnvironment.IsEmpty)

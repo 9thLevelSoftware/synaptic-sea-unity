@@ -18,35 +18,27 @@ namespace SynapticSea.Core.Session
         internal bool ComponentGenerationRestoreInProgress { get; private set; }
         internal bool ComponentTerminalPending { get; private set; }
         public GdDict LastSaveResult { get; private set; } = new GdDict();
-        public bool CompleteGenerationEnabled => ComponentIntegrationEnabled || PaidCraftingEnabled;
-        internal bool RefusePaidRestore()
-        {
-            LastSaveResult = new GdDict { { "ok", false }, { "reason", "paid_restore_not_available" } };
-            return false;
-        }
+        public bool CompleteGenerationEnabled => ComponentIntegrationEnabled;
 
         internal T WithSelectedArtifactReader<T>(Func<T> work)
         {
             GdDict selected = _selectedGeneration ?? Deps.SelectedSaveGeneration;
             if (!CompleteGenerationEnabled || selected == null) return work();
-            if (!SaveGenerationArtifacts.TryCreateReader(selected, CoreServices.Resources, out IResourceReader reader, out string reason, PaidCraftingEnabled,
-                ComponentIntegrationEnabled ? PaidSnapshotCodec.DiagnosticMode : PaidSnapshotCodec.OrdinaryMode)) throw new InvalidOperationException(reason);
+            if (!SaveGenerationArtifacts.TryCreateReader(selected, CoreServices.Resources, out IResourceReader reader, out string reason)) throw new InvalidOperationException(reason);
             return WithArtifactReader(reader, work);
         }
         bool PrepareGenerationBoot()
         {
-            if (!CompleteGenerationEnabled || (PaidCraftingEnabled ? _paidRestoreOperation?.Selection : Deps.SelectedSaveGeneration) == null) return true;
-            if (PaidCraftingEnabled) RequirePaidRestoreOperation(_paidRestoreOperation);
-            GdDict requested = (PaidCraftingEnabled ? _paidRestoreOperation.Selection : Deps.SelectedSaveGeneration).DeepCopy();
-            var service = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled, PaidCraftingEnabled);
+            if (!CompleteGenerationEnabled || Deps.SelectedSaveGeneration == null) return true;
+            GdDict requested = Deps.SelectedSaveGeneration.DeepCopy();
+            var service = new SaveLoadService(Storage, Clock, ComponentIntegrationEnabled);
             GdDict exact = service.ReadGeneration(requested.GetString("run_id"), requested.GetString("slot_id"), requested.GetString("generation_id"), requested.GetString("manifest_sha256"));
-            if (!exact.GetBool("ok") || !(PaidCraftingEnabled ? PaidSnapshotCodec.Same(requested.Get("payloads"), exact.Get("payloads")) : V.VariantEquals(requested.Get("payloads"), exact.Get("payloads"))))
+            if (!exact.GetBool("ok") || !V.VariantEquals(requested.Get("payloads"), exact.Get("payloads")))
             {
                 LastSaveResult = exact.GetBool("ok") ? new GdDict { { "ok", false }, { "reason", "selection_mismatch" } } : exact;
                 LastFailureReason = LastSaveResult.GetString("reason"); PlayableFailed?.Invoke(LastFailureReason); return false;
             }
             _selectedGeneration = exact.DeepCopy(); Deps.SelectedSaveGeneration = exact.DeepCopy();
-            if (PaidCraftingEnabled) _paidRestoreOperation.Selection = exact.DeepCopy();
             GdDict payload = exact.GetDictOrEmpty("payloads"); RestoreGenerationDocuments(payload);
             GdDict home = payload.GetDictOrEmpty("binding").GetDictOrEmpty("ship_references").GetDictOrEmpty("ship_start");
             LayoutPath = home.GetString("layout_path"); KitPath = home.GetString("kit_path"); GameplaySlicePath = home.GetString("gameplay_slice_path"); BlueprintPath = home.GetString("blueprint_path");
@@ -94,26 +86,6 @@ namespace SynapticSea.Core.Session
                 { "kit_path", built.KitPath }, { "blueprint_text", "" }, { "fixed_lifeboat", true } };
         }
         internal bool BuildGenerationDocumentSet(WorldSnapshot world, out GdDict references, out GdArray artifacts, out string reason)
-            => BuildGenerationDocumentSet(world, null, out references, out artifacts, out reason);
-
-        internal bool BuildDetachedGenerationDocumentSet(WorldSnapshot world, PaidRestoreOperation operation,
-            out GdDict references, out GdArray artifacts, out string reason)
-        {
-            RequirePaidRestoreOperation(operation);
-            var documents = _generationShipDocuments.ToDictionary(p => p.Key, p => p.Value.DeepCopy(), StringComparer.Ordinal);
-            foreach (ShipInstance ship in AllKnownShips())
-            {
-                if (ship?.SceneRoot == null || !_generationRootDocuments.TryGetValue(ship.SceneRoot, out GdDict source)) continue;
-                GdDict copy = source.DeepCopy();
-                if (!copy.GetBool("fixed_lifeboat") && copy.GetString("blueprint_text").Length == 0 && ship.Blueprint != null)
-                    copy["blueprint_text"] = GdJson.Stringify(ship.Blueprint.ToDict(), "  ");
-                documents[ship.ShipId] = copy;
-            }
-            return BuildGenerationDocumentSet(world, documents, out references, out artifacts, out reason);
-        }
-
-        bool BuildGenerationDocumentSet(WorldSnapshot world, Dictionary<string, GdDict> detached,
-            out GdDict references, out GdArray artifacts, out string reason)
         {
             references = new GdDict(); artifacts = new GdArray(); reason = "reference_missing";
             var owners = new List<string> { "ship_start", "lifeboat" };
@@ -122,8 +94,8 @@ namespace SynapticSea.Core.Session
             foreach (string owner in owners)
             {
                 ShipInstance live = FindShipByIdInternal(owner);
-                if (detached == null) RememberShipGenerationDocuments(live);
-                if (!(detached ?? _generationShipDocuments).TryGetValue(owner, out GdDict docs)) return false;
+                RememberShipGenerationDocuments(live);
+                if (!_generationShipDocuments.TryGetValue(owner, out GdDict docs)) return false;
                 bool fixedBoat = docs.GetBool("fixed_lifeboat");
                 string dir = "user://component-artifacts/" + SaveGenerationArtifacts.Hash(owner) + "/";
                 string layout = dir + "layout.json", slice = fixedBoat ? "" : dir + "gameplay_slice.json", blueprint = fixedBoat ? "" : dir + "blueprint.json", kit = docs.GetString("kit_path");
@@ -156,7 +128,7 @@ namespace SynapticSea.Core.Session
             bool firstForSlot = payload.GetString("parent_generation_id").Length == 0;
             LastSaveResult = SaveLoadService.CommitComponentGeneration(payload, firstForSlot);
             if (!LastSaveResult.GetBool("ok")) return false;
-            LastSavedSnapshot = RunSnapshot.FromDict(PaidCraftingEnabled ? PaidSnapshotCodec.Parse(payload.GetString("run_text"), PaidSnapshotCodec.SnapshotPolicy(ComponentIntegrationEnabled, false)) : GdJson.ParseString(payload.GetString("run_text")),
+            LastSavedSnapshot = RunSnapshot.FromDict(GdJson.ParseString(payload.GetString("run_text")),
                 ComponentIntegrationEnabled ? RunSnapshot.ComponentIntegrationVersion : SaveLoadService.CURRENT_SLICE_VERSION, Deps.Engine.VersionString);
             Events.RaiseLoadAvailable(true); return true;
         }
@@ -164,7 +136,6 @@ namespace SynapticSea.Core.Session
         public bool ApplySelectedGeneration(GdDict selection)
         {
             if (ComponentGenerationRestoreInProgress) return false;
-            if (PaidCraftingEnabled) return ApplyPaidSelectedGeneration(selection);
             if (ComponentTerminalPending) return false;
             if (!ComponentIntegrationEnabled || selection == null || !selection.GetBool("ok") || SaveLoadService == null) return false;
             GdDict owned = selection.DeepCopy();
@@ -276,13 +247,6 @@ namespace SynapticSea.Core.Session
         static GdDict ParseGenerationDocument(GdDict artifact) => GdJson.ParseString(artifact.GetString("text")) as GdDict;
         internal IShipSceneRoot TakeStagedGenerationRoot(string owner)
         {
-            if (_paidRestoreOperation != null)
-            {
-                var roots = _paidRestoreOperation.ActiveRoots;
-                if (roots == null || !roots.TryGetValue(owner, out IShipSceneRoot selected))
-                    throw new InvalidOperationException("required_staged_root_missing");
-                roots.Remove(owner); return selected;
-            }
             if (!_generationStagedRoots.TryGetValue(owner, out IShipSceneRoot root)) return null;
             _generationStagedRoots.Remove(owner); return root;
         }
@@ -330,7 +294,7 @@ namespace SynapticSea.Core.Session
                 Kit = GdJson.ParseString(d.GetString("kit_text")) as GdDict, KitPath = d.GetString("kit_path"), LayoutJson = d.GetString("layout_text"), GameplaySliceJson = d.GetString("slice_text"), IsAway = true, RuntimeGeneratedGameplay = d.GetBool("runtime_gameplay") };
             if (!RetainedDocumentsMatchBlueprint(docs, ship.Blueprint)) return null;
             IShipLoaderView staged = TakeStagedGenerationRoot(ship.ShipId) as IShipLoaderView;
-            if (staged == null) return _paidRestoreOperation != null ? null : BuildShipSceneFromDocuments(docs);
+            if (staged == null) return BuildShipSceneFromDocuments(docs);
             RecordKitPath(staged, docs.KitPath); RememberGeneratedDocuments(staged, docs); return staged;
         }
         internal void RestoreGenerationPlayerPose(WorldSnapshot world)

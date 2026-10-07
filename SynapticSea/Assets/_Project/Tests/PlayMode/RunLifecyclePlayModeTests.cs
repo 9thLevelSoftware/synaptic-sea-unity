@@ -695,10 +695,10 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest, Timeout(240000)]
-        public IEnumerator CookWalksFiniteKitRetainedStudyAndPaidLockpick() => EarnedEntryHomeBranch("cook", 60);
+        public IEnumerator CookWalksFiniteKitRetainedStudyAndLockpick() => EarnedEntryHomeBranch("cook", 60);
 
         [UnityTest, Timeout(240000)]
-        public IEnumerator MedicWalksFiniteKitRetainedStudyAndPaidLockpick() => EarnedEntryHomeBranch("medic", 40);
+        public IEnumerator MedicWalksFiniteKitRetainedStudyAndLockpick() => EarnedEntryHomeBranch("medic", 40);
 
         static bool _quietReceiverFailureExpected;
         IEnumerator EarnedEntryHomeBranch(string classId, long expectedFabricationXp)
@@ -712,7 +712,7 @@ namespace SynapticSea.Tests.PlayMode
             // Fresh diagnostic opt-in; same authored home geometry and real player, no grants/positioning.
             // This branch uses legacy objective power and does not certify F08 paid solo-home or away entry.
             _recordJourneyTelemetry = true;
-            yield return BootPlayable(new RunLaunchRequest { ClassId = classId, EnableManualStudy = true,
+            yield return BootPlayable(new RunLaunchRequest { ClassId = classId,
                 LayoutOverridePath = "res://data/diagnostics/earned-entry-home-v1/layout.json",
                 BiomeId = RunLaunchRequest.DefaultBiomeId });
             Assert.AreEqual(classId, _s.PlayerProgression.ClassId);

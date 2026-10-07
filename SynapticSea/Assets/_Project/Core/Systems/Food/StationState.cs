@@ -35,7 +35,6 @@ namespace SynapticSea.Core.Systems
         public long CurrentStatus = (long)Status.IDLE;
         public List<string> Queue = new List<string>(); // queued recipe_ids
         public long MaxQueue = DEFAULT_MAX_QUEUE;
-        internal bool PaidResumeRequired;
 
         public void Configure(GdDict config)
         {
@@ -122,7 +121,6 @@ namespace SynapticSea.Core.Systems
         /// <summary>Advance craft progress by delta_seconds. Returns true when the craft completes.</summary>
         public bool Tick(double deltaSeconds)
         {
-            if (PaidResumeRequired) return false;
             if (deltaSeconds <= 0.0) return false;
             if (CurrentStatus == (long)Status.COMPLETE) return false;
             if (!Powered)
@@ -168,7 +166,6 @@ namespace SynapticSea.Core.Systems
         public void SetPower(bool p)
         {
             Powered = p;
-            if (PaidResumeRequired) return;
             if (!p && CurrentStatus == (long)Status.CRAFTING) CurrentStatus = (long)Status.PAUSED_POWER;
             else if (p && CurrentStatus == (long)Status.PAUSED_POWER) CurrentStatus = (long)Status.CRAFTING;
         }
@@ -231,14 +228,6 @@ namespace SynapticSea.Core.Systems
                 }
             }
             return changed;
-        }
-
-        internal void ApplyPaidProjection(GdDict summary)
-        {
-            ApplySummary(summary);
-            ProgressSeconds = summary.GetFloat("progress_seconds"); RequiredSeconds = summary.GetFloat("required_seconds");
-            CurrentStatus = summary.GetInt("status"); ActiveRecipeId = summary.GetString("active_recipe_id");
-            PaidResumeRequired = summary.GetBool("resume_required");
         }
 
         /// <summary>GDScript <c>arr != queue</c> (untyped Array vs Array[String]): same size and type-strict element equality.</summary>

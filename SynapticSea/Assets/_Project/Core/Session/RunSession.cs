@@ -342,11 +342,6 @@ namespace SynapticSea.Core.Session
         public static RunSession Create(RunSessionDeps deps, Action<RunSession> beforeReady)
         {
             var session = new RunSession(deps);
-            if (session.PaidCraftingEnabled && deps.SelectedSaveGeneration != null)
-            {
-                session.BootPaidSelectedGeneration(beforeReady);
-                return session;
-            }
             beforeReady?.Invoke(session);
             if (!session.PrepareGenerationBoot()) return session;
             session.WithSelectedArtifactReader(() =>

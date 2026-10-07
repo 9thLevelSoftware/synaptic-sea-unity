@@ -182,14 +182,11 @@ namespace SynapticSea.Game
                 DifficultyId = string.IsNullOrEmpty(launch.DifficultyId) ? RunLaunchRequest.DefaultDifficultyId : launch.DifficultyId,
                 BiomeId = launch.BiomeId ?? "",
                 EnableComponentIntegration = launch.EnableComponentIntegration,
-                EnableManualStudy = launch.EnableManualStudy,
-                EnablePaidCrafting = launch.EnableManualStudy,
             };
-            if ((launch.EnableComponentIntegration || launch.EnableManualStudy) && launch.Mode != RunLaunchMode.NewRun)
+            if (launch.EnableComponentIntegration && launch.Mode != RunLaunchMode.NewRun)
             {
                 string slotId = launch.Mode == RunLaunchMode.Continue ? RunLaunchRequest.WorldSlotId : launch.SlotId;
-                var service = new SaveLoadService(CoreServices.UserStorage, CoreServices.Clock,
-                    deps.EnableComponentIntegration, deps.EnablePaidCrafting);
+                var service = new SaveLoadService(CoreServices.UserStorage, CoreServices.Clock, deps.EnableComponentIntegration);
                 GdDict selected = launch.SelectedSaveGeneration ?? service.SelectGeneration(slotId);
                 if (selected == null || !selected.GetBool("ok"))
                 {
@@ -201,9 +198,8 @@ namespace SynapticSea.Game
                 GdDict exact = service.ReadGeneration(selected.GetString("run_id"), selected.GetString("slot_id"), selected.GetString("generation_id"), selected.GetString("manifest_sha256"));
                 if (!exact.GetBool("ok") || !V.VariantEquals(exact.GetDictOrEmpty("payloads"), selected.GetDictOrEmpty("payloads")))
                 { failure = "The selected diagnostic save is no longer available or could not be verified"; return null; }
-                string saveMode = deps.EnableComponentIntegration ? PaidSnapshotCodec.DiagnosticMode : PaidSnapshotCodec.OrdinaryMode;
                 if (selected.GetString("slot_id") != slotId || !SaveGenerationArtifacts.TryCreateReader(selected, CoreServices.Resources,
-                    out IResourceReader reader, out string artifactReason, deps.EnablePaidCrafting, saveMode))
+                    out IResourceReader reader, out string artifactReason))
                 { failure = "The selected diagnostic save could not be validated"; return null; }
                 GdDict world;
                 try { world = GdJson.Parse(selected.GetDictOrEmpty("payloads").GetString("world_text"), true) as GdDict; }
@@ -319,7 +315,7 @@ namespace SynapticSea.Game
         {
             failure = "";
             bool applied = true;
-            if ((launch.EnableComponentIntegration || launch.EnableManualStudy) && launch.Mode != RunLaunchMode.NewRun)
+            if (launch.EnableComponentIntegration && launch.Mode != RunLaunchMode.NewRun)
             {
                 GdDict selected = launch.SelectedSaveGeneration;
                 applied = selected != null && session.ApplySelectedGeneration(selected);

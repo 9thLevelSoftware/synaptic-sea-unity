@@ -11,6 +11,26 @@ namespace SynapticSea.Core.Systems
         public static string SourceHash(string sourceId, GdDict initial) => CanonicalHash.Of(new GdDict {
             { "source_id", sourceId }, { "initial", initial }
         });
+        /// <summary>
+        /// Godot-faithful JSON parsing turns every integer literal into a double. Finite stock holds only integers, strings and
+        /// booleans, so integral doubles are restored to exact longs before <see cref="Validate"/>, which stays strict.
+        /// </summary>
+        public static GdDict Normalize(GdDict state)
+        {
+            GdDict copy = state.DeepCopy();
+            Restore(copy);
+            return copy;
+        }
+        static void Restore(GdDict dict)
+        {
+            foreach (object key in new GdArray(dict.Keys))
+            {
+                object value = dict[key];
+                if (value is GdDict child) Restore(child);
+                else if (value is double number && !double.IsNaN(number) && !double.IsInfinity(number)
+                    && Math.Abs(number) <= 9007199254740991d && number == Math.Floor(number)) dict[key] = (long)number;
+            }
+        }
         public static bool Validate(GdDict state, string owner, out string reason)
         {
             reason = "invalid_finite_loot";

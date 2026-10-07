@@ -21,16 +21,6 @@ namespace SynapticSea.Core.Session
         public GdDict GetProjections() => _projections.DeepCopy();
         internal GdDict GetParticipantProjection(string key) => _summary.GetDictOrEmpty("participating_state").GetDictOrEmpty(key).DeepCopy();
         internal long SchemaVersion => _summary.GetInt("schema_version");
-        // Read only the immutable published owner; never expose a mutable paid-state reference.
-        internal bool HasExecutablePaidChannel(string channel)
-        {
-            if (!PaidCraftingState.IsDomainVersion(SchemaVersion)) return false;
-            foreach (object value in PaidCraftingState.State(_summary).GetDictOrEmpty("jobs").Values)
-                if (value is GdDict job && job.GetString("channel") == channel && job.GetString("input_state") == "paid" &&
-                    !PaidCraftingState.Terminal(job) && !job.GetBool("resume_required")) return true;
-            return false;
-        }
-
         // Preparation validates with a private prospective receipt. Published/imported bundles never use this seam.
         internal static bool TryCreatePreparation(GdDict summary, GdDict command, out DomainBundle bundle, out string reason)
         {
@@ -51,17 +41,12 @@ namespace SynapticSea.Core.Session
 
         public static bool TryCreate(GdDict summary, out DomainBundle bundle, out string reason)
         {
-            using (AdmissionHashMemo.Begin()) return TryCreateBody(summary, out bundle, out reason);
-        }
-        static bool TryCreateBody(GdDict summary, out DomainBundle bundle, out string reason)
-        {
             bundle = null; reason = "invalid_summary";
             if (summary == null || !ItemInstanceState.IsSafeSnapshot(summary)) return false;
             GdDict owned;
             owned = summary.DeepCopy();
-            if (!Integer(owned.Get("schema_version"), out long schema) || (schema != 1 && schema != 2 && schema != 3 && schema != 4 && schema != 5) ||
+            if (!Integer(owned.Get("schema_version"), out long schema) || (schema != 1 && schema != 2) ||
                 !Keys(owned, schema == 1 ? new[] { "schema_version", "revision", "registry", "holders", "machinery", "receipts" }
-                    : PaidCraftingState.IsDomainVersion(schema) ? new[] { "schema_version", "revision", "registry", "holders", "machinery", "receipts", "physical_slots", "component_work", "participating_state", "command_sequence", "registered_owners", "domain_mode" }
                     : new[] { "schema_version", "revision", "registry", "holders", "machinery", "receipts", "physical_slots", "component_work", "participating_state", "command_sequence", "registered_owners" }) ||
                 !Integer(owned.Get("revision"), out long revision) ||
                 !(owned.Get("registry") is GdDict registry) || !(owned.Get("holders") is GdDict holders) ||
@@ -138,16 +123,6 @@ namespace SynapticSea.Core.Session
             foreach (object key in receipts.Keys)
             {
                 reason = "invalid_receipt";
-                if (PaidCraftingState.IsDomainVersion(schema) && receipts[key] is GdDict craftReceipt && PaidCraftingState.IsOperation(craftReceipt.GetDictOrEmpty("result").GetString("operation")))
-                {
-                    if (!PaidCraftingState.ValidReceipt(craftReceipt, V.Str(key), revision) || !commands.Add(craftReceipt.GetString("command_id"))) return false;
-                    continue;
-                }
-                if ((schema == 4 || schema == 5) && receipts[key] is GdDict studyReceipt && PaidManualStudyProof.IsOperation(studyReceipt.GetDictOrEmpty("result").GetString("operation")))
-                {
-                    if (!PaidManualStudyProof.ValidReceipt(owned, studyReceipt, V.Str(key)) || !commands.Add(studyReceipt.GetString("command_id"))) return false;
-                    continue;
-                }
                 if (!Text(key) || !(receipts[key] is GdDict receipt) ||
                     !Keys(receipt, schema == 1 ? new[] { "schema_version", "transaction_id", "command_id", "revision", "result" }
                         : new[] { "schema_version", "transaction_id", "command_id", "commit_id", "revision", "result" }) ||
@@ -228,16 +203,6 @@ namespace SynapticSea.Core.Session
                     GdDict receipt = receipts.Get(commitId) as GdDict;
                     if (receipt == null || !seenTrainingReceipts.Add(commitId)) { reason = "invalid_component_training_receipt"; return false; }
                     GdDict effect = receipt.GetDictOrEmpty("result");
-                    if (PaidCraftingState.IsDomainVersion(schema) && effect.GetString("operation") == "craft_complete")
-                    {
-                        if (!V.VariantEquals(record, effect.Get("training_record"))) { reason = "invalid_craft_training_receipt"; return false; }
-                        continue;
-                    }
-                    if ((schema == 4 || schema == 5) && effect.GetString("operation") == "study_complete")
-                    {
-                        if (!PaidManualStudyProof.ValidReceipt(owned, receipt, commitId) || !V.VariantEquals(record, effect.Get("training_record"))) { reason = "invalid_study_training_receipt"; return false; }
-                        continue;
-                    }
                     string sourceKind = holders.GetDictOrEmpty(effect.GetString("source_holder_id")).GetString("kind");
                     string destinationKind = holders.GetDictOrEmpty(effect.GetString("destination_holder_id")).GetString("kind");
                     string action = sourceKind == "slot" ? "dismount_component" : destinationKind == "slot" ? "mount_component" : "";
@@ -246,8 +211,6 @@ namespace SynapticSea.Core.Session
                     { reason = "invalid_component_training_receipt"; return false; }
                 }
             }
-            if (PaidCraftingState.IsDomainVersion(schema) && !PaidCraftingState.Validate(owned, out reason)) return false;
-            if ((schema == 4 || schema == 5) && !PaidManualStudyProof.Validate(owned, out reason)) return false;
             bundle = new DomainBundle(owned, revision, new GdDict { { "holders", holderProjection }, { "machinery", machineProjection } });
             reason = "ok"; return true;
         }

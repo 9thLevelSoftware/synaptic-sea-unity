@@ -153,7 +153,7 @@ namespace SynapticSea.Core.Session
         string WorkTargetGate(SessionInteractable target)
         {
             if (ComponentGenerationRestoreInProgress) return "restore_in_progress";
-            if (DomainPublicationInProgress) return "reentrant_mutation";
+            if (ComponentPublicationInProgress) return "reentrant_mutation";
             if (ComponentTerminalPending || SliceComplete) return "terminal_pending";
             if (!PlayableStarted || !HasPlayer || VitalsState?.IsIncapacitated() == true) return "actor_unavailable";
             string identity = WorkTargetIdentityReason(target);
@@ -166,7 +166,7 @@ namespace SynapticSea.Core.Session
                 // Opening is not crafting: leave power, recipe skill, tier and payment to the existing recipe picker.
                 if (UiRecipePickerOpen || UiScannerOpen || UiInventoryOpen) return "ui_busy";
                 if (!UiMenusClosed) return "menu_open";
-                return station.CraftingState.IsCrafting() && !station.CraftingState.HasPaidOwner ? "busy" : "ok";
+                return station.CraftingState.IsCrafting() ? "busy" : "ok";
             }
             return target is RepairPoint repair ? repair.DescribeReason() : ((BreachSealPoint)target).DescribeReason();
         }
@@ -180,9 +180,7 @@ namespace SynapticSea.Core.Session
             string component = domain.GetDictOrEmpty("component_work").GetString("status");
             if (component == "active" || component.StartsWith("paused", StringComparison.Ordinal)) return true;
             string study = GetManualStudyState().GetDictOrEmpty("job").GetString("status");
-            if (study == "running" || study == "paused") return true;
-            return domain.GetDictOrEmpty("participating_state").GetDictOrEmpty("paid_crafting").GetDictOrEmpty("jobs")
-                .Values.OfType<GdDict>().Any(j => j.GetString("input_state") == "paid" && !PaidCraftingState.Terminal(j));
+            return study == "running" || study == "paused";
         }
     }
 }

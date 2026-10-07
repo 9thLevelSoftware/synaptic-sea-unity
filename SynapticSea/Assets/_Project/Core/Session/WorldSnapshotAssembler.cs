@@ -18,22 +18,10 @@ namespace SynapticSea.Core.Session
     public static class WorldSnapshotAssembler
     {
         public static WorldSnapshot Build(RunSession s)
-            => BuildCore(s, null);
-
-        internal static WorldSnapshot BuildDetached(RunSession s, RunSession.PaidRestoreOperation operation)
         {
-            s.RequirePaidRestoreOperation(operation);
-            return BuildCore(s, operation);
-        }
-
-        static WorldSnapshot BuildCore(RunSession s, RunSession.PaidRestoreOperation operation)
-        {
-            if (operation == null && s.ComponentGenerationRestoreInProgress) return null;
-            if (operation == null)
-            {
-                s.SyncCombatSummaryForSave(); s.SyncArcSummaryForSave();
-                s.SyncBreachEnvironmentForSave(); s.SyncPillarSummariesForSave();
-            }
+            if (s.ComponentGenerationRestoreInProgress) return null;
+            s.SyncCombatSummaryForSave(); s.SyncArcSummaryForSave();
+            s.SyncBreachEnvironmentForSave(); s.SyncPillarSummariesForSave();
             var ws = new WorldSnapshot();
             if (s.SynapticSeaWorld != null)
                 ws.WorldSummary = s.SynapticSeaWorld.GetSummary();
@@ -41,7 +29,7 @@ namespace SynapticSea.Core.Session
                 ws.MetaProgressionSummary = s.MetaProgressionState.ToDict();
             if (s.UniqueItemState != null)
                 ws.UniqueItemSummary = s.UniqueItemState.GetSummary();
-            RunSnapshot homeSnap = operation == null ? RunSnapshotAssembler.Build(s, s.AwayFromStart) : RunSnapshotAssembler.BuildDetached(s, operation, s.AwayFromStart);
+            RunSnapshot homeSnap = RunSnapshotAssembler.Build(s, s.AwayFromStart);
             if (homeSnap != null)
             {
                 if (s.AwayFromStart)
@@ -87,13 +75,6 @@ namespace SynapticSea.Core.Session
             ws.AboardShipId = s.CurrentOccupancy != null ? s.CurrentOccupancy.ShipId : "";
             ws.OpenedPorts = OpenedPortMarkerIds(s);
             ws.VisitedShips = VisitedShipsForSave(s, ws.DockEdges, ws.PilotedShipId, ws.AboardShipId);
-            if (operation != null)
-            {
-                ws.VisitedShips = ws.VisitedShips.DeepCopy();
-                if (s.CurrentShip?.MarkerId.Length > 0 && ws.VisitedShips.Has(s.CurrentShip.MarkerId))
-                    ws.VisitedShips[s.CurrentShip.MarkerId] = s.DetachedCurrentShipSummaryForRestore(operation);
-                ws.HomeBreachEnvironment = s.HomeBreachEnvironmentForSave();
-            }
             ws.RunId = s.RunIdInternal;
             ws.SliceVersion = WorldSnapshot.WorldSliceVersion;
             ws.GodotVersion = s.Deps.Engine.VersionString;
@@ -163,18 +144,6 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public static bool Apply(RunSession s, WorldSnapshot ws)
         {
-            if (s.PaidCraftingEnabled) return s.RefusePaidRestore();
-            return ApplyCore(s, ws, null);
-        }
-
-        internal static bool ApplyOwned(RunSession s, WorldSnapshot ws, RunSession.PaidRestoreOperation operation)
-        {
-            s.RequirePaidRestoreOperation(operation);
-            return ApplyCore(s, ws, operation);
-        }
-
-        static bool ApplyCore(RunSession s, WorldSnapshot ws, RunSession.PaidRestoreOperation operation)
-        {
             if (ws == null)
                 return false;
             var homeLocation=ws.MobileHomeState.GetDictOrEmpty("home_location");
@@ -210,7 +179,7 @@ namespace SynapticSea.Core.Session
             }
             if (homeSnap.PlayerPosition.Count >= 3)
                 s.HomePlayerPosition = new Vec3(V.F64(homeSnap.PlayerPosition[0]), V.F64(homeSnap.PlayerPosition[1]), V.F64(homeSnap.PlayerPosition[2]));
-            if (!(operation == null ? s.ApplyRunSnapshotInternal(homeSnap) : s.ApplyOwnedRunSnapshot(homeSnap, operation)))
+            if (!s.ApplyRunSnapshotInternal(homeSnap))
                 return false;
             if (s.HomeShip != null)
             {

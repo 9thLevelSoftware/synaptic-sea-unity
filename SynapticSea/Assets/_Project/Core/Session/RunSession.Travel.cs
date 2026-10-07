@@ -508,19 +508,6 @@ namespace SynapticSea.Core.Session
             RebuildComponentMarkers();
         }
 
-        internal GdDict DetachedCurrentShipSummaryForRestore(PaidRestoreOperation operation)
-        {
-            RequirePaidRestoreOperation(operation);
-            GdDict summary = CurrentShip?.GetSummary().DeepCopy() ?? new GdDict();
-            if (CurrentShip == null) return summary;
-            if (ThreatManager != null) summary["combat"] = ThreatManager.GetSummary().DeepCopy();
-            if (ElectricalArcState != null) summary["arc"] = ElectricalArcState.GetSummary().DeepCopy();
-            if (OxygenState != null) summary["breach_environment"] = BreachEnvironmentFrom(OxygenState.GetSummary());
-            if (ModuleIntegrityMap != null) summary["module_integrity"] = ModuleIntegrityMap.GetSummary().DeepCopy();
-            if (ComponentPlacementState != null) summary["component_placement"] = ComponentPlacementState.GetSummary().DeepCopy();
-            return summary;
-        }
-
         long ComponentPlacementSeedForCurrentShip()
         {
             if (CurrentShip == null)

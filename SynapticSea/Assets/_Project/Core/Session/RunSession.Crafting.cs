@@ -212,7 +212,7 @@ namespace SynapticSea.Core.Session
             List<StationPlacer.Placement> placements = PlaceHomeStations(CRAFTING_STATION_KINDS, positions);
             foreach (StationPlacer.Placement placement in placements)
             {
-                var st = ConfigureCraftingStation(HomeShip.SceneRoot, CraftingState, MaterialState, InventoryState, DeconstructionResolver, PlayerProgression, placement, PaidCraftingEnabled);
+                var st = ConfigureCraftingStation(HomeShip.SceneRoot, CraftingState, MaterialState, InventoryState, DeconstructionResolver, PlayerProgression, placement);
                 st.SurgeryProvider = this;
                 st.CraftStarted += OnCraftStarted;
                 st.SalvageCompleted += OnSalvageCompleted;
@@ -225,12 +225,11 @@ namespace SynapticSea.Core.Session
 
         static CraftingStation ConfigureCraftingStation(IShipSceneRoot root, CraftingState crafting, MaterialState materials,
             InventoryState inventory, DeconstructionResolver deconstruction, PlayerProgressionState progression,
-            StationPlacer.Placement placement, bool register)
+            StationPlacer.Placement placement)
         {
             var station = new CraftingStation();
             station.Configure(placement.Kind, crafting, materials, inventory, deconstruction, progression, placement.LocalPosition, STATION_INTERACTION_RADIUS);
             station.Parent = root;
-            if (register && station.IsValid && root?.IsValid == true) crafting.GetOrCreateStation(placement.Kind);
             return station;
         }
 
@@ -478,7 +477,7 @@ namespace SynapticSea.Core.Session
             if (ComponentGenerationRestoreInProgress) return;
             if (FieldCraftingState == null || InventoryState == null)
                 return;
-            if (FieldCraftingState.IsCrafting() && !PaidCraftingEnabled)
+            if (FieldCraftingState.IsCrafting())
             {
                 OnCraftBlocked("field_crafting", "busy");
                 Log.Info("FIELD CRAFT BLOCKED reason=busy");
@@ -506,7 +505,6 @@ namespace SynapticSea.Core.Session
         public bool BeginFieldCraftRecipe(string recipeId)
         {
             if (ComponentGenerationRestoreInProgress) return false;
-            if (PaidCraftingEnabled) return RequestPaidCraft("field_crafting", recipeId).GetBool("ok");
             if (string.IsNullOrEmpty(recipeId) || FieldCraftingState == null || InventoryState == null)
                 return false;
             string componentReason = FieldCraftingState.RecipeBlockedReason(recipeId);
@@ -607,8 +605,7 @@ namespace SynapticSea.Core.Session
         /// <summary>REQ-CS-016/017/018: the picker confirm handler.</summary>
         public GdDict BeginCraftFromPicker(string stationKind, string recipeId)
         {
-            if (ComponentGenerationRestoreInProgress) return PaidFailure("restore_in_progress");
-            if (PaidCraftingEnabled && stationKind != "salvage" && stationKind != "hydroponics") return RequestPaidCraft(stationKind, recipeId);
+            if (ComponentGenerationRestoreInProgress) return ComponentFailure("restore_in_progress");
             GdDict Result(bool ok, string reason) => new GdDict { { "ok", ok }, { "reason", reason }, { "recipe_id", recipeId } };
             if (string.IsNullOrEmpty(recipeId) || string.IsNullOrEmpty(stationKind))
             {
@@ -740,7 +737,6 @@ namespace SynapticSea.Core.Session
         public void AdvanceCrafting(double delta)
         {
             if (ComponentGenerationRestoreInProgress) return;
-            if (PaidCraftingEnabled) { AdvancePaidCrafting(delta, "station"); AdvancePaidCrafting(delta, "field"); return; }
             if (CraftingState != null)
             {
                 string activeKind = CraftingState.GetActiveStationKind();

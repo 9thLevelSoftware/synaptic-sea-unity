@@ -248,9 +248,15 @@ namespace SynapticSea.Core.Systems
             if (dict.IsEmpty) return null;
             if (V.Str(dict.Get("slice_version", "")) != expectedSliceVersion) return null;
             if (V.Str(dict.Get("godot_version", "")) != expectedGodotVersion) return null;
-            if (dict.Has("home_finite_loot") && (!(dict.Get("home_finite_loot") is GdDict finite) || !FiniteLootState.Validate(finite, "ship_start", out _))) return null;
+            GdDict homeFinite = new GdDict();
+            if (dict.Has("home_finite_loot"))
+            {
+                if (!(dict.Get("home_finite_loot") is GdDict finite)) return null;
+                homeFinite = FiniteLootState.Normalize(finite);
+                if (!FiniteLootState.Validate(homeFinite, "ship_start", out _)) return null;
+            }
             var snapshot = new RunSnapshot();
-            snapshot.HomeFiniteLoot = dict.GetDictOrEmpty("home_finite_loot").DeepCopy();
+            snapshot.HomeFiniteLoot = homeFinite;
             if (expectedSliceVersion == ComponentIntegrationVersion)
             { snapshot.ComponentDomain = DeepCopyDict(dict.Get("component_domain")); snapshot.GenerationId = dict.GetString("generation_id"); snapshot.CaptureRevision = dict.GetString("capture_revision"); }
             snapshot.LayoutPath = V.Str(dict.Get("layout_path", ""));

@@ -51,12 +51,11 @@ namespace SynapticSea.Core.Systems
         IStorage _storage;
         IClock _clock;
 
-        public SaveLoadService(IStorage storage = null, IClock clock = null, bool enableComponentIntegration = false, bool enablePaidCrafting = false)
+        public SaveLoadService(IStorage storage = null, IClock clock = null, bool enableComponentIntegration = false)
         {
             _storage = storage;
             _clock = clock;
             ComponentIntegrationEnabled = enableComponentIntegration;
-            PaidCraftingEnabled = enablePaidCrafting;
         }
 
         /// <summary><c>user://</c> backing store; defaults to <see cref="CoreServices.UserStorage"/>.</summary>

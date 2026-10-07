@@ -21,11 +21,7 @@ namespace SynapticSea.Core.Session
         /// </summary>
         public long EndRun(string reason = "extraction")
         {
-            if (ComponentGenerationRestoreInProgress)
-            {
-                if (reason != "death") return 0;
-                _paidRestoreOperation?.TerminalRuns.Add(_runId);
-            }
+            if (ComponentGenerationRestoreInProgress && reason != "death") return 0;
             if (ComponentIntegrationEnabled && ComponentTerminalPending && reason != "death") return 0;
             if (SliceComplete || reason == "complete" || reason == "completion")
                 return 0;
@@ -341,7 +337,6 @@ namespace SynapticSea.Core.Session
         /// <summary>ADR-0031/0043 slot screen: apply a manual-slot RunSnapshot onto the booted ship only.</summary>
         public bool ApplyManualSlot(RunSnapshot snapshot)
         {
-            if (PaidCraftingEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "paid_restore_not_available" } }; return false; }
             if (ComponentIntegrationEnabled) { LastSaveResult = new GdDict { { "ok", false }, { "reason", "exact_generation_required" } }; return false; }
             if (snapshot == null)
                 return false;
@@ -415,19 +410,7 @@ namespace SynapticSea.Core.Session
         /// <summary>The body of <c>_apply_run_snapshot</c>.</summary>
         internal bool ApplyRunSnapshotInternal(RunSnapshot snapshot)
         {
-            if (PaidCraftingEnabled) return RefusePaidRestore();
-            return ApplyRunSnapshotBody(snapshot, null);
-        }
-
-        internal bool ApplyOwnedRunSnapshot(RunSnapshot snapshot, PaidRestoreOperation operation)
-        {
-            RequirePaidRestoreOperation(operation);
-            return ApplyRunSnapshotBody(snapshot, operation);
-        }
-
-        bool ApplyRunSnapshotBody(RunSnapshot snapshot, PaidRestoreOperation operation)
-        {
-            if (snapshot == null || operation == null && !PlayableStarted)
+            if (snapshot == null || !PlayableStarted)
                 return false;
             if (!snapshot.HomeFiniteLoot.IsEmpty && !FiniteLootState.Validate(snapshot.HomeFiniteLoot, "ship_start", out _)) return false;
             _isReloading = true;
@@ -437,8 +420,7 @@ namespace SynapticSea.Core.Session
             GameplaySlicePath = RunSnapshot.ResolveGameplaySlicePath(snapshot.LayoutPath, snapshot.GameplaySlicePath);
             snapshot.GameplaySlicePath = GameplaySlicePath;
             PlayableStarted = false;
-            if (operation == null) LoadFromPaths(LayoutPath, KitPath, GameplaySlicePath);
-            else LoadPreparedHome(operation, LayoutPath, KitPath, GameplaySlicePath);
+            LoadFromPaths(LayoutPath, KitPath, GameplaySlicePath);
             if (!PlayableStarted)
             {
                 _isReloading = false;
@@ -767,8 +749,7 @@ namespace SynapticSea.Core.Session
             SequenceKinds.Clear();
             _autosaveRunSeconds = 0.0;
             _lastAutosaveResult = new GdDict();
-            // Owned restore leaves policy internals untouched; failed apply cannot consume/reset save cadence.
-            if (_paidRestoreOperation == null) AutosavePolicy?.Reset();
+            AutosavePolicy?.Reset();
         }
     }
 }

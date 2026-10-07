@@ -41,55 +41,20 @@ namespace SynapticSea.Core.Systems
         readonly object _gate = new object();
         bool _mutating;
         readonly bool _allowComponentIntegration;
-        readonly bool _allowPaidCrafting;
-        bool CompleteGenerationEnabled => _allowComponentIntegration || _allowPaidCrafting;
+        bool CompleteGenerationEnabled => _allowComponentIntegration;
         bool _explicitReclaim;
 
         public SaveCommitCoordinator(IStorage storage, string root,
             ISaveGenerationTerminalAuthority terminalAuthority, GdDict compatibility,
-            Action<string> fault = null, bool allowComponentIntegration = false, bool allowPaidCrafting = false)
+            Action<string> fault = null, bool allowComponentIntegration = false)
         {
             _storage = storage;
             _root = root;
-            _validRoot = (ValidRoot(root) || allowComponentIntegration && ValidComponentRoot(root) ||
-                allowPaidCrafting && !allowComponentIntegration && root == SaveLoadService.PaidGenerationRoot) && storage != null;
+            _validRoot = (ValidRoot(root) || allowComponentIntegration && ValidComponentRoot(root)) && storage != null;
             _authority = terminalAuthority;
             _compatibility = SafeGraph(compatibility) && ValidCompatibility(compatibility) ? compatibility.DeepCopy() : null;
             _fault = fault;
             _allowComponentIntegration = allowComponentIntegration;
-            _allowPaidCrafting = allowPaidCrafting;
-            if (_validRoot && allowPaidCrafting && storage is FileSystemStorage native)
-                _storage = new PaidNativeReads(native, root, CheckPhysicalPath);
-        }
-
-        // Both partials use this instance-local boundary. Legacy paths and nonpaid storage keep their decoder.
-        sealed class PaidNativeReads : IStorage
-        {
-            readonly FileSystemStorage _inner;
-            readonly string _root;
-            readonly Action<string> _checkPath;
-            internal PaidNativeReads(FileSystemStorage inner, string root, Action<string> checkPath)
-            { _inner = inner; _root = root; _checkPath = checkPath; }
-            public string ReadText(string path)
-            {
-                if (path != _root && !(path?.StartsWith(_root + "/", StringComparison.Ordinal) ?? false))
-                    return _inner.ReadText(path);
-                _checkPath(path);
-                string physical = _inner.Globalize(path);
-                if (!File.Exists(physical)) return null;
-                try { return Utf8.GetString(File.ReadAllBytes(physical)); }
-                catch (DecoderFallbackException) { throw new Refusal("corrupt_generation"); }
-            }
-            public bool FileExists(string path) => _inner.FileExists(path);
-            public bool DirExists(string path) => _inner.DirExists(path);
-            public void WriteText(string path, string text) => _inner.WriteText(path, text);
-            public bool Delete(string path) => _inner.Delete(path);
-            public bool Rename(string from, string to) => _inner.Rename(from, to);
-            public void MakeDirRecursive(string path) => _inner.MakeDirRecursive(path);
-            public IReadOnlyList<string> ListFiles(string path) => _inner.ListFiles(path);
-            public IReadOnlyList<string> ListDirectories(string path) => _inner.ListDirectories(path);
-            public bool DeleteDirectory(string path) => _inner.DeleteDirectory(path);
-            public string Globalize(string path) => _inner.Globalize(path);
         }
 
         public GdDict Commit(GdDict payloads, string runId, string slotId)
@@ -627,7 +592,7 @@ namespace SynapticSea.Core.Systems
             if (candidate.Id != id || manifest.GetString("slot_kind") != request.GetString("slot_kind") || manifest.GetString("parent_generation_id") != candidate.Parent ||
                 manifest.GetString("expected_pointer_sha256") != request.GetString("expected_pointer_sha256") ||
                 !WireLong(manifest.Get("domain_revision"), out long revision) || revision != candidate.Revision ||
-                !(_allowPaidCrafting ? PaidSnapshotCodec.Same(manifest.Get("binding"), WireBinding(request.GetDictOrEmpty("binding"))) : V.VariantEquals(manifest.Get("binding"), WireBinding(request.GetDictOrEmpty("binding")))) ||
+                !V.VariantEquals(manifest.Get("binding"), WireBinding(request.GetDictOrEmpty("binding"))) ||
                 !V.VariantEquals(manifest.Get("compatibility"), request.Get("compatibility"))) throw new Refusal("corrupt_generation");
             foreach (Entry entry in candidate.Entries)
             {
@@ -706,9 +671,8 @@ namespace SynapticSea.Core.Systems
             return copy;
         }
 
-        Candidate ValidateRequest(GdDict supplied, string run, string slot, bool componentAdapter = false, bool exactPaidAdapter = false)
+        Candidate ValidateRequest(GdDict supplied, string run, string slot, bool componentAdapter = false)
         {
-            if (_allowPaidCrafting && !componentAdapter) return ValidateIntegrationRequest(supplied, run, slot, true);
             if (_allowComponentIntegration && !componentAdapter && supplied != null && ParseObject(supplied.GetString("run_text"))?.GetString("slice_version") == RunSnapshot.ComponentIntegrationVersion)
                 return ValidateIntegrationRequest(supplied, run, slot);
             if (supplied == null || !SafeGraph(supplied) || supplied.Count != 13) throw new Refusal("invalid_request");
@@ -743,21 +707,21 @@ namespace SynapticSea.Core.Systems
                 artifacts.Add(path, new Artifact(kind, document));
                 candidate.Entries.Add(new Entry("artifact", path, kind, version, text));
             }
-            GdDict active = exactPaidAdapter ? PaidSnapshotCodec.Parse(request.GetString("run_text")) : ParseObject(request.GetString("run_text"));
-            GdDict world = exactPaidAdapter ? PaidSnapshotCodec.Parse(request.GetString("world_text")) : ParseObject(request.GetString("world_text"));
+            GdDict active = ParseObject(request.GetString("run_text"));
+            GdDict world = ParseObject(request.GetString("world_text"));
             if (active == null || world == null) throw new Refusal("invalid_payload");
             if (active.GetString("slice_version") != "gate2-current-run-6" || world.GetString("slice_version") != "world-4") throw new Refusal("unsupported_schema");
-            if (!ValidRun(active, exactPaidAdapter) || !Shape(world, new WorldSnapshot().ToDict(), exactPaidAdapter) || world.GetString("godot_version") != _compatibility.GetString("engine_version") ||
+            if (!ValidRun(active) || !Shape(world, new WorldSnapshot().ToDict()) || world.GetString("godot_version") != _compatibility.GetString("engine_version") ||
                 active.GetString("run_id") != run || world.GetString("run_id") != run || active.GetString("slot_id") != slot || active.GetString("slot_kind") != Kind(slot) ||
                 active.GetBool("is_autosave") != (Kind(slot) == "auto") || active.GetBool("is_quicksave") != (Kind(slot) == "quick") || active.GetString("parent_world_slot").Length > 0 ||
                 !Position(world.Get("player_position_in_ship")) || !Number(world.Get("world_time"), out double time) || time < 0) throw new Refusal("invalid_payload");
             GdDict home = world.GetDictOrEmpty("home_ship"), summary = world.GetDictOrEmpty("world_summary");
-            if (!ValidRun(home, exactPaidAdapter) || home.GetString("run_id").Length > 0 && home.GetString("run_id") != run ||
-                !JsonInteger(active.Get("world_seed"), out long activeSeed, true, exactPaidAdapter) || !JsonInteger(home.Get("world_seed"), out long homeSeed, true, exactPaidAdapter) ||
-                !JsonInteger(summary.Get("world_seed"), out long worldSeed, true, exactPaidAdapter) || activeSeed != homeSeed || activeSeed != worldSeed ||
+            if (!ValidRun(home) || home.GetString("run_id").Length > 0 && home.GetString("run_id") != run ||
+                !JsonInteger(active.Get("world_seed"), out long activeSeed, true) || !JsonInteger(home.Get("world_seed"), out long homeSeed, true) ||
+                !JsonInteger(summary.Get("world_seed"), out long worldSeed, true) || activeSeed != homeSeed || activeSeed != worldSeed ||
                 !Position(summary.Get("player_position")) || !(summary.Get("generated_marker_ids") is GdArray)) throw new Refusal("binding_mismatch");
             GdDict visited = world.GetDictOrEmpty("visited_ships");
-            if (!(exactPaidAdapter ? PaidSnapshotCodec.Same(active.Get("visited_ships"), visited) : V.VariantEquals(active.Get("visited_ships"), visited))) throw new Refusal("binding_mismatch");
+            if (!V.VariantEquals(active.Get("visited_ships"), visited)) throw new Refusal("binding_mismatch");
             GdDict binding = request.GetDictOrEmpty("binding");
             if (binding.Count != 7 || !StringFields(binding, "home_ship_id", "lifeboat_ship_id", "current_owner_id", "current_location") ||
                 binding.GetString("home_ship_id") != "ship_start" || binding.GetString("lifeboat_ship_id") != "lifeboat" ||
@@ -765,8 +729,8 @@ namespace SynapticSea.Core.Systems
                 !(binding.Get("owner_revisions") is GdDict) || !(binding.Get("ship_references") is GdDict)) throw new Refusal("binding_mismatch");
             string location = world.GetString("current_location");
             if (location != binding.GetString("current_location") || location != active.GetString("current_location") ||
-                !(exactPaidAdapter ? PaidSnapshotCodec.Same(active.Get("player_position"), binding.Get("player_local_pose")) : componentAdapter ? SamePoseWire(active.Get("player_position"), binding.Get("player_local_pose")) : V.VariantEquals(active.Get("player_position"), binding.Get("player_local_pose"))) ||
-                !(exactPaidAdapter ? PaidSnapshotCodec.Same(world.Get("player_position_in_ship"), binding.Get("player_local_pose")) : componentAdapter ? SamePoseWire(world.Get("player_position_in_ship"), binding.Get("player_local_pose")) : V.VariantEquals(world.Get("player_position_in_ship"), binding.Get("player_local_pose")))) throw new Refusal("binding_mismatch");
+                !(componentAdapter ? SamePoseWire(active.Get("player_position"), binding.Get("player_local_pose")) : V.VariantEquals(active.Get("player_position"), binding.Get("player_local_pose"))) ||
+                !(componentAdapter ? SamePoseWire(world.Get("player_position_in_ship"), binding.Get("player_local_pose")) : V.VariantEquals(world.Get("player_position_in_ship"), binding.Get("player_local_pose")))) throw new Refusal("binding_mismatch");
             var owners = new HashSet<string>(StringComparer.Ordinal) { "ship_start", "lifeboat" };
             var used = new HashSet<string>(StringComparer.Ordinal);
             GdDict refs = binding.GetDictOrEmpty("ship_references");
@@ -782,7 +746,7 @@ namespace SynapticSea.Core.Systems
             string owner = location.Length == 0 ? "ship_start" : visited.GetDictOrEmpty(location).GetString("ship_id");
             if (!Identity(owner) || owner != binding.GetString("current_owner_id")) throw new Refusal("binding_mismatch");
             ValidateReference(refs.Get(owner) as GdDict, artifacts, used, active, location.Length == 0 ? null : visited.GetDictOrEmpty(location).GetDictOrEmpty("blueprint"));
-            if (location.Length == 0 && !(exactPaidAdapter ? PaidSnapshotCodec.Same(home.Get("player_position"), active.Get("player_position")) : V.VariantEquals(home.Get("player_position"), active.Get("player_position")))) throw new Refusal("binding_mismatch");
+            if (location.Length == 0 && !V.VariantEquals(home.Get("player_position"), active.Get("player_position"))) throw new Refusal("binding_mismatch");
             GdDict lifeRef = refs.Get("lifeboat") as GdDict;
             if (world.Has("mobile_home_state"))
             {
@@ -840,8 +804,8 @@ namespace SynapticSea.Core.Systems
             used.Add(layoutPath); used.Add(slicePath); used.Add(kitPath);
         }
 
-        bool ValidRun(GdDict run, bool exact = false)
-            => run != null && Shape(run, new RunSnapshot().ToDict(), exact) && run.GetString("slice_version") == "gate2-current-run-6" &&
+        bool ValidRun(GdDict run)
+            => run != null && Shape(run, new RunSnapshot().ToDict()) && run.GetString("slice_version") == "gate2-current-run-6" &&
                 run.GetString("godot_version") == _compatibility.GetString("engine_version") && Position(run.Get("player_position")) &&
                 Number(run.GetDictOrEmpty("vitals_summary").Get("health"), out double health) && health > 0 &&
                 Number(run.Get("play_time_seconds"), out double time) && time >= 0;
@@ -1081,8 +1045,8 @@ namespace SynapticSea.Core.Systems
         static bool KnownSlot(string slot) => Slots.Contains(slot, StringComparer.Ordinal);
         static string Kind(string slot) => slot == "world" ? "world" : slot == "quicksave" ? "quick" : slot.StartsWith("autosave_", StringComparison.Ordinal) ? "auto" : "manual";
         static string Decimal(long value) => value.ToString(CultureInfo.InvariantCulture);
-        string Encode(GdDict record) => (_allowPaidCrafting ? PaidSnapshotCodec.Stringify(record) : GdJson.Stringify(record, "  ")) + "\n";
-        GdDict ParseMetadata(string text) => _allowPaidCrafting ? PaidSnapshotCodec.Parse(text) : ParseObject(text);
+        string Encode(GdDict record) => GdJson.Stringify(record, "  ") + "\n";
+        GdDict ParseMetadata(string text) => ParseObject(text);
         static string Hash(string text)
         {
             using (var sha = SHA256.Create()) return string.Concat(sha.ComputeHash(Utf8.GetBytes(text)).Select(b => b.ToString("x2")));
@@ -1131,26 +1095,25 @@ namespace SynapticSea.Core.Systems
             number = value is long integer ? integer : value is double floating ? floating : double.NaN;
             return !double.IsNaN(number) && !double.IsInfinity(number);
         }
-        static bool JsonInteger(object value, out long number, bool seedString = false, bool exact = false)
+        static bool JsonInteger(object value, out long number, bool seedString = false)
         {
             number = 0;
-            if (exact && value is long literal) { number = literal; return true; }
             if (seedString && value is string text)
                 return text.Length > 0 && text.Length <= 20 && text != "-0" && (text[0] != '-' ? text == "0" || text[0] >= '1' && text[0] <= '9' : text.Length > 1 && text[1] >= '1' && text[1] <= '9') &&
                     text.Skip(text[0] == '-' ? 1 : 0).All(c => c >= '0' && c <= '9') && long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number);
-            if (exact || !Number(value, out double n) || Math.Abs(n) > 9007199254740991d || Math.Truncate(n) != n) return false;
+            if (!Number(value, out double n) || Math.Abs(n) > 9007199254740991d || Math.Truncate(n) != n) return false;
             number = (long)n; return true;
         }
         static bool Position(object value) => value is GdArray array && array.Count == 3 && array.All(v => Number(v, out _));
         static bool SamePoseWire(object left, object right) => Position(left) && Position(right) && GdJson.Stringify(left) == GdJson.Stringify(right);
-        static bool Shape(GdDict actual, GdDict template, bool exact = false)
+        static bool Shape(GdDict actual, GdDict template)
         {
             foreach (var field in template)
             {
                 if (!actual.Has(field.Key)) return false;
                 object expected = field.Value, value = actual[field.Key];
                 if (expected is GdDict && !(value is GdDict) || expected is GdArray && !(value is GdArray) || expected is string && !(value is string) ||
-                    expected is bool && !(value is bool) || expected is double && !Number(value, out _) || expected is long && !JsonInteger(value, out _, field.Key.Equals("world_seed"), exact)) return false;
+                    expected is bool && !(value is bool) || expected is double && !Number(value, out _) || expected is long && !JsonInteger(value, out _, field.Key.Equals("world_seed"))) return false;
             }
             return true;
         }
@@ -1175,7 +1138,7 @@ namespace SynapticSea.Core.Systems
             foreach (var revision in older) if (newer.Get(revision.Key) is long value && value < (long)revision.Value) return false;
             return true;
         }
-        bool Equivalent(GdDict left, GdDict right) => _allowPaidCrafting ? PaidSnapshotCodec.Same(left, right) : V.VariantEquals(left, right);
+        bool Equivalent(GdDict left, GdDict right) => V.VariantEquals(left, right);
 
         static bool SafeGraph(object value) => SafeGraph(value, new HashSet<object>(), 0);
         static bool SafeGraph(object value, HashSet<object> ancestors, int depth)
@@ -1197,27 +1160,14 @@ namespace SynapticSea.Core.Systems
             return value == null || value is bool || value is long || value is double n && !double.IsNaN(n) && !double.IsInfinity(n);
         }
 
-        internal static GdDict ParsePaidObject(string text) => ParsePaidObject(text, PaidSnapshotCodec.Policy.Raw);
-        internal static GdDict ParsePaidObject(string text, PaidSnapshotCodec.Policy policy)
-        {
-            if (text == null || !PaidSnapshotCodec.KnownPolicy(policy)) return null;
-            try
-            {
-                Utf8.GetByteCount(text);
-                if (!new JsonGuard(text, policy).Valid()) return null;
-                GdDict dictionary = GdJson.Parse(text, true) as GdDict;
-                return PaidSnapshotCodec.IsValidGraph(dictionary, policy) ? dictionary : null;
-            }
-            catch (Exception) { return null; }
-        }
-        static GdDict ParseObject(string text, bool exactNumbers = false)
+        static GdDict ParseObject(string text)
         {
             if (text == null) return null;
             try
             {
                 Utf8.GetByteCount(text);
-                if (!new JsonGuard(text, exactNumbers).Valid()) return null;
-                GdDict dictionary = (exactNumbers ? GdJson.Parse(text, true) : GdJson.ParseString(text)) as GdDict;
+                if (!new JsonGuard(text).Valid()) return null;
+                GdDict dictionary = GdJson.ParseString(text) as GdDict;
                 return SafeGraph(dictionary) ? dictionary : null;
             }
             catch (Exception) { return null; }
@@ -1227,17 +1177,13 @@ namespace SynapticSea.Core.Systems
         // never invoked, and the supplied text itself is retained rather than normalized by this scanner.
         sealed class JsonGuard
         {
-            readonly string _text; readonly bool _exactNumbers; int _position;
-            readonly PaidSnapshotCodec.Policy? _paidPolicy;
-            int _rawNodes;
-            public JsonGuard(string text, bool exactNumbers = false) { _text = text; _exactNumbers = exactNumbers; }
-            public JsonGuard(string text, PaidSnapshotCodec.Policy policy) : this(text, true) { _paidPolicy = policy; }
+            readonly string _text; int _position;
+            public JsonGuard(string text) { _text = text; }
             public bool Valid()
             {
                 try
                 {
-                    int ownerNodes = 0;
-                    Value(0, _paidPolicy.HasValue ? PaidSnapshotCodec.RootPath(_paidPolicy.Value) : PaidSnapshotCodec.PathState.Other, -1, ref ownerNodes);
+                    Value(0);
                     White(); return _position == _text.Length;
                 }
                 catch (FormatException) { return false; }
@@ -1245,22 +1191,9 @@ namespace SynapticSea.Core.Systems
             void White() { while (_position < _text.Length && (_text[_position] == ' ' || _text[_position] == '\t' || _text[_position] == '\r' || _text[_position] == '\n')) _position++; }
             char Next { get { White(); return _position < _text.Length ? _text[_position] : '\0'; } }
             void Take(char token) { if (Next != token) throw new FormatException(); _position++; }
-            void Value(int depth, PaidSnapshotCodec.PathState path, int ownerDepth, ref int ownerNodes)
+            void Value(int depth)
             {
-                if (_paidPolicy.HasValue)
-                {
-                    if (ownerDepth >= 0)
-                    {
-                        if (depth - ownerDepth > PaidSnapshotCodec.MaxOwnerWireDepth || ++ownerNodes > PaidSnapshotCodec.MaxOwnerWireNodes)
-                            throw new FormatException();
-                    }
-                    else
-                    {
-                        if (depth > PaidSnapshotCodec.MaxRawDepth || ++_rawNodes > PaidSnapshotCodec.MaxNodes) throw new FormatException();
-                        if (path == PaidSnapshotCodec.PathState.Owner) { ownerDepth = depth; ownerNodes = 1; }
-                    }
-                }
-                else if (depth > 128) throw new FormatException();
+                if (depth > 128) throw new FormatException();
                 char next = Next;
                 if (next == '{')
                 {
@@ -1269,9 +1202,7 @@ namespace SynapticSea.Core.Systems
                     while (true)
                     {
                         string key = String(); if (!keys.Add(key)) throw new FormatException(); Take(':');
-                        PaidSnapshotCodec.PathState child = _paidPolicy.HasValue && ownerDepth < 0
-                            ? PaidSnapshotCodec.ChildPath(_paidPolicy.Value, path, key) : PaidSnapshotCodec.PathState.Other;
-                        Value(depth + 1, child, ownerDepth, ref ownerNodes);
+                        Value(depth + 1);
                         if (Next == '}') { _position++; return; } Take(',');
                     }
                 }
@@ -1280,7 +1211,7 @@ namespace SynapticSea.Core.Systems
                     _position++; if (Next == ']') { _position++; return; }
                     while (true)
                     {
-                        Value(depth + 1, PaidSnapshotCodec.PathState.Other, ownerDepth, ref ownerNodes);
+                        Value(depth + 1);
                         if (Next == ']') { _position++; return; } Take(',');
                     }
                 }
@@ -1297,12 +1228,6 @@ namespace SynapticSea.Core.Systems
                 if (_position < _text.Length && (_text[_position] == 'e' || _text[_position] == 'E'))
                 { _position++; if (_position < _text.Length && (_text[_position] == '+' || _text[_position] == '-')) _position++; int exponent = _position; Digits(); if (_position == exponent) throw new FormatException(); }
                 if (start == _position) throw new FormatException();
-                if (_exactNumbers)
-                {
-                    string token = _text.Substring(start, _position - start);
-                    if (token.IndexOfAny(new[] { '.', 'e', 'E' }) < 0 &&
-                        !long.TryParse(token, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out _)) throw new FormatException();
-                }
             }
             void Digits() { while (_position < _text.Length && _text[_position] >= '0' && _text[_position] <= '9') _position++; }
             void Literal(string word) { if (_position + word.Length > _text.Length || _text.Substring(_position, word.Length) != word) throw new FormatException(); _position += word.Length; }

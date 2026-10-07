@@ -7,9 +7,7 @@ namespace SynapticSea.Core.Session
 {
     public sealed partial class RunSession
     {
-        /// <summary>Manual study is part of the base game. The paid-domain study proofs (schema 4/5) stay behind this flag until paid crafting is deleted.</summary>
         public bool ManualStudyEnabled => true;
-        bool PaidManualStudyEnabled => Deps.EnableManualStudy && PaidCraftingEnabled;
         readonly ManualStudyState _study = new ManualStudyState();
         Vec3 _studyPosition;
         double _studyHealth;
@@ -20,8 +18,7 @@ namespace SynapticSea.Core.Session
             if (WorkActionDriver?.IsWorking() == true || RepairPoints.Any(p => p.Channeling) || BreachSealPoints.Any(p => p.Channeling) ||
                 FireSuppressionPoints.Any(p => p.Channeling) || DockBarriers.Any(p => p.Channeling)) return true;
             GdDict domain = _componentDomain?.GetSummary() ?? new GdDict();
-            return domain.GetDictOrEmpty("component_work").GetString("status") == "active" ||
-                PaidState(domain).GetDictOrEmpty("jobs").Values.OfType<GdDict>().Any(j => j.GetString("input_state") == "paid" && !PaidCraftingState.Terminal(j));
+            return domain.GetDictOrEmpty("component_work").GetString("status") == "active";
         }
         string StudyGate(string book)
         {
@@ -76,7 +73,6 @@ namespace SynapticSea.Core.Session
                     { "is_cross_training", false }, { "sequence", TrainingEventBus.GetEventCount() }, { "gated", false } };
                 TrainingEventBus.RecordApplied(record, "manual_study:complete:" + RunId + ":" + book);
             }
-            RecipeKnowledge?.LearnFromBook(book, RecipeCatalog());
             _study.Complete();
         }
         public string ViewManual(string book)
