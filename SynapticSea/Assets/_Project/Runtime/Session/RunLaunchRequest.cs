@@ -47,7 +47,7 @@ namespace SynapticSea.Runtime.Session
         /// <summary>Slot id for <see cref="RunLaunchMode.LoadSlot"/>; <see cref="WorldSlotId"/> for Continue; "" for a new run.</summary>
         public string SlotId = "";
 
-        /// <summary>Explicit development/fixture opt-in. Ordinary launch/save/Continue remains on the legacy path.</summary>
+        /// <summary>Explicit development/fixture opt-in. Ordinary launch/save/Continue remains on the legacy path. Default off; activation scheduled for Phase 5.5 (see docs/design/decisions.md, Phase 0.3 decision 3). The one sanctioned exception to the no-default-off-flags rule.</summary>
         public bool EnableComponentIntegration;
         GdDict _selectedSaveGeneration;
         /// <summary>Owned exact generation handle; never inferred from the presence of a generation on disk.</summary>

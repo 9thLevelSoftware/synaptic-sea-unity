@@ -60,7 +60,7 @@ namespace SynapticSea.App
         public bool SettingsDirty { get; private set; }
 
         public RunLaunchRequest LastRequest { get; private set; }
-        /// <summary>Explicit diagnostic title opt-in for development/fixtures; never inferred from saved bytes.</summary>
+        /// <summary>Explicit diagnostic title opt-in for development/fixtures; never inferred from saved bytes. Default off; activation scheduled for Phase 5.5 (see docs/design/decisions.md, Phase 0.3 decision 3). The one sanctioned exception to the no-default-off-flags rule.</summary>
         public bool EnableComponentIntegration { get; set; }
 
         /// <summary>The open New Run setup submenu (null when closed).</summary>

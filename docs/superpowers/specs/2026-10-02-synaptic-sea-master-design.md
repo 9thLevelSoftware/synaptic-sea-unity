@@ -23,7 +23,7 @@ Committed loop: assess a contact -> prepare small craft and carried tools -> exp
 
 Full Newtonian flight, 6DOF, arbitrary mesh cutting, detailed EVA/tethers, NPC crews, multiplayer, ML and autonomous collectors are optional. They create no implementation dependencies here. Biomass resource/territory/adaptation remains a bounded concept proposal. A future eventual escape feature would need its own design and must not replace ordinary survival.
 
-No design assumption finalizes world-to-real time ratio, atmosphere fidelity, death succession, closed-game simulation, survival rates, fuel/economy prices or target hardware. [Open decisions](../../design/formal-build-2026-10-02/decisions.md) state alternatives, evidence and decision deadlines. Existing death/frozen-save behavior remains the compatibility baseline until a succession design is reviewed.
+No design assumption finalizes world-to-real time ratio, atmosphere fidelity, closed-game simulation, survival rates, fuel/economy prices or target hardware. [Open decisions](../../design/formal-build-2026-10-02/decisions.md) state alternatives, evidence and decision deadlines. Death succession is decided (D8, `docs/design/decisions.md`); the existing death/frozen-save behavior remains in code until Phase 3.6 implements it.
 
 ## 3. Current implementation and chosen direction
 

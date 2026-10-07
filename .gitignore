@@ -65,3 +65,6 @@ SynapticSea/Assets/StreamingAssets/build_stamp.json.meta
 SynapticSea/Assets/Content/Purchased/
 SynapticSea/Assets/Content/Purchased.meta
 SynapticSea/Assets/Resources/Catalogs/KitCatalog_ship_structural_v0_local.asset*
+
+# Unity test-runner scratch scene
+SynapticSea/Assets/InitTestScene*

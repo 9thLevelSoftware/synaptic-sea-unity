@@ -87,7 +87,7 @@ namespace SynapticSea.Core.Session
         public Func<Vec3, IShipSceneRoot, Vec3?> ResolveDeckLanding;
         public IThreatNavigation ThreatNavigation;
         public IRunUiState UiState;
-        /// <summary>Explicit diagnostic admission; ordinary runs keep legacy crafting and save behavior.</summary>
+        /// <summary>Explicit diagnostic admission; ordinary runs keep legacy crafting and save behavior. Default off; activation scheduled for Phase 5.5 (see docs/design/decisions.md, Phase 0.3 decision 3). The one sanctioned exception to the no-default-off-flags rule.</summary>
         public bool EnableComponentIntegration = false;
         public GdDict SelectedSaveGeneration;
 
