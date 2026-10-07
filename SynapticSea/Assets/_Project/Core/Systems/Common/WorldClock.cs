@@ -12,6 +12,8 @@ namespace SynapticSea.Core.Systems
     public sealed class WorldClock
     {
         public const double DefaultScale = 1.0;
+        /// <summary>Game seconds per real second for a New Run (1 real minute = 1 game hour). Scale 1.0 is the legacy real-time pacing.</summary>
+        public const double DefaultNewRunScale = 60.0;
         public const double SecondsPerHour = 3600.0;
         public const double HoursPerDay = 24.0;
         public const double DayStartHour = 6.0;
@@ -41,6 +43,18 @@ namespace SynapticSea.Core.Systems
         public long DayIndex => (long)Math.Floor(AbsoluteHours / HoursPerDay);
         public double HourOfDay => AbsoluteHours - Math.Floor(AbsoluteHours / HoursPerDay) * HoursPerDay;
         public bool IsNight => HourOfDay >= NightStartHour || HourOfDay < DayStartHour;
+
+        /// <summary>True when the clock runs at the legacy 1:1 pacing (the "off" choice); survival rates then keep their per-real-second values.</summary>
+        public bool IsRealTime => Scale == DefaultScale;
+
+        /// <summary>HUD text such as "Day 2  14:05"; empty at real-time pacing, where the clock is not shown.</summary>
+        public string ClockText()
+        {
+            if (IsRealTime) return "";
+            double hour = HourOfDay;
+            int h = (int)Math.Floor(hour), m = (int)Math.Floor((hour - h) * 60.0);
+            return "Day " + (DayIndex + 1) + "  " + h.ToString("00") + ":" + m.ToString("00");
+        }
 
         /// <summary>True when the scale and start hour are the defaults, so <see cref="GameSeconds"/> alone describes the clock.</summary>
         public bool IsDefaultConfiguration => Scale == DefaultScale && StartHourOfDay == DayStartHour;

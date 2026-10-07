@@ -53,6 +53,18 @@ namespace SynapticSea.Core.Session
             return summary;
         }
 
+        SurvivalTuning _survivalTuning = new SurvivalTuning();
+
+        /// <summary>Loads <c>balance/survival.json</c> and applies the hunger/thirst rates for the current clock scale.</summary>
+        void LoadSurvivalTuning()
+        {
+            _survivalTuning = SurvivalTuning.FromDict(LoadJsonDict(SurvivalTuning.Path));
+            ApplySurvivalTuning();
+        }
+
+        /// <summary>Config wins over rates restored from a save: scaled pacing uses the per-game-hour rates, real time the legacy ones.</summary>
+        internal void ApplySurvivalTuning() => _survivalTuning.ApplyTo(VitalsState, GameClock);
+
         void ApplyRunContext(string difficultyId, string biomeId, long? seed, double timeScale = WorldClock.DefaultScale)
         {
             GameClock.SetScale(timeScale);

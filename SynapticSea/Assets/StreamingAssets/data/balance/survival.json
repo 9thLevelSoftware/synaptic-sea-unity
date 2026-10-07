@@ -1,0 +1,8 @@
+{
+  "survival": {
+    "hunger_per_game_hour": 4.166667,
+    "thirst_per_game_hour": 8.333333,
+    "spoilage_time_multiplier": 72,
+    "production_time_multiplier": 120
+  }
+}

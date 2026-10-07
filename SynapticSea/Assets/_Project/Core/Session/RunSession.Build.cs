@@ -146,6 +146,7 @@ namespace SynapticSea.Core.Session
             EquipmentState = EquipmentState.Create();
             ElectricalArcState = new ElectricalArcState();
             VitalsState = new VitalsState();
+            LoadSurvivalTuning();
             SanityState = new SanityState();
             RadiationState = new RadiationState();
             BodyTemperatureState = new BodyTemperatureState();

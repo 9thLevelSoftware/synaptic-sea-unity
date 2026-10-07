@@ -23,6 +23,9 @@ namespace SynapticSea.Core.Systems
         public const string StatusStaminaRecoveryMult = "status_stamina_recovery_mult";
         public const string SanityStaminaRecoveryMult = "sanity_stamina_recovery_mult";
 
+        /// <summary>Unity port (Phase 1.1b): game seconds elapsed this tick. Hunger and thirst drain by this; absent means the real delta. Not in <see cref="AllKeys"/> (the Godot catalog count is pinned).</summary>
+        public const string GameDelta = "game_delta";
+
         // --- Threat perception / AI ---
         public const string NoiseLevel = "noise_level";
         public const string LightLevel = "light_level";

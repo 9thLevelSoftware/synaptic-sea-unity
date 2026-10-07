@@ -380,6 +380,7 @@ namespace SynapticSea.Game
             RefreshPrompt();
             Router?.Tick();
             if (_session?.VitalsModel != null && Hud.Vitals != null) Hud.Vitals.Refresh(_session.VitalsModel);
+            if (_session != null && Hud.Vitals != null) Hud.Vitals.SetClockLine(_session.GameClock.ClockText());
             if (Hud.Vitals != null && Time.unscaledTime >= _nextEffectRefresh)
             {
                 _nextEffectRefresh = Time.unscaledTime + 0.25f;

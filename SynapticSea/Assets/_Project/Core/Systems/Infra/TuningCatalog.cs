@@ -16,7 +16,8 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>Explicit paths that work under PCK export.</summary>
         public static readonly GdArray DefaultBalanceFiles = GdArray.Of(
-            "res://data/balance/shell.json"
+            "res://data/balance/shell.json",
+            "res://data/balance/survival.json"
         );
 
         GdDict _values = new GdDict();

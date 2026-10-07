@@ -20,6 +20,18 @@ namespace SynapticSea.Core.Session
         AwayOnly,
     }
 
+    /// <summary>
+    /// Which clock a stage's <c>delta</c> is measured on (Phase 1.1b). <see cref="Real"/> stages get real seconds;
+    /// <see cref="Game"/> stages get real seconds times the world clock scale; <see cref="Mixed"/> stages get real
+    /// seconds and read the game delta themselves (<c>RunSession.GameDeltaThisTick</c>) for the parts that follow game time.
+    /// </summary>
+    public enum TimeDomain
+    {
+        Real,
+        Game,
+        Mixed,
+    }
+
     /// <summary>One order-sensitive step of the per-frame tick.</summary>
     public interface ITickStage
     {
@@ -27,6 +39,9 @@ namespace SynapticSea.Core.Session
         string Id { get; }
 
         StageScope Scope { get; }
+
+        /// <summary>The clock this stage's delta is on.</summary>
+        TimeDomain Domain { get; }
 
         /// <summary>Required when <see cref="Scope"/> is not <see cref="StageScope.Both"/>: why the other branch has no call.</summary>
         string ScopeReason { get; }
@@ -42,8 +57,9 @@ namespace SynapticSea.Core.Session
     {
         readonly Action<RunSession, SessionLocation, double> _run;
 
-        public TickStage(string id, string godotSource, Action<RunSession, SessionLocation, double> run, StageScope scope = StageScope.Both, string scopeReason = "")
+        public TickStage(string id, string godotSource, Action<RunSession, SessionLocation, double> run, StageScope scope = StageScope.Both, string scopeReason = "", TimeDomain domain = TimeDomain.Real)
         {
+            Domain = domain;
             Id = id;
             GodotSource = godotSource;
             _run = run;
@@ -53,6 +69,7 @@ namespace SynapticSea.Core.Session
 
         public string Id { get; }
         public StageScope Scope { get; }
+        public TimeDomain Domain { get; }
         public string ScopeReason { get; }
         public string GodotSource { get; }
         public void Run(RunSession session, SessionLocation location, double delta) => _run(session, location, delta);
@@ -107,7 +124,7 @@ namespace SynapticSea.Core.Session
             new TickStage(Wounds, "Unity port (no Godot call): WoundState.tick + heal; the bleed rides survival_attrition's vitals context",
                 (s, loc, d) => s.StageWounds(d)),
             new TickStage(SurvivalAttrition, "_tick_survival_attrition",
-                (s, loc, d) => s.StageSurvivalAttrition(d)),
+                (s, loc, d) => s.StageSurvivalAttrition(d), domain: TimeDomain.Mixed),
             new TickStage(PlayerVitals, "_refresh_player_vitals",
                 (s, loc, d) => s.StagePlayerVitals(d), StageScope.AwayOnly,
                 "Home refreshes the vitals panel inside the oxygen stage (_refresh_oxygen_state calls _refresh_player_vitals); the Godot home branch has no separate call, so a second home call would double-tick the PlayerVitalsModel."),
@@ -122,7 +139,7 @@ namespace SynapticSea.Core.Session
                 (s, loc, d) => s.StageRechargePortPower(), StageScope.AwayOnly,
                 "Away-only derelict power gate: it must win over the hub 'stations' allocation _recompute_expanded_ship_systems pushes; at home that SLOW-band recompute (present_ships) is the port's only power source."),
             new TickStage(Food, "_tick_food_runtime",
-                (s, loc, d) => s.StageFood(d)),
+                (s, loc, d) => s.StageFood(d), domain: TimeDomain.Game),
             new TickStage(AmmoConsumableDecay, "_tick_ammo_and_consumable_decay",
                 (s, loc, d) => s.StageAmmoConsumableDecay(d)),
             new TickStage(ElectricalArc, "_tick_electrical_arc",

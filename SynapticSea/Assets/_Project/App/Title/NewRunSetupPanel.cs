@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
+using SynapticSea.Core.Systems;
 using SynapticSea.Runtime.Session;
 using SynapticSea.UI;
 using UnityEngine.UIElements;
@@ -29,12 +30,23 @@ namespace SynapticSea.App
         public const string RowDifficulty = "difficulty";
         public const string RowSeed = "seed";
         public const string RowRandomize = "randomize";
+        public const string RowTimeScale = "time_scale";
         public const string RowStart = "start";
 
         /// <summary>Godot difficulty order (<c>title_main.gd</c> cycled standard → hardened → deep_dive).</summary>
         public static readonly IReadOnlyList<string> DifficultyOrder = new[] { DifficultyProfile.STANDARD_ID, "hardened", "deep_dive" };
 
-        static readonly string[] RowIds = { RowBiome, RowDifficulty, RowSeed, RowRandomize, RowStart };
+        static readonly string[] RowIds = { RowBiome, RowDifficulty, RowSeed, RowRandomize, RowTimeScale, RowStart };
+
+        /// <summary>Game seconds per real second the setup offers: 30 (2 real minutes per game hour), 60 (the default, 1 minute), 120 (30 seconds) and 1 ("off": real-time pacing).</summary>
+        public static readonly IReadOnlyList<double> TimeScales = new[] { 30.0, WorldClock.DefaultNewRunScale, 120.0, WorldClock.DefaultScale };
+
+        public static string TimeScaleLabel(double scale)
+        {
+            if (scale == WorldClock.DefaultScale) return "Off (real time)";
+            double minutesPerHour = 60.0 / scale;
+            return (minutesPerHour >= 1.0 ? minutesPerHour.ToString("0.#", CultureInfo.InvariantCulture) + " min" : (minutesPerHour * 60.0).ToString("0", CultureInfo.InvariantCulture) + " s") + " = 1 hour";
+        }
 
         /// <summary>Random seed source (tests pin it).</summary>
         public static Func<long> RandomSeed = () => UnityEngine.Random.Range(1, int.MaxValue);
@@ -49,6 +61,7 @@ namespace SynapticSea.App
         int _biomeIndex;
         int _difficultyIndex;
         int _focusIndex;
+        int _timeScaleIndex = 1;
         long _seed;
 
         public NewRunSetupPanel(IEnumerable<string> biomeIds, IEnumerable<string> difficultyIds, string biomeId, string difficultyId, long seed)
@@ -88,6 +101,7 @@ namespace SynapticSea.App
         public string BiomeId => _biomes.Count == 0 ? "" : _biomes[_biomeIndex];
         public string DifficultyId => _difficulties[_difficultyIndex];
         public long Seed => _seed;
+        public double TimeScale => TimeScales[_timeScaleIndex];
         public int FocusIndex => _focusIndex;
         public string FocusedRowId => RowIds[_focusIndex];
         public bool IsEditingSeed { get; private set; }
@@ -138,7 +152,7 @@ namespace SynapticSea.App
             CoreServices.Resources is FileSystemResourceReader reader ? reader.ListFiles(dir) : (IReadOnlyList<string>)Array.Empty<string>();
 
         /// <summary>The request this setup describes (class and settings are filled by the title).</summary>
-        public RunLaunchRequest BuildRequest() => RunLaunchRequest.NewRun(_seed, BiomeId, DifficultyId);
+        public RunLaunchRequest BuildRequest() => RunLaunchRequest.NewRun(_seed, BiomeId, DifficultyId, TimeScale);
 
         // ------------------------------------------------------------------ commands
 
@@ -209,6 +223,9 @@ namespace SynapticSea.App
                 case RowSeed:
                     _seed = Math.Max(0, _seed + direction);
                     break;
+                case RowTimeScale:
+                    _timeScaleIndex = (_timeScaleIndex + direction + TimeScales.Count) % TimeScales.Count;
+                    break;
                 default:
                     return;
             }
@@ -222,6 +239,7 @@ namespace SynapticSea.App
             {
                 case RowBiome:
                 case RowDifficulty:
+                case RowTimeScale:
                     Cycle(1);
                     break;
                 case RowSeed:
@@ -382,6 +400,7 @@ namespace SynapticSea.App
                 case RowDifficulty: return "Difficulty";
                 case RowSeed: return "Seed";
                 case RowRandomize: return "Randomize seed";
+                case RowTimeScale: return "Time scale";
                 default: return "Start run";
             }
         }
@@ -392,8 +411,8 @@ namespace SynapticSea.App
             {
                 string id = RowIds[i];
                 VisualElement row = _rows[i];
-                bool cyclable = id == RowBiome || id == RowDifficulty || (id == RowSeed && !IsEditingSeed);
-                string value = id == RowBiome ? BiomeId : id == RowDifficulty ? DifficultyId : id == RowSeed ? _seed.ToString(CultureInfo.InvariantCulture) : "";
+                bool cyclable = id == RowBiome || id == RowDifficulty || id == RowTimeScale || (id == RowSeed && !IsEditingSeed);
+                string value = id == RowBiome ? BiomeId : id == RowDifficulty ? DifficultyId : id == RowSeed ? _seed.ToString(CultureInfo.InvariantCulture) : id == RowTimeScale ? TimeScaleLabel(TimeScale) : "";
                 var valueLabel = row.Q<Label>(className: "ss-menu-row__value");
                 valueLabel.text = value;
                 UiFactory.SetShown(valueLabel, value.Length != 0 && !(id == RowSeed && IsEditingSeed));
