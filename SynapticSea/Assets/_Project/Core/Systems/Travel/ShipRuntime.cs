@@ -37,6 +37,12 @@ namespace SynapticSea.Core.Systems
 
         /// <summary>Unity port (decision 65): skip web.Tick and hull web damage; systems still Advance.</summary>
         public bool SkipWebTick;
+
+        /// <summary>
+        /// Phase 1.2: advances this absent ship's own fire for one catch-up step of real-equivalent seconds. The session owns the
+        /// fire rules (compartment/system map, damage rate), so catch-up calls back into it per sub-step.
+        /// </summary>
+        public Action<double> FireStep;
     }
 
     /// <summary>
@@ -48,7 +54,18 @@ namespace SynapticSea.Core.Systems
     public class ShipRuntime : ISnapshotable
     {
         public const double CATCHUP_SUBSTEP_SECONDS = 5.0;
+
+        /// <summary>
+        /// Cap on one catch-up, in real-equivalent seconds: the span a ship's real-time-rate models (life-support O2, web,
+        /// fire) are advanced for, however long the absence was. At scale s the cap spans <c>MAX_CATCHUP_SECONDS * s</c> game seconds.
+        /// </summary>
         public const double MAX_CATCHUP_SECONDS = 1800.0;
+
+        /// <summary>
+        /// Upper bound on <see cref="Advance"/> calls per catch-up. Below the cap the 3 s lazy quantum is kept (unchanged
+        /// stepping); longer gaps grow the step, but never past <see cref="CATCHUP_SUBSTEP_SECONDS"/> at the cap.
+        /// </summary>
+        public const int MAX_CATCHUP_STEPS = 360;
 
         // PKG-A3 tick bands (accumulators; no balance retune of rates themselves).
         public const double SLOW_INTERVAL_SECONDS = 0.35;
@@ -75,6 +92,9 @@ namespace SynapticSea.Core.Systems
         /// <summary>Unity port (decision 65): skip web.Tick and hull web damage; systems still Advance.</summary>
         public bool SkipWebTick;
 
+        /// <summary>Phase 1.2: see <see cref="ShipRuntimeOptions.FireStep"/>.</summary>
+        public Action<double> FireStep;
+
         double _slowAcc = 0.0;
         double _lazyAcc = 0.0;
 
@@ -94,6 +114,7 @@ namespace SynapticSea.Core.Systems
             ModuleIntegrity = opts.ModuleIntegrity;
             ComponentPlacement = opts.ComponentPlacement;
             SkipWebTick = opts.SkipWebTick;
+            FireStep = opts.FireStep;
             _slowAcc = 0.0;
             _lazyAcc = 0.0;
             FrameBandFires = 0;
@@ -199,24 +220,32 @@ namespace SynapticSea.Core.Systems
         }
 
         /// <summary>
-        /// Fast-forward an absent ship by world_time - last_sim_time in capped sub-steps. Home ships are never
-        /// catch-up targets (always present). PKG-A3: prefer LAZY quanta for inactive catch-up when gap is large;
-        /// still bounded by CATCHUP_SUBSTEP_SECONDS so model rates stay stable.
+        /// Fast-forward an absent ship by <paramref name="worldTime"/> - last_sim_time. Home ships are never catch-up targets
+        /// (always present). <paramref name="worldTime"/> and <c>LastSimTime</c> are game seconds; the ship's models (life
+        /// support O2, web infestation, fire) run on real-time rates, so the elapsed game time is converted to real-equivalent
+        /// seconds (<c>/ timeScale</c>) before stepping. That is exactly what they would have been advanced by had the ship
+        /// been present, so nothing is scaled twice. The span is capped at <see cref="MAX_CATCHUP_SECONDS"/> real-equivalent
+        /// seconds and stepped in at most <see cref="MAX_CATCHUP_STEPS"/> sub-steps (PKG-A3: LAZY quanta while the gap is small).
+        /// At <paramref name="timeScale"/> 1 this is the original behavior.
         /// </summary>
-        public void CatchUp(double worldTime)
+        public void CatchUp(double worldTime, double timeScale = 1.0)
         {
             if (Ship == null || IsHome)
                 return;
             double last = Ship.LastSimTime;
-            double dt = Math.Min(worldTime - last, MAX_CATCHUP_SECONDS);
-            if (dt <= 0.0)
+            double elapsedGame = worldTime - last;
+            if (elapsedGame <= 0.0)
                 return;
+            double scale = timeScale > 0.0 && !double.IsNaN(timeScale) && !double.IsInfinity(timeScale) ? timeScale : 1.0;
+            double dt = Math.Min(elapsedGame / scale, MAX_CATCHUP_SECONDS);
             Ship.LastSimTime = worldTime;
             double quantum = Math.Min(CATCHUP_SUBSTEP_SECONDS, LAZY_INTERVAL_SECONDS);
+            double stepSize = Math.Max(quantum, dt / MAX_CATCHUP_STEPS);
             while (dt > 0.0)
             {
-                double step = Math.Min(quantum, dt);
+                double step = Math.Min(stepSize, dt);
                 Advance(step, worldTime);
+                FireStep?.Invoke(step);
                 LazyBandFires += 1;
                 dt -= step;
             }
