@@ -26,18 +26,68 @@ namespace SynapticSea.Tests.Systems
         }
 
         [Test]
-        public void RepairGates_ThenSucceedsFasterWithSkill()
+        public void RepairGatesOnPartsAndTools_ThenSucceedsFasterWithSkill()
         {
             var sub = Damaged();
             Assert.IsFalse(sub.IsFunctional());
             Assert.AreEqual("missing_parts", sub.Repair(new GdArray(), GdArray.Of("welder"), 5).GetString("reason"));
             Assert.AreEqual("missing_tools", sub.Repair(GdArray.Of("power_cell"), new GdArray(), 5).GetString("reason"));
-            Assert.AreEqual("insufficient_skill", sub.Repair(GdArray.Of("power_cell"), GdArray.Of("welder"), 1).GetString("reason"));
             GdDict ok = sub.Repair(GdArray.Of("power_cell"), GdArray.Of("welder"), 4);
             Assert.IsTrue(ok.GetBool("success"));
             Assert.AreEqual(10.0 / 1.2, ok.GetFloat("seconds"), 1e-12);
             Assert.IsTrue(sub.IsFunctional());
+            Assert.AreEqual(1.0, sub.Health, 1e-12);
+            Assert.IsFalse(sub.ReducedQuality);
             Assert.AreEqual("already_functional", sub.Repair(new GdArray(), new GdArray(), 0).GetString("reason"));
+        }
+
+        [TestCase(0L, 0.5 + 0.5 * 1.0 / 3.0, 10.0 * 1.5)]
+        [TestCase(1L, 0.5 + 0.5 * 2.0 / 3.0, 10.0 * 1.25)]
+        [TestCase(2L, 1.0, 10.0)]
+        public void UnderSkilledRepair_IsSlowerAndLeavesReducedQuality(long skill, double health, double seconds)
+        {
+            var sub = Damaged(); // min skill 2
+            GdDict result = sub.Repair(GdArray.Of("power_cell"), GdArray.Of("welder"), skill);
+            Assert.IsTrue(result.GetBool("success"), "skill never blocks a repair");
+            Assert.AreEqual(health, sub.Health, 1e-12);
+            Assert.AreEqual(seconds, result.GetFloat("seconds"), 1e-12);
+            Assert.IsTrue(sub.IsFunctional());
+            Assert.AreEqual(skill < 2, sub.ReducedQuality);
+        }
+
+        [Test]
+        public void QualityNeverFallsBelowTheOperationalThreshold()
+        {
+            Assert.AreEqual(0.5, ShipSubcomponent.QualityFor(0, 99), 0.01, "very high requirements still bottom out at 0.5");
+            var sub = new ShipSubcomponent("x", null, null, 9, 5.0, 0.7) { Health = 0.0 };
+            Assert.IsTrue(sub.Repair(new GdArray(), new GdArray(), 0).GetBool("success"));
+            Assert.IsTrue(sub.IsFunctional(), "a repair always leaves the part operational");
+        }
+
+        [Test]
+        public void ReducedQualityPartCanBeImprovedOnlyByMoreSkill()
+        {
+            var sub = Damaged();
+            Assert.IsTrue(sub.Repair(GdArray.Of("power_cell"), GdArray.Of("welder"), 0).GetBool("success"));
+            Assert.IsTrue(sub.ReducedQuality);
+            Assert.AreEqual("already_functional", sub.Repair(GdArray.Of("power_cell"), GdArray.Of("welder"), 0).GetString("reason"),
+                "the same skill cannot improve its own repair");
+            Assert.IsTrue(sub.NeedsRepair(2));
+            Assert.IsTrue(sub.Repair(GdArray.Of("power_cell"), GdArray.Of("welder"), 2).GetBool("success"));
+            Assert.AreEqual(1.0, sub.Health, 1e-12);
+            Assert.IsFalse(sub.ReducedQuality);
+        }
+
+        [Test]
+        public void ReducedQualityRoundTripsAndStaysAbsentOtherwise()
+        {
+            var sub = Damaged();
+            Assert.IsFalse(sub.GetSummary().Has("reduced_quality"), "default summaries keep their existing shape");
+            sub.Repair(GdArray.Of("power_cell"), GdArray.Of("welder"), 0);
+            var fresh = Damaged();
+            Assert.IsTrue(fresh.ApplySummary(sub.GetSummary()));
+            Assert.IsTrue(fresh.ReducedQuality);
+            Assert.IsTrue(V.VariantEquals(sub.GetSummary(), fresh.GetSummary()));
         }
     }
 

@@ -48,7 +48,7 @@ namespace SynapticSea.Tests.Session
             var repair = s.RepairPoints.Single(p => p.SystemId == "gravity" && p.SubcomponentId == "field_emitter");
             repair.Parent = seal.Parent; repair.LocalPosition = seal.LocalPosition;
             StockRepair(s, repair); s.InventoryState.AddItem(seal.RequiredItem, 2); Stand(s, seal);
-            Assert.AreEqual("insufficient_skill", repair.DescribeReason());
+            Assert.AreEqual("ok", repair.DescribeReason(), "repair is universal: a skill-0 survivor may start it, so the seal must win by explicit target");
             CollectionAssert.Contains(s.ListNearbyWorkTargets(), repair);
             CollectionAssert.Contains(s.ListNearbyWorkTargets(), seal);
             long qty = s.InventoryState.GetQuantity(seal.RequiredItem), xp = s.PlayerProgression.GetSkillXp("repair");
@@ -75,14 +75,16 @@ namespace SynapticSea.Tests.Session
             var s = WorkBoot(); var seal = Cargo(s);
             var repair = s.RepairPoints.Single(p => p.SystemId == "gravity" && p.SubcomponentId == "field_emitter");
             repair.Parent = seal.Parent; repair.LocalPosition = seal.LocalPosition; StockRepair(s, repair);
+            var emitter = repair.TargetManager.GetSystem(repair.SystemId).GetSubcomponent(repair.SubcomponentId);
+            s.InventoryState.RemoveItem(emitter.RequiredParts[0], s.InventoryState.GetQuantity(emitter.RequiredParts[0]));
             s.InventoryState.AddItem(seal.RequiredItem, 1); Stand(s, repair);
             string denial = ""; int count = 0;
             repair.RepairBlocked += (sys, sub, reason) => { denial = reason; count++; };
             long qty = s.InventoryState.GetQuantity(seal.RequiredItem), xp = s.PlayerProgression.GetSkillXp("repair");
-            Assert.AreEqual("insufficient_skill", s.DescribeWorkTarget(repair).GetString("reason"));
+            Assert.AreEqual("missing_parts", s.DescribeWorkTarget(repair).GetString("reason"));
             var result = s.RequestWorkTarget(repair);
             Assert.IsTrue(result.GetBool("handled")); Assert.IsFalse(result.GetBool("ok"));
-            Assert.AreEqual("insufficient_skill", result.GetString("reason")); Assert.AreEqual("insufficient_skill", denial); Assert.AreEqual(1, count);
+            Assert.AreEqual("missing_parts", result.GetString("reason")); Assert.AreEqual("missing_parts", denial); Assert.AreEqual(1, count);
             Assert.IsFalse(seal.Channeling); Assert.IsFalse(repair.Channeling);
             Assert.AreEqual(qty, s.InventoryState.GetQuantity(seal.RequiredItem)); Assert.AreEqual(xp, s.PlayerProgression.GetSkillXp("repair"));
         }

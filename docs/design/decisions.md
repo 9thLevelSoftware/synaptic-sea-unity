@@ -11,7 +11,7 @@ Product and design choices that code and tests must not silently undo. `OPEN` it
 | D3 | AI agents (Claude, Codex) execute the plan in PR-sized packages under the guardrails of the master plan. |
 | D4 | The priority is the long-haul sandbox: persistent world depth, homes, ship assembly and flight. |
 | D5 | Fix the economy with all three levers: authored early caches, better home production, and slower attrition through a game-time scale. |
-| D6 | Universal basic repair. Every class can repair slowly at low quality; specialists are faster and better. This satisfies REQ-07. |
+| D6 | Universal basic repair. Every class can repair slowly at low quality; specialists are faster and better. This satisfies REQ-07. Implemented in Phase 1.4: parts and tools still gate a repair; repair skill below a part's requirement adds 25% time per missing level and leaves the part at `0.5 + 0.5*(skill+1)/(requirement+1)` health (floor 0.5, the operational threshold), and a more skilled survivor can repair it again. The repair-skill work actions (`secure_connection`, `commission_home_propulsion`, `cut_web_attachment`, `splice`) follow the same rule: slower, not blocked. |
 | D7 | Project Zomboid controls: WASD plus mouse facing and aim, right-click context menus on world objects, a visual map and moodle icons. E stays as a quick-interact shortcut. |
 | D8 | Death ends the survivor, not the world. The corpse, home and stashes stay, and the player starts a new survivor in the same persistent world. Roguelite meta-payout and save freezing are removed. This replaces the "death terminal" line in `persistent-survival.md` and amends REQ-06 and REQ-07 in the master design spec. Implemented in Phase 3.6. |
 | D9 | The first wreck always qualifies. `FirstRunAwayGate` patches a contact that misses the first-run contract (adds one encounter, marks a cargo or engineering room breached) and re-rolls derived seeds if that is not enough, instead of refusing travel. Boarding applies the same patch (`RunSession.FirstRun.cs`), so the player gets the wreck the gate accepted. Ordinary `ShipGenerator.GenerateFromSeed` is unchanged. |
@@ -50,7 +50,7 @@ The master plan's 0.4 list came from file headers, written before 0.3. Each item
 
 ## Known issues, deferred
 
-- **`RepairPoint.TryStart`** (`Core/Session/Interactables/RepairPoint.cs:140-146`) returns `true` on `insufficient_skill`, and `repair_point` is checked before `breach_seal_point` (`InteractionRegistry.cs`). A breach seal on the same spot as a skill-gated repair point therefore never starts. For the Phase 2 interaction catalog.
+- **`RepairPoint.TryStart` consumes the interaction on a blocked repair** (`Core/Session/Interactables/RepairPoint.cs`) and `repair_point` is checked before `breach_seal_point` (`InteractionRegistry.cs`). Since Phase 1.4 skill no longer blocks a repair, so the skill-gated shadowing case is gone. A repair point that is blocked on missing parts or tools, or already repaired, still shadows a breach seal on the same spot; the seal is reachable by selecting it explicitly. For the Phase 2 interaction catalog.
 - **Scanner "Return home"** is dormant. Only the removed reviewed first-away profile enabled it, so `RunSession.HomeNavigationAvailable` is `false`. The UI contract (`IHomeReturnScannerHost`) is kept for a later phase to re-enable.
 - **`InventoryPanel.BindBulkTransferGate`** has no remaining caller that passes a gate; it is bound to `null`.
 - **`earned-entry-home-v1`** diagnostic data is kept for `FiniteLootTests` and `FiniteLootGenerationTests`.

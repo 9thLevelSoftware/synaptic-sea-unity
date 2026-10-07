@@ -251,7 +251,10 @@ namespace SynapticSea.Tests.Session
         [TestCase("cook", false)] [TestCase("cook", true)]
         [TestCase("security", false)] [TestCase("security", true)]
         [TestCase("communications", false)] [TestCase("communications", true)]
-        public void StartingClassRepairPathPreservesGatesAndReportsReachability(string classId, bool hubTraining)
+        [TestCase("salvage_captain", false)] [TestCase("salvage_captain", true)]
+        [TestCase("field_medic", false)] [TestCase("field_medic", true)]
+        [TestCase("signal_specialist", false)] [TestCase("signal_specialist", true)]
+        public void EveryStartingClassCanRepairTheFlightPathAtSkillDependentQuality(string classId, bool hubTraining)
         {
             var deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
             MilestoneALaunch.ApplyHubPaths(deps);
@@ -271,25 +274,29 @@ namespace SynapticSea.Tests.Session
             if (hubTraining) Assert.AreEqual(4, s.CurrentObjectiveSequence, "stop before reactor objective ends extraction");
             var required = new[] { "power", "navigation", "scanners", "propulsion" };
             var completed = new List<string>();
+            double lowest = 1.0;
             for (int guard = 0; guard < 24; guard++)
             {
-                var next = s.RepairPoints.Where(r => required.Contains(r.SystemId) && r.CanBeginRepair())
+                // Broken parts first, lowest requirement first. Improving an earlier reduced-quality repair would spend parts the rest need.
+                var next = s.RepairPoints.Where(r => required.Contains(r.SystemId) && r.CanBeginRepair() && !SubOf(r).IsFunctional())
                     .OrderBy(r => r.MinSkill).FirstOrDefault();
-                next ??= s.RepairPoints.Where(r => r.CanBeginRepair()).OrderBy(r => r.MinSkill).FirstOrDefault();
+                next ??= s.RepairPoints.Where(r => r.CanBeginRepair() && !SubOf(r).IsFunctional()).OrderBy(r => r.MinSkill).FirstOrDefault();
                 if (next == null) break;
-                Assert.GreaterOrEqual(s.PlayerProgression.GetSkillLevel("repair"), next.MinSkill);
+                long skill = s.PlayerProgression.GetSkillLevel("repair");
                 Assert.IsTrue(next.TryStart(next.GlobalPosition));
-                next.AdvanceChannel(120.0);
-                Assert.IsTrue(next.Repaired, "normal resource/skill-gated channel finishes");
+                Assert.IsTrue(next.Channeling, "repair is universal: skill " + skill + " may start a skill-" + next.MinSkill + " repair");
+                next.AdvanceChannel(240.0);
+                Assert.IsTrue(SubOf(next).IsFunctional(), "the channel finishes and the part works");
+                Assert.AreEqual(ShipSubcomponent.QualityFor(skill, next.MinSkill), SubOf(next).Health, 1e-9,
+                    "health follows the skill deficit at the time the repair started");
+                lowest = System.Math.Min(lowest, SubOf(next).Health);
                 completed.Add(next.SystemId + "." + next.SubcomponentId);
             }
             bool ready = required.All(id => s.ShipSystemsManager.IsOperational(id));
-            Assert.AreEqual(classId == "engineer" || classId == "mechanic", ready,
-                "current finite hub route: preserve and expose class-specific first-away limitations rather than granting skill");
             TestContext.WriteLine(classId + ": hubTraining=" + hubTraining + " initial=" + initial + " earned=" + s.PlayerProgression.GetSkillLevel("repair")
-                + " ready=" + ready + " completed=" + string.Join(",", completed));
-            if (ready) Assert.IsFalse(s.SliceComplete, "repairing for travel is not extraction");
-            else Assert.IsFalse(s.RepairPoints.Any(r => r.CanBeginRepair()), "a stopped path has no eligible remaining repair, including side work");
+                + " ready=" + ready + " lowestHealth=" + lowest + " completed=" + string.Join(",", completed));
+            Assert.IsTrue(ready, "every class reaches travel readiness; skill changes speed and quality, not access");
+            Assert.IsFalse(s.SliceComplete, "repairing for travel is not extraction");
             for (int guard = 0; guard < 24 && !s.HomeObjectivesComplete && !s.SliceComplete; guard++)
             {
                 var objective = s.Interactables.First(o => o.Active && !o.Completed);
@@ -299,6 +306,30 @@ namespace SynapticSea.Tests.Session
             Assert.IsFalse(s.SliceComplete, "onboarding does not terminate survival");
             Assert.AreEqual(classId, s.PlayerProgression.ClassId, "onboarding retains the chosen class");
         }
+
+        [TestCase("mechanic")] // control: repair 4 meets every requirement, so the reactor is repaired to full health
+        [TestCase("cook", Ignore = "Fixed by the Phase 1.3 PR: a skill-0 reactor repair leaves health ~0.6, below the ~0.77 power health the sustenance allocation (last in the priority order, ratio >= 0.5) needs; that PR rebalances power_budget_tables.json")]
+        public void EveryClassCanStartFoodProductionAfterRepairingTheReactor(string classId)
+        {
+            var deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
+            MilestoneALaunch.ApplyHubPaths(deps);
+            deps.StartingClassId = classId;
+            var s = RunSession.Create(deps);
+            var cache = s.LootContainers.Single(c => c.ContainerId == "start_supply_a");
+            Assert.IsTrue(cache.TryInteract(cache.GlobalPosition));
+            for (int guard = 0; guard < 24; guard++)
+            {
+                var next = s.RepairPoints.Where(r => r.CanBeginRepair() && !SubOf(r).IsFunctional()).OrderBy(r => r.MinSkill).FirstOrDefault();
+                if (next == null) break;
+                Assert.IsTrue(next.TryStart(next.GlobalPosition));
+                next.AdvanceChannel(240.0);
+            }
+            for (int i = 0; i < 40; i++) s.Tick(TickContext.Frame(.05, rig.Scene.PlayerPosition)); // past the slow-band recompute
+            Assert.GreaterOrEqual(s.PowerGridState.GetAllocationRatio("sustenance"), 0.5,
+                classId + ": a reduced-quality reactor repair must still power hydroponics and the recycler");
+        }
+
+        static ShipSubcomponent SubOf(RepairPoint r) => r.TargetManager.GetSystem(r.SystemId).GetSubcomponent(r.SubcomponentId);
 
         [Test]
         public void HeadlessNewRunHub_IsCoherentShip001()

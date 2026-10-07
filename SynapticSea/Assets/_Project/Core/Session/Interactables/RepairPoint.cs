@@ -85,6 +85,14 @@ namespace SynapticSea.Core.Session
             NotifyChanged();
         }
 
+        /// <summary>
+        /// A repaired point stays inert (it never captures the interact key, so it cannot shadow a seal or door at the
+        /// same spot) unless the part was left at reduced quality and the player's skill can now improve it.
+        /// </summary>
+        bool CanImprove(ShipSubcomponent sub) => Repaired && sub != null && sub.ReducedQuality && sub.NeedsRepair(PlayerSkill());
+
+        ShipSubcomponent TargetSub() => TargetManager?.GetSystem(SystemId)?.GetSubcomponent(SubcomponentId);
+
         long PlayerSkill()
         {
             if (PlayerProgression != null)
@@ -98,20 +106,21 @@ namespace SynapticSea.Core.Session
         public bool CanBeginRepair()
         {
             if (Channeling) return true;
-            if (Repaired || TargetManager == null) return false;
-            ShipSubcomponent sub = TargetManager.GetSystem(SystemId)?.GetSubcomponent(SubcomponentId);
-            return sub != null && !sub.IsFunctional() && PrecheckReason(sub, PlayerSkill()) == "ok";
+            if (TargetManager == null) return false;
+            ShipSubcomponent sub = TargetSub();
+            if (Repaired && !CanImprove(sub)) return false;
+            return sub != null && sub.NeedsRepair(PlayerSkill()) && PrecheckReason(sub, PlayerSkill()) == "ok";
         }
 
         /// <summary>Authoritative resource/skill status without starting work or spending items.</summary>
         public string DescribeReason()
         {
             if (Channeling) return "work_busy";
-            if (Repaired) return "completed";
             if (TargetManager == null) return "invalid_binding";
-            ShipSubcomponent sub = TargetManager.GetSystem(SystemId)?.GetSubcomponent(SubcomponentId);
+            ShipSubcomponent sub = TargetSub();
+            if (Repaired && !CanImprove(sub)) return "completed";
             if (sub == null) return "invalid_binding";
-            if (sub.IsFunctional()) return "already_functional";
+            if (!sub.NeedsRepair(PlayerSkill())) return "already_functional";
             return PrecheckReason(sub, PlayerSkill());
         }
 
@@ -121,7 +130,9 @@ namespace SynapticSea.Core.Session
             if (Channeling)
                 // Already repairing — consume interact so lower-priority handlers do not fire.
                 return true;
-            if (Repaired || TargetManager == null)
+            if (TargetManager == null)
+                return false;
+            if (Repaired && !CanImprove(TargetSub()))
                 return false;
             // Pure range gate (no candidate_player bypass): the player must be at the point to start.
             if (!IsPlayerInDirectRangeStrict(playerPosition))
@@ -131,7 +142,7 @@ namespace SynapticSea.Core.Session
             ShipSubcomponent sub = system != null ? system.GetSubcomponent(SubcomponentId) : null;
             if (sub == null)
                 return false;
-            if (sub.IsFunctional())
+            if (!sub.NeedsRepair(PlayerSkill()))
             {
                 RepairBlocked?.Invoke(SystemId, SubcomponentId, "already_functional");
                 return true; // consume interact (blocked SFX via signal); channel not started
@@ -143,8 +154,7 @@ namespace SynapticSea.Core.Session
                 RepairBlocked?.Invoke(SystemId, SubcomponentId, reason);
                 return true;
             }
-            double factor = 1.0 + 0.1 * (double)Math.Max(0L, skill - MinSkill);
-            _scaledSeconds = Math.Max(0.01, RepairSeconds / factor);
+            _scaledSeconds = Math.Max(0.01, RepairSeconds * ShipSubcomponent.DurationMultiplier(skill, MinSkill));
             var channel = new WorkActionChannel();
             string targetKey = SystemId + "/" + SubcomponentId;
             if (!channel.Begin(WORK_ACTION_ID, targetKey, _scaledSeconds, new GdDict()))
@@ -178,8 +188,7 @@ namespace SynapticSea.Core.Session
             foreach (string tool in sub.RequiredTools)
                 if (!tools.Contains(tool))
                     return "missing_tools";
-            if (skill < MinSkill)
-                return "insufficient_skill";
+            // Skill no longer gates repairs (D6): it sets the speed and the quality the part is left in.
             return "ok";
         }
 

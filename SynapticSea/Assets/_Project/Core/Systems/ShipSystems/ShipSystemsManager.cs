@@ -242,6 +242,7 @@ namespace SynapticSea.Core.Systems
             if (sub == null)
                 return false;
             sub.Health = 1.0;
+            sub.ReducedQuality = false;
             return true;
         }
 

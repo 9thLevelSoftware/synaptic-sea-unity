@@ -18,46 +18,51 @@ these 18 cases verify generated content/standing validation, not 18 expeditions.
 
 ## Class progression coverage
 
-The catalog has eight initially selectable classes and three unlockable classes.
-This bounded matrix covers all eight initial classes on the supported hub with
-fresh meta progression. It performs the finite cache search and normal timed,
-resource/skill-gated repairs, including available side repairs. A second path
-also performs the first three existing hub objective sequences, stopping before
-the final reactor objective triggers extraction. No skills or XP are granted by
-the tests, and class multipliers/cross-training rules remain intact.
+Updated for Phase 1.4 (D6, universal basic repair). All eleven classes (eight
+initial, three unlockable) now reach travel readiness on the supported hub.
+`EveryStartingClassCanRepairTheFlightPathAtSkillDependentQuality` performs the
+finite cache search and the normal timed, parts-and-tools-gated repairs for each
+class, on both the plain route and the route that first completes the first
+three hub objectives. No skills or XP are granted by the tests.
 
-| Class | Starting repair | Repair route earned level | Travel systems ready | Partial-objective route earned level | Travel systems ready |
-|---|---:|---:|---|---:|---|
-| Engineer | 3 | 5 | Yes | 4 | Yes |
-| Mechanic | 4 | 5 | Yes | 5 | Yes |
-| Medic | 1 | 1 | No | 1 | No |
-| Pilot | 1 | 1 | No | 1 | No |
-| Scientist | 2 | 3 | No | 2 | No |
-| Cook | 0 | 0 | No | 0 | No |
-| Security | 1 | 1 | No | 1 | No |
-| Communications | 0 | 0 | No | 0 | No |
+Repair skill no longer gates a repair; it sets its speed and quality:
 
-All eight classes can finish the existing hub objective/extraction sequence in
-the Core contract. This is not eight physical Unity expeditions: the class
-matrix positions interactions explicitly and advances actual work channels in
-the engine-free harness. Physical walking/survival/combat is checked separately
-for the default Engineer. The table reports travel-system readiness, not a full
-travel/survival pass for Mechanic.
+- Meeting a part's skill requirement repairs it to full health, a little faster
+  for each level above the requirement.
+- Each missing level adds 25% to the repair time and lowers the health the part
+  is left at: `0.5 + 0.5 * (skill + 1) / (requirement + 1)`, never below 0.5
+  (the operational threshold).
+- A part repaired below full health stays marked as reduced quality. A survivor
+  whose skill reaches a higher quality can repair it again (parts are consumed
+  again) to bring it up.
 
-The nontechnical paths stop with no eligible remaining repair using the cache
-supplies. Scientist reaches repair three but cannot repair the level-four
-reactor. Repair-one classes cannot reach repair two with their two initial
-repairs, and repair-zero classes cannot start either. Completing all hub
-objectives fixes objective-linked systems but intentionally ends extraction;
-it cannot be used as a shortcut into a continuing first-away run.
+The hub reactor core needs repair 4, so the health it is left at, using the
+class's starting repair skill, is:
 
-Existing alternatives were inspected: books target welding/diagnostics/
-fabrication/medicine rather than repair; hub drydock grants one repair level
-after an expensive prerequisite chain; structural work uses actual tools,
-materials and targets rather than a repeatable free training station. No
-verified fresh-run universal first-away path is declared for these six classes.
-Unlockable classes and purchased hub-upgrade combinations are outside this
-bounded matrix; their owner/unlock gates have not been changed.
+| Class | Starting repair | Reactor core health after repair | Travel systems ready |
+|---|---:|---:|---|
+| Mechanic | 4 | 1.0 | Yes |
+| Engineer | 3 | 0.9 | Yes |
+| Scientist | 2 | 0.8 | Yes |
+| Medic, Pilot, Security, Salvage Captain | 1 | 0.7 | Yes |
+| Cook, Communications, Field Medic, Signal Specialist | 0 | 0.6 | Yes |
+
+Skill earned from earlier repairs only raises these values. Repairs run lowest
+requirement first. This is not eleven physical Unity expeditions: the matrix
+positions interactions explicitly and advances actual work channels in the
+engine-free harness. Physical walking/survival/combat is checked separately for
+the default Engineer.
+
+Open interaction: a repair at health 0.6 leaves the power system below the
+~0.77 health the sustenance allocation needs to reach its 0.5 ratio, so a
+skill-0 survivor repairs the flight path but cannot yet power hydroponics and
+the recycler. `EveryClassCanStartFoodProductionAfterRepairingTheReactor` pins
+this (the mechanic control passes; the cook case is ignored until the Phase 1.3
+power budget change).
+
+Completing all hub objectives fixes objective-linked systems but intentionally
+ends extraction; it cannot be used as a shortcut into a continuing first-away
+run.
 
 ## Combat acquisition
 
@@ -103,12 +108,10 @@ standalone expedition; physical gameplay was verified in GPU Unity Play Mode.
 
 ## Decisions still required
 
-1. Should the six nontechnical classes be hub-extraction-only in this milestone,
-   or should each be able to perform first-away travel on a fresh run? If the
-   latter, choose an intended nontechnical route (for example crew repair or
-   bounded training) before implementing it. Changing class starting skills,
-   reducing repair gates or removing cross-training penalties would alter the
-   declared challenge balance and has not been done here.
+1. ~~Should the six nontechnical classes be hub-extraction-only?~~ Decided by
+   D6 (Phase 1.4): every class can repair at reduced quality, so every class
+   can perform first-away travel. Class starting skills and cross-training
+   penalties are unchanged.
 2. Is a guaranteed alternate first-away seed/size required? The declared 777
    candidate does not currently provide the required hazard. Keep the current
    fail-closed behavior, or commission a supported alternate authored candidate;

@@ -149,20 +149,19 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
-        public void BlockedRepairYieldsToAnActionableRepairAndKeepsItsRealSkillGate()
+        public void BlockedRepairYieldsToAnActionableRepairAndKeepsItsRealPartsGate()
         {
             var rig = SessionHarness.CreateGolden();
             var session = rig.Session;
             var manager = BrokenReactorShip();
             manager.GetSystem("power").GetSubcomponent("battery_cells").Health = 0;
             var inventory = new InventoryState();
-            inventory.AddItem("reactor_core", 1);
-            inventory.AddItem("power_cell", 1);
+            inventory.AddItem("power_cell", 1); // no reactor_core part: the reactor repair is blocked on parts, not skill
             var at = new Vec3(800, 0, 800);
             var blocked = new RepairPoint();
             var ready = new RepairPoint();
             blocked.Configure("power", "reactor_core", manager, inventory, session.PlayerProgression, at, 4,
-                session.PlayerProgression.GetSkillLevel("repair") + 1);
+                session.PlayerProgression.GetSkillLevel("repair") + 1); // a higher requirement no longer blocks
             ready.Configure("power", "battery_cells", manager, inventory, session.PlayerProgression, at, 4, 0);
             session.RepairPoints.Clear();
             session.RepairPoints.Add(blocked);
@@ -254,6 +253,41 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(0, inv.GetQuantity("reactor_core"), "part consumed on completion");
             Assert.IsTrue(ship.GetSystem("power").GetSubcomponent("reactor_core").IsFunctional());
             Assert.AreEqual("", point.GetWorkActionId());
+        }
+
+        [Test]
+        public void RepairPoint_UnderSkilledRepairIsSlowerAndCanLaterBeImprovedWithoutShadowingOthers()
+        {
+            ShipSystemsManager ship = BrokenReactorShip();
+            ShipSubcomponent reactor = ship.GetSystem("power").GetSubcomponent("reactor_core");
+            reactor.MinSkill = 4;
+            var progression = new PlayerProgressionState();
+            progression.Configure(ClassDefinition.LoadAll()["cook"], PlayerProgressionState.LoadSkillsCatalog(), PlayerProgressionState.LoadBooksCatalog());
+            Assert.AreEqual(0, progression.GetSkillLevel("repair"));
+            var inv = new InventoryState();
+            inv.AddItem("reactor_core", 2);
+            var point = new RepairPoint();
+            point.Configure("power", "reactor_core", ship, inv, progression, Here, 4.0, 4);
+
+            Assert.IsTrue(point.TryStart(Here), "skill 0 may start a requirement-4 repair");
+            point.AdvanceChannel(4.0);
+            Assert.IsTrue(point.Channeling, "four missing levels double the time");
+            point.AdvanceChannel(4.0);
+            Assert.IsFalse(point.Channeling);
+            Assert.IsTrue(point.Repaired);
+            Assert.AreEqual(0.6, reactor.Health, 1e-9);
+            Assert.IsTrue(reactor.ReducedQuality);
+            Assert.IsFalse(point.CanBeginRepair(), "same skill cannot improve its own repair");
+            Assert.IsFalse(point.TryStart(Here), "a repaired point that cannot be improved must not capture the interact key");
+
+            progression.Skills["repair"] = 4L;
+            Assert.IsTrue(point.CanBeginRepair(), "a more skilled survivor can finish the job");
+            Assert.IsTrue(point.TryStart(Here));
+            point.AdvanceChannel(4.0);
+            Assert.AreEqual(1.0, reactor.Health, 1e-9);
+            Assert.IsFalse(reactor.ReducedQuality);
+            Assert.IsFalse(point.CanBeginRepair());
+            Assert.AreEqual(0, inv.GetQuantity("reactor_core"), "the improvement consumed the second part");
         }
 
         [Test]
