@@ -19,7 +19,6 @@ namespace SynapticSea.Tests.Procgen
             CoreServices.Resources = new FileSystemResourceReader(Fixtures.StreamingDataRoot);
             CatalogRegistry.Clear();
             EncounterInjector.ClearTableCache();
-            StructuralPlacer.ResetSharedKitCatalog();
         }
 
         [TearDown]
@@ -27,7 +26,6 @@ namespace SynapticSea.Tests.Procgen
         {
             CatalogRegistry.Clear();
             EncounterInjector.ClearTableCache();
-            StructuralPlacer.ResetSharedKitCatalog();
             CoreServices.Log = NullLog.Instance;
         }
 
@@ -83,47 +81,6 @@ namespace SynapticSea.Tests.Procgen
             });
             Assert.AreEqual(6L, n.GetDict("role_weights")["cargo"]);
             Assert.IsTrue(V.VariantEquals(GdArray.Of("crew_quarters", "dock"), n["guaranteed_roles"]));
-        }
-
-        [Test]
-        public void RoomGraphGenerator_ShipGraphIsConnectedWithSystemRooms()
-        {
-            RoomGraph graph = new RoomGraphGenerator().Generate(new ShipBlueprint(ShipBlueprint.Size.Medium, ShipBlueprint.Condition.Pristine, 7));
-            Assert.IsTrue(graph.IsFullyConnected());
-            Assert.That(graph.Rooms.Count, Is.InRange(8, 12));
-            Assert.AreEqual("airlock_01", graph.Rooms[0].GetString("id"));
-            Assert.AreEqual(1, graph.GetRoomsByRole("engineering").Count);
-            Assert.AreEqual(1, graph.GetRoomsByRole("bridge").Count);
-
-            RoomGraph derelict = new RoomGraphGenerator().Generate(new ShipBlueprint(1, 2, 7), new GdDict { { "type", "derelict" } });
-            Assert.AreEqual("dock_01", derelict.Rooms[0].GetString("id"));
-            Assert.AreEqual(0, derelict.GetRoomsByRole("bridge").Count);
-        }
-
-        [Test]
-        public void StructuralPlacer_EmitsRecordsPerRoomModule()
-        {
-            RoomGraph graph = new RoomGraphGenerator().Generate(new ShipBlueprint(ShipBlueprint.Size.Medium, ShipBlueprint.Condition.Pristine, 42));
-            var placer = new StructuralPlacer();
-            StructuralPlacer.Placement placement = placer.PlaceStructure(graph, 42);
-            Assert.IsNotNull(placement);
-            Assert.That(_log.Warnings, Has.Some.EqualTo(StructuralPlacer.DEPRECATION_DIAGNOSTIC));
-            Assert.AreEqual(graph.Rooms.Count, placement.Rooms.Count);
-            foreach (var room in placement.Rooms)
-            {
-                Assert.AreEqual(new Vec3(room.GridPosition.X * 6.0, 0.0, room.GridPosition.Y * 6.0), room.Position);
-                for (int i = 0; i < room.Modules.Count; i++)
-                {
-                    StructuralPlacer.ModulePlacement m = room.Modules[i];
-                    Assert.AreEqual(room.RoomId, m.RoomId);
-                    Assert.AreEqual(m.ModuleId + "_" + i, m.NodeName);
-                    Assert.AreEqual(new Vec3(0.0, 0.0, i * 4.0), m.LocalPosition);
-                    Assert.AreEqual(room.Position + m.LocalPosition, m.Position);
-                    Assert.AreEqual(StructuralPlacer.MODULE_BASE_PATH + m.ModuleId + ".tscn", m.ScenePath);
-                }
-            }
-            Assert.That(placement.AllModules().Count, Is.GreaterThan(graph.Rooms.Count));
-            Assert.IsNull(placer.PlaceStructure(new RoomGraph(), 1));
         }
 
         [Test]

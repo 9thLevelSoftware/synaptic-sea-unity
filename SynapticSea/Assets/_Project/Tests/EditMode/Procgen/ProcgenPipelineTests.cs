@@ -7,8 +7,8 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Tests.Procgen
 {
     /// <summary>
-    /// Behaviour checks for the L2-L6 procgen ports that the Godot replays do not reach: the DerelictGenerator seam
-    /// (no native implementation exists), LifeBoatBuilder's record tree, determinism and the systems interfaces.
+    /// Behaviour checks for the L2-L6 procgen ports that the Godot replays do not reach: the pipeline fallback,
+    /// LifeBoatBuilder's record tree, determinism and the systems interfaces.
     /// </summary>
     public class ProcgenPipelineTests
     {
@@ -32,33 +32,8 @@ namespace SynapticSea.Tests.Procgen
             CoreServices.Log = NullLog.Instance;
         }
 
-        /// <summary>Stands in for a future native DerelictGenerator: serves a golden layout + a worldgen-style slice.</summary>
-        sealed class FakeDerelictSource : IDerelictLayoutSource
-        {
-            public long Version = ShipGenerator.WORLDGEN_VERSION;
-            public GdDict LastParams;
-
-            public long GeneratorVersion() => Version;
-
-            public string ExportLayoutJson(long seedValue, GdDict parameters, string kitId)
-            {
-                LastParams = parameters;
-                GdDict layout = CatalogRegistry.LoadDict("res://data/procgen/golden/coherent_ship_001/layout.json");
-                return GdJson.Stringify(layout);
-            }
-
-            public string ExportGameplaySliceJson(long seedValue, GdDict parameters) => GdJson.Stringify(new GdDict
-            {
-                {
-                    "loot_containers", GdArray.Of(
-                        new GdDict { { "id", "container_1" }, { "kind", "suit_locker" }, { "room_id", "cargo_a" }, { "approach_cell", GdArray.Of(9L, 9L, 0L) }, { "loot_table", "worldgen_seeded" } },
-                        new GdDict { { "id", "container_2" }, { "kind", "cargo_crate" }, { "room_id", "cargo_a" }, { "approach_cell", GdArray.Of(8L, 9L, 0L) }, { "loot_table", "worldgen_seeded" } })
-                },
-            });
-        }
-
         [Test]
-        public void ShipGenerator_WithoutDerelictSource_FallsBackToPipeline()
+        public void ShipGenerator_GeneratesFromPipeline()
         {
             var gen = new ShipGenerator();
             ShipDocuments docs = gen.GenerateFromSeed(17, 2, 0);
@@ -69,64 +44,6 @@ namespace SynapticSea.Tests.Procgen
             Assert.IsNotEmpty(docs.GameplaySlice.GetArray("objectives"));
             Assert.AreEqual("res://data/kits/ship_structural_v0.json", docs.KitPath);
             Assert.IsInstanceOf<ShipDocuments>(((IShipGenerator)gen).GenerateFromSeed(17, 2, 0));
-        }
-
-        [Test]
-        public void ShipGenerator_WorldgenSeam_MergesLootAndInjectsEncounters()
-        {
-            var source = new FakeDerelictSource();
-            var gen = new ShipGenerator { DerelictSource = source };
-            gen.ConfigureRunContext("breach_field", "standard");
-            ShipDocuments docs = gen.GenerateFromSeed(42, 1, 2);
-            Assert.IsNotNull(docs, string.Join("\n", _log.Errors));
-            Assert.AreEqual("corvette", source.LastParams.GetString("archetype_id"));
-            Assert.AreEqual(2000L, source.LastParams.GetInt("intactness_override"));
-            Assert.AreEqual("ship_structural_v0", docs.Layout.GetString("kit_id"));
-            Assert.AreEqual("breach_field", docs.Layout.GetString("biome_id"));
-            Assert.IsTrue(docs.Layout.Has("encounter_pacing"));
-            Assert.IsNull(docs.LayoutJson);
-
-            GdArray containers = docs.GameplaySlice.GetArray("loot_containers");
-            GdDict lootTables = Systems_LootTables();
-            var mapped = new System.Collections.Generic.List<string>();
-            foreach (GdDict c in containers)
-            {
-                Assert.IsTrue(lootTables.Has(c.GetString("loot_table")), c.GetString("id"));
-                mapped.Add(c.GetString("id") + ":" + c.GetString("loot_table"));
-            }
-            Assert.Contains("container_1:generic_locker", mapped);
-            Assert.Contains("container_2:salvage_cargo", mapped);
-
-            source.Version = 3;
-            Assert.IsNull(gen.GenerateFromSeed(42, 1, 2));
-            Assert.That(_log.Errors, Has.Some.Contains("unsupported DerelictGenerator version"));
-            source.Version = ShipGenerator.WORLDGEN_VERSION;
-            Assert.IsNull(gen.GenerateFromSeed(42, 5, 2));
-        }
-
-        static GdDict Systems_LootTables() => LootRoller.LoadTables();
-
-        [Test]
-        public void ShipGenerator_WorldgenLootMapping()
-        {
-            var tables = new GdDict { { "salvage_cargo", new GdDict() }, { "salvage_engineering", new GdDict() }, { "generic_locker", new GdDict() }, { "generic_crate", new GdDict() } };
-            Assert.AreEqual("salvage_engineering", ShipGenerator.MapWorldgenLootTable("tool_rack", tables));
-            Assert.AreEqual("generic_crate", ShipGenerator.MapWorldgenLootTable("odd_crate", tables));
-            Assert.AreEqual("generic_locker", ShipGenerator.MapWorldgenLootTable("big_locker", tables));
-            Assert.AreEqual("", ShipGenerator.MapWorldgenLootTable("barrel", tables));
-            var gameplay = new GdDict { { "loot_containers", GdArray.Of(new GdDict { { "room_id", "r" }, { "approach_cell", GdArray.Of(1L, 2L, 0L) }, { "loot_table", "generic_crate" } }) } };
-            var exported = new GdDict
-            {
-                {
-                    "loot_containers", GdArray.Of(
-                        new GdDict { { "room_id", "r" }, { "approach_cell", GdArray.Of(1L, 2L, 0L) }, { "kind", "cargo_crate" }, { "loot_table", "worldgen_seeded" } },
-                        new GdDict { { "room_id", "r" }, { "approach_cell", GdArray.Of(3L, 2L, 0L) }, { "kind", "footlocker" }, { "loot_table", "worldgen_seeded" } })
-                },
-            };
-            Assert.IsTrue(ShipGenerator.ResolveWorldgenLootContainers(gameplay, exported, tables));
-            Assert.AreEqual(2, gameplay.GetArray("loot_containers").Count, "duplicate cell is not merged twice");
-            exported["loot_containers"] = GdArray.Of(new GdDict { { "kind", "barrel" }, { "loot_table", "worldgen_seeded" } });
-            Assert.IsFalse(ShipGenerator.ResolveWorldgenLootContainers(gameplay, exported, tables));
         }
 
         [Test]

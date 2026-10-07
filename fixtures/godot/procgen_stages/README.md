@@ -9,8 +9,6 @@ case with the same inputs and compares the canonical output type-aware and bit-e
 |---|---|
 | `template_selector.json` | `select` / `select_with_options` picks for 10 seeds, the parsed 14 templates, pool lists |
 | `room_assigner.json` | room plans: 14 templates x 5 archetypes (none + 4 authored) x sizes 1-2 x seeds 7, 42 x (no selector, `dead_fleet` selector); `normalize_archetype` |
-| `room_graph_generator.json` | `RoomGraph.to_dict()` for 5 archetypes x 3 sizes x 10 seeds |
-| `structural_placer.json` | `place_structure()` room nodes (name, position) + module lists for the same graphs, biome `""` and `breach_field` |
 | `encounter_injector.json` | `inject()` + `validate()` on the `fixtures/godot/procgen` capture layouts: recipe replay for all 14, and for 4 layouts a biome x difficulty x seed grid plus no-critical-path / no-cells / Vector2i-cells variants |
 | `structural_edge_compiler.json` | `compile()` of a perturbed capture layout (HATCH / BREACH / "open" portals, declared module ids, fallback kit) and of malformed layouts (error paths), with occupancy / edge key order |
 | `first_run_contract.json` | `validate()` / `pick_seed()` over the capture layouts and slices |

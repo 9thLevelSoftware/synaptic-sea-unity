@@ -28,65 +28,6 @@ namespace SynapticSea.Core.Procgen
         static string HopKey(string a, string b) => a + "|" + b;
 
         /// <summary>
-        /// Mutates a template in place: optionally drops non-critical lateral zones and nudges zone counts (seeded).
-        /// Returns the number of zone mutations applied.
-        /// </summary>
-        public static long ApplyZoneMutators(TopologyTemplate template, long seedValue)
-        {
-            if (template == null) return 0;
-            GodotRandom rng = SeededRng(seedValue, 0xA0A1E5);
-            long mutations = 0;
-            var zones = new List<GdDict>();
-            foreach (var z in template.Zones) zones.Add(z.DeepCopy());
-            var kept = new List<GdDict>();
-            foreach (GdDict zone in zones)
-            {
-                string zid = V.Str(zone.Get("id", ""));
-                string hint = V.Str(zone.Get("position_hint", ""));
-                // Never drop entry/destination.
-                if (zid == "entry" || zid == "destination" || GdString.BeginsWith(zid, "destination"))
-                {
-                    kept.Add(zone);
-                    continue;
-                }
-                // 20% chance to drop optional lateral pockets (not corridors).
-                string layout = V.Str(zone.Get("layout", "single"));
-                if (hint == "lateral" && layout == "clustered" && rng.Randf() < 0.2)
-                {
-                    mutations += 1;
-                    continue;
-                }
-                // Nudge array counts.
-                if (zone.Get("count", 1L) is GdArray countArr && countArr.Count >= 2)
-                {
-                    long lo = V.I64(countArr[0]);
-                    long hi = V.I64(countArr[1]);
-                    if (hi > lo && rng.Randf() < 0.35)
-                    {
-                        zone["count"] = rng.RandiRange(lo, hi);
-                        mutations += 1;
-                    }
-                }
-                kept.Add(zone);
-            }
-            template.Zones.Clear();
-            template.Zones.AddRange(kept);
-            // Drop connections that reference missing zones.
-            var alive = new HashSet<string>();
-            foreach (var z2 in template.Zones) alive.Add(V.Str(z2.Get("id", "")));
-            var newConns = new List<GdDict>();
-            foreach (var c in template.Connections)
-            {
-                string fromId = V.Str(c.Get("from", ""));
-                string toId = V.Str(c.Get("to", ""));
-                if (alive.Contains(fromId) && alive.Contains(toId)) newConns.Add(c);
-                else mutations += 1;
-            }
-            template.Connections = newConns;
-            return mutations;
-        }
-
-        /// <summary>
         /// Overlay branch locks: copy non-critical hops into blocked_links and leave every room_link in place.
         /// Live generation uses this so room-link BFS stays true.
         /// </summary>
@@ -205,64 +146,6 @@ namespace SynapticSea.Core.Procgen
             return stamped;
         }
 
-        /// <summary>
-        /// Wreck mutator: pre-tears structural modules. Writes <c>layout["module_damage"]</c> and fills
-        /// <paramref name="integrityMap"/> (a fresh one when null). Returns the damage event count.
-        /// </summary>
-        public static long ApplyWreckMutator(GdDict layout, long seedValue, ModuleIntegrityMap integrityMap = null, double damageFraction = 0.35)
-        {
-            if (layout == null || layout.IsEmpty) return 0;
-            GodotRandom rng = SeededRng(seedValue, 0x1EC4001);
-            double frac = GdMath.Clampf(damageFraction, 0.05, 0.9);
-            var damages = new GdArray();
-            if (!(layout.Get("rooms", new GdArray()) is GdArray rooms)) return 0;
-            ModuleIntegrityMap map = integrityMap ?? new ModuleIntegrityMap();
-            long damaged = 0;
-            foreach (var roomVariant in rooms)
-            {
-                if (!(roomVariant is GdDict room)) continue;
-                string roomId = V.Str(room.Get("id", ""));
-                if (!(room.Get("structural_placements", new GdArray()) is GdArray placements)) continue;
-                long pIdx = 0;
-                foreach (var pv in placements)
-                {
-                    if (!(pv is GdDict p))
-                    {
-                        pIdx += 1;
-                        continue;
-                    }
-                    string moduleKind = V.Str(p.Get("module_id", p.Get("module", "")));
-                    if (!IsStructural(moduleKind))
-                    {
-                        pIdx += 1;
-                        continue;
-                    }
-                    if (rng.Randf() > frac)
-                    {
-                        pIdx += 1;
-                        continue;
-                    }
-                    double amount = 0.25 + rng.Randf() * 0.7; // 0.25..0.95
-                    string moduleId = roomId + "/" + moduleKind + "_" + GdString.FormatInt(pIdx);
-                    map.EnsureModule(moduleId, moduleKind, new GdDict(), roomId);
-                    map.ApplyDamage(moduleId, amount, moduleKind);
-                    damages.Append(new GdDict
-                    {
-                        { "module_id", moduleId },
-                        { "kind", moduleKind },
-                        { "room_id", roomId },
-                        { "amount", amount },
-                    });
-                    damaged += 1;
-                    pIdx += 1;
-                }
-            }
-            layout["module_damage"] = damages;
-            layout["wreck_applied"] = true;
-            layout["wreck_seed"] = seedValue;
-            return damaged;
-        }
-
         /// <summary>Wreck stamp keyed by loader module_key after compile. Does not restamp.</summary>
         public static long ApplyWreckToCompiledPlan(GdDict layout, long seedValue, ModuleIntegrityMap integrityMap = null, double damageFraction = 0.35)
         {
@@ -305,26 +188,6 @@ namespace SynapticSea.Core.Procgen
             return damaged;
         }
 
-        public static long SeedIntegrityMapFromModuleDamage(ModuleIntegrityMap moduleMap, GdDict layout)
-        {
-            if (moduleMap == null) return 0;
-            long registered = 0;
-            if (!(layout.Get("module_damage", new GdArray()) is GdArray rows)) return 0;
-            foreach (var rowVariant in rows)
-            {
-                if (!(rowVariant is GdDict row)) continue;
-                string mid = V.Str(row.Get("module_key", row.Get("module_id", "")));
-                if (mid.Length == 0) continue;
-                string kind = V.Str(row.Get("kind", ""));
-                string roomId = V.Str(row.Get("room_id", ""));
-                moduleMap.EnsureModule(mid, kind, new GdDict(), roomId);
-                double amount = V.F64(row.Get("amount", 0.0));
-                if (amount > 0.0) moduleMap.ApplyDamage(mid, amount, kind);
-                registered += 1;
-            }
-            return registered;
-        }
-
         static bool IsStructural(string moduleKind)
         {
             if (string.IsNullOrEmpty(moduleKind)) return false;
@@ -332,41 +195,6 @@ namespace SynapticSea.Core.Procgen
                 if (GdString.BeginsWith(moduleKind, prefix)) return true;
             string k = moduleKind.ToLowerInvariant();
             return GdString.BeginsWith(k, "floor_") || GdString.BeginsWith(k, "corridor_") || GdString.BeginsWith(k, "ceiling_");
-        }
-
-        /// <summary>Applies all mutators. flags: zone, branch, wreck, overlay, breach, compiled, wreck_fraction.</summary>
-        public static GdDict ApplyAll(TopologyTemplate template, GdDict layout, long seedValue, GdDict flags = null)
-        {
-            flags = flags ?? new GdDict();
-            var report = new GdDict
-            {
-                { "zone_mutations", 0L },
-                { "branch_blocks", 0L },
-                { "wreck_damages", 0L },
-            };
-            if (V.Bool(flags.Get("zone", true)) && template != null)
-                report["zone_mutations"] = ApplyZoneMutators(template, seedValue);
-            if (V.Bool(flags.Get("branch", true)) && !layout.IsEmpty)
-            {
-                if (V.Bool(flags.Get("overlay", false)))
-                {
-                    report["branch_blocks"] = ApplyBranchOverlays(layout, seedValue);
-                    ApplyPortalOverlays(layout, seedValue, V.Bool(flags.Get("breach", false)));
-                }
-                else
-                {
-                    report["branch_blocks"] = ApplyBranchMutators(layout, seedValue);
-                }
-            }
-            if (V.Bool(flags.Get("wreck", true)) && !layout.IsEmpty)
-            {
-                double frac = V.F64(flags.Get("wreck_fraction", 0.35));
-                if (V.Bool(flags.Get("compiled", false)))
-                    report["wreck_damages"] = ApplyWreckToCompiledPlan(layout, seedValue, null, frac);
-                else
-                    report["wreck_damages"] = ApplyWreckMutator(layout, seedValue, null, frac);
-            }
-            return report;
         }
 
         static HashSet<string> ProtectedHops(GdDict layout, bool overlay)
@@ -557,14 +385,5 @@ namespace SynapticSea.Core.Procgen
             });
         }
 
-        /// <summary>GDScript <c>_state_for_amount</c> (fallback when the map has no <c>apply_damage</c>).</summary>
-        public static string StateForAmount(double amount)
-        {
-            double integrity = GdMath.Clampf(1.0 - amount, 0.0, 1.0);
-            if (integrity <= 0.05) return "destroyed";
-            if (integrity <= 0.40) return "breached";
-            if (integrity <= 0.75) return "damaged";
-            return "intact";
-        }
     }
 }

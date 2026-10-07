@@ -76,45 +76,6 @@ namespace SynapticSea.Tests.Systems
         }
     }
 
-    public class AutomatedPlaytestRubricTests : InfraDataTestBase
-    {
-        [Test]
-        public void FullScenario_Passes_AndSummaryIsLastResult()
-        {
-            var rubric = new AutomatedPlaytestRubric();
-            Assert.IsTrue(rubric.Configure(Data("res://data/integration/automated_playtest_rubric.json")));
-            var steps = new GdArray();
-            foreach (var stage in rubric.RequiredStages)
-                steps.Add(new GdDict { { "stage", stage }, { "visible_consequence", true }, { "systems", GdArray.Of("oxygen") } });
-            var result = rubric.EvaluateScenario(new GdDict { { "steps", steps }, { "player_choice_count", 5L }, { "stuck_events", 0L } });
-            Assert.IsTrue(V.Bool(result["pass"]));
-            Assert.AreEqual(1.0, V.F64(result["score"]));
-            Assert.IsTrue(V.VariantEquals(result, rubric.GetSummary()));
-
-            var bad = rubric.EvaluateScenario(new GdDict { { "stages", GdArray.Of("prepare") }, { "stuck_events", 2L } });
-            Assert.IsFalse(V.Bool(bad["pass"]));
-            Assert.AreEqual(6, ((GdArray)bad["missing_stages"]).Count);
-        }
-    }
-
-    public class BalanceLedgerTests : InfraDataTestBase
-    {
-        [Test]
-        public void MissingAndOutOfRangeMetrics_Fail()
-        {
-            var ledger = new BalanceLedger();
-            Assert.IsTrue(ledger.Configure(Data("res://data/integration/balance_ledger.json")));
-            const string id = "prepare_derelict_survive_loot_craft_return_upgrade";
-            var result = ledger.EvaluateScenario(id, new GdDict { { "oxygen_remaining_pct", 10.0 } });
-            Assert.IsFalse(V.Bool(result["pass"]));
-            var first = (GdDict)((GdArray)result["failures"])[0];
-            Assert.AreEqual("below_min", first["reason"]);
-            var unknown = ledger.EvaluateScenario("nope", new GdDict());
-            Assert.AreEqual("unknown_scenario", ((GdDict)((GdArray)unknown["failures"])[0])["reason"]);
-            Assert.AreEqual(1L, ledger.GetSummary()["result_count"]); // unknown_scenario returns before recording
-        }
-    }
-
     public class BuildMetadataStateTests : InfraDataTestBase
     {
         [Test]
@@ -202,48 +163,6 @@ namespace SynapticSea.Tests.Systems
         }
     }
 
-    public class IntegrationMatrixTests : InfraDataTestBase
-    {
-        [Test]
-        public void ShippedMatrix_CoversLoopStages()
-        {
-            var matrix = new IntegrationMatrix();
-            Assert.IsTrue(matrix.Configure(Data("res://data/integration/cross_system_integration_matrix.json")));
-            Assert.GreaterOrEqual(matrix.GetEntryCount(), 14);
-            Assert.IsTrue(matrix.CoversLoopStages(GdArray.Of("prepare", "derelict", "survive", "loot", "craft", "return", "upgrade")));
-            Assert.IsTrue(matrix.HasEntry("kickoff"));
-            var ids = matrix.GetPackageIds();
-            for (int i = 1; i < ids.Count; i++) Assert.Less(V.CompareCodePoints(V.Str(ids[i - 1]), V.Str(ids[i])), 0);
-            Assert.AreEqual((long)matrix.GetEntryCount(), matrix.GetSummary()["entry_count"]);
-        }
-    }
-
-    public class DependencyValidatorTests : InfraDataTestBase
-    {
-        [Test]
-        public void RequirementAndMarkerChecks_ReportMissingRows()
-        {
-            var matrix = new IntegrationMatrix();
-            matrix.Configure(new GdDict
-            {
-                { "systems", GdArray.Of(new GdDict
-                    {
-                        { "package_id", "p1" }, { "requirements", GdArray.Of("REQ-1", "REQ-2") },
-                        { "smoke_markers", GdArray.Of("P1 PASS") }, { "code_files", GdArray.Of("res://data/balance/shell.json", "res://nope.gd") },
-                    }) },
-            });
-            var validator = new DependencyValidator();
-            validator.Configure(matrix);
-            Assert.AreEqual(1L, validator.GetSummary()["entry_count"]);
-            var reqs = validator.VerifyRequirementRows("## REQ-1: first\n");
-            Assert.IsFalse(V.Bool(reqs["ok"]));
-            Assert.AreEqual(2L, reqs["checked"]);
-            Assert.IsTrue(V.Bool(validator.VerifyValidationMarkers("... P1 PASS ...")["ok"]));
-            var files = validator.VerifyFileEvidence("unused-root");
-            Assert.AreEqual(1, ((GdArray)files["missing"]).Count);
-        }
-    }
-
     public class LocalizationCatalogTests : InfraDataTestBase
     {
         [Test]
@@ -305,45 +224,6 @@ namespace SynapticSea.Tests.Systems
             Assert.IsTrue(restored.ApplySummary(state.GetSummary()));
             Assert.IsTrue(V.VariantEquals(state.GetSummary(), restored.GetSummary()));
             Assert.AreEqual("settings_menu", restored.GetCurrentMenu());
-        }
-    }
-
-    public class ProductAuditReportTests : InfraDataTestBase
-    {
-        [Test]
-        public void ShippedReport_ValidatesAgainstShippedMatrix()
-        {
-            var report = new ProductAuditReport();
-            Assert.IsTrue(report.Configure(Data("res://data/integration/product_audit_report.json"),
-                Data("res://data/integration/known_issue_fix_manifest.json")));
-            var matrix = new IntegrationMatrix();
-            matrix.Configure(Data("res://data/integration/cross_system_integration_matrix.json"));
-            var result = report.ValidateAgainstMatrix(matrix);
-            Assert.IsTrue(V.Bool(result["pass"]), result.ToString());
-            Assert.AreEqual("matrix_missing", report.ValidateAgainstMatrix(null)["reason"]);
-            Assert.AreEqual(0L, report.GetSummary()["blocking_count"]);
-        }
-    }
-
-    public class ReleaseReadinessLedgerTests : InfraDataTestBase
-    {
-        [Test]
-        public void ExternalEvidenceNeedsPath_CountsByCategory()
-        {
-            var ledger = new ReleaseReadinessLedger(Clock);
-            ledger.Configure(Data("res://data/release/release_checklist.json"));
-            Assert.Greater(ledger.GetCheckCount(), 0);
-            string first = V.Str(ledger.GetCheckIds()[0]);
-            Assert.IsTrue(ledger.RecordLocalEvidence(first, "pass", "smoke.log"));
-            Assert.IsFalse(ledger.RecordExternalEvidence(first, "pass", ""));
-            Assert.IsTrue(ledger.RecordExternalEvidence(first, "pending", "https://example/build"));
-            Assert.IsFalse(ledger.RecordLocalEvidence("unknown.check", "pass"));
-            Assert.IsFalse(ledger.RecordLocalEvidence(first, "maybe"));
-            var summary = ledger.GetSummary();
-            Assert.AreEqual(1L, summary["local_count"]);
-            Assert.AreEqual(1L, summary["external_count"]);
-            Assert.AreEqual(2L, ((GdDict)summary["category_counts"])[ledger.GetCheckCategory(first)]);
-            Assert.AreEqual(Clock.DateTimeString(true), ((GdDict)ledger.GetRows()[0])["captured_at"]);
         }
     }
 

@@ -13,25 +13,6 @@ namespace SynapticSea.Tests.Procgen
     public class ProcgenDataClassTests
     {
         [Test]
-        public void RoomGraph_RoundTripsAndChecksConnectivity()
-        {
-            var g = new RoomGraph();
-            g.AddRoom("airlock_01", "airlock");
-            g.AddRoom("corridor_01", "corridor");
-            g.AddRoom("bridge_01", "bridge", 1);
-            g.AddLink("airlock_01", "corridor_01");
-            Assert.IsFalse(g.IsFullyConnected());
-            g.AddLink("corridor_01", "bridge_01", "ladder");
-            Assert.IsTrue(g.IsFullyConnected());
-            CollectionAssert.AreEqual(new[] { "airlock_01", "bridge_01" }, g.GetConnectedRooms("corridor_01"));
-
-            var copy = RoomGraph.FromDict(g.ToDict());
-            Assert.IsTrue(V.VariantEquals(g.ToDict(), copy.ToDict()));
-            Assert.AreEqual(1L, copy.GetRoom("bridge_01")["deck"]);
-            Assert.IsTrue(copy.GetRoom("missing").IsEmpty);
-        }
-
-        [Test]
         public void ShipBlueprint_RoundTripsAndDerivesRange()
         {
             var bp = new ShipBlueprint(ShipBlueprint.Size.Small, ShipBlueprint.Condition.Wrecked, 1234);

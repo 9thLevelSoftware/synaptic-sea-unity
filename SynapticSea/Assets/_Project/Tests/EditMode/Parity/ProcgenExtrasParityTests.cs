@@ -56,7 +56,6 @@ namespace SynapticSea.Tests.Parity
             GdDict lifeBoat = _expected.GetDict("life_boat");
             foreach (string biome in new[] { "", "breach_field", "dead_fleet" })
                 AssertSame(lifeBoat[biome.Length == 0 ? "default" : biome], LifeBoatBuilder.BuildLayout(biome), "build_layout(" + biome + ")");
-            AssertSame(lifeBoat["graph"], LifeBoatBuilder.BuildGraph().ToDict(), "build_graph");
         }
 
         [Test]

@@ -41,7 +41,6 @@ namespace SynapticSea.Tests.Procgen
             CoreServices.Resources = new FileSystemResourceReader(Fixtures.StreamingDataRoot);
             CatalogRegistry.Clear();
             EncounterInjector.ClearTableCache();
-            StructuralPlacer.ResetSharedKitCatalog();
             _report.Clear();
             _failures = 0;
         }
@@ -51,7 +50,6 @@ namespace SynapticSea.Tests.Procgen
         {
             CatalogRegistry.Clear();
             EncounterInjector.ClearTableCache();
-            StructuralPlacer.ResetSharedKitCatalog();
         }
 
         // ------------------------------------------------------------------ helpers
@@ -196,56 +194,6 @@ namespace SynapticSea.Tests.Procgen
             var normalized = new GdDict();
             foreach (string a in Archetypes) normalized[a] = RoomAssigner.NormalizeArchetype(Archetype(a));
             Cmp(exp["normalized_archetypes"], normalized, "normalize_archetype");
-            Finish(n);
-        }
-
-        static RoomGraph Graph(GdDict c) =>
-            new RoomGraphGenerator().Generate(
-                new ShipBlueprint(c.GetInt("size"), 0, c.GetInt("seed")), Archetype(c.GetString("archetype")).DeepCopy());
-
-        [Test]
-        public void RoomGraphGenerator_MatchesGodot()
-        {
-            GdDict exp = Expected("room_graph_generator");
-            int n = 0;
-            foreach (GdDict c in exp.GetArray("cases"))
-            {
-                Cmp(c["graph"], Graph(c).ToDict(), $"{c.GetString("archetype")}/size{c.GetInt("size")}/seed{c.GetInt("seed")}");
-                n++;
-            }
-            Finish(n);
-        }
-
-        [Test]
-        public void StructuralPlacer_MatchesGodot()
-        {
-            GdDict exp = Expected("structural_placer");
-            int n = 0;
-            foreach (GdDict c in exp.GetArray("cases"))
-            {
-                var placer = new StructuralPlacer();
-                StructuralPlacer.Placement result = placer.PlaceStructure(Graph(c), c.GetInt("seed"), c.GetString("biome"));
-                var rooms = new GdArray();
-                if (result != null)
-                {
-                    foreach (var room in result.Rooms)
-                    {
-                        rooms.Append(new GdDict
-                        {
-                            { "name", room.RoomId }, { "position", room.Position },
-                            { "modules", GdString.ToGdArray(placer.ModulesForRole(room.Role)) },
-                        });
-                        // The records carry the same module list the room node was built from.
-                        var ids = new List<string>();
-                        foreach (var m in room.Modules) ids.Add(m.ModuleId);
-                        Assert.AreEqual(placer.ModulesForRole(room.Role), ids);
-                    }
-                }
-                string where = $"{c.GetString("archetype")}/size{c.GetInt("size")}/seed{c.GetInt("seed")}/{c.GetString("biome")}";
-                Cmp(c["root"], result != null, where + " root");
-                Cmp(c["rooms"], rooms, where);
-                n++;
-            }
             Finish(n);
         }
 

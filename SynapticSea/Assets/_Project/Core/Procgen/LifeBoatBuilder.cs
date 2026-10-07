@@ -224,16 +224,6 @@ namespace SynapticSea.Core.Procgen
             return layout;
         }
 
-        /// <summary>The life boat RoomGraph (room roles without the plan).</summary>
-        public static RoomGraph BuildGraph()
-        {
-            var graph = new RoomGraph();
-            foreach (GdDict roomDef in ROOMS) graph.AddRoom(V.Str(roomDef["id"]), V.Str(roomDef["role"]), V.I64(roomDef["deck"]));
-            graph.AddLink("airlock_01", "cockpit_01", "door");
-            graph.AddLink("airlock_01", "engine_bay_01", "door");
-            return graph;
-        }
-
         public static string KitIdForBiome(string biome)
         {
             switch (biome)

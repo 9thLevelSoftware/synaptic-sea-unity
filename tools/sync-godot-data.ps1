@@ -21,7 +21,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $srcData = Join-Path $Source 'data'
 $dstData = Join-Path $RepoRoot 'SynapticSea\Assets\StreamingAssets\data'
-$excludedDirs = @('training', 'asset_generation', 'comfyui')
+$excludedDirs = @('training', 'asset_generation', 'comfyui', 'integration')
 
 if (-not (Test-Path $srcData)) { throw "Godot data folder not found: $srcData" }
 
