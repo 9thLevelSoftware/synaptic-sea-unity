@@ -257,6 +257,7 @@ namespace SynapticSea.Game
 
             MilestoneALaunch.ApplyHubPaths(deps);
             deps.RunSeed = launch.Seed;
+            deps.TimeScale = launch.TimeScale;
             return deps;
         }
 

@@ -428,6 +428,8 @@ namespace SynapticSea.Core.Session
                 return false;
             }
             RunPlayTimeSeconds = snapshot.PlayTimeSeconds;
+            // Phase 1.1: a manual-slot load used to leave WorldTime at the new session's value, which disabled derelict catch-up.
+            if (snapshot.WorldClock.IsEmpty || !GameClock.ApplySummary(snapshot.WorldClock)) GameClock.GameSeconds = snapshot.PlayTimeSeconds;
             if (ShipSystemsManager != null && !snapshot.ShipSystemsSummary.IsEmpty)
             {
                 GdDict ss = snapshot.ShipSystemsSummary;

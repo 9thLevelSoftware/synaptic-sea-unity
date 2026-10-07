@@ -119,6 +119,9 @@ namespace SynapticSea.Core.Session
         /// <summary>The run seed recorded in saves; null = the home blueprint's seed.</summary>
         public long? RunSeed;
 
+        /// <summary>Game seconds per real second (Phase 1.1). 1.0 = game time equals real time; recorded in <c>run_context</c> when not 1.0.</summary>
+        public double TimeScale = WorldClock.DefaultScale;
+
         /// <summary>
         /// Unity port tuning: the powered ratio the home ship's emergency cells guarantee its life support while the power
         /// grid cannot allocate to it (a starved grid or a non-operational power dependency). The floor only bridges the

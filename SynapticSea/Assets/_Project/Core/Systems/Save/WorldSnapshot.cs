@@ -28,6 +28,8 @@ namespace SynapticSea.Core.Systems
         public string CurrentLocation = "";                    // "" = home ship, else marker_id
         // Live Persistent Ships Phase 1: monotonic in-run simulation clock (seconds).
         public double WorldTime = 0.0;
+        /// <summary>Optional (Phase 1.1): written only when the clock scale or start hour is not the default. <c>world_time</c> always carries the game seconds.</summary>
+        public GdDict WorldClock = new GdDict();
         public GdArray PlayerPositionInShip = GdArray.Of(0.0, 0.0, 0.0);
         public GdDict MobileHomeState = new GdDict();
         public GdArray DockEdges = new GdArray();              // [{host, mobile, port_type, slot_index}]
@@ -68,6 +70,7 @@ namespace SynapticSea.Core.Systems
                 { "saved_at", SavedAt },
             };
             if (!MobileHomeState.IsEmpty) result["mobile_home_state"] = MobileHomeState.DeepCopy();
+            if (!WorldClock.IsEmpty) result["world_clock"] = WorldClock.DeepCopy();
             if (SliceVersion == ComponentIntegrationVersion)
             { result["component_domain"] = ComponentDomain.DeepCopy(); result["generation_id"] = GenerationId; result["capture_revision"] = CaptureRevision; }
             return result;
@@ -105,6 +108,7 @@ namespace SynapticSea.Core.Systems
             ws.VisitedShips = DeepCopyDict(dict.Get("visited_ships", new GdDict()));
             ws.CurrentLocation = V.Str(dict.Get("current_location", ""));
             ws.WorldTime = V.F64(dict.Get("world_time", 0.0));
+            if (dict.Get("world_clock") is GdDict worldClock) ws.WorldClock = worldClock.DeepCopy();
             object edgesV = dict.Get("dock_edges", new GdArray());
             if (edgesV is GdArray edges) ws.DockEdges = edges.DeepCopy();
             ws.PilotedShipId = V.Str(dict.Get("piloted_ship_id", ""));

@@ -33,7 +33,7 @@ namespace SynapticSea.Core.Session
             {
                 if(!RestoringConnections && !_switchingBoardedContext && (LifeboatCommissioned || HasSecuredHomeExtension() || CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile)) RecomputeOccupancy();
                 double delta = ctx.Delta;
-                WorldTime += delta;
+                GameClock.Advance(delta);
                 if (PlayableStarted && !SliceComplete)
                     RunPlayTimeSeconds += delta;
                 SessionLocation location = AwayFromStart ? SessionLocation.Away : SessionLocation.Home;

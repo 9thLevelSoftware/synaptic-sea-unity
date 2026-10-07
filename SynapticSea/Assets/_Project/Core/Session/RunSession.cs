@@ -146,8 +146,15 @@ namespace SynapticSea.Core.Session
         /// <summary>The ShipInstance the player currently occupies (defaults to home_ship).</summary>
         public ShipInstance CurrentOccupancy;
 
-        /// <summary>Monotonic in-run simulation clock (seconds); advances every tick before any branch.</summary>
-        public double WorldTime;
+        /// <summary>The run's simulation clock (Phase 1.1). Scale 1.0 makes game time equal real time.</summary>
+        public readonly WorldClock GameClock = new WorldClock();
+
+        /// <summary>Monotonic in-run simulation clock (game seconds); advances every tick before any branch.</summary>
+        public double WorldTime
+        {
+            get => GameClock.GameSeconds;
+            set => GameClock.GameSeconds = value;
+        }
 
         /// <summary>ADR-0046: accumulated in-run play time (started and not complete).</summary>
         public double RunPlayTimeSeconds;

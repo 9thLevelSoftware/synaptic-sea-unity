@@ -53,6 +53,7 @@ namespace SynapticSea.Core.Session
                 ws.PlayerEquipment = s.EquipmentState.GetSummary();
             ws.CurrentLocation = s.CurrentShip != null ? s.CurrentShip.MarkerId : "";
             ws.WorldTime = s.WorldTime;
+            if (!s.GameClock.IsDefaultConfiguration) ws.WorldClock = s.GameClock.GetSummary();
             if (s.Scene != null && s.Scene.HasPlayer)
             {
                 Vec3 p = s.Scene.PlayerPosition;
@@ -229,6 +230,7 @@ namespace SynapticSea.Core.Session
                 else s.LifeboatShip.SystemsManager.ApplySummary(s.ShipSystemsManager.GetSummary());
             }
             s.WorldTime = ws.WorldTime;
+            if (!ws.WorldClock.IsEmpty) s.GameClock.ApplySummary(ws.WorldClock);
             if (ws.CurrentLocation != "")
             {
                 ShipInstance active = s.VisitedShips.GetOrDefault(ws.CurrentLocation);

@@ -40,15 +40,22 @@ namespace SynapticSea.Core.Session
         public double HomeAmbientIntensity => HomeDial(DifficultyProfile.DIAL_AMBIENT);
 
         /// <summary>The run context recorded in the run snapshot (<c>run_context</c>).</summary>
-        public GdDict GetRunContextSummary() => new GdDict
+        public GdDict GetRunContextSummary()
         {
-            { "seed", RunSeed },
-            { "biome_id", BiomeId },
-            { "difficulty_id", DifficultyId },
-        };
+            var summary = new GdDict
+            {
+                { "seed", RunSeed },
+                { "biome_id", BiomeId },
+                { "difficulty_id", DifficultyId },
+            };
+            // Optional key: absent means 1.0, so runs at the default scale save exactly what they saved before the clock existed.
+            if (GameClock.Scale != WorldClock.DefaultScale) summary["time_scale"] = GameClock.Scale;
+            return summary;
+        }
 
-        void ApplyRunContext(string difficultyId, string biomeId, long? seed)
+        void ApplyRunContext(string difficultyId, string biomeId, long? seed, double timeScale = WorldClock.DefaultScale)
         {
+            GameClock.SetScale(timeScale);
             DifficultyId = string.IsNullOrEmpty(difficultyId) ? DifficultyProfile.STANDARD_ID : difficultyId;
             BiomeId = biomeId ?? "";
             _runDifficulty = DifficultyProfile.ForId(DifficultyId);
@@ -61,7 +68,7 @@ namespace SynapticSea.Core.Session
         {
             if (ctx == null || ctx.IsEmpty)
                 return;
-            ApplyRunContext(V.Str(ctx.Get("difficulty_id", DifficultyId)), V.Str(ctx.Get("biome_id", BiomeId)), V.I64(ctx.Get("seed", RunSeed)));
+            ApplyRunContext(V.Str(ctx.Get("difficulty_id", DifficultyId)), V.Str(ctx.Get("biome_id", BiomeId)), V.I64(ctx.Get("seed", RunSeed)), V.F64(ctx.Get("time_scale", WorldClock.DefaultScale)));
         }
 
         /// <summary>True when the home layout was generated with a run context (EncounterInjector already scaled its markers).</summary>
