@@ -81,25 +81,6 @@ namespace SynapticSea.Core.Systems
             }
         }
 
-        /// <summary>The recurring <c>_as_array(value)</c>: arrays pass through, null is empty, anything else is wrapped.</summary>
-        public static GdArray AsArray(object value)
-        {
-            if (value is GdArray a) return a;
-            if (value == null) return new GdArray();
-            return GdArray.Of(value);
-        }
-
-        /// <summary>The recurring <c>_as_dict(value)</c>: dictionaries pass through, anything else is empty.</summary>
-        public static GdDict AsDict(object value) => value as GdDict ?? new GdDict();
-
-        /// <summary><c>for item in value: out.append(str(item))</c> over <see cref="AsArray"/>.</summary>
-        public static GdArray ToStringArray(object value)
-        {
-            var output = new GdArray();
-            foreach (var item in AsArray(value)) output.Add(V.Str(item));
-            return output;
-        }
-
         /// <summary>Sorted copy of dictionary keys (<c>var k = d.keys(); k.sort()</c>).</summary>
         public static GdArray SortedKeys(GdDict d)
         {
