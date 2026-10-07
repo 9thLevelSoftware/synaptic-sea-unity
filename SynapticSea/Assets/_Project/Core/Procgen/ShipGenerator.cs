@@ -172,12 +172,6 @@ namespace SynapticSea.Core.Procgen
         /// <summary>E1: any real difficulty (production travel always sets one) unlocks the extended template pool.</summary>
         static bool ExtendedFor(string diffId) => !string.IsNullOrEmpty(diffId);
 
-        public GdDict GenerateLayout(ShipBlueprint blueprint, GdDict archetype = null)
-        {
-            if (blueprint == null) throw new ArgumentNullException(nameof(blueprint), "ShipGenerator: blueprint must not be null");
-            return LayoutGenerator.Generate(blueprint, archetype ?? new GdDict());
-        }
-
         /// <summary>
         /// Builds a blueprint from seed/size/condition and generates. Prefers the DerelictGenerator seam when one is
         /// set; otherwise the layout pipeline.
