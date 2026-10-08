@@ -1,10 +1,14 @@
 # Milestone A closing regression matrix
 
-Milestone A New Run supports seed **17**, biome **breach_field**, difficulty
-**standard**, and the golden `coherent_ship_001` hub. Other New Run parameters
-fail closed. First-away generation tries production seed **42**, then **777**
-only if the first candidate fails the complete contract. These are away seeds,
-not additional supported title seeds.
+Milestone A New Run supports any seed from 1 to 2147483647 (Phase 1.5), biome
+**breach_field**, difficulty **standard**, and the golden `coherent_ship_001`
+hub. The seed drives the world and the first wreck; the home is the same for
+every seed. Other biomes, difficulties and out-of-range seeds fail closed.
+First-away generation tries production seed **42**, then **777** only if the
+first candidate fails the complete contract, at the contact's size and condition
+(the D9 patch makes both pass). The seed varies the contacts, not the first
+wreck's hull: wrecks built from a contact's own seed are larger and deadlier than
+the validated hull, so that change is parked (see `decisions.md`, Phase 1.5).
 
 The production matrix tests both preferred seeds over lifeboat/small/medium
 sizes and pristine/damaged/wrecked conditions (18 cases). Seed 42 passes all

@@ -55,9 +55,9 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void NonSliceSeedBiomeDifficulty_FailClosed()
         {
-            Assert.IsFalse(MilestoneALaunch.TryAccept(99, "breach_field", "standard", out string seedReason));
+            Assert.IsFalse(MilestoneALaunch.TryAccept(0, "breach_field", "standard", out string seedReason));
             StringAssert.Contains("non_slice_launch", seedReason);
-            StringAssert.Contains("seed=99", seedReason);
+            StringAssert.Contains("seed=0", seedReason);
 
             Assert.IsFalse(MilestoneALaunch.TryAccept(17, "dead_fleet", "standard", out string biomeReason));
             StringAssert.Contains("biome=dead_fleet", biomeReason);
@@ -153,7 +153,7 @@ namespace SynapticSea.Tests.Session
                         + " encounters=" + (docs?.Layout.GetArrayOrEmpty("encounters").Count ?? 0));
                 }
             Assert.AreEqual(expectedAccepted, accepted, "D9: the first wreck always qualifies, on every size and condition");
-            Assert.IsFalse(MilestoneALaunch.TryAccept(seed, "breach_field", "standard", out _), "away candidates are not supported title seeds");
+            Assert.IsTrue(MilestoneALaunch.TryAccept(seed, "breach_field", "standard", out _), "any seed is a valid New Run seed (Phase 1.5)");
         }
 
         static ShipDocuments PassingDocuments()

@@ -28,9 +28,9 @@ namespace SynapticSea.Runtime.Session
         public const string TitleSceneName = "Title";
 
         /// <summary>
-        /// Title New Run sentinel (and a direct-open run's seed). Milestone A hub is golden <c>coherent_ship_001</c>,
-        /// not this seed's layout. Away seeds come from the first-run contract preferred list. The title's New Run
-        /// setup starts on this seed; Randomize rolls a new one, and a non-slice launch fails closed.
+        /// A direct-open run's seed (and the golden hub's own blueprint seed). The Milestone A hub is golden
+        /// <c>coherent_ship_001</c> for every seed. The title's New Run setup starts on a random seed and Results "New Run"
+        /// rolls a fresh one; the seed drives the world, markers and first wreck, never the home.
         /// </summary>
         public const long DefaultSeed = 17;
         /// <summary>Milestone A default biome (ui_presentation_program.md: "fixed default start, breach_field/standard").</summary>
@@ -58,7 +58,7 @@ namespace SynapticSea.Runtime.Session
             set => _selectedSaveGeneration = value?.DeepCopy();
         }
 
-        /// <summary>The New Run seed. Slice default <see cref="DefaultSeed"/> boots the Milestone A hub; any other seed fails closed.</summary>
+        /// <summary>The New Run seed: any seed in [MilestoneALaunch.MinSeed, MaxSeed] boots the Milestone A hub with a seeded world.</summary>
         public long Seed = DefaultSeed;
 
         /// <summary>Biome id (<c>data/procgen/biomes/&lt;id&gt;.json</c>).</summary>

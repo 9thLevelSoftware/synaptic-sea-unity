@@ -183,7 +183,11 @@ namespace SynapticSea.Tests.PlayMode
             CollectionAssert.AreEqual(new[] { "standard", "hardened", "deep_dive" }, setup.DifficultyIds.ToArray(), "difficulties from data/procgen/difficulty");
             Assert.AreEqual("breach_field", setup.BiomeId);
             Assert.AreEqual("standard", setup.DifficultyId, "the title difficulty setting");
-            Assert.AreEqual(RunLaunchRequest.DefaultSeed, setup.Seed, "the Milestone A start seed by default");
+            Assert.AreEqual(4242L, setup.Seed, "a random seed by default (the roll is pinned to 4242 here)");
+            Assert.IsTrue(setup.BiomeDifficultyLocked, "biome and difficulty are fixed for Milestone A");
+            StringAssert.Contains("(fixed)", setup.RowElement(NewRunSetupPanel.RowBiome).Q<UnityEngine.UIElements.Label>(className: "ss-menu-row__label").text);
+            StringAssert.Contains("(fixed)", setup.RowElement(NewRunSetupPanel.RowDifficulty).Q<UnityEngine.UIElements.Label>(className: "ss-menu-row__label").text);
+            StringAssert.Contains(NewRunSetupPanel.LockedReason, setup.StatusDisplay, "the reason is on screen");
 
             setup.FocusRow(NewRunSetupPanel.RowStart);
             setup.Consume(UiCommand.Accept);
@@ -193,7 +197,7 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsNotNull(request);
             Assert.AreEqual(RunLaunchMode.NewRun, request.Mode);
             Assert.AreEqual("", request.SlotId);
-            Assert.AreEqual(RunLaunchRequest.DefaultSeed, request.Seed);
+            Assert.AreEqual(4242L, request.Seed);
             Assert.AreEqual("breach_field", request.BiomeId);
             Assert.AreEqual("standard", request.DifficultyId);
             Assert.AreEqual("engineer", request.ClassId);
@@ -244,15 +248,15 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsFalse(c.MenuPanel.IsViewVisible, "the title menu is hidden under the setup");
 
             yield return Tap(gamepad.dpad.right);
-            Assert.AreEqual("dead_fleet", setup.BiomeId, "Right cycles the biome");
+            Assert.AreEqual("breach_field", setup.BiomeId, "the biome row is fixed: Right does nothing");
             yield return Tap(gamepad.dpad.down);
             Assert.AreEqual(NewRunSetupPanel.TokenFor(NewRunSetupPanel.RowDifficulty), FocusedToken(_title));
             yield return Tap(gamepad.dpad.right);
-            Assert.AreEqual("hardened", setup.DifficultyId);
+            Assert.AreEqual("standard", setup.DifficultyId, "the difficulty row is fixed too");
             yield return Tap(gamepad.dpad.down);
             yield return Tap(gamepad.dpad.right);
-            Assert.AreEqual(RunLaunchRequest.DefaultSeed + 1, setup.Seed, "Right steps the seed");
-            Assert.AreEqual((RunLaunchRequest.DefaultSeed + 1).ToString(), setup.RowValue(NewRunSetupPanel.RowSeed));
+            Assert.AreEqual(4243L, setup.Seed, "Right steps the seed");
+            Assert.AreEqual("4243", setup.RowValue(NewRunSetupPanel.RowSeed));
             yield return Tap(gamepad.dpad.down);
             NewRunSetupPanel.RandomSeed = () => 777;
             yield return Tap(gamepad.buttonSouth);
@@ -275,7 +279,7 @@ namespace SynapticSea.Tests.PlayMode
             yield return Tap(gamepad.dpad.down);
             yield return Tap(gamepad.dpad.right);
             yield return Tap(gamepad.dpad.right);
-            Assert.AreEqual("deep_dive", setup.DifficultyId);
+            Assert.AreEqual("standard", setup.DifficultyId);
             yield return Tap(gamepad.dpad.up);
             yield return Tap(gamepad.dpad.up);
             Assert.AreEqual(NewRunSetupPanel.TokenFor(NewRunSetupPanel.RowStart), FocusedToken(_title), "Up wraps to Start");
@@ -285,9 +289,9 @@ namespace SynapticSea.Tests.PlayMode
             RunLaunchRequest request = RunLaunchRequest.Pending;
             Assert.IsNotNull(request);
             Assert.AreEqual(RunLaunchMode.NewRun, request.Mode);
-            Assert.AreEqual(RunLaunchRequest.DefaultSeed, request.Seed);
-            Assert.AreEqual("dead_fleet", request.BiomeId);
-            Assert.AreEqual("deep_dive", request.DifficultyId);
+            Assert.AreEqual(99L, request.Seed, "the reopened setup rolled a fresh seed");
+            Assert.AreEqual("breach_field", request.BiomeId);
+            Assert.AreEqual("standard", request.DifficultyId);
             Assert.AreEqual("engineer", request.ClassId);
         }
 
@@ -318,17 +322,54 @@ namespace SynapticSea.Tests.PlayMode
             NewRunSetupPanel setup = _title.OpenNewRunSetup();
             Assert.AreEqual(MilestoneALaunch.SliceBiomeId, setup.BiomeId);
             Assert.AreEqual(MilestoneALaunch.SliceDifficultyId, setup.DifficultyId, "persisted hardened must not seed the New Run setup");
-            Assert.AreEqual(MilestoneALaunch.TitleStartSeed, setup.Seed);
+            Assert.AreEqual(4242L, setup.Seed, "the pinned random roll");
 
             setup.FocusRow(NewRunSetupPanel.RowStart);
             setup.Consume(UiCommand.Accept);
 
             RunLaunchRequest request = RunLaunchRequest.Pending;
             Assert.IsNotNull(request);
-            Assert.AreEqual(MilestoneALaunch.TitleStartSeed, request.Seed);
+            Assert.AreEqual(4242L, request.Seed);
             Assert.AreEqual(MilestoneALaunch.SliceBiomeId, request.BiomeId);
             Assert.AreEqual(MilestoneALaunch.SliceDifficultyId, request.DifficultyId);
             Assert.IsTrue(MilestoneALaunch.TryAccept(request.Seed, request.BiomeId, request.DifficultyId, out string reason), reason);
+        }
+
+        [UnityTest]
+        public IEnumerator NewRunSetupRowsForBiomeAndDifficultyAreFixedUntilUnlocked()
+        {
+            yield return BootToTitle();
+            NewRunSetupPanel setup = _title.OpenNewRunSetup();
+            setup.FocusRow(NewRunSetupPanel.RowBiome);
+            setup.Cycle(1);
+            setup.Activate();
+            Assert.AreEqual("breach_field", setup.BiomeId);
+            setup.FocusRow(NewRunSetupPanel.RowDifficulty);
+            setup.Cycle(-1);
+            setup.Activate();
+            Assert.AreEqual("standard", setup.DifficultyId);
+            setup.BiomeDifficultyLocked = false; // the cycling mechanics stay for the day the other homes are playtested
+            setup.FocusRow(NewRunSetupPanel.RowDifficulty);
+            setup.Cycle(1);
+            Assert.AreEqual("hardened", setup.DifficultyId);
+            Assert.IsFalse(MilestoneALaunch.TryAccept(setup.Seed, setup.BiomeId, setup.DifficultyId, out _), "the launch contract still rejects a non-slice difficulty");
+        }
+
+        [UnityTest]
+        public IEnumerator NewRunSetupSeedStaysInTheAcceptedRangeAndRandomizeIsAlwaysAccepted()
+        {
+            yield return BootToTitle();
+            NewRunSetupPanel setup = _title.OpenNewRunSetup();
+            setup.SetSeed(0);
+            Assert.AreEqual(MilestoneALaunch.MinSeed, setup.Seed, "0 is raised to the smallest accepted seed");
+            setup.SetSeed(MilestoneALaunch.MaxSeed + 5);
+            Assert.AreEqual(MilestoneALaunch.MaxSeed, setup.Seed);
+            NewRunSetupPanel.RandomSeed = () => 123456789;
+            setup.FocusRow(NewRunSetupPanel.RowRandomize);
+            setup.Consume(UiCommand.Accept);
+            Assert.AreEqual(123456789L, setup.Seed);
+            Assert.IsTrue(MilestoneALaunch.TryAccept(setup.Seed, setup.BiomeId, setup.DifficultyId, out string reason), reason);
+            Assert.IsTrue(MilestoneALaunch.TryAccept(setup.BuildRequest().Seed, setup.BuildRequest().BiomeId, setup.BuildRequest().DifficultyId, out reason), reason);
         }
 
         [UnityTest]

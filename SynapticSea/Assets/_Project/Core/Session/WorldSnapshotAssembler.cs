@@ -217,7 +217,10 @@ namespace SynapticSea.Core.Session
                 s.MetaProgressionState.ApplySummary(ws.MetaProgressionSummary);
             s.UniqueItemState?.ApplySummary(ws.UniqueItemSummary);
             if (s.SynapticSeaWorld != null && !ws.WorldSummary.IsEmpty)
+            {
                 s.SynapticSeaWorld.ApplySummary(ws.WorldSummary);
+                if (s.SeaGraph != null) s.SeaGraph.WorldSeed = s.SynapticSeaWorld.WorldSeed; // Phase 1.5: the sea graph follows the restored world
+            }
             s.HomeSeaPosition = !homeLocation.IsEmpty ? Vec3.FromArray(homeLocation.GetArrayOrEmpty("sea_position")) : s.StartingHomeSeaPosition;
             s.HomeSeaMarkerId=homeLocation.GetString("marker_id");
             ApplyVisitedShips(s, ws.VisitedShips);
