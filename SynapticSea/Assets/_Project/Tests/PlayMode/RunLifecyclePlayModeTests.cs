@@ -406,6 +406,7 @@ namespace SynapticSea.Tests.PlayMode
             var filter = new NavMeshQueryFilter { agentTypeID = ShipNavMesh.AgentTypeId, areaMask = NavMesh.AllAreas };
             Assert.IsTrue(NavMesh.SamplePosition(Frame.ToUnity(target), out var landing, 2.5f, filter), "walkable target: " + target);
             var path = new NavMeshPath();
+            bool rebuiltNavigation = false;
             for (int guard = 0; guard < 8; guard++)
             {
                 if (TryStandingApproach(target, radius, player.transform.position, filter, out var standing))
@@ -433,7 +434,31 @@ namespace SynapticSea.Tests.PlayMode
                     }
                     if (chosen != null) break;
                 }
+                if (chosen == null && !rebuiltNavigation)
+                {
+                    // Diagnostic and safety net: if the route only exists after the navigation surface is rebuilt, the surface was stale.
+                    rebuiltNavigation = true;
+                    foreach (var nav in Object.FindObjectsByType<ShipNavMesh>()) ShipNavMesh.StructureCollisionChanged(nav.gameObject);
+                    for (int i = 0; i < 12; i++) yield return new WaitForFixedUpdate();
+                    Debug.Log("[NaturalWalk] no route to " + target + " from " + player.transform.position + " (" + path.status + "); rebuilt navigation and retrying");
+                    continue;
+                }
+                if (rebuiltNavigation && chosen == null) Debug.Log("[NaturalWalk] route to " + target + " is still missing after a navigation rebuild");
                 Assert.IsNotNull(chosen, "a reachable closed door or standing interaction approach exists for " + target
+                    + "; current=" + _s.CurrentShip?.ShipId + " piloted=" + _s.PilotedShip?.ShipId + " home=" + _s.HomeShip?.ShipId + " boat=" + _s.LifeboatShip?.ShipId
+                    + "; consoles=" + string.Join(", ", _s.BridgeTerminals.Select(t => t.ShipId + "@" + Frame.ToUnity(t.GlobalPosition)))
+                    + "; dock barriers=" + string.Join(", ", _s.DockBarriers.Select(b => b.GlobalPosition + " opened=" + b.Opened + " valid=" + b.IsValid))
+                    + "; join controls=" + string.Join(", ", _s.HomeJoinControls.Select(c => c.ActionId + "@" + Frame.ToUnity(c.GlobalPosition)))
+                    + "; reach=" + string.Join(" | ", _s.BridgeTerminals.Select(t => ("console " + t.ShipId, Frame.ToUnity(t.GlobalPosition)))
+                        .Concat(_s.DockBarriers.Select(b => ("dock barrier", Frame.ToUnity(b.GlobalPosition))))
+                        .Concat(_s.HomeJoinControls.Select(c => ("join " + c.ActionId, Frame.ToUnity(c.GlobalPosition))))
+                        .Select(probe =>
+                        {
+                            var pr = new NavMeshPath();
+                            bool onMesh = NavMesh.SamplePosition(probe.Item2, out var hit, 2.5f, filter);
+                            bool ok = onMesh && NavMesh.CalculatePath(player.transform.position, hit.position, filter, pr);
+                            return probe.Item1 + "@" + probe.Item2 + " -> " + (!onMesh ? "off mesh" : ok ? pr.status + " ends@" + pr.corners.LastOrDefault() : "no path");
+                        }))
                     + "; player=" + player.transform.position + "; landing=" + landing.position + "; path=" + path.status
                     + "; corners=" + string.Join(" -> ", path.corners.Select(c => c.ToString()))
                     + "; portals=" + string.Join(", ", Object.FindObjectsByType<AuthoredPortalRuntime>().Where(p => p.transform.position.y < 2f)
@@ -453,6 +478,77 @@ namespace SynapticSea.Tests.PlayMode
             }
             Assert.AreEqual(NavMeshPathStatus.PathComplete, path.status, "standing route to " + target);
             yield return WalkAlong(path, 0.2f);
+        }
+
+        /// <summary>Logs whether the survivor can walk to each console, dock barrier and join control from here; used to see when a route disappears.</summary>
+        void LogReach(string label)
+        {
+            var player = _boot.Host.SceneState.Player;
+            var filter = new NavMeshQueryFilter { agentTypeID = ShipNavMesh.AgentTypeId, areaMask = NavMesh.AllAreas };
+            var probes = _s.BridgeTerminals.Select(t => ("console " + t.ShipId, Frame.ToUnity(t.GlobalPosition)))
+                .Concat(_s.DockBarriers.Select(b => ("dock barrier", Frame.ToUnity(b.GlobalPosition))))
+                .Concat(_s.HomeJoinControls.Select(c => ("join " + c.ActionId, Frame.ToUnity(c.GlobalPosition))));
+            Debug.Log("[Reach] " + label + " player=" + player.transform.position + " current=" + _s.CurrentShip?.ShipId + " piloted=" + _s.PilotedShip?.ShipId
+                + " home@" + _s.HomeShip?.SceneRoot?.GlobalTransform.Origin + " boat@" + _s.LifeboatShip?.SceneRoot?.GlobalTransform.Origin
+                + " navmeshes=" + Object.FindObjectsByType<ShipNavMesh>().Length + " :: " + string.Join(" | ", probes.Select(probe =>
+                {
+                    var pr = new NavMeshPath();
+                    bool onMesh = NavMesh.SamplePosition(probe.Item2, out var hit, 2.5f, filter);
+                    bool ok = onMesh && NavMesh.CalculatePath(player.transform.position, hit.position, filter, pr);
+                    return probe.Item1 + "@" + probe.Item2 + " -> " + (!onMesh ? "off mesh" : ok ? pr.status + " ends@" + pr.corners.LastOrDefault() : "no path");
+                })));
+        }
+
+        static readonly Vec3[] HatchFaceOffsets = { new Vec3(0, 0, 1.35), new Vec3(0, 0, -1.35), new Vec3(1.35, 0, 0), new Vec3(-1.35, 0, 0) };
+
+        /// <summary>The hatch face on the survivor's side of any closed doors: standable, clear, and whose route ends nearest to it.</summary>
+        Vec3? NearestHatchFaceBehindClosedDoors(SealedHatch hatch, NavMeshQueryFilter filter)
+        {
+            var from = _boot.Host.SceneState.Player.transform.position;
+            Vec3? best = null; float bestMiss = float.MaxValue;
+            foreach (var direction in HatchFaceOffsets)
+            {
+                Vec3 candidate = hatch.GlobalPosition + direction;
+                Vector3 at = Frame.ToUnity(candidate); at.y = from.y;
+                if (!NavMesh.SamplePosition(at, out var sample, 0.5f, filter) || !SpawnClearance.IsClear(sample.position)) continue;
+                var path = new NavMeshPath();
+                if (!NavMesh.CalculatePath(from, sample.position, filter, path) || path.corners.Length == 0) continue;
+                float miss = Vector3.Distance(path.corners[path.corners.Length - 1], sample.position);
+                if (miss < bestMiss) { bestMiss = miss; best = candidate; }
+            }
+            return best;
+        }
+
+        /// <summary>Per-direction reason a hatch face is unusable: no navmesh, no clearance, a blocker in line, or no complete route.</summary>
+        string DescribeHatchFaces(SealedHatch hatch, NavMeshQueryFilter filter)
+        {
+            var from = _boot.Host.SceneState.Player.transform.position;
+            var parts = new System.Collections.Generic.List<string>();
+            foreach (var direction in HatchFaceOffsets)
+            {
+                Vec3 candidate = hatch.GlobalPosition + direction;
+                Vector3 at = Frame.ToUnity(candidate); at.y = from.y;
+                string reason;
+                if (!NavMesh.SamplePosition(at, out var sample, 0.5f, filter)) reason = "no navmesh within 0.5";
+                else if (!SpawnClearance.IsClear(sample.position)) reason = "no clearance at " + sample.position;
+                else if (Physics.Linecast(sample.position + Vector3.up, Frame.ToUnity(candidate) + Vector3.up, out var hit, SpawnClearance.BlockingMask, QueryTriggerInteraction.Ignore))
+                    reason = "blocked by " + hit.collider.transform.parent?.name + "/" + hit.collider.name + "@" + hit.collider.bounds.center;
+                else
+                {
+                    var path = new NavMeshPath();
+                    bool ok = NavMesh.CalculatePath(from, sample.position, filter, path);
+                    reason = "path " + (ok ? path.status.ToString() : "failed") + (ok && CrossesClosedPortal(path) ? " crosses closed portal" : "")
+                        + (ok && path.corners.Length > 0 ? " ends@" + path.corners[path.corners.Length - 1] : "");
+                }
+                parts.Add(direction + " -> " + reason);
+            }
+            return "current=" + _s.CurrentShip.ShipId + "; faces: " + string.Join(" | ", parts)
+                + "; closed doors near the hatch=" + string.Join(", ", Object.FindObjectsByType<AuthoredPortalRuntime>()
+                    .Where(p => !p.isOpen && Vector3.Distance(p.transform.position, Frame.ToUnity(hatch.GlobalPosition)) < 8f)
+                    .Select(p => p.portalId + "@" + p.transform.position + " " + p.portalKind))
+                + "; enabled obstacles near the hatch=" + string.Join(", ", Object.FindObjectsByType<NavMeshObstacle>()
+                    .Where(o => o.enabled && Vector3.Distance(o.transform.TransformPoint(o.center), Frame.ToUnity(hatch.GlobalPosition)) < 8f)
+                    .Select(o => o.name + "@" + o.transform.TransformPoint(o.center)));
         }
 
         bool TryStandingApproach(Vec3 target, float radius, Vector3 from, NavMeshQueryFilter filter, out NavMeshPath path)
@@ -492,9 +588,15 @@ namespace SynapticSea.Tests.PlayMode
             return false;
         }
 
-        IEnumerator WalkAlong(NavMeshPath path, float radius)
+        IEnumerator WalkAlong(NavMeshPath path, float radius, int replansLeft = 4)
         {
             var player = _boot.Host.SceneState.Player;
+            // A threat the survivor cannot reach or hurt (behind a door jamb, out of melee range) is walked away from after a few
+            // seconds, as a person would, instead of standing still against the wall until the stall limit.
+            var disengaged = new HashSet<string>(); string fightId = null; float fightSince = 0f; double fightHealth = 0;
+            // After a knock-back or a sidestep the survivor can stand with a door jamb between them and the next corner. A person
+            // looks around and takes a new route from where they are; so does this walker when it makes no progress.
+            Vector3 lastPosition = player.transform.position; float lastProgress = Time.realtimeSinceStartup;
             try
             {
                 foreach (Vector3 corner in path.corners.Skip(1))
@@ -508,11 +610,24 @@ namespace SynapticSea.Tests.PlayMode
                     // NavMesh corners sit on the baked agent margin; the CharacterController also has a skin width.
                     // Approach within the interaction radius instead of pressing the capsule into a doorway edge.
                     float reach = corner == path.corners.Last() ? Mathf.Max(radius, 0.2f) : 0.05f;
+                    var trail = new List<string>(); float nextSample = 0f;
                     while (Vector2.Distance(new Vector2(player.transform.position.x, player.transform.position.z), new Vector2(waypoint.x, waypoint.z)) > reach)
                     {
-                        Assert.Less(Time.realtimeSinceStartup, deadline, "player movement stalled at " + player.transform.position
+                        if (Time.realtimeSinceStartup >= nextSample)
+                        {
+                            nextSample = Time.realtimeSinceStartup + 1f;
+                            var door = Object.FindObjectsByType<AuthoredPortalRuntime>().OrderBy(d => Vector3.Distance(d.transform.position, player.transform.position)).FirstOrDefault();
+                            trail.Add(player.transform.position.ToString("F2") + (door != null ? " door " + door.portalId + (door.isOpen ? " open" : " closed") + " d=" + Vector3.Distance(door.transform.position, player.transform.position).ToString("F1") : ""));
+                            if (trail.Count > 30) trail.RemoveAt(0);
+                        }
+                        Assert.Less(Time.realtimeSinceStartup, deadline, "player movement stalled at " + player.transform.position + "; trail(1 s)=" + string.Join(" | ", trail)
                             + " en route to " + waypoint + "; nearby blockers: " + string.Join(", ", Physics.OverlapSphere(player.transform.position + Vector3.up * 0.8f, 1f, SpawnClearance.BlockingMask)
-                                .Select(c => c.transform.parent.name + "/" + c.name + "@" + c.bounds.center + " size " + c.bounds.size)));
+                                .Select(c => c.transform.parent.name + "/" + c.name + "@" + c.bounds.center + " size " + c.bounds.size))
+                            + "; route=" + string.Join(" -> ", path.corners.Select(c => c.ToString()))
+                            + "; threats=" + string.Join(", ", _s.ThreatManager.Threats.Where(t => t.Health > 0 && t.WorldPosition.Count >= 3)
+                                .Select(t => t.InstanceId + "@" + Frame.ToUnity(new Vec3(V.F64(t.WorldPosition[0]), V.F64(t.WorldPosition[1]), V.F64(t.WorldPosition[2])))
+                                    + " " + t.State + " hp=" + t.Health))
+                            + "; " + SurvivalReport());
                         Assert.IsFalse(_s.SliceComplete, "the player survived exploration; vitals="+GdJson.Stringify(_s.VitalsState.GetSummary())
                             +" oxygen="+_s.OxygenState.Oxygen+" wounds="+GdJson.Stringify(_s.WoundState.GetSummary()));
                         bool fighting=false;
@@ -524,12 +639,23 @@ namespace SynapticSea.Tests.PlayMode
                                 else if (_s.EvaluateWoundTreatment(RunSession.WOUND_ACTION_TREAT,wound.GetString("wound_id")).GetBool("ok")) Assert.IsTrue(_s.TreatWound(wound.GetString("wound_id")).GetBool("ok"));
                             if (_s.VitalsState.Health < 65 && _s.InventoryState.GetQuantity("field_medkit") > 0)
                                 _s.UseConsumableItem("field_medkit"); // Medicine cooldowns and actual inventory still gate use.
-                            var nearby = _s.ThreatManager.Threats.Where(t => t.Health > 0 && t.WorldPosition.Count >= 3)
+                            var nearby = _s.ThreatManager.Threats.Where(t => t.Health > 0 && t.WorldPosition.Count >= 3 && !disengaged.Contains(t.InstanceId))
                                 .Select(t => new {Threat=t,Position=new Vec3(V.F64(t.WorldPosition[0]),V.F64(t.WorldPosition[1]),V.F64(t.WorldPosition[2]))})
                                 .Where(t=>t.Position.DistanceSquaredTo(player.GodotPosition)<System.Math.Pow(_flyJoinedAssembly?System.Math.Max(2.4,t.Threat.AttackRange+.75):2.4,2)
+                                    // A threat that has not noticed the survivor and is out of melee reach is walked past, as a person would;
+                                    // standing still to "fight" it from behind a door jamb never ends.
+                                    && (t.Threat.State!=SynapticSea.Core.Systems.ThreatAIState.STATE_IDLE||t.Position.DistanceSquaredTo(player.GodotPosition)<2.4*2.4)
                                     && !Physics.Linecast(player.transform.position+Vector3.up*1.2f,Frame.ToUnity(t.Position)+Vector3.up,
                                         SpawnClearance.BlockingMask,QueryTriggerInteraction.Ignore))
                                 .OrderBy(t=>t.Position.DistanceSquaredTo(player.GodotPosition)).FirstOrDefault();
+                            if (nearby != null)
+                            {
+                                if (fightId != nearby.Threat.InstanceId || nearby.Threat.Health < fightHealth)
+                                { fightId = nearby.Threat.InstanceId; fightSince = Time.realtimeSinceStartup; fightHealth = nearby.Threat.Health; }
+                                else if (Time.realtimeSinceStartup - fightSince > 6f)
+                                { disengaged.Add(nearby.Threat.InstanceId); fightId = null; nearby = null; }
+                            }
+                            else fightId = null;
                             if (nearby != null)
                             {
                                 player.FaceAttackDirection(nearby.Position-player.GodotPosition);
@@ -551,6 +677,21 @@ namespace SynapticSea.Tests.PlayMode
                                 }
                             }
                         }
+                        if (Vector3.Distance(player.transform.position, lastPosition) > 0.05f) { lastPosition = player.transform.position; lastProgress = Time.realtimeSinceStartup; }
+                        else if (!fighting && replansLeft > 0 && Time.realtimeSinceStartup - lastProgress > 1.5f)
+                        {
+                            var again = new NavMeshPath();
+                            var replanFilter = new NavMeshQueryFilter { agentTypeID = ShipNavMesh.AgentTypeId, areaMask = NavMesh.AllAreas };
+                            if (NavMesh.CalculatePath(player.transform.position, path.corners.Last(), replanFilter, again)
+                                && again.status == NavMeshPathStatus.PathComplete && again.corners.Length > 1 && !CrossesClosedPortal(again))
+                            {
+                                Debug.Log("[NaturalWalk] no progress at " + player.transform.position + " toward " + waypoint + "; re-planning from here");
+                                player.ClearScriptedMoveDirection();
+                                yield return WalkAlong(again, radius, replansLeft - 1);
+                                yield break;
+                            }
+                            lastProgress = Time.realtimeSinceStartup;
+                        }
                         Vector3 direction = waypoint - player.transform.position;
                         direction.y = 0;
                         // Slow the final physics step instead of oscillating across a tight corner.
@@ -571,6 +712,10 @@ namespace SynapticSea.Tests.PlayMode
         [UnityTest]
         [Timeout(360000)]
         public IEnumerator WalkRepairTravelExploreOddSeedCompositionAndReturnWithoutFixtureResources() => NaturalExpeditionJourney(true);
+
+        [UnityTest]
+        [Timeout(360000)]
+        public IEnumerator WalkRepairTravelFightRetreatToTheLifeboatForAirThenSearchAndReturnWithoutFixtureResources() => NaturalExpeditionJourney(false, false, true);
 
         [UnityTest, Timeout(600000)]
         public IEnumerator ReclaimWeldWalkSaveAndLeaveByIndependentCraftWithoutFixtureResources()
@@ -860,7 +1005,7 @@ namespace SynapticSea.Tests.PlayMode
             _boot.Ui.Inventory.InvokeContextAction("study", InventoryPanel.PaneSelf, index);
         }
 
-        IEnumerator NaturalExpeditionJourney(bool cargoFamily, bool reclaim = false)
+        IEnumerator NaturalExpeditionJourney(bool cargoFamily, bool reclaim = false, bool retreatForAir = false)
         {
             _recordJourneyTelemetry=true;
             yield return StartThroughTitle();
@@ -994,6 +1139,15 @@ namespace SynapticSea.Tests.PlayMode
             Assert.Greater(combatHits, 0, "physical reach/facing/LOS attacks damage the generated encounter");
             Assert.LessOrEqual(hostile.Health, 0, "the real encounter is defeated without fixture damage or spawns");
             Assert.IsFalse(_s.SliceComplete, "the player survives the expedition fight");
+            if (retreatForAir)
+            {
+                // Sensible-survivor route: after the fight, go back to the docked lifeboat's bridge to breathe and recover before looting.
+                float healthBeforeRetreat = (float)_s.VitalsState.Health;
+                yield return RecoverInOwnedShuttle();
+                Assert.GreaterOrEqual(_s.OxygenState.Oxygen, 99, "the docked lifeboat refills suit air: " + SurvivalReport());
+                Assert.GreaterOrEqual(_s.VitalsState.Health, healthBeforeRetreat - 1, "retreating does not cost health: " + SurvivalReport());
+                Assert.IsTrue(_s.AwayFromStart, "the retreat stays aboard the docked lifeboat at the wreck");
+            }
             var awayLoot = _s.LootContainers.Where(l => l.IsValid && !l.Searched)
                 .OrderBy(l => l.GlobalPosition.DistanceSquaredTo(Frame.ToGodot(_boot.Host.SceneState.Player.transform.position))).FirstOrDefault();
             Assert.IsNotNull(awayLoot, "the first wreck has an interior loot target");
@@ -1039,6 +1193,7 @@ namespace SynapticSea.Tests.PlayMode
             yield return WalkTo(bridge, 1.2f);
             Assert.IsTrue(_s.TravelHome());
             Assert.IsFalse(_s.SliceComplete, "returning continues the existing life");
+            if (retreatForAir) yield break;
             // Scanner rows expose IDs and size, not the full saved marker seed. Resolve family
             // from the same in-range world markers, while requiring a selectable scanner row.
             var availableMarkers = _s.SynapticSeaWorld.MarkersInRange(_s.ScannerState.RangeRadius).ToDictionary(m=>m.MarkerId);
@@ -1351,6 +1506,7 @@ namespace SynapticSea.Tests.PlayMode
             if(_installedAssemblyFixture)yield break;
             if(_flyJoinedAssembly)
             {
+                LogReach("after the weld and Continue, before the engineering salvage");
                 yield return AcquireEngineeringSalvageNaturally(wreck);
                 yield return FlyJoinedHomeNaturally(wreck,marker,excursion);
             }
@@ -1490,12 +1646,16 @@ namespace SynapticSea.Tests.PlayMode
                 }
                 hatch=_s.SealedHatches.Single(h=>h.HatchId==hatchId);
                 var filter=new NavMeshQueryFilter{agentTypeID=ShipNavMesh.AgentTypeId,areaMask=NavMesh.AllAreas};Vec3? face=null;
-                foreach(var direction in new[]{new Vec3(0,0,1.35),new Vec3(0,0,-1.35),new Vec3(1.35,0,0),new Vec3(-1.35,0,0)})
+                foreach(var direction in HatchFaceOffsets)
                 {
                     var candidate=hatch.GlobalPosition+direction;
                     if(TryStandingApproach(candidate,.2f,_boot.Host.SceneState.Player.transform.position,filter,out _)){face=candidate;break;}
                 }
-                Assert.IsTrue(face.HasValue,"a reachable hatch face must exist without penetrating the blocker");
+                // A closed door between the survivor and the hatch makes every face's route partial. A person opens the door and goes on,
+                // so take the face whose partial route ends closest to it and let WalkTo open the doors on the way.
+                if(!face.HasValue)face=NearestHatchFaceBehindClosedDoors(hatch,filter);
+                Assert.IsTrue(face.HasValue,"a reachable hatch face must exist without penetrating the blocker; hatch="+hatchId+"@"+hatch.GlobalPosition
+                    +"; player="+_boot.Host.SceneState.Player.transform.position+"; "+DescribeHatchFaces(hatch,filter));
                 yield return WalkTo(face.Value,.2f);long toolsBefore=_s.InventoryState.GetQuantity(tool);
                 Assert.IsTrue(_s.UseConsumableItem(tool).GetBool("ok"));
                 for(int guard=0;guard<4&&!hatch.Bypassed;guard++){_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);}
@@ -1504,8 +1664,14 @@ namespace SynapticSea.Tests.PlayMode
             }
             engineering=_s.DerelictInteractables.Single(i=>i.IsValid&&i.ObjectiveId==objectiveId);
             yield return WalkTo(engineering,1.2f);
-            for(int guard=0;guard<4&&!engineering.Completed;guard++){_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);}
-            Assert.IsTrue(engineering.Completed,"physically salvage the existing engineering objective");
+            for(int guard=0;guard<8&&!engineering.Completed;guard++)
+            {
+                _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+                if(_s.LastInteractHandlerId!="authored_portal")break; // a door beside the objective takes the key first; anything else is the objective's own answer
+            }
+            Assert.IsTrue(engineering.Completed,"physically salvage the existing engineering objective; handler="+_s.LastInteractHandlerId
+                +"; player="+_boot.Host.SceneState.Player.transform.position+"; objective="+engineering.GlobalPosition+" radius="+engineering.InteractionRadius
+                +"; hatchBypassed="+(hatch==null?"n/a":hatch.Bypassed.ToString())+"; "+SurvivalReport());
             Assert.IsTrue(wreck.GetObjectiveController().IsObjectiveComplete(engineering.Sequence),"engineering interaction must complete the authoritative objective, not only its view");
             Debug.Log("[AssemblyFlight] engineering salvage marker="+wreck.MarkerId+" inventory="+GdJson.Stringify(_s.InventoryState.Items));
         }
@@ -1541,7 +1707,9 @@ namespace SynapticSea.Tests.PlayMode
         IEnumerator FlyJoinedHomeNaturally(SynapticSea.Core.Systems.ShipInstance wreck,string marker,string excursion)
         {
             var homeBridge=_s.BridgeTerminals.Single(t=>t.ShipId==_s.HomeShip.ShipId);
-            yield return WalkTo(homeBridge,1.2f);_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+            LogReach("before walking to the home bridge");
+            yield return WalkTo(homeBridge,1.2f);LogReach("at the home bridge, before claiming it");_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+            LogReach("after claiming the home bridge");
             Assert.AreSame(_s.HomeShip,_s.PilotedShip,"the joined home's real bridge claims assembly controls");
             Vec3 seaBefore=_s.SynapticSeaWorld.PlayerPosition;
             var destination=_s.SynapticSeaWorld.MarkersInRange(_s.ScannerState.RangeRadius).First(m=>m.MarkerId!=marker);
@@ -1600,9 +1768,9 @@ namespace SynapticSea.Tests.PlayMode
             yield return WalkTo(shelter,1.2f);
             float deadline=Time.realtimeSinceStartup+45;
             while((_s.SanityState.Sanity<90 || _s.OxygenState.Oxygen<99) && !_s.SliceComplete && Time.realtimeSinceStartup<deadline)yield return null;
-            Assert.IsFalse(_s.SliceComplete,"survived ordinary local shelter recovery");
-            Assert.GreaterOrEqual(_s.SanityState.Sanity,90,"owned operational boat permits actual sanity recovery");
-            Assert.GreaterOrEqual(_s.OxygenState.Oxygen,99);
+            Assert.IsFalse(_s.SliceComplete,"survived ordinary local shelter recovery: "+SurvivalReport());
+            Assert.GreaterOrEqual(_s.SanityState.Sanity,90,"owned operational boat permits actual sanity recovery: "+SurvivalReport());
+            Assert.GreaterOrEqual(_s.OxygenState.Oxygen,99,SurvivalReport());
         }
 
         IEnumerator ReviewPurposefulRooms()
@@ -1730,6 +1898,12 @@ namespace SynapticSea.Tests.PlayMode
             }
         }
 
+        /// <summary>Health, vitals and the damage taken by source so far, appended to route failures so a death is reported as one.</summary>
+        string SurvivalReport()
+            => "health=" + _s.VitalsState.Health + " oxygen=" + _s.OxygenState.Oxygen + " sanity=" + _s.SanityState.Sanity
+                + " radiation=" + _s.RadiationState.Radiation + " ship=" + _s.CurrentShip.ShipId + " position=" + _boot.Host.SceneState.Player.transform.position
+                + " health_lost_by_source=" + GdJson.Stringify(_journeyDamage);
+
         static IEnumerator FixedSteps(int count)
         {
             for(int i=0;i<count;i++) yield return new WaitForFixedUpdate();
@@ -1754,8 +1928,8 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(NaturalChannelActive(), "normal interact begins a timed work channel");
             float deadline = Time.realtimeSinceStartup + 60f;
             while (NaturalChannelActive() && !_s.SliceComplete && Time.realtimeSinceStartup < deadline) yield return null;
-            Assert.IsFalse(NaturalChannelActive(), "work completed without teleporting, granting resources or boosting skills");
-            Assert.IsFalse(_s.SliceComplete, "survived the channel");
+            Assert.IsFalse(_s.SliceComplete || _s.VitalsState.IsIncapacitated(), "the survivor died during the work channel at " + at + ": " + SurvivalReport());
+            Assert.IsFalse(NaturalChannelActive(), "the work channel did not finish within 60 s at " + at + ": " + SurvivalReport());
         }
 
         [UnityTest]

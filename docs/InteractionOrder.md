@@ -70,6 +70,9 @@ These rules carry over from the Godot handlers:
 - **Actionable shared targets (port change).** A blocked repair yields to a reachable, visible repair that can start
   or an unsearched loot container. When neither exists, its blocked reason remains inspectable. An unopenable
   locked portal likewise yields to an ordinary target without changing its lock, collider or navigation state.
+- **Bypassed hatches yield to objectives (port change).** Hatches are seeded on room positions, so one can sit on a derelict
+  objective. Once bypassed, a hatch does not claim the reseal press while an incomplete objective is in reach and sight; the
+  objective takes the press. Away from an objective the reseal (fire containment) works as before.
 - **Bridge terminals (port change).** A terminal of the ship the player already pilots does not claim. Godot's
   `try_login` claimed every in-range press, and the life boat's repair and fire suppression points share its command
   room's centre, so they were unreachable (`docs/port-status.md` decision 33).

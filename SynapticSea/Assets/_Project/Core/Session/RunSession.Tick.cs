@@ -75,11 +75,10 @@ namespace SynapticSea.Core.Session
                     inSafe = !AwayFromStart && (OxygenState == null || !OxygenState.GetSummary().GetBool("breach_open"));
             }
             if (location == SessionLocation.Away
-                && CurrentShip?.Blueprint?.GenerationProfile == SynapticSea.Core.Procgen.ConstrainedExpedition.Profile
                 && CurrentOccupancy == LifeboatShip && LifeboatCommissioned
                 && LifeboatShip?.SystemsManager?.IsOperational("life_support") == true
                 && (LifeboatShip.Fire == null || LifeboatShip.Fire.GetTotalIntensity() <= 0))
-                inSafe = true; // The independently repaired shuttle is genuine local shelter.
+                inSafe = true; // The independently repaired shuttle is genuine local shelter, at the first wreck as at later ones.
             if(location==SessionLocation.Away && OwnedRecoveryHabitatAir())inSafe=true;
             TickSanityAndHallucinations(delta, inSafe);
         }
