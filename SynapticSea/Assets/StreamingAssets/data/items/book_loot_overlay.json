@@ -4,15 +4,15 @@
     {"item_id": "pharmacology_formulary", "qty_min": 1, "qty_max": 1, "weight": 0.4, "rarity": "common"},
     {"item_id": "derelict_cookbook", "qty_min": 1, "qty_max": 1, "weight": 0.5, "rarity": "common"},
     {"item_id": "leadership_protocol", "qty_min": 1, "qty_max": 1, "weight": 0.4, "rarity": "common"},
-    {"item_id": "scavenger_companion", "qty_min": 1, "qty_max": 1, "weight": 0.5, "rarity": "common"}
+    {"item_id": "scavenger_companion", "qty_min": 1, "qty_max": 1, "weight": 0.5, "rarity": "common"},
+    {"item_id": "astrogation_almanac", "qty_min": 1, "qty_max": 1, "weight": 0.5, "rarity": "common"},
+    {"item_id": "comms_relay_handbook", "qty_min": 1, "qty_max": 1, "weight": 0.5, "rarity": "common"}
   ],
-  "salvage_engineering": [
+  "generic_crate": [
     {"item_id": "welding_manual_basic", "qty_min": 1, "qty_max": 1, "weight": 0.6, "rarity": "common"},
     {"item_id": "diagnostics_field_guide", "qty_min": 1, "qty_max": 1, "weight": 0.6, "rarity": "common"},
     {"item_id": "fabrication_schematic_basic", "qty_min": 1, "qty_max": 1, "weight": 0.6, "rarity": "common"},
-    {"item_id": "advanced_welding_schematic", "qty_min": 1, "qty_max": 1, "weight": 0.2, "rarity": "rare"},
-    {"item_id": "astrogation_almanac", "qty_min": 1, "qty_max": 1, "weight": 0.5, "rarity": "common"},
-    {"item_id": "comms_relay_handbook", "qty_min": 1, "qty_max": 1, "weight": 0.5, "rarity": "common"}
+    {"item_id": "advanced_welding_schematic", "qty_min": 1, "qty_max": 1, "weight": 0.2, "rarity": "rare"}
   ],
   "hidden_cache": [
     {"item_id": "biomatter_signal_analysis", "qty_min": 1, "qty_max": 1, "weight": 0.3, "rarity": "rare"}

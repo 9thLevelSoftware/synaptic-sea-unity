@@ -1667,6 +1667,13 @@ namespace SynapticSea.Tests.PlayMode
             for(int guard=0;guard<8&&!engineering.Completed;guard++)
             {
                 _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+                if(_s.LastInteractHandlerId=="repair_point"&&NaturalChannelActive())
+                {
+                    // A repair point can be seeded on the objective. A survivor with the parts and tools finishes that work, then presses again.
+                    float finish=Time.realtimeSinceStartup+60f;
+                    while(NaturalChannelActive()&&!_s.SliceComplete&&Time.realtimeSinceStartup<finish)yield return null;
+                    continue;
+                }
                 if(_s.LastInteractHandlerId!="authored_portal")break; // a door beside the objective takes the key first; anything else is the objective's own answer
             }
             Assert.IsTrue(engineering.Completed,"physically salvage the existing engineering objective; handler="+_s.LastInteractHandlerId
@@ -1689,7 +1696,19 @@ namespace SynapticSea.Tests.PlayMode
                 foreach(var barrier in _s.DockBarriers.Where(b=>b.IsValid&&!b.Opened).ToList())yield return WalkAndFinishChannel(barrier.GlobalPosition);
                 yield return CutBiomatterMooring(destination);
                 var medical=_s.LootContainers.First(l=>l.IsValid&&!l.Searched&&l.ContainerId.Contains("medical"));
-                yield return WalkTo(medical);_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);Assert.IsTrue(medical.Searched);
+                yield return WalkTo(medical);
+                for(int attempt=0;attempt<3&&!medical.Searched;attempt++)
+                {
+                    _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+                    // A repair point can be seeded on the cache. A survivor with the parts and tools finishes that work, then searches.
+                    float finish=Time.realtimeSinceStartup+60f;
+                    while(NaturalChannelActive()&&!_s.SliceComplete&&Time.realtimeSinceStartup<finish)yield return null;
+                }
+                var salvagePlayer=_boot.Host.SceneState.Player;
+                Assert.IsTrue(medical.Searched,"the medical cache at "+route.Item2+" is searched by a real interact; handler="+_s.LastInteractHandlerId
+                    +"; player="+salvagePlayer.transform.position+" cache="+Frame.ToUnity(medical.GlobalPosition)+" distance="+Vector3.Distance(salvagePlayer.transform.position,Frame.ToUnity(medical.GlobalPosition))
+                    +"; current="+_s.CurrentShip?.ShipId+" piloted="+_s.PilotedShip?.ShipId+" containers="+string.Join(",",_s.LootContainers.Where(l=>l.IsValid).Select(l=>l.ContainerId+(l.Searched?"*":"")+"@"+Frame.ToUnity(l.GlobalPosition)))
+                    +"; "+SurvivalReport());
                 while(_s.VitalsState.Health<80&&_s.InventoryState.GetQuantity("field_medkit")>0)Assert.IsTrue(_s.UseConsumableItem("field_medkit").GetBool("ok"));
                 foreach(var wound in _s.GetTreatableWounds().Cast<GdDict>().Where(w=>w.GetBool("can_bandage")))Assert.IsTrue(_s.BandageWound(wound.GetString("wound_id")).GetBool("ok"));
                 var crew=_s.LootContainers.First(l=>l.IsValid&&!l.Searched&&l.ContainerId=="loot_crew_quarters_01");
@@ -1704,13 +1723,33 @@ namespace SynapticSea.Tests.PlayMode
             }
         }
 
+        /// <summary>
+        /// Welding a vessel to the home makes the home the piloted ship, so the home's bridge terminal is already claimed
+        /// and declines a second press (RunSession.Interact: a terminal for the piloted ship is not interactable). A press
+        /// there then falls through to the connection-door control beside the bridge and closes the seam, which looks like
+        /// the lifeboat vanishing from the navigation mesh. Press only when the home is not yet piloted, and check the
+        /// seam was left alone.
+        /// </summary>
+        IEnumerator EnsureHomeAssemblyPiloted()
+        {
+            bool[] before = _s.HomeJoinControls.Where(c => c.ActionId == "connection_door").Select(c => c.DoorOpen).ToArray();
+            if (!ReferenceEquals(_s.PilotedShip, _s.HomeShip))
+            {
+                _boot.Host.SceneState.Player.RequestInteract();
+                yield return FixedSteps(8);
+            }
+            Assert.AreSame(_s.HomeShip, _s.PilotedShip, "the joined home's real bridge claims assembly controls");
+            bool[] after = _s.HomeJoinControls.Where(c => c.ActionId == "connection_door").Select(c => c.DoorOpen).ToArray();
+            CollectionAssert.AreEqual(before, after, "piloting the home must not press a connection door; handler " + _s.LastInteractHandlerId);
+        }
+
         IEnumerator FlyJoinedHomeNaturally(SynapticSea.Core.Systems.ShipInstance wreck,string marker,string excursion)
         {
             var homeBridge=_s.BridgeTerminals.Single(t=>t.ShipId==_s.HomeShip.ShipId);
             LogReach("before walking to the home bridge");
-            yield return WalkTo(homeBridge,1.2f);LogReach("at the home bridge, before claiming it");_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
+            yield return WalkTo(homeBridge,1.2f);LogReach("at the home bridge, before claiming it");
+            yield return EnsureHomeAssemblyPiloted();
             LogReach("after claiming the home bridge");
-            Assert.AreSame(_s.HomeShip,_s.PilotedShip,"the joined home's real bridge claims assembly controls");
             Vec3 seaBefore=_s.SynapticSeaWorld.PlayerPosition;
             var destination=_s.SynapticSeaWorld.MarkersInRange(_s.ScannerState.RangeRadius).First(m=>m.MarkerId!=marker);
             var denied=_s.TravelToMarkerId(destination.MarkerId);
@@ -1744,7 +1783,7 @@ namespace SynapticSea.Tests.PlayMode
                 yield return WalkTo(transition,2.4f);_boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);
             }
             homeBridge=_s.BridgeTerminals.Single(t=>t.ShipId==_s.HomeShip.ShipId);yield return WalkTo(homeBridge,1.2f);
-            _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);Assert.AreSame(_s.HomeShip,_s.PilotedShip);
+            yield return EnsureHomeAssemblyPiloted();
             var homePose=_s.HomeShip.SceneRoot.GlobalTransform;var wreckPose=wreck.SceneRoot.GlobalTransform;
             string edge=GdJson.Stringify(wreck.DockingPorts);string resources=GdJson.Stringify(_s.InventoryState.Items);
             var moved=_s.TravelToMarkerId(destination.MarkerId);

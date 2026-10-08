@@ -1,5 +1,7 @@
 # Mac baseline after Phase 1.6 (long routes)
 
+> **Correction (Phase 1.6b):** the "game navigation gap" explanation and the `ShipNavMesh.Rebuild()` union hypothesis in this document were wrong. The navigation roots did not change; the test's press at the already-claimed home bridge closed the connection door. See `docs/playtest/mac-baseline-1.6b.md`.
+
 Branch `phase1/1.6-long-routes`, cut from `main` at `dc85fa6` (Phase 1.5 merged). macOS, Unity 6000.6.0f1, PlayMode on the **editor target** (the supported path; see the player-target note below).
 
 | Suite | After 1.5 (`dc85fa6`) | After 1.6 |

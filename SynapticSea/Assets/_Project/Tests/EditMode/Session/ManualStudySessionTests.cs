@@ -131,18 +131,20 @@ namespace SynapticSea.Tests.Session
             string found = "";
             for (int seed = 0; seed < 2000 && found.Length == 0; seed++)
             {
+                // One search at a time: a bag filled by earlier searches would be encumbered, and encumbrance damage pauses a study.
+                s.InventoryState.Items.Clear();
                 var crate = new LootContainer();
-                crate.Configure("study_crate_" + seed, "salvage_engineering", "study-test|" + seed, s.InventoryState, tables, s.Scene.PlayerPosition);
+                crate.Configure("study_crate_" + seed, "generic_crate", "study-test|" + seed, s.InventoryState, tables, s.Scene.PlayerPosition);
                 crate.SetValidationPlayerInRange(true);
                 Assert.IsTrue(crate.TryInteract(s.Scene.PlayerPosition));
                 found = s.InventoryState.Items.Keys.Select(V.Str).FirstOrDefault(id => ItemDefs.Category(defs, id) == "book") ?? "";
             }
-            Assert.IsNotEmpty(found, "an ordinary engineering cache yields a book within 2000 searches");
+            Assert.IsNotEmpty(found, "an ordinary cargo crate yields a book within 2000 searches");
             string skill = PlayerProgressionState.LoadBooksCatalog().GetDictOrEmpty(found).GetString("target_skill");
             long before = s.PlayerProgression.GetSkillXp(skill) + s.PlayerProgression.GetSkillLevel(skill) * 1000;
             Assert.IsTrue(s.RequestManualStudy(found).GetBool("committed"));
             for (int i = 0; i < 60 && s.ManualStudyRunning; i++) Step(s, .5);
-            Assert.IsTrue(s.PlayerProgression.HasReadBook(found));
+            Assert.IsTrue(s.PlayerProgression.HasReadBook(found), "found=" + found + " running=" + s.ManualStudyRunning + " job=" + GdJson.Stringify(s.GetManualStudyState()));
             Assert.Greater(s.PlayerProgression.GetSkillXp(skill) + s.PlayerProgression.GetSkillLevel(skill) * 1000, before);
         }
         [Test]
