@@ -154,6 +154,7 @@ namespace SynapticSea.Core.Session
             SpoilageState = new SpoilageState();
             HydroponicsState = new HydroponicsState();
             WaterRecyclerState = new WaterRecyclerState();
+            WaterRecyclerState.Configure(LoadJsonDict(WATER_RECYCLER_CONFIG_PATH));
             ConfigureExpandedShipSystemModels();
             EffectDispatcher = new EffectDispatcher();
             EffectDispatcher.Configure(new GdDict());

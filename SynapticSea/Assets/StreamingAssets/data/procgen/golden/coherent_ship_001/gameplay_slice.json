@@ -90,7 +90,15 @@
         { "item_id": "fire_extinguisher", "qty": 1 },
         { "item_id": "crowbar", "qty": 1 }
       ] },
-    { "id": "start_supply_b", "kind": "generic_locker", "room_id": "medbay_01",      "approach_cell": [7, -1, 1], "loot_table": "salvage_engineering" }
+    { "id": "start_supply_b", "kind": "generic_locker", "room_id": "medbay_01",      "approach_cell": [7, -1, 1], "loot_table": "salvage_engineering" },
+    { "id": "start_supply_c", "kind": "generic_crate", "room_id": "medbay_01", "approach_cell": [7, -1, 1], "position_offset": [0.0, 0.0, 1.2], "loot_table": "generic_crate",
+      "contents": [
+        { "item_id": "ration_pack", "qty": 5 },
+        { "item_id": "purified_water", "qty": 4 },
+        { "item_id": "field_medkit", "qty": 1 },
+        { "item_id": "bandage_kit", "qty": 2 },
+        { "item_id": "rad_patch", "qty": 2 }
+      ] }
   ],
   "summary": {
     "objective_count": 4,

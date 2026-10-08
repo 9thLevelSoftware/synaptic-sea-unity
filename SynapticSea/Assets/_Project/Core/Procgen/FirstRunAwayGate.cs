@@ -92,6 +92,79 @@ namespace SynapticSea.Core.Procgen
             if (docs.SourceLayout != null && !ReferenceEquals(docs.SourceLayout, docs.Layout))
                 PatchLayout(contract, docs.SourceLayout, docs.GameplaySlice);
             if (docs.LayoutJson != null) docs.LayoutJson = GdJson.Stringify(docs.Layout, "  ");
+            AddFirstWreckStores(docs.Layout, docs.GameplaySlice);
+        }
+
+        /// <summary>Id of the authored emergency-stores container the first wreck always carries (Phase 1.3).</summary>
+        public const string FirstWreckStoresId = "first_wreck_stores";
+
+        /// <summary>
+        /// Phase 1.3: the first wreck always holds one authored cache of food, water and medicine, so the journey out to it is
+        /// survivable. It is a separate container beside the rolled ones (an authored <c>contents</c> list replaces a container's roll,
+        /// so the existing containers keep their loot). Placed on the first free interior slot of the first non-start room that already holds
+        /// loot. Deterministic and idempotent; a wreck with no free slot gets no cache.
+        /// </summary>
+        static void AddFirstWreckStores(GdDict layout, GdDict gameplaySlice)
+        {
+            if (layout == null || gameplaySlice == null) return;
+            GdArray containers = gameplaySlice.Get("loot_containers", null) as GdArray;
+            if (containers == null || containers.IsEmpty) return;
+            foreach (object existing in containers)
+                if (existing is GdDict c && V.Str(c.Get("id", "")) == FirstWreckStoresId) return;
+            string startRoom = V.Str(gameplaySlice.Get("start_room", ""));
+            GdArray rooms = layout.GetArrayOrEmpty("rooms");
+            foreach (object containerV in containers)
+            {
+                if (!(containerV is GdDict container)) continue;
+                string roomId = V.Str(container.Get("room_id", ""));
+                if (roomId.Length == 0 || roomId == startRoom) continue;
+                GdDict room = RoomById(rooms, roomId);
+                if (room.IsEmpty) continue;
+                long deck = V.I64(room.Get("deck", 0L));
+                GdDict interior = room.GetDictOrEmpty("interior_zones");
+                var blocked = new HashSet<string>();
+                foreach (object r in interior.GetArrayOrEmpty("reserved_cells"))
+                {
+                    GdArray cell = LayoutSerializer.ParseSlotCell(r);
+                    if (cell.Count >= 2) blocked.Add(V.I64(cell[0]) + "," + V.I64(cell[1]));
+                }
+                foreach (object other in containers)
+                    BlockApproach(other as GdDict, roomId, blocked);
+                foreach (object objective in gameplaySlice.GetArrayOrEmpty("objectives"))
+                    BlockApproach(objective as GdDict, roomId, blocked);
+                foreach (string bucket in new[] { "center_slots", "wall_slots" })
+                {
+                    GdArray slots = interior.GetArrayOrEmpty(bucket);
+                    for (int i = 0; i < slots.Count; i++)
+                    {
+                        GdArray cell = LayoutSerializer.ParseSlotCell(slots[i]);
+                        if (cell.Count < 2 || blocked.Contains(V.I64(cell[0]) + "," + V.I64(cell[1]))) continue;
+                        containers.Append(new GdDict
+                        {
+                            { "id", FirstWreckStoresId },
+                            { "kind", "generic_crate" },
+                            { "room_id", roomId },
+                            { "approach_cell", GdArray.Of(V.I64(cell[0]), V.I64(cell[1]), deck) },
+                            { "loot_table", "generic_crate" },
+                            { "slot_kind", bucket == "center_slots" ? "center" : "wall" },
+                            { "slot_index", (long)i },
+                            { "contents", GdArray.Of(
+                                Stack("ration_pack", 2), Stack("purified_water", 2), Stack("field_medkit", 1),
+                                Stack("bandage_kit", 1), Stack("rad_patch", 1)) },
+                        });
+                        return;
+                    }
+                }
+            }
+        }
+
+        static GdDict Stack(string itemId, long qty) => new GdDict { { "item_id", itemId }, { "qty", qty } };
+
+        static void BlockApproach(GdDict row, string roomId, HashSet<string> blocked)
+        {
+            if (row == null || V.Str(row.Get("room_id", "")) != roomId) return;
+            GdArray cell = LayoutSerializer.ParseSlotCell(row.Get("approach_cell", new GdArray()));
+            if (cell.Count >= 2) blocked.Add(V.I64(cell[0]) + "," + V.I64(cell[1]));
         }
 
         static void PatchLayout(FirstRunContract contract, GdDict layout, GdDict gameplaySlice)

@@ -1101,11 +1101,13 @@ namespace SynapticSea.Tests.PlayMode
             if(_s.VitalsState.Health<80)Assert.IsTrue(_s.UseConsumableItem("field_medkit").GetBool("ok"));
             yield return RecoverInOwnedShuttle();
             var crew=_s.LootContainers.Single(l=>l.IsValid&&l.ContainerId=="loot_crew_quarters_01");
+            // The home and first-wreck emergency stores (Phase 1.3) already put food and water in the bag; the crew store must add exactly its 8 + 8.
+            long rationsBeforeCrew=_s.InventoryState.GetQuantity("ration_pack"),waterBeforeCrew=_s.InventoryState.GetQuantity("purified_water");
             yield return WalkTo(crew);
             for(int attempt=0;attempt<6&&!crew.Searched;attempt++)
             { _boot.Host.SceneState.Player.RequestInteract();yield return FixedSteps(8);if(_s.LastInteractHandlerId!="authored_portal")break; }
             Assert.IsTrue(crew.Searched,"explore the real crew stores before prolonged repair work");
-            Assert.AreEqual(8,_s.InventoryState.GetQuantity("ration_pack"));Assert.AreEqual(8,_s.InventoryState.GetQuantity("purified_water"));
+            Assert.AreEqual(rationsBeforeCrew+8,_s.InventoryState.GetQuantity("ration_pack"));Assert.AreEqual(waterBeforeCrew+8,_s.InventoryState.GetQuantity("purified_water"));
             yield return UseEarnedProvisions();
             if (_s.OxygenState.Oxygen < 70) yield return RecoverInOwnedShuttle();
             for(int guard=0;guard<16;guard++)

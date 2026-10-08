@@ -234,6 +234,25 @@ namespace SynapticSea.Core.Session
             PlaySfx(AudioEventSeam.SFX_FOOTSTEP, PlayerPos);
         }
 
+        bool? _radiationZoneLogged;
+        string _radiationZoneSourceLogged = "";
+
+        /// <summary>True while the player stands aboard an owned hull (home or lifeboat), which shelters from the fallback radiation field.</summary>
+        bool PlayerShelteredOnOwnedShip()
+        {
+            ShipInstance ship = PhysicalAirOwner();
+            return ship != null && (ship == HomeShip || ship == LifeboatShip);
+        }
+
+        /// <summary>One log line per change of radiation exposure (per wreck: the marker id says which), so a run's exposure can be read from the log.</summary>
+        void LogRadiationZoneChange(bool inZone, string source)
+        {
+            if (_radiationZoneLogged == inZone && _radiationZoneSourceLogged == source) return;
+            _radiationZoneLogged = inZone;
+            _radiationZoneSourceLogged = source;
+            Log.Info("RADIATION zone=" + (inZone ? "on" : "off") + " source=" + source + " marker=" + (CurrentShip != null ? CurrentShip.MarkerId : "") + " away=" + AwayFromStart);
+        }
+
         // ------------------------------------------------------------------ survival attrition
         /// <summary>Domain 1: the single survival-attrition tick (both branches).</summary>
         void TickSurvivalAttrition(double delta)
@@ -349,10 +368,16 @@ namespace SynapticSea.Core.Session
                 bool? atmosphereRadiation = null;
                 if (!authoredAtmosphere.IsEmpty)
                     atmosphereRadiation = V.I64(authoredAtmosphere.Get("radiation_bp", 0L)) > 0;
+                // Phase 1.3: with no authored radiation source the away field is ship-wide (the legacy first wreck), but the owned
+                // home and lifeboat hulls are shelter; standing aboard them while away (docked at a wreck) no longer irradiates the
+                // survivor. The home's own breach-zone exposure is unchanged.
+                bool fallbackField = !hasAuthoredRadiationSource;
+                bool shelteredOnOwnedShip = fallbackField && AwayFromStart && PlayerShelteredOnOwnedShip();
                 if (hasAuthoredRadiationSource)
                     RadiationState.InRadiationZone = inAuthoredRadiation == true || atmosphereRadiation == true;
                 else
-                    RadiationState.InRadiationZone = inHazardEnv;
+                    RadiationState.InRadiationZone = inHazardEnv && !shelteredOnOwnedShip;
+                LogRadiationZoneChange(RadiationState.InRadiationZone, fallbackField ? (shelteredOnOwnedShip ? "fallback_sheltered" : "fallback") : "authored");
                 RadiationState.Tick(delta);
             }
             if (BodyTemperatureState != null)

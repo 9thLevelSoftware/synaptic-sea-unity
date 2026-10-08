@@ -39,6 +39,17 @@ namespace SynapticSea.Core.Systems
         public double StaminaRecoveryRate = DEFAULT_STAMINA_RECOVERY;
         public double HealthRecoveryRate = DEFAULT_HEALTH_RECOVERY;
 
+        /// <summary>
+        /// Phase 1.3 passive healing, in health per game second. Zero (off) is the legacy behavior and the default; the session sets it
+        /// from <c>balance/survival.json</c> at scaled pacing. Not saved: the session re-applies the config after every load.
+        /// </summary>
+        public double RestRecoveryRate = 0.0;
+        /// <summary>Hunger and thirst, as percent of max, the survivor must be at or above to heal at rest.</summary>
+        public double RestMinHungerPercent = 40.0;
+        public double RestMinThirstPercent = 40.0;
+        /// <summary>Health drain per second (any source) at or below which a resting, fed survivor still heals; small background drains do not block recovery.</summary>
+        public double RestDrainTolerance = 0.05;
+
         public double Health = DEFAULT_MAX_HEALTH;
         /// <summary>Observed actual health loss by source. Optional diagnostic observer; never changes rates or saves.</summary>
         public event Action<string,double> HealthDamageObserved;
@@ -218,6 +229,14 @@ namespace SynapticSea.Core.Systems
             {
                 double hRecover = HealthRecoveryRate * deltaSeconds;
                 Health = Math.Min(MaxHealth, Health + hRecover);
+                changed = true;
+            }
+            // Passive healing: only while resting (not moving), fed and watered, and with no meaningful health drain this tick.
+            if (RestRecoveryRate > 0.0 && Health > 0.0 && Health < MaxHealth && !moving
+                && Hunger >= MaxHunger * RestMinHungerPercent / 100.0 && Thirst >= MaxThirst * RestMinThirstPercent / 100.0
+                && hDrain <= RestDrainTolerance * deltaSeconds)
+            {
+                Health = Math.Min(MaxHealth, Health + RestRecoveryRate * gameDelta);
                 changed = true;
             }
             // Hunger (cold cascade via temperature_hunger_mult)

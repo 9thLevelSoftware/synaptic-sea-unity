@@ -644,7 +644,7 @@ namespace SynapticSea.Tests.Systems
             var storage = new MemoryStorage();
             GdDict request = GenerationFixtures.WithCoherentDocuments(GenerationFixtures.Request());
             Assert.AreEqual("84ecd46201f16add1c81a06c7d928b2409f787217bb903862e008383483052c9", GenerationFixtures.Hash(GenerationFixtures.Texts(request)[GenerationFixtures.Layout]));
-            Assert.AreEqual("e197b55274f6184a2f58988404ab310c09f8d3d038c46c5c214e10d8dee7bae9", GenerationFixtures.Hash(GenerationFixtures.Texts(request)[GenerationFixtures.Slice]));
+            Assert.AreEqual("fa058b29d17ffd3c88306dcbdb2dab753322a43474d615497b175f08f6822bd3", GenerationFixtures.Hash(GenerationFixtures.Texts(request)[GenerationFixtures.Slice]));
             GenerationFixtures.Commit(storage, request);
             GenerationFixtures.AssertBundle(request, GenerationFixtures.Coordinator(storage).Recover(GenerationFixtures.Run, "slot_01"));
         }

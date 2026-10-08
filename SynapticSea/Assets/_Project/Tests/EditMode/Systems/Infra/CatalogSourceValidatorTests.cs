@@ -161,7 +161,7 @@ namespace SynapticSea.Tests.Systems
             GdDict catalog = CatalogSourceValidator.LoadProductionCatalog();
             GdDict items = catalog.GetDictOrEmpty("items");
             Assert.IsTrue(V.VariantEquals(ItemDefs.LoadDefinitions(), items));
-            Assert.AreEqual(62, catalog.GetArrayOrEmpty("recipes").Count);
+            Assert.AreEqual(63, catalog.GetArrayOrEmpty("recipes").Count);
             Assert.AreEqual(11, catalog.GetDictOrEmpty("components").Count);
             foreach (object value in catalog.GetArrayOrEmpty("recipes"))
                 StringAssert.StartsWith(CraftingState.RECIPE_DEFINITIONS_PATH + ":recipes[", ((GdDict)value).GetString("source_path"));
@@ -205,7 +205,7 @@ namespace SynapticSea.Tests.Systems
             Find(result, "missing_source", "medbay_surgery", "medical_gauze");
             Find(result, "missing_source", "craft_thruster_nozzle", "fabrication_schematic_basic");
             Find(result, "missing_learning_registration", "craft_thruster_nozzle", "fabrication_schematic_basic");
-            Assert.AreEqual(62, result.GetDictOrEmpty("denominators").GetInt("recipes"));
+            Assert.AreEqual(63, result.GetDictOrEmpty("denominators").GetInt("recipes"));
         }
 
         [Test]

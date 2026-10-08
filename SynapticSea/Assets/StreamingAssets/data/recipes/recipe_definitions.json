@@ -213,6 +213,18 @@
       "batch_size": 1
     },
     {
+      "recipe_id": "craft_rad_patch",
+      "display_name": "Compound Rad Patches",
+      "category": "medical",
+      "ingredients": { "medical_gauze": 1, "antiseptic_vial": 1, "reactive_gel": 1 },
+      "produces": { "item_id": "rad_patch", "quantity": 2 },
+      "craft_time_seconds": 12.0,
+      "required_skill_level": 0,
+      "station_kind": "medbay",
+      "power_cost": 2.0,
+      "batch_size": 1
+    },
+    {
       "recipe_id": "craft_stimulant",
       "display_name": "Synth Stimulant",
       "category": "medical",
