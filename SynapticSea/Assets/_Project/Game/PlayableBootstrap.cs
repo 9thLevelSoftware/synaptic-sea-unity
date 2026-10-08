@@ -388,13 +388,13 @@ namespace SynapticSea.Game
             LeaveToTitle();
         }
 
-        /// <summary>Results "New Run": another Milestone A hub boot (slice seed / biome / difficulty) with the same class.</summary>
+        /// <summary>Results "New Run": another Milestone A hub boot on a freshly rolled seed (slice biome / difficulty) with the same class and pacing.</summary>
         void StartNextRun()
         {
             if (_leaving) return;
-            RunLaunchRequest next = RunLaunchRequest.NewRun();
+            RunLaunchRequest next = RunLaunchRequest.NewRun(RandomSeed(), RunLaunchRequest.DefaultBiomeId, RunLaunchRequest.DefaultDifficultyId,
+                Session != null ? Session.GameClock.Scale : Launch.TimeScale); // the next run keeps this run's pacing
             next.ClassId = Launch.ClassId;
-            next.TimeScale = Session != null ? Session.GameClock.Scale : Launch.TimeScale; // the next run keeps this run's pacing
             if (Results != null && ResultsSummary != null)
                 RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());
             _leaving = true;

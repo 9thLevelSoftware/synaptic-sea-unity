@@ -210,8 +210,10 @@ namespace SynapticSea.Core.Session
             }
             BuildHudLayer();
             // Phase 4.5: Synaptic Sea map + scanner + travel, seeded from the starting blueprint.
-            ShipBlueprint startBp = LoadBlueprintForSystems();
-            SynapticSeaWorld = new SynapticSeaWorld(startBp.SeedValue, Vec3.Zero);
+            // Phase 1.5: the run seed drives the world (markers, sea graph). The home ship's own RNG (systems damage, loot, fire,
+            // hallucinations) stays on the golden blueprint seed so the home is identical for every run seed. RunSeed already
+            // falls back to the blueprint seed when no run seed was supplied.
+            SynapticSeaWorld = new SynapticSeaWorld(RunSeed, Vec3.Zero);
             StartingHomeSeaPosition = SynapticSeaWorld.PlayerPosition;
             HomeSeaPosition = StartingHomeSeaPosition;
             ScannerState = new ScannerState();
