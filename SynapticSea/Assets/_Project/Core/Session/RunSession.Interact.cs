@@ -29,6 +29,7 @@ namespace SynapticSea.Core.Session
                         && other.CanBeginRepair() && HasInteractionSightAndReach(other))
                     || LootContainers.Any(loot => loot.IsValid && loot.IsInsideTree && !loot.Searched && HasInteractionSightAndReach(loot)))) return false;
             if (item is DockPortBarrier barrier && barrier.Opened) return false;
+            if (item is SealedHatch resealable && resealable.Bypassed && DerelictObjectiveInReach()) return false;
             if (item is ObjectiveInteractable objective && (!objective.Active || objective.Completed)) return false;
             if (item is DeckTransition deck) return deck.InReach(PlayerPos);
             if ((item is HangarBayControl || item is CargoHoldControl) && !ReferenceEquals(item, NearestShipConsole())) return false;
@@ -36,6 +37,8 @@ namespace SynapticSea.Core.Session
                 && Deps.LosProbe.IntersectRay(PlayerPos + Vec3.Up, InteractionSightPoint(item) + Vec3.Up, out _)) return false;
             return true;
         }
+
+        bool DerelictObjectiveInReach() => DerelictInteractables.Any(o => o.IsValid && o.IsInsideTree && o.Active && !o.Completed && HasInteractionSightAndReach(o));
 
         Vec3 InteractionSightPoint(SessionInteractable item) => item is SealedHatch hatch
             ? hatch.InteractionSightPoint(PlayerPos) : item.GlobalPosition;
@@ -380,6 +383,10 @@ namespace SynapticSea.Core.Session
         internal bool TryResealNearestHatch(Vec3 p)
         {
             if (!HasPlayer)
+                return false;
+            // Hatches are seeded on room positions, so one can land on a derelict objective. Once it is bypassed, the objective
+            // beside it is the actionable target; resealing on every press would make the room's objective unreachable.
+            if (DerelictObjectiveInReach())
                 return false;
             foreach (SealedHatch h in new List<SealedHatch>(SealedHatches))
             {
