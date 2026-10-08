@@ -240,8 +240,10 @@ namespace SynapticSea.Core.Procgen
         /// </summary>
         /// <param name="extraGate">Optional further check after <see cref="ValidateHomeStart"/> ("" = accept); tests use it to
         /// force rejections.</param>
+        /// <param name="exteriorDock">When true, <see cref="HomeDockPlanner"/> stamps a <c>docking_port</c> contract on the dock/airlock room's
+        /// exterior edge and rejects a seed whose life boat would overlap other rooms. Default false keeps today's centroid port.</param>
         public static HomeStart BuildHomeStart(long seedValue, string biomeId, string difficultyId, long size = HOME_SIZE, long condition = HOME_CONDITION,
-            int maxAttempts = MAX_START_ATTEMPTS, Func<long, ShipDocuments, string> extraGate = null)
+            int maxAttempts = MAX_START_ATTEMPTS, Func<long, ShipDocuments, string> extraGate = null, bool exteriorDock = false)
         {
             var result = new HomeStart { RequestedSeed = seedValue };
             for (int attempt = 0; attempt < Math.Max(1, maxAttempts); attempt++)
@@ -257,6 +259,8 @@ namespace SynapticSea.Core.Procgen
                 string source = "";
                 string reason = docs == null ? "generation failed" : ValidateHomeStart(docs, out anchor, out source);
                 if (reason.Length == 0 && extraGate != null) reason = extraGate(seed, docs) ?? "";
+                // Phase 1.7c spike: dock the life boat on the dock/airlock room's exterior edge so it overlaps no other room (off by default).
+                if (reason.Length == 0 && exteriorDock) reason = HomeDockPlanner.Apply(docs);
                 if (reason.Length == 0)
                 {
                     docs.IsAway = false;
