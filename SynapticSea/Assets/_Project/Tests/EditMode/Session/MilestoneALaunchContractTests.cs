@@ -308,6 +308,21 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
+        public void OverlaysNeverTouchTheProgressionSalvageTables()
+        {
+            // The propulsion parts (thruster_nozzle, fuel_line) come from fixed rolls of salvage_engineering. Adding entries to
+            // a table changes its total weight and so every pick, which silently removes parts the journey depends on.
+            GdDict plain = LootRoller.LoadTables(), overlaid = LootRoller.LoadTablesWithOverlays();
+            foreach (var pair in plain)
+            {
+                string key = V.Str(pair.Key);
+                if (!key.StartsWith("salvage_")) continue;
+                Assert.AreEqual(GdJson.Stringify(plain.GetDictOrEmpty(key)), GdJson.Stringify(overlaid.GetDictOrEmpty(key)),
+                    key + " must stay identical under the Unity-only overlays");
+            }
+        }
+
+        [Test]
         public void RadPatchCanBeCompoundedAtTheMedbay()
         {
             GdDict recipe = CatalogRegistry.LoadDict("res://data/recipes/recipe_definitions.json").GetArrayOrEmpty("recipes").OfType<GdDict>()
