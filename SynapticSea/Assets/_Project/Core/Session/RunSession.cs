@@ -61,6 +61,7 @@ namespace SynapticSea.Core.Session
         public const string WEB_INFESTATION_CONFIG_PATH = "res://data/ship_systems/web_infestation.json";
         public const string FACILITY_UPGRADES_CONFIG_PATH = "res://data/ship_systems/facility_upgrades.json";
         public const string HYDROPONICS_CROPS_CONFIG_PATH = "res://data/crops/hydroponics_crops.json";
+        public const string WATER_RECYCLER_CONFIG_PATH = "res://data/ship_systems/water_recycler.json";
         public const string SHIP_SUBSYSTEM_TUNING_PATH = "res://data/ship_systems/subsystem_tuning.json";
         public const long SEALED_HATCH_COUNT = 2;
 

@@ -15,6 +15,9 @@ namespace SynapticSea.Core.Systems
         public const double DefaultThirstPerGameHour = 100.0 / 12.0;
         public const double DefaultSpoilageMultiplier = 72.0;
         public const double DefaultProductionMultiplier = 120.0;
+        public const double DefaultHealthRecoveryPerGameHour = 10.0;
+        public const double DefaultRecoveryMinPercent = 40.0;
+        public const double DefaultRecoveryDrainTolerance = 0.05;
 
         public double HungerPerGameHour = DefaultHungerPerGameHour;
         public double ThirstPerGameHour = DefaultThirstPerGameHour;
@@ -22,6 +25,11 @@ namespace SynapticSea.Core.Systems
         public double SpoilageMultiplier = DefaultSpoilageMultiplier;
         /// <summary>Authored hydroponics and recycler durations are stretched by this factor at scaled pacing.</summary>
         public double ProductionMultiplier = DefaultProductionMultiplier;
+        /// <summary>Passive healing while resting, fed and watered (Phase 1.3). Applied at scaled pacing only; real-time pacing keeps the legacy no-recovery behavior.</summary>
+        public double HealthRecoveryPerGameHour = DefaultHealthRecoveryPerGameHour;
+        /// <summary>Hunger and thirst percent below which resting does not heal.</summary>
+        public double RecoveryMinPercent = DefaultRecoveryMinPercent;
+        public double RecoveryDrainTolerance = DefaultRecoveryDrainTolerance;
 
         /// <summary>Reads the <c>survival</c> object; missing or invalid values keep the defaults.</summary>
         public static SurvivalTuning FromDict(GdDict root)
@@ -32,7 +40,17 @@ namespace SynapticSea.Core.Systems
             tuning.ThirstPerGameHour = Positive(d, "thirst_per_game_hour", DefaultThirstPerGameHour);
             tuning.SpoilageMultiplier = Positive(d, "spoilage_time_multiplier", DefaultSpoilageMultiplier);
             tuning.ProductionMultiplier = Positive(d, "production_time_multiplier", DefaultProductionMultiplier);
+            tuning.HealthRecoveryPerGameHour = NonNegative(d, "health_recovery_per_game_hour", DefaultHealthRecoveryPerGameHour);
+            tuning.RecoveryMinPercent = NonNegative(d, "recovery_min_hunger_thirst_percent", DefaultRecoveryMinPercent);
+            tuning.RecoveryDrainTolerance = NonNegative(d, "recovery_drain_tolerance", DefaultRecoveryDrainTolerance);
             return tuning;
+        }
+
+        static double NonNegative(GdDict d, string key, double fallback)
+        {
+            if (!d.Has(key)) return fallback;
+            double v = V.F64(d.Get(key, fallback));
+            return v >= 0.0 && !double.IsNaN(v) && !double.IsInfinity(v) ? v : fallback;
         }
 
         static double Positive(GdDict d, string key, double fallback)
@@ -50,10 +68,15 @@ namespace SynapticSea.Core.Systems
             {
                 vitals.HungerDrainRate = VitalsState.DEFAULT_HUNGER_DRAIN;
                 vitals.ThirstDrainRate = VitalsState.DEFAULT_THIRST_DRAIN;
+                vitals.RestRecoveryRate = 0.0;
                 return;
             }
             vitals.HungerDrainRate = HungerPerGameHour / WorldClock.SecondsPerHour;
             vitals.ThirstDrainRate = ThirstPerGameHour / WorldClock.SecondsPerHour;
+            vitals.RestRecoveryRate = HealthRecoveryPerGameHour / WorldClock.SecondsPerHour;
+            vitals.RestMinHungerPercent = RecoveryMinPercent;
+            vitals.RestMinThirstPercent = RecoveryMinPercent;
+            vitals.RestDrainTolerance = RecoveryDrainTolerance;
         }
 
         /// <summary>Divisor for the game-time delta handed to spoilage (1.0 at real time).</summary>

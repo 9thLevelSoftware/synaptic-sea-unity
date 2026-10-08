@@ -243,6 +243,80 @@ namespace SynapticSea.Tests.Session
             Assert.AreEqual(before, GdJson.Stringify(session.InventoryState.Items));
         }
 
+        [Test]
+        public void HomeEmergencyStoresHoldFoodWaterAndMedicineSeparateFromTheRepairCache()
+        {
+            RunSessionDeps deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
+            MilestoneALaunch.ApplyHubPaths(deps);
+            var session = RunSession.Create(deps);
+            var stores = session.LootContainers.Single(c => c.ContainerId == "start_supply_c");
+            Assert.AreNotEqual(session.LootContainers.Single(c => c.ContainerId == "start_supply_a").GlobalPosition, stores.GlobalPosition);
+            Assert.IsTrue(stores.TryInteract(stores.GlobalPosition));
+            Assert.AreEqual(5, session.InventoryState.GetQuantity("ration_pack"));
+            Assert.AreEqual(4, session.InventoryState.GetQuantity("purified_water"));
+            Assert.AreEqual(1, session.InventoryState.GetQuantity("field_medkit"));
+            Assert.AreEqual(2, session.InventoryState.GetQuantity("bandage_kit"));
+            Assert.AreEqual(2, session.InventoryState.GetQuantity("rad_patch"), "a radiation cure is on the hub");
+            Assert.Less(session.InventoryState.GetLoadRatio(), 0.2, "the stores are light enough that the repair haul still fits the bag");
+            Assert.AreEqual(0, session.InventoryState.GetQuantity("welder"), "the repair tools stay in the maintenance cache");
+            Assert.IsFalse(stores.TryInteract(stores.GlobalPosition), "authored stores pay once");
+        }
+
+        [TestCase(42L)]
+        [TestCase(777L)]
+        public void FirstWreckAlwaysCarriesDeterministicEmergencyStores(long seed)
+        {
+            var contract = new FirstRunContract();
+            Assert.IsTrue(contract.LoadContract());
+            for (long size = 0; size <= 2; size++)
+                for (long condition = 0; condition <= 2; condition++)
+                {
+                    GdDict Stores(out ShipDocuments docs)
+                    {
+                        var generator = new ShipGenerator();
+                        generator.ConfigureRunContext("breach_field", "standard");
+                        docs = (ShipDocuments)new FirstRunAwayGate.PatchedGenerator(generator, contract).GenerateFromSeed(seed, size, condition);
+                        var found = docs.GameplaySlice.GetArrayOrEmpty("loot_containers").OfType<GdDict>()
+                            .Where(c => c.GetString("id") == FirstRunAwayGate.FirstWreckStoresId).ToList();
+                        Assert.AreEqual(1, found.Count, "seed " + seed + " size " + size + " condition " + condition + ": exactly one stores container");
+                        return found[0];
+                    }
+                    GdDict first = Stores(out ShipDocuments docs1);
+                    GdDict second = Stores(out _);
+                    Assert.AreEqual(GdJson.Stringify(first), GdJson.Stringify(second), "the patched stores are deterministic");
+                    foreach (string item in new[] { "ration_pack", "purified_water", "field_medkit", "bandage_kit", "rad_patch" })
+                        Assert.IsTrue(first.GetArrayOrEmpty("contents").OfType<GdDict>().Any(c => c.GetString("item_id") == item), item);
+                    string room = first.GetString("room_id");
+                    string cell = GdJson.Stringify(LayoutSerializer.ParseSlotCell(first.Get("approach_cell")));
+                    Assert.AreNotEqual(docs1.GameplaySlice.GetString("start_room"), room, "the stores are not in the arrival room");
+                    foreach (GdDict other in docs1.GameplaySlice.GetArrayOrEmpty("loot_containers").OfType<GdDict>().Where(c => c != first && c.GetString("room_id") == room))
+                        Assert.AreNotEqual(cell, GdJson.Stringify(LayoutSerializer.ParseSlotCell(other.Get("approach_cell"))), "no two containers share a cell");
+                    Assert.AreEqual("", FirstRunAwayGate.RejectReason(contract, docs1.Layout, docs1.GameplaySlice, condition), "the stores do not disturb the first-run contract");
+                }
+        }
+
+        [Test]
+        public void SurvivalLootOverlayAddsRadPatchesWithoutChangingTheSyncedTables()
+        {
+            GdDict plain = LootRoller.LoadTables(), overlaid = LootRoller.LoadTablesWithOverlays();
+            bool Has(GdDict tables, string table, string item) => tables.GetDictOrEmpty(table).GetArrayOrEmpty("entries").OfType<GdDict>().Any(e => e.GetString("item_id") == item);
+            Assert.IsFalse(Has(plain, "generic_locker", "rad_patch"), "loot_tables.json stays identical to the Godot parity fixtures");
+            Assert.IsTrue(Has(overlaid, "generic_locker", "rad_patch"));
+            Assert.IsTrue(Has(overlaid, "hidden_cache", "rad_patch"));
+            Assert.IsTrue(Has(overlaid, "generic_locker", "bandage_kit"));
+            Assert.IsTrue(Has(overlaid, "generic_locker", "field_surgery_manual"), "the book overlay still applies");
+        }
+
+        [Test]
+        public void RadPatchCanBeCompoundedAtTheMedbay()
+        {
+            GdDict recipe = CatalogRegistry.LoadDict("res://data/recipes/recipe_definitions.json").GetArrayOrEmpty("recipes").OfType<GdDict>()
+                .Single(r => r.GetString("recipe_id") == "craft_rad_patch");
+            Assert.AreEqual("medbay", recipe.GetString("station_kind"));
+            Assert.AreEqual("rad_patch", recipe.GetDictOrEmpty("produces").GetString("item_id"));
+            Assert.AreEqual(0, recipe.GetInt("required_skill_level"), "no class is locked out of the radiation cure");
+        }
+
         [TestCase("engineer", false)] [TestCase("engineer", true)]
         [TestCase("mechanic", false)] [TestCase("mechanic", true)]
         [TestCase("medic", false)] [TestCase("medic", true)]
@@ -308,7 +382,8 @@ namespace SynapticSea.Tests.Session
         }
 
         [TestCase("mechanic")] // control: repair 4 meets every requirement, so the reactor is repaired to full health
-        [TestCase("cook", Ignore = "Fixed by the Phase 1.3 PR: a skill-0 reactor repair leaves health ~0.6, below the ~0.77 power health the sustenance allocation (last in the priority order, ratio >= 0.5) needs; that PR rebalances power_budget_tables.json")]
+        [TestCase("engineer")] [TestCase("medic")] [TestCase("pilot")] [TestCase("scientist")] [TestCase("cook")]
+        [TestCase("security")] [TestCase("communications")] [TestCase("salvage_captain")] [TestCase("field_medic")] [TestCase("signal_specialist")]
         public void EveryClassCanStartFoodProductionAfterRepairingTheReactor(string classId)
         {
             var deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
@@ -325,8 +400,8 @@ namespace SynapticSea.Tests.Session
                 next.AdvanceChannel(240.0);
             }
             for (int i = 0; i < 40; i++) s.Tick(TickContext.Frame(.05, rig.Scene.PlayerPosition)); // past the slow-band recompute
-            Assert.GreaterOrEqual(s.PowerGridState.GetAllocationRatio("sustenance"), 0.5,
-                classId + ": a reduced-quality reactor repair must still power hydroponics and the recycler");
+            Assert.IsTrue(s.SustenanceStationsPowered(), classId + ": a reduced-quality reactor repair must still power hydroponics and the recycler");
+            Assert.IsTrue(s.ProductionStations.Any(p => p.StationKind == "hydroponics" || p.StationKind == "water_recycler"), "the home has production stations to power");
         }
 
         static ShipSubcomponent SubOf(RepairPoint r) => r.TargetManager.GetSystem(r.SystemId).GetSubcomponent(r.SubcomponentId);

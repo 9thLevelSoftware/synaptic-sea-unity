@@ -3,6 +3,9 @@
     "hunger_per_game_hour": 4.166667,
     "thirst_per_game_hour": 8.333333,
     "spoilage_time_multiplier": 72,
-    "production_time_multiplier": 120
+    "production_time_multiplier": 120,
+    "health_recovery_per_game_hour": 10,
+    "recovery_min_hunger_thirst_percent": 40,
+    "recovery_drain_tolerance": 0.05
   }
 }

@@ -33,10 +33,27 @@ namespace SynapticSea.Tests
             // Captured Godot fixtures predate the finite Milestone A repair cache. Pin exactly
             // that authored content change, retaining comparison of every other loader field.
             if (caseName == "coherent_ship_001_home" || caseName == "coherent_ship_001_away")
-                ((GdDict)fixture.GetArray("loot_container_specs")[0])["contents"] = GdArray.Of(
+            {
+                GdArray specs = fixture.GetArray("loot_container_specs");
+                ((GdDict)specs[0])["contents"] = GdArray.Of(
                     Stack("circuit_board", 3), Stack("power_cell", 3), Stack("data_core", 1),
                     Stack("sensor_module", 2), Stack("reactor_core", 1), Stack("welder", 1),
                     Stack("plasma_cutter", 1), Stack("hull_sealant", 6), Stack("fire_extinguisher", 1), Stack("crowbar", 1));
+                // Phase 1.3: the home emergency stores (food, water, medicine) are one more authored container in the medbay.
+                // It shares the medbay locker's approach cell (7, -1) on deck 1, offset 1.2 m along +z, so it displaces no component placement.
+                specs.Add(new GdDict
+                {
+                    { "approach_cell", GdArray.Of(7.0, -1.0, 1.0) },
+                    { "id", "start_supply_c" },
+                    { "kind", "generic_crate" },
+                    { "loot_table", "generic_crate" },
+                    { "position", GdArray.Of(28.0, 4.119999885559082, -2.8) },
+                    { "room_id", "medbay_01" },
+                    { "contents", GdArray.Of(
+                        Stack("ration_pack", 5), Stack("purified_water", 4), Stack("field_medkit", 1),
+                        Stack("bandage_kit", 2), Stack("rad_patch", 2)) },
+                });
+            }
             return fixture;
         }
 

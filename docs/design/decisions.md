@@ -48,6 +48,22 @@ The master plan's 0.4 list came from file headers, written before 0.3. Each item
 
 **Size:** about 3,500 lines of product code and tests plus the 258k-line fixture dump, not the master plan's 20k-line estimate.
 
+## Phase 1.3 economy pass
+
+**Caches (D5).** The golden home gains `start_supply_c` (medbay, same approach cell as the locker, offset 1.2 m): 5 rations, 4 purified water, 1 field medkit, 2 bandage kits, 2 rad patches (about 5.9 kg). It sits on an already-occupied cell, so no component placement is displaced. The first wreck gains `first_wreck_stores` from `FirstRunAwayGate.Patch` (2 rations, 2 water, 1 medkit, 1 bandage kit, 1 rad patch), on the first free interior slot of the first non-start room that holds loot. Both are separate containers: an authored `contents` list replaces a container's roll, and `start_supply_b` must keep its engineering roll. The quantities are capped by carrying capacity (`InventoryState.MAX_WEIGHT` 50): the first versions (about 15 kg of extras) put the long routes over capacity and cost health to encumbrance.
+
+**rad_patch.** Loot comes from `items/survival_loot_overlay.json` (applied by `LootRoller.LoadTablesWithOverlays`; `loot_tables.json` stays identical to the Godot parity fixtures). A medbay recipe `craft_rad_patch` (skill 0, medical gauze + antiseptic vial + reactive gel, 2 patches) lets any class make more.
+
+**Production.** Greens: 90 s, 1 water, 2 power. Alien flora: 120 s, 2 water, 4 power. The water recycler is configured from `ship_systems/water_recycler.json` (20 s batches, 3 power; it was never configured before). The hydroponics tray and recycler run when the grid grants `sustenance` at least half its demand **or** the home power system is operational (`RunSession.SustenanceStationsPowered`): they are trickle loads, so a reactor repaired at reduced quality (health 0.6 for a skill-0 survivor) must not leave them dead. The power priority order itself is unchanged: reordering it also changed which subsystems get power while life support is broken, which changes fire and wear dynamics.
+
+**Passive healing.** At scaled pacing a resting (not moving), fed survivor (hunger and thirst at or above 40%) heals 10 health per game hour while the health drain is at most 0.05 per second (`balance/survival.json`; `VitalsState.RestRecoveryRate`). Real-time pacing keeps the legacy no-recovery behavior.
+
+**Radiation.** With no authored radiation source the away field is ship-wide (the legacy first wreck). The owned home and lifeboat hulls are now shelter while away: standing aboard them while docked does not irradiate the survivor. Exposure changes are logged (`RADIATION zone=on|off source=fallback|fallback_sheltered|authored marker=...`). The home's own breach-zone exposure is unchanged.
+
+**Long routes.** With the caches, healing and shelter, `ReclaimWeldWalkSaveAndLeaveByIndependentCraftWithoutFixtureResources` passes unchanged. The crew-store assertion in `JoinedHomeFlight…` compares against the food already carried (+8, +8) instead of an absolute 8, since the bag now holds earlier food. `JoinedHomeFlightRequiresEarnedPropulsionAndPreservesAssemblyAndShuttle` no longer dies; it now stops later, at `AcquireEngineeringSalvageNaturally` ("a reachable hatch face must exist without penetrating the blocker", the second wreck's sealed engineering hatch after the save and Continue). That is route geometry, not survival, and reproduces in isolation.
+
+**Not done.** Web infestation stays on real-time rates; re-expressing it per game hour needs its own pass. Power-grid priority is untouched.
+
 ## Known issues, deferred
 
 - **`RepairPoint.TryStart` consumes the interaction on a blocked repair** (`Core/Session/Interactables/RepairPoint.cs`) and `repair_point` is checked before `breach_seal_point` (`InteractionRegistry.cs`). Since Phase 1.4 skill no longer blocks a repair, so the skill-gated shadowing case is gone. A repair point that is blocked on missing parts or tools, or already repaired, still shadows a breach seal on the same spot; the seal is reachable by selecting it explicitly. For the Phase 2 interaction catalog.
@@ -56,6 +72,7 @@ The master plan's 0.4 list came from file headers, written before 0.3. Each item
 - **`earned-entry-home-v1`** diagnostic data is kept for `FiniteLootTests` and `FiniteLootGenerationTests`.
 - **Finite loot on component Continue:** component-mode Continue does not restore finite loot, and `PartialKitSurvivesCompleteGenerationFreshContinue…` is `[Ignore]`d. Fix before component integration is activated in Phase 5.5.
 - **Standalone-player PlayMode:** `tools/mac/test.sh playmode` in the default standalone-player mode loses the player after a forced recompile and produces no result XML. Use `--playmode-target editor` until it is fixed.
+- **Joined-home route geometry:** `JoinedHomeFlightRequiresEarnedPropulsionAndPreservesAssemblyAndShuttle` fails at `AcquireEngineeringSalvageNaturally` (no navmesh approach to the second wreck's sealed engineering hatch). It could not reach this step before Phase 1.3 because the survivor died first. Phase 1.6.
 - **Study job is not saved:** an in-progress study job is dropped on save and load; books already read persist.
 - **Study and crafting:** ordinary crafting is not blocked while a study runs.
 - **Ship catch-up (Phase 1.2):** an absent derelict catches up on revisit in real-equivalent seconds (elapsed game seconds divided by the clock scale), capped at 1800 s and stepped at most 360 times. Its life-support O2, web and hull, and its own fire (spread, extinguishing at breached compartments, damage to the mapped system) advance. Not replayed: closed hatches and structural-module fire damage (live-scene state), and power drain, because `PowerGridState` stores no energy, so a battery or fuel model is a Phase 5 item. Cargo spoilage needs no per-ship catch-up, since it is one run-level `SpoilageState` keyed by item id that ticks on game time wherever the food is. Breach environment is a static snapshot of the oxygen flags, and the time-dependent part (venting) is the ship's O2 above. A web-attached derelict's hull breaches during catch-up and puts out its fire.

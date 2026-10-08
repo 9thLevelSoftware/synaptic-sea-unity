@@ -1,0 +1,12 @@
+{
+  "generic_locker": [
+    {"item_id": "rad_patch", "qty_min": 1, "qty_max": 1, "weight": 1.5},
+    {"item_id": "bandage_kit", "qty_min": 1, "qty_max": 1, "weight": 1.5}
+  ],
+  "generic_crate": [
+    {"item_id": "purified_water", "qty_min": 1, "qty_max": 2, "weight": 1.5}
+  ],
+  "hidden_cache": [
+    {"item_id": "rad_patch", "qty_min": 1, "qty_max": 2, "weight": 1.5}
+  ]
+}

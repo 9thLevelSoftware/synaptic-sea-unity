@@ -18,17 +18,25 @@ namespace SynapticSea.Core.Systems
         /// <summary>Unity-only additions to the synced Godot tables: <c>{ table_id: [entries] }</c> appended to the table's entries. Keeps loot_tables.json identical to the Godot parity fixtures.</summary>
         public const string BOOK_LOOT_OVERLAY_PATH = "res://data/items/book_loot_overlay.json";
 
-        /// <summary>The tables a running session rolls from: <see cref="LoadTables"/> plus the book overlay.</summary>
+        /// <summary>Phase 1.3: survival supplies (rad patches, bandages, water) added to the ordinary crate, locker and cache tables.</summary>
+        public const string SURVIVAL_LOOT_OVERLAY_PATH = "res://data/items/survival_loot_overlay.json";
+
+        static readonly string[] OverlayPaths = { BOOK_LOOT_OVERLAY_PATH, SURVIVAL_LOOT_OVERLAY_PATH };
+
+        /// <summary>The tables a running session rolls from: <see cref="LoadTables"/> plus the Unity-only overlays, in <c>OverlayPaths</c> order.</summary>
         public static GdDict LoadTablesWithOverlays()
         {
             GdDict tables = LoadTables();
-            if (!(ItemsCompat.ReadJson(BOOK_LOOT_OVERLAY_PATH) is GdDict overlay)) return tables;
-            foreach (var pair in overlay)
+            foreach (string path in OverlayPaths)
             {
-                if (!(tables.Get(pair.Key, null) is GdDict table) || !(pair.Value is GdArray extra)) continue;
-                GdArray entries = table.Get("entries", null) as GdArray ?? new GdArray();
-                foreach (object entry in extra) entries.Append(V.DeepCopy(entry));
-                table["entries"] = entries;
+                if (!(ItemsCompat.ReadJson(path) is GdDict overlay)) continue;
+                foreach (var pair in overlay)
+                {
+                    if (!(tables.Get(pair.Key, null) is GdDict table) || !(pair.Value is GdArray extra)) continue;
+                    GdArray entries = table.Get("entries", null) as GdArray ?? new GdArray();
+                    foreach (object entry in extra) entries.Append(V.DeepCopy(entry));
+                    table["entries"] = entries;
+                }
             }
             return tables;
         }

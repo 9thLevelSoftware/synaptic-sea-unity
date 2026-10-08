@@ -198,12 +198,23 @@ namespace SynapticSea.Tests.Session
             {
                 if(!run.Has("crafting_summary"))return;
                 var craft=run.GetDictOrEmpty("crafting_summary");
-                Assert.AreEqual(62L,craft.GetInt("recipe_count"),"the two earned utility recipes extend the exact 60-recipe capture");
-                Assert.AreEqual(62L,craft.GetDictOrEmpty("field_crafting").GetInt("recipe_count"));
+                Assert.AreEqual(63L,craft.GetInt("recipe_count"),"the two earned utility recipes and the Phase 1.3 rad patch recipe extend the exact 60-recipe capture");
+                Assert.AreEqual(63L,craft.GetDictOrEmpty("field_crafting").GetInt("recipe_count"));
                 craft["recipe_count"]=60L;craft.GetDictOrEmpty("field_crafting")["recipe_count"]=60L;
             }
             AssertExactUtilityRecipeExtension(view);
             if(view.Has("home_ship"))AssertExactUtilityRecipeExtension(view.GetDictOrEmpty("home_ship"));
+            // Phase 1.3 retuned the water recycler (20 s batches at 3 power); the Godot capture predates it. A fresh Unity session writes the
+            // new values; map them back to the capture's so every other field still compares exactly. Saves that carry the capture's values
+            // (apply-then-build) pass through untouched.
+            void NormalizePhase13Economy(GdDict run)
+            {
+                GdDict recycler=run.GetDictOrEmpty("water_recycler_summary");
+                if(!recycler.IsEmpty&&recycler.GetFloat("recycle_time_seconds")==20.0&&recycler.GetFloat("power_cost")==3.0)
+                {recycler["recycle_time_seconds"]=30.0;recycler["power_cost"]=5.0;}
+            }
+            NormalizePhase13Economy(view);
+            if(view.Has("home_ship"))NormalizePhase13Economy(view.GetDictOrEmpty("home_ship"));
             return view;
         }
 

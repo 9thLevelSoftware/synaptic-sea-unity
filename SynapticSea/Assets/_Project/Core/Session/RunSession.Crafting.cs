@@ -290,11 +290,7 @@ namespace SynapticSea.Core.Session
                 ("hydroponics", HydroponicsState, cropsCfg),
                 ("water_recycler", WaterRecyclerState, new GdDict()),
             };
-            double PowerCb()
-            {
-                double ratio = PowerGridState != null ? PowerGridState.GetAllocationRatio("sustenance") : 0.0;
-                return ratio >= 0.5 ? 999.0 : 0.0;
-            }
+            double PowerCb() => SustenanceStationsPowered() ? 999.0 : 0.0;
             long SkillCb() => PlayerProgression != null ? PlayerProgression.GetSkillLevel("fabrication") : 0;
             if (positions.Count == 0)
             {
@@ -319,6 +315,17 @@ namespace SynapticSea.Core.Session
                 st.Parent = HomeShip.SceneRoot;
                 ProductionStations.Add(Spawn(st));
             }
+        }
+
+        /// <summary>
+        /// Phase 1.3: the hydroponics tray and water recycler are trickle loads. They run when the grid grants the sustenance subsystem at least half
+        /// its demand, or whenever the home's power system itself works: sustenance is last in the shed order, so a reactor repaired at reduced
+        /// quality (a skill-0 survivor) must not leave the food stations dead while heavier loads take the supply.
+        /// </summary>
+        internal bool SustenanceStationsPowered()
+        {
+            if (PowerGridState != null && PowerGridState.GetAllocationRatio("sustenance") >= 0.5) return true;
+            return ShipSystemsManager != null && ShipSystemsManager.IsOperational("power");
         }
 
         void ClearProductionStations()
