@@ -359,7 +359,7 @@ namespace SynapticSea.Tests.Procgen
             sb.AppendLine("| Module-damage entries, min / median / max | " + Spread(ok.Select(r => r.ModuleDamage)) + " |");
             sb.AppendLine("| Homes with >= " + BarNonConnectiveRooms + " non-connective rooms | " + ok.Count(r => r.NonConnectiveRooms >= BarNonConnectiveRooms) + " / " + ok.Count + " (" + Pct(ok.Count(r => r.NonConnectiveRooms >= BarNonConnectiveRooms), ok.Count) + ") |");
             sb.AppendLine("| Meets the bar if the lifeboat-fit check is ignored | " + ok.Count(r => r.MeetsBarWithoutLifeboatFit) + " / " + seeds + " (" + Pct(ok.Count(r => r.MeetsBarWithoutLifeboatFit), seeds) + ") |");
-            sb.AppendLine("| Meets the bar with the lifeboat check calibrated to the golden hub | " + ok.Count(r => r.MeetsBarCalibrated) + " / " + seeds + " (" + Pct(ok.Count(r => r.MeetsBarCalibrated), seeds) + ") |");
+      sb.AppendLine("| Meets the bar if the lifeboat-fit check is ignored | " + ok.Count(r => r.MeetsBarWithoutLifeboatFit) + " / " + ok.Count + " (" + Pct(ok.Count(r => r.MeetsBarWithoutLifeboatFit), ok.Count) + ") |");
             sb.AppendLine("| **Meets the bar** (success, >= " + BarNonConnectiveRooms + " non-connective rooms, >= " + BarFreeSlots + " free slots outside the start room, start reaches the dock by standing rules, lifeboat fits) | **" + ok.Count(r => r.MeetsBar) + " / " + seeds + " (" + Pct(ok.Count(r => r.MeetsBar), seeds) + ")** |");
             sb.AppendLine();
             sb.AppendLine("By template (lifeboat overlap with other rooms' cells; calibrated pass = no worse than the golden hub's " + goldenOverlap + "):");
