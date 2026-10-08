@@ -137,6 +137,52 @@ namespace SynapticSea.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator NewRunWithARandomSeedBootsTheGoldenHubOnASeededWorld()
+        {
+            const long seed = 4711;
+            yield return BootPlayable(RunLaunchRequest.NewRun(seed, RunLaunchRequest.DefaultBiomeId, RunLaunchRequest.DefaultDifficultyId));
+            Assert.AreEqual(RunLaunchMode.NewRun, _boot.Launch.Mode);
+            Assert.IsTrue(_s.PlayableStarted, "the run reaches the playable state");
+            Assert.AreEqual(MilestoneALaunch.HubLayoutPath, _s.LayoutPath, "the home is the golden hub whatever the seed");
+            Assert.AreEqual(seed, _s.RunSeed);
+            Assert.AreEqual(seed, V.I64(_s.GetRunContextSummary()["seed"]));
+            Assert.AreEqual(seed, _s.SynapticSeaWorld.WorldSeed, "the seed drives the world");
+            Assert.IsNotNull(_boot.Host.SceneState.Player, "player spawned");
+            Assert.IsNotNull(_s.LifeboatShip, "life boat built");
+            Assert.Greater(_s.SynapticSeaWorld.MarkersInRange(250.0).Count, 0, "the scanner has contacts in the seeded world");
+        }
+
+        [UnityTest]
+        public IEnumerator ResultsNewRunRollsAFreshSeedAndKeepsTheClassAndPacing()
+        {
+            yield return BootPlayable(RunLaunchRequest.NewRun());
+            var previousLoader = PlayableBootstrap.SceneLoader;
+            var previousRandom = PlayableBootstrap.RandomSeed;
+            var loaded = new List<string>();
+            PlayableBootstrap.SceneLoader = name => { loaded.Add(name); return true; };
+            PlayableBootstrap.RandomSeed = () => 31337;
+            try
+            {
+                typeof(PlayableBootstrap).GetMethod("StartNextRun", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(_boot, null);
+                CollectionAssert.AreEqual(new[] { RunLaunchRequest.PlayableSceneName }, loaded);
+                RunLaunchRequest next = RunLaunchRequest.Pending;
+                Assert.IsNotNull(next);
+                Assert.AreEqual(31337L, next.Seed, "the next run rolls a fresh seed");
+                Assert.AreEqual(RunLaunchRequest.DefaultBiomeId, next.BiomeId);
+                Assert.AreEqual(RunLaunchRequest.DefaultDifficultyId, next.DifficultyId);
+                Assert.AreEqual(_boot.Launch.ClassId, next.ClassId);
+                Assert.AreEqual(_s.GameClock.Scale, next.TimeScale, "the next run keeps this run's pacing");
+                Assert.IsTrue(MilestoneALaunch.TryAccept(next.Seed, next.BiomeId, next.DifficultyId, out string reason), reason);
+            }
+            finally
+            {
+                PlayableBootstrap.SceneLoader = previousLoader;
+                PlayableBootstrap.RandomSeed = previousRandom;
+                RunLaunchRequest.Pending = null;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator NonSliceNewRunFailsClosedAndReturnsToTitle()
         {
             RunLaunchRequest.Pending = RunLaunchRequest.NewRun(99, "dead_fleet", "hardened");
@@ -360,7 +406,7 @@ namespace SynapticSea.Tests.PlayMode
             var filter = new NavMeshQueryFilter { agentTypeID = ShipNavMesh.AgentTypeId, areaMask = NavMesh.AllAreas };
             Assert.IsTrue(NavMesh.SamplePosition(Frame.ToUnity(target), out var landing, 2.5f, filter), "walkable target: " + target);
             var path = new NavMeshPath();
-            for (int guard = 0; guard < 8; guard++)
+            for (int guard = 0; guard < 24; guard++) // a larger generated wreck can need many doors before the target is reachable
             {
                 if (TryStandingApproach(target, radius, player.transform.position, filter, out var standing))
                 { path = standing; break; }

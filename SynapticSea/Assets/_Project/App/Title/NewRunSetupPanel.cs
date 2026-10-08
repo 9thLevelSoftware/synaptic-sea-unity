@@ -1,6 +1,7 @@
 // Unity-port addition (plan C1): the title's New Run setup. Godot's title started a run with the fixed default start
 // (title_main.gd _instantiate_gameplay). Milestone A New Run boots golden coherent_ship_001 for the slice defaults
-// (seed 17 / breach_field / standard); a non-slice choice fails closed. The setup still asks for biome, difficulty and seed.
+// for any seed (Phase 1.5: the seed drives the world and the first wreck; the home stays golden). Biome and difficulty are
+// fixed to breach_field / standard (shown locked with the reason); a non-slice choice fails closed.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -48,8 +49,17 @@ namespace SynapticSea.App
             return (minutesPerHour >= 1.0 ? minutesPerHour.ToString("0.#", CultureInfo.InvariantCulture) + " min" : (minutesPerHour * 60.0).ToString("0", CultureInfo.InvariantCulture) + " s") + " = 1 hour";
         }
 
+        /// <summary>Why the biome and difficulty rows are fixed: the hardened / deep_dive home and the other biomes' homes are untested.</summary>
+        public const string LockedReason = "Biome and difficulty are fixed for this build (other homes are not playtested yet)";
+
+        /// <summary>
+        /// True (default) while Milestone A fixes the biome and difficulty: those rows show their slice value, cannot be cycled and say why.
+        /// Set false only to exercise the cycling mechanics (tests); the launch contract still rejects non-slice values.
+        /// </summary>
+        public bool BiomeDifficultyLocked { get; set; } = true;
+
         /// <summary>Random seed source (tests pin it).</summary>
-        public static Func<long> RandomSeed = () => UnityEngine.Random.Range(1, int.MaxValue);
+        public static Func<long> RandomSeed = () => UnityEngine.Random.Range((int)MilestoneALaunch.MinSeed, int.MaxValue);
 
         public event Action<RunLaunchRequest> StartRequested;
         public event Action BackRequested;
@@ -74,7 +84,7 @@ namespace SynapticSea.App
             if (_difficulties.Count == 0) _difficulties.Add(DifficultyProfile.STANDARD_ID);
             _biomeIndex = Math.Max(0, _biomes.IndexOf(biomeId ?? ""));
             _difficultyIndex = Math.Max(0, _difficulties.IndexOf(difficultyId ?? ""));
-            _seed = Math.Max(0, seed);
+            _seed = ClampSeed(seed);
 
             var rowsBox = UiFactory.Box("ss-menu__rows");
             Body.Add(rowsBox);
@@ -91,8 +101,11 @@ namespace SynapticSea.App
             UiFactory.SetShown(_seedField, false);
             RowElement(RowSeed).Add(_seedField);
             Refresh();
+            StatusText.Set(LockedReason, Severity.Info);
             SetViewVisible(true);
         }
+
+        static long ClampSeed(long seed) => Math.Min(MilestoneALaunch.MaxSeed, Math.Max(MilestoneALaunch.MinSeed, seed));
 
         public override string SurfaceId => Id;
 
@@ -215,13 +228,15 @@ namespace SynapticSea.App
             switch (FocusedRowId)
             {
                 case RowBiome:
+                    if (BiomeDifficultyLocked) return;
                     if (_biomes.Count > 0) _biomeIndex = (_biomeIndex + direction + _biomes.Count) % _biomes.Count;
                     break;
                 case RowDifficulty:
+                    if (BiomeDifficultyLocked) return;
                     _difficultyIndex = (_difficultyIndex + direction + _difficulties.Count) % _difficulties.Count;
                     break;
                 case RowSeed:
-                    _seed = Math.Max(0, _seed + direction);
+                    _seed = ClampSeed(_seed + direction);
                     break;
                 case RowTimeScale:
                     _timeScaleIndex = (_timeScaleIndex + direction + TimeScales.Count) % TimeScales.Count;
@@ -256,7 +271,7 @@ namespace SynapticSea.App
 
         public void SetSeed(long seed)
         {
-            _seed = Math.Max(0, seed);
+            _seed = ClampSeed(seed);
             Refresh();
         }
 
@@ -290,8 +305,8 @@ namespace SynapticSea.App
             {
                 if (c >= '0' && c <= '9') digits += c;
             }
-            if (digits.Length > 0 && long.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out long parsed)) _seed = parsed;
-            else if (digits.Length > 0) StatusText.Set("Seed is too large", Severity.Caution);
+            if (digits.Length > 0 && long.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out long parsed) && parsed <= MilestoneALaunch.MaxSeed) _seed = ClampSeed(parsed);
+            else if (digits.Length > 0) StatusText.Set("Seed is too large (1 to " + MilestoneALaunch.MaxSeed.ToString(CultureInfo.InvariantCulture) + ")", Severity.Caution);
             EndSeedEdit();
         }
 
@@ -411,7 +426,9 @@ namespace SynapticSea.App
             {
                 string id = RowIds[i];
                 VisualElement row = _rows[i];
-                bool cyclable = id == RowBiome || id == RowDifficulty || id == RowTimeScale || (id == RowSeed && !IsEditingSeed);
+                bool locked = BiomeDifficultyLocked && (id == RowBiome || id == RowDifficulty);
+                bool cyclable = !locked && (id == RowBiome || id == RowDifficulty || id == RowTimeScale || (id == RowSeed && !IsEditingSeed));
+                row.Q<Label>(className: "ss-menu-row__label").text = LabelFor(id) + (locked ? " (fixed)" : "");
                 string value = id == RowBiome ? BiomeId : id == RowDifficulty ? DifficultyId : id == RowSeed ? _seed.ToString(CultureInfo.InvariantCulture) : id == RowTimeScale ? TimeScaleLabel(TimeScale) : "";
                 var valueLabel = row.Q<Label>(className: "ss-menu-row__value");
                 valueLabel.text = value;

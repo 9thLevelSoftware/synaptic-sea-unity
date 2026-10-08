@@ -779,14 +779,19 @@ namespace SynapticSea.Core.Systems
             return candidate;
         }
 
+        /// <summary>The kit <see cref="ShipGenerator.KitPathForLayout"/> falls back to when a layout's own kit has no complete wrapper map.</summary>
+        const string FallbackKitId = "ship_structural_v0";
+
         void ValidateReference(GdDict reference, Dictionary<string, Artifact> artifacts, HashSet<string> used, GdDict run, GdDict blueprint)
         {
             if (reference == null || reference.Count != 5 || !StringFields(reference, "layout_path", "gameplay_slice_path", "kit_path", "profile_id") ||
                 !(reference.Get("present") is bool present) || !present) throw new Refusal("binding_mismatch");
             string layoutPath = reference.GetString("layout_path"), slicePath = reference.GetString("gameplay_slice_path"), kitPath = reference.GetString("kit_path"), profile = reference.GetString("profile_id");
             if (!artifacts.TryGetValue(layoutPath, out Artifact layout) || !artifacts.TryGetValue(slicePath, out Artifact slice) || !artifacts.TryGetValue(kitPath, out Artifact kit)) throw new Refusal("reference_missing");
+            // A layout may name a biome kit that has no wrapper map (the hive template names ship_structural_biomatter); the generator then loads
+            // v0 (ShipGenerator.KitPathForLayout), so the saved kit is v0 while the layout keeps its own kit_id.
             if (layout.Kind != "ship_layout" || slice.Kind != "ship_gameplay_slice" || kit.Kind != "ship_structural_catalog" ||
-                layout.Document.GetString("kit_id") != kit.Document.GetString("kit_id")) throw new Refusal("invalid_reference");
+                layout.Document.GetString("kit_id") != kit.Document.GetString("kit_id") && kit.Document.GetString("kit_id") != FallbackKitId) throw new Refusal("invalid_reference");
             if (!KitJoin(layout.Document, kit.Document)) throw new Refusal("invalid_reference");
             if (run != null && (run.GetString("layout_path") != layoutPath || run.GetString("gameplay_slice_path") != slicePath || run.GetString("kit_path") != kitPath)) throw new Refusal("binding_mismatch");
             var rooms = new HashSet<string>(layout.Document.GetArrayOrEmpty("rooms").OfType<GdDict>().Select(r => r.GetString("id")), StringComparer.Ordinal);

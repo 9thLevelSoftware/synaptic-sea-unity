@@ -210,8 +210,10 @@ namespace SynapticSea.Core.Session
             }
             BuildHudLayer();
             // Phase 4.5: Synaptic Sea map + scanner + travel, seeded from the starting blueprint.
-            ShipBlueprint startBp = LoadBlueprintForSystems();
-            SynapticSeaWorld = new SynapticSeaWorld(startBp.SeedValue, Vec3.Zero);
+            // Phase 1.5: the run seed drives the world (markers, sea graph). The home ship's own RNG (systems damage, loot, fire,
+            // hallucinations) stays on the golden blueprint seed so the home is identical for every run seed. RunSeed already
+            // falls back to the blueprint seed when no run seed was supplied.
+            SynapticSeaWorld = new SynapticSeaWorld(RunSeed, Vec3.Zero);
             StartingHomeSeaPosition = SynapticSeaWorld.PlayerPosition;
             HomeSeaPosition = StartingHomeSeaPosition;
             ScannerState = new ScannerState();
@@ -224,7 +226,9 @@ namespace SynapticSea.Core.Session
         /// <summary>
         /// The first away derelict is the only travel the first-run contract may redirect. Candidates are generated
         /// through the production <see cref="ShipGenerator"/> route (marker size/condition + contract biome/difficulty)
-        /// and accepted only when the complete first-run contract passes. Fail closed: no preferred-seed fallback.
+        /// and accepted only when the complete first-run contract passes. The marker's own seed is tried first (so the
+        /// contact the scanner showed is the wreck whenever D9 can qualify it), then the contract's preferred seeds.
+        /// Fail closed: when none qualifies, travel is refused.
         /// </summary>
         GdDict ApplyFirstRunContractToMarker(ShipMarker marker)
         {
@@ -243,7 +247,8 @@ namespace SynapticSea.Core.Session
             ShipGenerator.ConfigureRunContext(biomeId, difficultyId);
             FirstRunAwayGate.Result pick = FirstRunAwayGate.EvaluateCandidates(
                 FirstRunContract, marker.SizeClass, marker.Condition,
-                (seed, size, condition) => (ShipDocuments)FirstRunGenerator().GenerateFromSeed(seed, size, condition));
+                (seed, size, condition) => (ShipDocuments)FirstRunGenerator().GenerateFromSeed(seed, size, condition),
+                marker.SeedValue);
             if (!pick.Success)
             {
                 return new GdDict

@@ -55,9 +55,9 @@ namespace SynapticSea.Tests.Session
         [Test]
         public void NonSliceSeedBiomeDifficulty_FailClosed()
         {
-            Assert.IsFalse(MilestoneALaunch.TryAccept(99, "breach_field", "standard", out string seedReason));
+            Assert.IsFalse(MilestoneALaunch.TryAccept(0, "breach_field", "standard", out string seedReason));
             StringAssert.Contains("non_slice_launch", seedReason);
-            StringAssert.Contains("seed=99", seedReason);
+            StringAssert.Contains("seed=0", seedReason);
 
             Assert.IsFalse(MilestoneALaunch.TryAccept(17, "dead_fleet", "standard", out string biomeReason));
             StringAssert.Contains("biome=dead_fleet", biomeReason);
@@ -153,7 +153,7 @@ namespace SynapticSea.Tests.Session
                         + " encounters=" + (docs?.Layout.GetArrayOrEmpty("encounters").Count ?? 0));
                 }
             Assert.AreEqual(expectedAccepted, accepted, "D9: the first wreck always qualifies, on every size and condition");
-            Assert.IsFalse(MilestoneALaunch.TryAccept(seed, "breach_field", "standard", out _), "away candidates are not supported title seeds");
+            Assert.IsTrue(MilestoneALaunch.TryAccept(seed, "breach_field", "standard", out _), "any seed is a valid New Run seed (Phase 1.5)");
         }
 
         static ShipDocuments PassingDocuments()
@@ -430,10 +430,12 @@ namespace SynapticSea.Tests.Session
             string hubProgram = V.Str(s.HomeShip.BuiltLayout.Get("program_id", ""));
             string markerId = "";
             GdDict travel = null;
+            long ownSeed = 0;
             foreach (string id in s.ScannableMarkerIds())
             {
                 if (MarkerById(s, id) == null) continue;
                 markerId = id;
+                ownSeed = MarkerById(s, id).SeedValue;
                 travel = s.TravelToMarkerId(id);
                 if (travel.GetBool("success")) break;
             }
@@ -448,7 +450,9 @@ namespace SynapticSea.Tests.Session
             Assert.AreNotEqual(hubProgram, programId);
 
             long boardedSeed = s.CurrentShip.Blueprint.SeedValue;
-            Assert.That(boardedSeed == 42L || boardedSeed == 777L, "boarded preferred seed, got " + boardedSeed);
+            var acceptable = new List<long> { ownSeed, 42L, 777L };
+            for (int attempt = 1; attempt <= FirstRunAwayGate.MaxRerolls; attempt++) acceptable.Add(FirstRunAwayGate.DeriveSeed(ownSeed, attempt));
+            CollectionAssert.Contains(acceptable, boardedSeed, "boarded the contact's own seed, a derived re-roll of it, or a preferred seed (Phase 1.5)");
             Assert.IsTrue(FirstRunAwayGate.HasStandingStartToGoal(layout), "standing start→goal");
             var loader = s.CurrentShip.SceneRoot as IShipLoaderView;
             Assert.IsNotNull(loader, "attach path left a loader view on current_ship");

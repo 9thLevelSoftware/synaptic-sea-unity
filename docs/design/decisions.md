@@ -14,7 +14,7 @@ Product and design choices that code and tests must not silently undo. `OPEN` it
 | D6 | Universal basic repair. Every class can repair slowly at low quality; specialists are faster and better. This satisfies REQ-07. Implemented in Phase 1.4: parts and tools still gate a repair; repair skill below a part's requirement adds 25% time per missing level and leaves the part at `0.5 + 0.5*(skill+1)/(requirement+1)` health (floor 0.5, the operational threshold), and a more skilled survivor can repair it again. The repair-skill work actions (`secure_connection`, `commission_home_propulsion`, `cut_web_attachment`, `splice`) follow the same rule: slower, not blocked. |
 | D7 | Project Zomboid controls: WASD plus mouse facing and aim, right-click context menus on world objects, a visual map and moodle icons. E stays as a quick-interact shortcut. |
 | D8 | Death ends the survivor, not the world. The corpse, home and stashes stay, and the player starts a new survivor in the same persistent world. Roguelite meta-payout and save freezing are removed. This replaces the "death terminal" line in `persistent-survival.md` and amends REQ-06 and REQ-07 in the master design spec. Implemented in Phase 3.6. |
-| D9 | The first wreck always qualifies. `FirstRunAwayGate` patches a contact that misses the first-run contract (adds one encounter, marks a cargo or engineering room breached) and re-rolls derived seeds if that is not enough, instead of refusing travel. Boarding applies the same patch (`RunSession.FirstRun.cs`), so the player gets the wreck the gate accepted. Ordinary `ShipGenerator.GenerateFromSeed` is unchanged. |
+| D9 | The first wreck always qualifies. `FirstRunAwayGate` patches a contact that misses the first-run contract (adds one encounter, marks a cargo or engineering room breached) and re-rolls derived seeds if that is not enough, instead of refusing travel. Boarding applies the same patch (`RunSession.FirstRun.cs`), so the player gets the wreck the gate accepted. Ordinary `ShipGenerator.GenerateFromSeed` is unchanged. Live for any run seed since Phase 1.5: the gate tries the contact's own seed first, then 42 and 777. |
 
 ## Phase 0.3 decisions
 
@@ -63,6 +63,18 @@ The master plan's 0.4 list came from file headers, written before 0.3. Each item
 **Long routes.** With the caches, healing and shelter, `ReclaimWeldWalkSaveAndLeaveByIndependentCraftWithoutFixtureResources` passes unchanged. The crew-store assertion in `JoinedHomeFlight…` compares against the food already carried (+8, +8) instead of an absolute 8, since the bag now holds earlier food. `JoinedHomeFlightRequiresEarnedPropulsionAndPreservesAssemblyAndShuttle` no longer dies; it now stops later, at `AcquireEngineeringSalvageNaturally` ("a reachable hatch face must exist without penetrating the blocker", the second wreck's sealed engineering hatch after the save and Continue). That is route geometry, not survival, and reproduces in isolation.
 
 **Not done.** Web infestation stays on real-time rates; re-expressing it per game hour needs its own pass. Power-grid priority is untouched.
+
+## Phase 1.5: random seed New Run
+
+A New Run takes any seed from 1 to 2147483647 (`MilestoneALaunch.MinSeed` / `MaxSeed`). The title setup opens on a random seed, Randomize rolls another, and Results "New Run" rolls a fresh one (`PlayableBootstrap.RandomSeed`). A direct-open or `RunLaunchRequest.NewRun()` run keeps seed 17, which is the golden blueprint's own seed, so every existing seed-17 test and route is unchanged.
+
+**RNG streams.**
+- Follow the run seed: the Synaptic Sea world (`SynapticSeaWorld`: markers, their sizes, conditions and seeds), the sea graph (`SeaGraph.WorldSeed`, re-synced on load), the wound dice (already did), and the first away wreck (through its marker's seed).
+- Stay on the golden blueprint seed, so the home is identical for every run seed: ship-systems damage (`RunSession.Build.cs`), home loot (`RunSession.Loot.cs`), fire and hallucination rolls, the finite hub caches, the tutorial and objectives, and the home spawn safety.
+
+**First wreck (D9).** `FirstRunAwayGate.EvaluateCandidates` takes the contact's own seed first (patch plus up to `MaxRerolls` derived seeds), then the preferred seeds 42 and 777. Boarding generates through the same patched generator, so the player gets the wreck the gate accepted. A sweep of 200 worlds (600 nearest contacts of every size and condition) qualified every first wreck on its own seed. The sweep exposed that the `first_wreck_stores` crate had no free slot in small wrecks whose loot rooms are one- or two-slot rooms; `AddFirstWreckStores` now falls back to any non-circulation room, then the arrival room.
+
+**Still locked.** Biome `breach_field` and difficulty `standard`. The setup shows both rows as "(fixed)" with the reason, and `MilestoneALaunch.TryAccept` rejects anything else. The hardened (1.4x hazard) and other-biome homes have no safety test, so unlocking them needs the home spawn-safety simulation extended first.
 
 ## Known issues, deferred
 

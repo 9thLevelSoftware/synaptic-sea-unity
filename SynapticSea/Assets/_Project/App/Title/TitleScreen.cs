@@ -274,7 +274,8 @@ namespace SynapticSea.App
 
         /// <summary>
         /// C1: New Run opens the setup submenu (biome, difficulty, seed) above the title menu. Milestone A always
-        /// opens on the slice defaults so a persisted hardened/deep_dive preference cannot fail-close the launch.
+        /// opens on the slice biome and difficulty (shown fixed) so a persisted hardened/deep_dive preference cannot
+        /// fail-close the launch, and on a freshly rolled random seed (Phase 1.5).
         /// </summary>
         public NewRunSetupPanel OpenNewRunSetup()
         {
@@ -282,7 +283,7 @@ namespace SynapticSea.App
             List<string> biomes = NewRunSetupPanel.LoadBiomeIds();
             string biome = biomes.Contains(MilestoneALaunch.SliceBiomeId) ? MilestoneALaunch.SliceBiomeId : (biomes.Count > 0 ? biomes[0] : "");
             var panel = new NewRunSetupPanel(biomes, NewRunSetupPanel.LoadDifficultyIds(), biome, MilestoneALaunch.SliceDifficultyId,
-                MilestoneALaunch.TitleStartSeed);
+                NewRunSetupPanel.RandomSeed());
             panel.SetGlyphResolver(Coordinator.GlyphFor);
             panel.StartRequested += request =>
             {

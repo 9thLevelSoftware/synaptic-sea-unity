@@ -30,15 +30,18 @@ namespace SynapticSea.Core.Procgen
         }
 
         /// <summary>
-        /// Walks contract <c>preferred_seeds</c> in authored order. Returns the first seed whose generated
-        /// payload satisfies the complete first-run contract. When none pass, <see cref="Result.Success"/> is
-        /// false and no seed is chosen (fail closed — no fallback to preferred[0]).
+        /// Tries the contact's own seed first (when <paramref name="ownSeed"/> is given: the D9 patch plus up to
+        /// <see cref="MaxRerolls"/> derived re-rolls, so a random run seed's first wreck is the contact the scanner showed),
+        /// then walks contract <c>preferred_seeds</c> in authored order. Returns the first seed whose generated payload
+        /// satisfies the complete first-run contract. When none pass, <see cref="Result.Success"/> is false and no seed
+        /// is chosen (fail closed — no fallback to preferred[0]).
         /// </summary>
         public static Result EvaluateCandidates(
             FirstRunContract contract,
             long sizeClass,
             long condition,
-            Func<long, long, long, ShipDocuments> generateFromSeed)
+            Func<long, long, long, ShipDocuments> generateFromSeed,
+            long? ownSeed = null)
         {
             var result = new Result();
             if (contract == null || contract.Contract.IsEmpty || generateFromSeed == null)
@@ -52,9 +55,15 @@ namespace SynapticSea.Core.Procgen
                 result.Reason = ReadableUnsatisfied("preferred_seeds is empty");
                 return result;
             }
+            var order = new List<long>();
+            if (ownSeed.HasValue) order.Add(ownSeed.Value);
             foreach (object seedVariant in preferred)
             {
                 long preferredSeed = V.I64(seedVariant);
+                if (!order.Contains(preferredSeed)) order.Add(preferredSeed);
+            }
+            foreach (long preferredSeed in order)
+            {
                 for (int attempt = 0; attempt <= MaxRerolls; attempt++)
                 {
                     long seed = attempt == 0 ? preferredSeed : DeriveSeed(preferredSeed, attempt);
@@ -72,7 +81,7 @@ namespace SynapticSea.Core.Procgen
                     }
                 }
             }
-            result.Reason = ReadableUnsatisfied("no preferred seed produced a valid first-run wreck (tried "
+            result.Reason = ReadableUnsatisfied("no candidate seed produced a valid first-run wreck (tried "
                                                + string.Join(", ", result.EvaluatedSeeds) + ")");
             return result;
         }
@@ -98,11 +107,15 @@ namespace SynapticSea.Core.Procgen
         /// <summary>Id of the authored emergency-stores container the first wreck always carries (Phase 1.3).</summary>
         public const string FirstWreckStoresId = "first_wreck_stores";
 
+        /// <summary>Room id prefixes that are circulation space; a crate is only put there as a last resort (never: the start room is the fallback).</summary>
+        static readonly string[] CirculationPrefixes = { "ramp_", "elevator_", "corridor_" };
+
         /// <summary>
         /// Phase 1.3: the first wreck always holds one authored cache of food, water and medicine, so the journey out to it is
         /// survivable. It is a separate container beside the rolled ones (an authored <c>contents</c> list replaces a container's roll,
         /// so the existing containers keep their loot). Placed on the first free interior slot of the first non-start room that already holds
-        /// loot. Deterministic and idempotent; a wreck with no free slot gets no cache.
+        /// loot; when every such room is full (small wrecks put all their loot in one- or two-slot rooms), on a free slot of any other
+        /// non-circulation room in layout order, and finally in the arrival room. Deterministic and idempotent.
         /// </summary>
         static void AddFirstWreckStores(GdDict layout, GdDict gameplaySlice)
         {
@@ -113,49 +126,70 @@ namespace SynapticSea.Core.Procgen
                 if (existing is GdDict c && V.Str(c.Get("id", "")) == FirstWreckStoresId) return;
             string startRoom = V.Str(gameplaySlice.Get("start_room", ""));
             GdArray rooms = layout.GetArrayOrEmpty("rooms");
+            var order = new List<string>();
             foreach (object containerV in containers)
             {
-                if (!(containerV is GdDict container)) continue;
-                string roomId = V.Str(container.Get("room_id", ""));
-                if (roomId.Length == 0 || roomId == startRoom) continue;
-                GdDict room = RoomById(rooms, roomId);
-                if (room.IsEmpty) continue;
-                long deck = V.I64(room.Get("deck", 0L));
-                GdDict interior = room.GetDictOrEmpty("interior_zones");
-                var blocked = new HashSet<string>();
-                foreach (object r in interior.GetArrayOrEmpty("reserved_cells"))
+                string roomId = containerV is GdDict container ? V.Str(container.Get("room_id", "")) : "";
+                if (roomId.Length != 0 && roomId != startRoom && !order.Contains(roomId)) order.Add(roomId);
+            }
+            foreach (object roomV in rooms)
+            {
+                string roomId = roomV is GdDict room ? V.Str(room.Get("id", "")) : "";
+                if (roomId.Length == 0 || roomId == startRoom || order.Contains(roomId) || IsCirculation(roomId)) continue;
+                order.Add(roomId);
+            }
+            if (startRoom.Length != 0) order.Add(startRoom);
+            foreach (string roomId in order)
+                if (TryPlaceStores(rooms, containers, gameplaySlice, roomId)) return;
+        }
+
+        static bool IsCirculation(string roomId)
+        {
+            foreach (string prefix in CirculationPrefixes)
+                if (roomId.StartsWith(prefix, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        static bool TryPlaceStores(GdArray rooms, GdArray containers, GdDict gameplaySlice, string roomId)
+        {
+            GdDict room = RoomById(rooms, roomId);
+            if (room.IsEmpty) return false;
+            long deck = V.I64(room.Get("deck", 0L));
+            GdDict interior = room.GetDictOrEmpty("interior_zones");
+            var blocked = new HashSet<string>();
+            foreach (object r in interior.GetArrayOrEmpty("reserved_cells"))
+            {
+                GdArray cell = LayoutSerializer.ParseSlotCell(r);
+                if (cell.Count >= 2) blocked.Add(V.I64(cell[0]) + "," + V.I64(cell[1]));
+            }
+            foreach (object other in containers)
+                BlockApproach(other as GdDict, roomId, blocked);
+            foreach (object objective in gameplaySlice.GetArrayOrEmpty("objectives"))
+                BlockApproach(objective as GdDict, roomId, blocked);
+            foreach (string bucket in new[] { "center_slots", "wall_slots" })
+            {
+                GdArray slots = interior.GetArrayOrEmpty(bucket);
+                for (int i = 0; i < slots.Count; i++)
                 {
-                    GdArray cell = LayoutSerializer.ParseSlotCell(r);
-                    if (cell.Count >= 2) blocked.Add(V.I64(cell[0]) + "," + V.I64(cell[1]));
-                }
-                foreach (object other in containers)
-                    BlockApproach(other as GdDict, roomId, blocked);
-                foreach (object objective in gameplaySlice.GetArrayOrEmpty("objectives"))
-                    BlockApproach(objective as GdDict, roomId, blocked);
-                foreach (string bucket in new[] { "center_slots", "wall_slots" })
-                {
-                    GdArray slots = interior.GetArrayOrEmpty(bucket);
-                    for (int i = 0; i < slots.Count; i++)
+                    GdArray cell = LayoutSerializer.ParseSlotCell(slots[i]);
+                    if (cell.Count < 2 || blocked.Contains(V.I64(cell[0]) + "," + V.I64(cell[1]))) continue;
+                    containers.Append(new GdDict
                     {
-                        GdArray cell = LayoutSerializer.ParseSlotCell(slots[i]);
-                        if (cell.Count < 2 || blocked.Contains(V.I64(cell[0]) + "," + V.I64(cell[1]))) continue;
-                        containers.Append(new GdDict
-                        {
-                            { "id", FirstWreckStoresId },
-                            { "kind", "generic_crate" },
-                            { "room_id", roomId },
-                            { "approach_cell", GdArray.Of(V.I64(cell[0]), V.I64(cell[1]), deck) },
-                            { "loot_table", "generic_crate" },
-                            { "slot_kind", bucket == "center_slots" ? "center" : "wall" },
-                            { "slot_index", (long)i },
-                            { "contents", GdArray.Of(
-                                Stack("ration_pack", 2), Stack("purified_water", 2), Stack("field_medkit", 1),
-                                Stack("bandage_kit", 1), Stack("rad_patch", 1)) },
-                        });
-                        return;
-                    }
+                        { "id", FirstWreckStoresId },
+                        { "kind", "generic_crate" },
+                        { "room_id", roomId },
+                        { "approach_cell", GdArray.Of(V.I64(cell[0]), V.I64(cell[1]), deck) },
+                        { "loot_table", "generic_crate" },
+                        { "slot_kind", bucket == "center_slots" ? "center" : "wall" },
+                        { "slot_index", (long)i },
+                        { "contents", GdArray.Of(
+                            Stack("ration_pack", 2), Stack("purified_water", 2), Stack("field_medkit", 1),
+                            Stack("bandage_kit", 1), Stack("rad_patch", 1)) },
+                    });
+                    return true;
                 }
             }
+            return false;
         }
 
         static GdDict Stack(string itemId, long qty) => new GdDict { { "item_id", itemId }, { "qty", qty } };
