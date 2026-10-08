@@ -50,6 +50,21 @@ namespace SynapticSea.Core.Systems
             return spec.GetInt("version")==1 && Finite(area) && area>0 && Finite(mass) && mass>0
                 && Finite(rating) && rating>=0 && (rating==0 || spec.GetString("engine_id").Length>0);
         }
+        /// <summary>
+        /// Share of the rated capacity a working engine delivers. Only operational engines reach this, and an operational part
+        /// is at least half healthy, so a reduced-quality repair (<see cref="ShipSubcomponent.QualityFor"/>, floor 0.5) may cost
+        /// up to <see cref="MaxSystemDerate"/> of the rating instead of the full linear product. The linear product turned a
+        /// working flight path into a stranded survivor: a skill-0 repair of one part left the empty lifeboat unable to lift
+        /// its own 4800 kg hull. Pristine ships (health 1.0) are unchanged.
+        /// </summary>
+        public static double SystemFactor(double propulsionHealth, double powerHealth)
+        {
+            double health = Math.Max(0.0, Math.Min(1.0, propulsionHealth * powerHealth));
+            return 1.0 - MaxSystemDerate * (1.0 - health);
+        }
+        /// <summary>Largest share of the rating a damaged (but operational) engine and power plant can cost: 15%.</summary>
+        public const double MaxSystemDerate = 0.15;
+
         public static GdDict Evaluate(ShipInstance root, double playerCargo)
         {
             var report = new GdDict { { "success", false }, { "reason", "invalid_assembly" },
@@ -93,8 +108,8 @@ namespace SynapticSea.Core.Systems
                 else if(ship.SystemsManager==null || !ship.SystemsManager.IsOperational("power") || !ship.SystemsManager.IsOperational("propulsion")) excluded="local_power_or_propulsion_offline";
                 else
                 {
-                    effective=spec.GetFloat("rated_supported_kg") * ship.SystemsManager.GetSystem("propulsion").Health()
-                        * ship.SystemsManager.GetSystem("power").Health() * ship.GetHull().AverageIntegrity();
+                    effective=spec.GetFloat("rated_supported_kg") * SystemFactor(ship.SystemsManager.GetSystem("propulsion").Health(),
+                        ship.SystemsManager.GetSystem("power").Health()) * ship.GetHull().AverageIntegrity();
                     if(!Finite(effective)||effective<0) { report["reason"]="invalid_engine_capacity"; return report; }
                     supported+=effective;
                 }

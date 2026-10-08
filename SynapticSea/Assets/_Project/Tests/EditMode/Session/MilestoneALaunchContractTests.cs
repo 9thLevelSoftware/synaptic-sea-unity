@@ -385,6 +385,9 @@ namespace SynapticSea.Tests.Session
             TestContext.WriteLine(classId + ": hubTraining=" + hubTraining + " initial=" + initial + " earned=" + s.PlayerProgression.GetSkillLevel("repair")
                 + " ready=" + ready + " lowestHealth=" + lowest + " completed=" + string.Join(",", completed));
             Assert.IsTrue(ready, "every class reaches travel readiness; skill changes speed and quality, not access");
+            GdDict capacity = s.TravelCapability();
+            Assert.IsTrue(capacity.GetBool("success"), classId + ": an operational flight path must also pass the capacity check ("
+                + capacity.GetString("reason") + ", supported " + capacity.GetFloat("supported_kg") + " kg for " + capacity.GetFloat("total_mass_kg") + " kg)");
             Assert.IsFalse(s.SliceComplete, "repairing for travel is not extraction");
             for (int guard = 0; guard < 24 && !s.HomeObjectivesComplete && !s.SliceComplete; guard++)
             {
@@ -394,6 +397,52 @@ namespace SynapticSea.Tests.Session
             Assert.IsTrue(s.HomeObjectivesComplete, "all classes can complete the existing onboarding tasks");
             Assert.IsFalse(s.SliceComplete, "onboarding does not terminate survival");
             Assert.AreEqual(classId, s.PlayerProgression.ClassId, "onboarding retains the chosen class");
+        }
+
+        [TestCase("engineer", false)] [TestCase("engineer", true)]
+        [TestCase("mechanic", false)] [TestCase("mechanic", true)]
+        [TestCase("medic", false)] [TestCase("medic", true)]
+        [TestCase("pilot", false)] [TestCase("pilot", true)]
+        [TestCase("scientist", false)] [TestCase("scientist", true)]
+        [TestCase("cook", false)] [TestCase("cook", true)]
+        [TestCase("security", false)] [TestCase("security", true)]
+        [TestCase("communications", false)] [TestCase("communications", true)]
+        [TestCase("salvage_captain", false)] [TestCase("salvage_captain", true)]
+        [TestCase("field_medic", false)] [TestCase("field_medic", true)]
+        [TestCase("signal_specialist", false)] [TestCase("signal_specialist", true)]
+        public void EveryStartingClassCanActuallyTravelToAWreckAfterRepairingTheFlightPath(string classId, bool hubTraining)
+        {
+            var deps = SessionHarness.GoldenDeps(out SessionHarness.Rig rig);
+            MilestoneALaunch.ApplyHubPaths(deps);
+            deps.StartingClassId = classId;
+            var s = RunSession.Create(deps);
+            var cache = s.LootContainers.Single(c => c.ContainerId == "start_supply_a");
+            Assert.IsTrue(cache.TryInteract(cache.GlobalPosition));
+            if (hubTraining)
+                for (int guard = 0; guard < 12 && s.CurrentObjectiveSequence <= 3; guard++)
+                {
+                    var objective = s.Interactables.First(o => o.Active && !o.Completed);
+                    Assert.IsTrue(objective.TryInteract(objective.GlobalPosition));
+                }
+            var required = new[] { "power", "navigation", "scanners", "propulsion" };
+            for (int guard = 0; guard < 24; guard++)
+            {
+                var next = s.RepairPoints.Where(r => required.Contains(r.SystemId) && r.CanBeginRepair() && !SubOf(r).IsFunctional())
+                    .OrderBy(r => r.MinSkill).FirstOrDefault();
+                if (next == null) break;
+                Assert.IsTrue(next.TryStart(next.GlobalPosition));
+                next.AdvanceChannel(240.0);
+            }
+            Assert.IsTrue(required.All(id => s.ShipSystemsManager.IsOperational(id)), classId + ": flight path is operational");
+            s.ThreatManager.Threats.Clear();
+            GdDict capacity = s.TravelCapability();
+            Assert.IsTrue(capacity.GetBool("success"), classId + ": capacity " + capacity.GetString("reason") + " supported "
+                + capacity.GetFloat("supported_kg") + " kg for " + capacity.GetFloat("total_mass_kg") + " kg");
+            GdDict travelled = null;
+            foreach (string id in s.ScannableMarkerIds()) { travelled = s.TravelToMarkerId(id); if (travelled.GetBool("success")) break; }
+            Assert.IsNotNull(travelled, classId + ": a wreck is in scanner range");
+            Assert.IsTrue(travelled.GetBool("success"), classId + ": travel refused: " + V.Str(travelled.Get("reason", "")));
+            Assert.IsTrue(s.AwayFromStart);
         }
 
         [TestCase("mechanic")] // control: repair 4 meets every requirement, so the reactor is repaired to full health
