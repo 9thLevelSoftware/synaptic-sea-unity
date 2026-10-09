@@ -37,12 +37,26 @@ namespace SynapticSea.Core.Systems
             if (Finite(p.X) && Finite(p.Y) && Finite(p.Z) && seen.Add(p)) list.Add(p);
         }
         static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
+        /// <summary>Floor area of one placed floor cell.</summary>
+        public const double AreaPerFloorM2 = 16.0;
+        /// <summary>Dry mass per m2 of floor.</summary>
+        public const double DryMassPerM2 = 100.0;
+        /// <summary>Rated supported mass per m2 of floor for an installed engine.</summary>
+        public const double RatedSupportedPerM2 = 125.0;
+        public static double DryMassKg(double areaM2) => areaM2 * DryMassPerM2;
+        public static double RatedSupportedKg(double areaM2) => areaM2 * RatedSupportedPerM2;
+        /// <summary>
+        /// What one working engine delivers: its rating, derated by <see cref="SystemFactor"/> for the power and propulsion health and scaled by the
+        /// hull. The single formula <see cref="Evaluate"/> uses, shared so planners (the starting-home guarantee) cannot drift from it.
+        /// </summary>
+        public static double EffectiveSupportedKg(double ratedKg, double propulsionHealth, double powerHealth, double hullIntegrity) =>
+            ratedKg * SystemFactor(propulsionHealth, powerHealth) * hullIntegrity;
         public static GdDict CreateSpecification(ShipInstance ship, bool installation)
         {
-            double area = Floors(ship.BuiltLayout).Count * 16.0;
-            return new GdDict { { "version", 1L }, { "area_m2", area }, { "dry_mass_kg", area * 100 },
+            double area = Floors(ship.BuiltLayout).Count * AreaPerFloorM2;
+            return new GdDict { { "version", 1L }, { "area_m2", area }, { "dry_mass_kg", DryMassKg(area) },
                 { "engine_id", installation ? "propulsion:" + ship.ShipId : "" },
-                { "rated_supported_kg", installation ? area * 125 : 0.0 } };
+                { "rated_supported_kg", installation ? RatedSupportedKg(area) : 0.0 } };
         }
         public static bool ValidSpecification(GdDict spec)
         {
@@ -108,8 +122,8 @@ namespace SynapticSea.Core.Systems
                 else if(ship.SystemsManager==null || !ship.SystemsManager.IsOperational("power") || !ship.SystemsManager.IsOperational("propulsion")) excluded="local_power_or_propulsion_offline";
                 else
                 {
-                    effective=spec.GetFloat("rated_supported_kg") * SystemFactor(ship.SystemsManager.GetSystem("propulsion").Health(),
-                        ship.SystemsManager.GetSystem("power").Health()) * ship.GetHull().AverageIntegrity();
+                    effective=EffectiveSupportedKg(spec.GetFloat("rated_supported_kg"), ship.SystemsManager.GetSystem("propulsion").Health(),
+                        ship.SystemsManager.GetSystem("power").Health(), ship.GetHull().AverageIntegrity());
                     if(!Finite(effective)||effective<0) { report["reason"]="invalid_engine_capacity"; return report; }
                     supported+=effective;
                 }

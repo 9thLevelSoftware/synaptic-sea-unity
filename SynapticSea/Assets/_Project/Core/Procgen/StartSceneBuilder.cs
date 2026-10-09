@@ -225,6 +225,8 @@ namespace SynapticSea.Core.Procgen
             /// <summary>The seed actually generated (RequestedSeed + Attempts - 1).</summary>
             public long Seed;
             public int Attempts;
+            /// <summary>The starting-home guarantee plan the accepted home carries (null when the guarantee was not requested).</summary>
+            public StartingHomeGuarantee.Plan Guarantee;
             /// <summary>"dock" (dock room floor centroid) or "boarding" (boarding/airlock cell fallback).</summary>
             public string AnchorSource = "";
             /// <summary>Ship-local life boat anchor + (0, 0, DOCK_GAP), Godot frame.</summary>
@@ -242,8 +244,12 @@ namespace SynapticSea.Core.Procgen
         /// force rejections.</param>
         /// <param name="exteriorDock">When true, <see cref="HomeDockPlanner"/> stamps a <c>docking_port</c> contract on the dock/airlock room's
         /// exterior edge and rejects a seed whose life boat would overlap other rooms. Default false keeps today's centroid port.</param>
+        /// <param name="guarantee">Phase 1.9: when set, the home is a generated New Run home (<see cref="HomeOpeningState.GeneratedHomeKind"/>): after the dock is
+        /// planned, <see cref="StartingHomeGuarantee"/> places the lifeboat repair kit, food and water in seeded rooms, strips the home's hazards and checks
+        /// the result independently; a seed that cannot keep those promises is rejected and the next seed is rolled. Null keeps today's behaviour.</param>
         public static HomeStart BuildHomeStart(long seedValue, string biomeId, string difficultyId, long size = HOME_SIZE, long condition = HOME_CONDITION,
-            int maxAttempts = MAX_START_ATTEMPTS, Func<long, ShipDocuments, string> extraGate = null, bool exteriorDock = false)
+            int maxAttempts = MAX_START_ATTEMPTS, Func<long, ShipDocuments, string> extraGate = null, bool exteriorDock = false,
+            StartingHomeGuarantee.Spec guarantee = null)
         {
             var result = new HomeStart { RequestedSeed = seedValue };
             for (int attempt = 0; attempt < Math.Max(1, maxAttempts); attempt++)
@@ -261,11 +267,19 @@ namespace SynapticSea.Core.Procgen
                 if (reason.Length == 0 && extraGate != null) reason = extraGate(seed, docs) ?? "";
                 // Phase 1.7c spike: dock the life boat on the dock/airlock room's exterior edge so it overlaps no other room (off by default).
                 if (reason.Length == 0 && exteriorDock) reason = HomeDockPlanner.Apply(docs);
+                var blueprint = new ShipBlueprint(size, condition, seed) { StartKind = guarantee != null ? HomeOpeningState.GeneratedHomeKind : "" };
+                StartingHomeGuarantee.Plan plan = null;
+                if (reason.Length == 0 && guarantee != null)
+                {
+                    reason = StartingHomeGuarantee.Apply(docs, blueprint, seed, guarantee, out plan);
+                    if (reason.Length == 0) reason = StartingHomeGuarantee.Validate(docs, blueprint, guarantee);
+                }
                 if (reason.Length == 0)
                 {
                     docs.IsAway = false;
                     result.Documents = docs;
-                    result.Blueprint = new ShipBlueprint(size, condition, seed);
+                    result.Guarantee = plan;
+                    result.Blueprint = blueprint;
                     result.Seed = seed;
                     result.AnchorSource = source;
                     result.LifeBoatPosition = anchor + new Vec3(0.0, 0.0, DOCK_GAP);

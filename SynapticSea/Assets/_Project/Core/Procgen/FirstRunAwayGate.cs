@@ -93,6 +93,8 @@ namespace SynapticSea.Core.Procgen
                 PatchLayout(contract, docs.SourceLayout, docs.GameplaySlice);
             if (docs.LayoutJson != null) docs.LayoutJson = GdJson.Stringify(docs.Layout, "  ");
             AddFirstWreckStores(docs.Layout, docs.GameplaySlice);
+            // Phase 1.9: the stores land on the slice document only; the archived/saved text mirror must follow it (RunSession.Generation prefers GameplaySliceJson).
+            if (docs.GameplaySliceJson != null) docs.GameplaySliceJson = GdJson.Stringify(docs.GameplaySlice, "  ");
         }
 
         /// <summary>Id of the authored emergency-stores container the first wreck always carries (Phase 1.3).</summary>
@@ -112,55 +114,74 @@ namespace SynapticSea.Core.Procgen
             foreach (object existing in containers)
                 if (existing is GdDict c && V.Str(c.Get("id", "")) == FirstWreckStoresId) return;
             string startRoom = V.Str(gameplaySlice.Get("start_room", ""));
-            GdArray rooms = layout.GetArrayOrEmpty("rooms");
             foreach (object containerV in containers)
             {
                 if (!(containerV is GdDict container)) continue;
                 string roomId = V.Str(container.Get("room_id", ""));
                 if (roomId.Length == 0 || roomId == startRoom) continue;
-                GdDict room = RoomById(rooms, roomId);
-                if (room.IsEmpty) continue;
-                long deck = V.I64(room.Get("deck", 0L));
-                GdDict interior = room.GetDictOrEmpty("interior_zones");
-                var blocked = new HashSet<string>();
-                foreach (object r in interior.GetArrayOrEmpty("reserved_cells"))
+                if (!TryFindFreeSlot(layout, gameplaySlice, roomId, out GdArray cell, out string slotKind, out long slotIndex, out long deck)) continue;
+                containers.Append(new GdDict
                 {
-                    GdArray cell = LayoutSerializer.ParseSlotCell(r);
-                    if (cell.Count >= 2) blocked.Add(V.I64(cell[0]) + "," + V.I64(cell[1]));
-                }
-                foreach (object other in containers)
-                    BlockApproach(other as GdDict, roomId, blocked);
-                foreach (object objective in gameplaySlice.GetArrayOrEmpty("objectives"))
-                    BlockApproach(objective as GdDict, roomId, blocked);
-                foreach (string bucket in new[] { "center_slots", "wall_slots" })
-                {
-                    GdArray slots = interior.GetArrayOrEmpty(bucket);
-                    for (int i = 0; i < slots.Count; i++)
-                    {
-                        GdArray cell = LayoutSerializer.ParseSlotCell(slots[i]);
-                        if (cell.Count < 2 || blocked.Contains(V.I64(cell[0]) + "," + V.I64(cell[1]))) continue;
-                        containers.Append(new GdDict
-                        {
-                            { "id", FirstWreckStoresId },
-                            { "kind", "generic_crate" },
-                            { "room_id", roomId },
-                            { "approach_cell", GdArray.Of(V.I64(cell[0]), V.I64(cell[1]), deck) },
-                            { "loot_table", "generic_crate" },
-                            { "slot_kind", bucket == "center_slots" ? "center" : "wall" },
-                            { "slot_index", (long)i },
-                            { "contents", GdArray.Of(
-                                Stack("ration_pack", 2), Stack("purified_water", 2), Stack("field_medkit", 1),
-                                Stack("bandage_kit", 1), Stack("rad_patch", 1)) },
-                        });
-                        return;
-                    }
-                }
+                    { "id", FirstWreckStoresId },
+                    { "kind", "generic_crate" },
+                    { "room_id", roomId },
+                    { "approach_cell", GdArray.Of(V.I64(cell[0]), V.I64(cell[1]), deck) },
+                    { "loot_table", "generic_crate" },
+                    { "slot_kind", slotKind },
+                    { "slot_index", slotIndex },
+                    { "contents", GdArray.Of(
+                        Stack("ration_pack", 2), Stack("purified_water", 2), Stack("field_medkit", 1),
+                        Stack("bandage_kit", 1), Stack("rad_patch", 1)) },
+                });
+                return;
             }
         }
 
-        static GdDict Stack(string itemId, long qty) => new GdDict { { "item_id", itemId }, { "qty", qty } };
+        /// <summary>
+        /// The first free interior loot slot of <paramref name="roomId"/> (center slots, then wall slots), by the rules authored caches follow:
+        /// a slot is blocked when it is a reserved cell of the room or the approach cell of any loot container or objective already in the
+        /// room. False when the room does not exist or has no free slot.
+        /// </summary>
+        public static bool TryFindFreeSlot(GdDict layout, GdDict gameplaySlice, string roomId, out GdArray cell, out string slotKind, out long slotIndex, out long deck)
+        {
+            cell = null;
+            slotKind = "";
+            slotIndex = 0;
+            deck = 0;
+            if (layout == null || gameplaySlice == null || roomId == null || roomId.Length == 0) return false;
+            GdDict room = RoomById(layout.GetArrayOrEmpty("rooms"), roomId);
+            if (room.IsEmpty) return false;
+            deck = V.I64(room.Get("deck", 0L));
+            GdDict interior = room.GetDictOrEmpty("interior_zones");
+            var blocked = new HashSet<string>();
+            foreach (object r in interior.GetArrayOrEmpty("reserved_cells"))
+            {
+                GdArray reserved = LayoutSerializer.ParseSlotCell(r);
+                if (reserved.Count >= 2) blocked.Add(V.I64(reserved[0]) + "," + V.I64(reserved[1]));
+            }
+            foreach (object other in gameplaySlice.GetArrayOrEmpty("loot_containers"))
+                BlockApproach(other as GdDict, roomId, blocked);
+            foreach (object objective in gameplaySlice.GetArrayOrEmpty("objectives"))
+                BlockApproach(objective as GdDict, roomId, blocked);
+            foreach (string bucket in new[] { "center_slots", "wall_slots" })
+            {
+                GdArray slots = interior.GetArrayOrEmpty(bucket);
+                for (int i = 0; i < slots.Count; i++)
+                {
+                    GdArray candidate = LayoutSerializer.ParseSlotCell(slots[i]);
+                    if (candidate.Count < 2 || blocked.Contains(V.I64(candidate[0]) + "," + V.I64(candidate[1]))) continue;
+                    cell = candidate;
+                    slotKind = bucket == "center_slots" ? "center" : "wall";
+                    slotIndex = i;
+                    return true;
+                }
+            }
+            return false;
+        }
 
-        static void BlockApproach(GdDict row, string roomId, HashSet<string> blocked)
+        public static GdDict Stack(string itemId, long qty) => new GdDict { { "item_id", itemId }, { "qty", qty } };
+
+        public static void BlockApproach(GdDict row, string roomId, HashSet<string> blocked)
         {
             if (row == null || V.Str(row.Get("room_id", "")) != roomId) return;
             GdArray cell = LayoutSerializer.ParseSlotCell(row.Get("approach_cell", new GdArray()));
@@ -373,7 +394,7 @@ namespace SynapticSea.Core.Procgen
             return new GdDict();
         }
 
-        static bool CellInSlots(GdDict room, GdArray cell)
+        public static bool CellInSlots(GdDict room, GdArray cell)
         {
             if (room == null || cell.Count < 2) return false;
             GdDict interior = room.GetDictOrEmpty("interior_zones");

@@ -30,6 +30,12 @@ namespace SynapticSea.Core.Procgen
         public long ShipCondition = (long)Condition.Pristine;
         public long SeedValue = 0;
         public string GenerationProfile = "";
+        /// <summary>
+        /// What this ship is the home of, when it is not a plain derelict ("" = none). <see cref="HomeOpeningState.GeneratedHomeKind"/> marks a
+        /// generated New Run home, whose lifeboat opens with a calmer, guaranteed-repairable damage set. Persisted only when set, so every
+        /// existing blueprint (golden sidecars, derelicts, saves) reads and writes exactly as before.
+        /// </summary>
+        public string StartKind = "";
 
         /// <summary>Inclusive (min, max) room count. Recomputed from size in the constructor; writable for overrides.</summary>
         public Vec2i RoomCountRange = new Vec2i(8, 12);
@@ -87,6 +93,7 @@ namespace SynapticSea.Core.Procgen
                 },
             };
             if (GenerationProfile.Length != 0) data["generation_profile"] = GenerationProfile;
+            if (StartKind.Length != 0) data["start_kind"] = StartKind;
             return data;
         }
 
@@ -97,6 +104,7 @@ namespace SynapticSea.Core.Procgen
             if (data.Has("condition")) bp.ShipCondition = V.I64(data["condition"]);
             if (data.Has("seed_value")) bp.SeedValue = V.I64(data["seed_value"]);
             bp.GenerationProfile = data.GetString("generation_profile");
+            bp.StartKind = data.GetString("start_kind");
             if (data.Has("room_count_range") && data["room_count_range"] is GdDict r)
             {
                 Vec2i derived = bp.GetRoomCountRange();

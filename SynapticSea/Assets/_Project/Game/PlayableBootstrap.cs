@@ -277,11 +277,14 @@ namespace SynapticSea.Game
         bool ApplyGeneratedHome(RunLaunchRequest launch, RunSessionDeps deps, out string failure)
         {
             failure = "";
+            var guarantee = new StartingHomeGuarantee.Spec { ClockScale = launch.TimeScale };
             StartSceneBuilder.HomeStart start = StartSceneBuilder.BuildHomeStart(launch.Seed, deps.BiomeId, deps.DifficultyId,
-                condition: (long)ShipBlueprint.Condition.Pristine, exteriorDock: true);
+                condition: (long)ShipBlueprint.Condition.Pristine, exteriorDock: true, guarantee: guarantee);
             if (start == null)
             {
-                failure = "no viable ship could be generated from seed " + launch.Seed + " (" + StartSceneBuilder.MAX_START_ATTEMPTS + " attempts)";
+                failure = launch.TimeScale <= WorldClock.DefaultScale
+                    ? "the generated home needs scaled pacing (time scale above 1x) to supply its food and water"
+                    : "no viable ship could be generated from seed " + launch.Seed + " (" + StartSceneBuilder.MAX_START_ATTEMPTS + " attempts)";
                 return false;
             }
             GeneratedStart = start;
