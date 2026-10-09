@@ -718,9 +718,7 @@ namespace SynapticSea.Core.Session
             SliceComplete = false;
             if (ShipSystemsManager != null)
             {
-                ShipBlueprint bpReset = LoadBlueprintForSystems();
-                ShipSystemsManager.Configure(ShipSystemsManager.LoadDefinitions(), bpReset.ShipCondition, bpReset.SeedValue);
-                ApplyLifeboatOpeningDamage();
+                HomeOpeningState.Configure(ShipSystemsManager, LoadBlueprintForSystems());
             }
             ConfigurePlayerProgression();
             CompletedObjectiveTypes.Clear();

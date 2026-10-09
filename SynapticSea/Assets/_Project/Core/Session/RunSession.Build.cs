@@ -87,9 +87,8 @@ namespace SynapticSea.Core.Session
             // Unity port (C4): the run context (difficulty / biome / seed) is known before any model reads it.
             ApplyRunContext(Deps.DifficultyId, Deps.BiomeId, Deps.RunSeed, Deps.TimeScale);
             ShipSystemsManager = new ShipSystemsManager();
-            ShipBlueprint bp = LoadBlueprintForSystems();
-            ShipSystemsManager.Configure(ShipSystemsManager.LoadDefinitions(), bp.ShipCondition, bp.SeedValue);
-            ApplyLifeboatOpeningDamage();
+            // Phase 1.9: the opening damage (condition roll + lifeboat opening blocker) is HomeOpeningState's, shared with the starting-home guarantee.
+            HomeOpeningState.Configure(ShipSystemsManager, LoadBlueprintForSystems());
             PlayerProgression = new PlayerProgressionState();
             ConfigurePlayerProgression();
             // REQ-PM-002 / ADR-0033: training event bus (after progression so it can read class multipliers).
@@ -367,24 +366,6 @@ namespace SynapticSea.Core.Session
         /// <summary><c>_generate_run_id()</c>: <c>"%d-%04x" % [ticks_usec, randi() % 0x10000]</c>.</summary>
         string GenerateRunId() =>
             Clock.TicksUsec() + "-" + (GodotGlobalRandom.Randi() % 0x10000).ToString("x4", System.Globalization.CultureInfo.InvariantCulture);
-
-        /// <summary>
-        /// <c>_apply_lifeboat_opening_damage()</c>: every propulsion sub healthy except nav_linkage (DAMAGED_HEALTH), so the
-        /// opening blocker is one low-skill repair.
-        /// </summary>
-        void ApplyLifeboatOpeningDamage()
-        {
-            if (ShipSystemsManager == null)
-                return;
-            ShipSystem prop = ShipSystemsManager.GetSystem("propulsion");
-            if (prop == null)
-                return;
-            foreach (ShipSubcomponent sub in prop.Subcomponents)
-                sub.Health = 1.0;
-            ShipSubcomponent blocker = prop.GetSubcomponent("nav_linkage");
-            if (blocker != null)
-                blocker.Health = ShipSystemsManager.DAMAGED_HEALTH;
-        }
 
         /// <summary>
         /// <c>_build_hud_layer()</c>, model half. The HUD nodes (tracker, vitals panel, hotbar, scanner, recipe picker, chart,
