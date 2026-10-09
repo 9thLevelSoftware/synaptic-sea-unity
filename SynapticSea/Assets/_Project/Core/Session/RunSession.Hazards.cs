@@ -2,6 +2,7 @@
 // zone integration (9318-9606), route gates (8332-8365), and _refresh_player_vitals (9106-9141).
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
@@ -135,6 +136,9 @@ namespace SynapticSea.Core.Session
             return (obj3 + obj4) * 0.5f;
         }
 
+        const double AIR_LOG_INTERVAL_SECONDS = 5.0;
+        double _airLogSeconds;
+
         /// <summary><c>_refresh_oxygen_state(force_initial, delta_seconds)</c>.</summary>
         void RefreshOxygenState(bool forceInitial, double deltaSeconds)
         {
@@ -193,6 +197,13 @@ namespace SynapticSea.Core.Session
             ApplyBreachZoneSceneState();
             RefreshTrackerSystemStatusLines();
             RefreshPlayerVitals(deltaSeconds);
+            // While the survivor's air is draining, say why every few seconds so a playtest log names the cause.
+            _airLogSeconds += deltaSeconds;
+            if (_airLogSeconds >= AIR_LOG_INTERVAL_SECONDS && OxygenState.Oxygen < 99.5)
+            {
+                _airLogSeconds = 0.0;
+                Log?.Info("AIR " + AirDiagnostics());
+            }
             GdDict oxygenSummary = OxygenState.GetSummary();
             if (V.F64(oxygenSummary.Get("oxygen", 100.0)) <= V.F64(oxygenSummary.Get("safe_threshold", 35.0)))
                 TriggerTutorial("vitals_warning", "oxygen_low");
@@ -233,15 +244,69 @@ namespace SynapticSea.Core.Session
             OxygenState.Oxygen = Math.Max(0.0, level - perSecond * deltaSeconds);
         }
 
+        /// <summary>
+        /// One line saying why the survivor's air is, or is not, carried by the suit alone: which vessel's deck the survivor is physically
+        /// over, whether the suit is carrying the load (field-suit pressure), and the vitals it drains. Logged with every death so a
+        /// suffocation in a playtest log names its cause, and read by the air tests.
+        /// </summary>
+        public string AirDiagnostics()
+        {
+            ShipInstance owner = PhysicalAirOwner();
+            ShipInstance occupancy = CurrentOccupancy;
+            string Name(ShipInstance ship) => ship == null ? "none" : ship == HomeShip ? "home" : ship == LifeboatShip ? "lifeboat" : ship.ShipId;
+            GdDict authored = (owner?.SceneRoot as IShipLoaderView)?.GetAuthoredAtmosphereAt(ToLocal(owner.SceneRoot, PlayerPos)) ?? new GdDict();
+            string services = owner != null && owner == LifeboatShip ? " lifeboat_services=" + IndependentShelterServices(owner, false) : "";
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            string Vessel(string label, ShipInstance ship)
+            {
+                if (ship == null || ship.SceneRoot == null || !HasPlayer) return label + "=n/a";
+                Vec3 local = ToLocal(ship.SceneRoot, PlayerPos);
+                double nearest = double.PositiveInfinity;
+                foreach (Vec3 cell in AssemblyMobility.Floors(ship.BuiltLayout))
+                    nearest = System.Math.Min(nearest, System.Math.Max(System.Math.Abs(local.X - cell.X), System.Math.Abs(local.Z - cell.Z)) + (local.Y >= cell.Y - .25 && local.Y < cell.Y + 3 ? 0.0 : 1000.0));
+                return string.Format(inv, "{0}(origin={1} root_valid={2} nearest_floor={3:0.##})", label, ship.SceneRoot.GlobalTransform.Origin, RootValid(ship.SceneRoot), nearest);
+            }
+            string vessels = " " + Vessel("home", HomeShip) + " " + Vessel("boat", LifeboatShip);
+            return string.Format(inv, "air_owner={0} occupancy={1} field_suit={2} home_severity={3:0.###} suit_filtering={4} oxygen={5:0.##} health={6:0.##} away={7} home_safety={8} authored_atmosphere={9}{10} position={11}{12}",
+                Name(owner), Name(occupancy), IsFieldSuitPressureActive(), HomeAtmosphereSeverity(), SuitFilteringShipAir,
+                OxygenState?.Oxygen ?? -1.0, VitalsState?.Health ?? -1.0, AwayFromStart, HomeSpawnSafetyActive,
+                authored.IsEmpty ? "none" : GdJson.Stringify(authored), services, PlayerPos, vessels);
+        }
+
         /// <summary>A broad boarding box or stale occupancy is not proof of a vessel's physical deck air.</summary>
         internal ShipInstance PhysicalAirOwner()
         {
-            var ship = CurrentOccupancy;
+            ShipInstance ship = CurrentOccupancy;
             if (ship == null || !HasPlayer || !RootValid(ship.SceneRoot)) return null;
+            if (!PlayerOverFloorsOf(ship))
+            {
+                // The occupancy is only recomputed every tick once the lifeboat is commissioned, so on the opening deck it lags a survivor
+                // who walks between the home and its docked lifeboat. A lagging occupancy is not vacuum: use the vessel actually underfoot.
+                ship = VesselUnderPlayer();
+                if (ship == null) return null;
+            }
+            // Before its first departure the docked lifeboat mirrors the home's systems and shares the home's air: its deck is breathable
+            // exactly when the home's is, not when an independent shelter's own services say so.
+            if (ship == LifeboatShip && !LifeboatCommissioned && HomeShip != null && RootValid(HomeShip.SceneRoot)) return HomeShip;
+            return ship;
+        }
+
+        /// <summary>True when the survivor stands over a floor cell of <paramref name="ship"/> (the same cell test occupancy resolution uses).</summary>
+        bool PlayerOverFloorsOf(ShipInstance ship)
+        {
+            if (ship == null || !HasPlayer || !RootValid(ship.SceneRoot)) return false;
             Vec3 local = ToLocal(ship.SceneRoot, PlayerPos);
             return AssemblyMobility.Floors(ship.BuiltLayout).Exists(c => System.Math.Abs(local.X - c.X) < 2.01
-                && System.Math.Abs(local.Z - c.Z) < 2.01 && local.Y >= c.Y - .25 && local.Y < c.Y + 3)
-                ? ship : null;
+                && System.Math.Abs(local.Z - c.Z) < 2.01 && local.Y >= c.Y - .25 && local.Y < c.Y + 3);
+        }
+
+        /// <summary>The vessel whose floor the survivor stands over, in occupancy-resolution order; null in open space.</summary>
+        ShipInstance VesselUnderPlayer()
+        {
+            foreach (ShipInstance ship in AllKnownShipsInternal().Where(candidate => candidate != null && RootValid(candidate.SceneRoot))
+                .OrderBy(candidate => candidate == PilotedShip ? 0 : candidate == LifeboatShip ? 1 : candidate == CurrentShip ? 2 : candidate == HomeShip ? 3 : 4))
+                if (PlayerOverFloorsOf(ship)) return ship;
+            return null;
         }
 
         bool PhysicalAirInfrastructureAbsent() => HomeShip == null && LifeboatShip == null && CurrentShip == null;
@@ -278,6 +343,9 @@ namespace SynapticSea.Core.Session
                 && ship.Blueprint.ShipCondition != (long)SynapticSea.Core.Procgen.ShipBlueprint.Condition.Wrecked
                 && ship.GetAccess().HasAccess(PLAYER_LOCAL_ID) && IndependentShelterServices(ship, true);
         }
+
+        /// <summary>True while the suit alone carries the survivor's air (the deck under them cannot supply it).</summary>
+        public bool FieldSuitPressure => IsFieldSuitPressureActive();
 
         bool IsFieldSuitPressureActive()
         {

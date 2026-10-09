@@ -172,6 +172,20 @@ A generated home now carries the same onboarding chain as the golden hub, so fin
 
 **Status.** Phase 1 is complete apart from the playtest itself, which needs a human at the keyboard. Findings from it feed the backlog and tune `balance/survival.json`.
 
+## Playtest 1: suffocation at a generated home
+
+The first human playtest (build `80c8f18`, seeds 756700368 and 816288703) ended in death by suffocation within about a minute, in several rooms; the HUD labelled the draining meter "suit O2" and there was no air anywhere. Reproduced in the graphical player on seed 756700368 (the same seed died in about 100 s; log `AIR` lines showed `air_owner=none occupancy=lifeboat|home field_suit=True`), and not reproducible in the editor or the headless player.
+
+**Root cause.** The survivor's air is decided by `PhysicalAirOwner()`: the vessel whose floor cells lie under the survivor, taken from `CurrentOccupancy`, else none. A survivor with no air owner is treated as being in open space (`IsFieldSuitPressureActive()` returns true), so the suit carries the air and drains at 6 per second. `CurrentOccupancy` is recomputed every tick only once the lifeboat is commissioned (`RunSession.Tick`); before the first departure it is only set by events. With the exterior-edge dock (Phase 1.7c) the docked lifeboat's deck lies outside the home's floor cells, so a survivor who walks between the home and the boat is over a vessel that is not `CurrentOccupancy`: no air owner, vacuum. Once an event sets the occupancy to the lifeboat it can stay there while the survivor is back in the home, which is the same failure in the other direction ("no air anywhere"). The authored golden hub docks the boat overlapping the home's airlock room, so (not verified cell by cell) the home's floor cells are expected to cover the boat and the lag did not show there.
+
+**Fix.** `PhysicalAirOwner()` first trusts the occupancy only when the survivor is actually over its floor cells; otherwise it uses the vessel that is under the survivor (`VesselUnderPlayer`, same cell test and ordering as occupancy resolution); open space is still none. While the lifeboat is uncommissioned (before its first departure) its deck shares the home's air, because it mirrors the home's systems until then, so it resolves to the home. After the first departure the boat is an independent shelter as before. The golden hub and committed behaviour are unchanged (the old rule is the first branch).
+
+**Not changed, noted.** After the first departure, a docked, commissioned lifeboat whose power or life support is broken is still treated as an unbreathable shelter, as designed for derelict travel; the generated home keeps its life support healthy at the start, so this is only reachable after a departure.
+
+**Instrumentation added.** Every death logs `DEATH <air diagnostics> vitals=...`, and while the suit air drains an `AIR ...` line is logged every 5 s with the air owner, occupancy, field-suit flag, each vessel's origin and the distance to its nearest floor cell. `RunSession.AirDiagnostics()` and `RunSession.FieldSuitPressure` are the probes the tests read.
+
+**Why the Phase 1.11 proofs missed it** is recorded in `docs/playtest/home-safety-1.11.md`. The lesson for tests: prove the air at every point the navigation surface offers, with every occupancy the session can hold, in the real scene; an idle or teleport-to-cell-centre check validates a transform against itself.
+
 ## OPEN
 
 - **OPEN-1, book balance:** book XP (200 common, 250 uncommon, 350+ rare) and the loot weights and placement in `book_loot_overlay.json` are placeholders for the product owner to set.
