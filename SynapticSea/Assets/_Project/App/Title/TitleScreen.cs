@@ -202,6 +202,22 @@ namespace SynapticSea.App
             Router = new UiInputRouter(services.Input, Coordinator.Stack, Coordinator.HandleUiInput);
             if (isActiveAndEnabled) Router.Enable();
             CoreServices.Log.Info($"[TitleScreen] ready menu={Coordinator.GetCurrentMenu()} continue={Coordinator.MenuState.IsItemEnabled("main_menu", "continue")}");
+            TrySmokeNewRun();
+        }
+
+        /// <summary>
+        /// Test tooling (<c>tools/mac/smoke.sh --new-run</c>): in a dev build started with <c>-synaptic-smoke-new-run &lt;seed&gt;</c> this presses
+        /// New Run through the same setup panel the player uses. Inert in every other case.
+        /// </summary>
+        void TrySmokeNewRun()
+        {
+            string kind = AppServices.Instance != null ? AppServices.Instance.BuildMetadata.GetBuildKind() : "";
+            if (!SmokeNewRun.TryGetSeed(Environment.GetCommandLineArgs(), kind, out long seed)) return;
+            CoreServices.Log.Info("[SmokeNewRun] pressing New Run seed=" + seed);
+            NewRunSetupPanel panel = OpenNewRunSetup();
+            if (panel == null) { CoreServices.Log.Error("[SmokeNewRun] the New Run setup did not open"); return; }
+            panel.SetSeed(seed);
+            panel.RequestStart();
         }
 
         VisualElement BuildScreen()
