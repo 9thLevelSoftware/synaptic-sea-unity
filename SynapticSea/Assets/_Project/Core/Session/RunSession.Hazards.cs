@@ -303,7 +303,8 @@ namespace SynapticSea.Core.Session
         /// <summary>The vessel whose floor the survivor stands over, in occupancy-resolution order; null in open space.</summary>
         ShipInstance VesselUnderPlayer()
         {
-            foreach (ShipInstance ship in AllKnownShipsInternal().Where(candidate => candidate != null && RootValid(candidate.SceneRoot))
+            foreach (ShipInstance ship in AllKnownShipsInternal()
+                .OrderBy(candidate => candidate == PilotedShip ? 0 : candidate == LifeboatShip ? 1 : candidate == CurrentShip ? 2 : candidate == HomeShip ? 3 : 4))
                 .OrderBy(candidate => candidate == PilotedShip ? 0 : candidate == LifeboatShip ? 1 : candidate == CurrentShip ? 2 : candidate == HomeShip ? 3 : 4))
                 if (PlayerOverFloorsOf(ship)) return ship;
             return null;
