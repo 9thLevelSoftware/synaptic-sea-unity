@@ -104,6 +104,18 @@ namespace SynapticSea.Runtime.Session
         public static RunLaunchRequest NewRun(long seed, string biomeId, string difficultyId, double timeScale = WorldClock.DefaultNewRunScale) =>
             new RunLaunchRequest { Mode = RunLaunchMode.NewRun, Seed = seed, BiomeId = biomeId ?? "", DifficultyId = difficultyId ?? DefaultDifficultyId, TimeScale = timeScale };
 
+        /// <summary>
+        /// Phase 1.8: generate the home ship from the run seed instead of booting the golden hub. Default off, and the title's
+        /// New Run does not set it yet (PR F flips that). The generated home is Pristine and docks the lifeboat on its exterior
+        /// edge (<see cref="HomeDockPlanner"/>), but it is NOT yet guaranteed or safe: no repair-kit/food/water guarantee, no
+        /// hazard strip, no typed onboarding objectives. Use it for development and the generated-home tests only.
+        /// </summary>
+        public bool GeneratedHome;
+
+        /// <summary>Phase 1.8: a New Run whose home ship is generated from <paramref name="seed"/> (see <see cref="GeneratedHome"/>).</summary>
+        public static RunLaunchRequest GeneratedHomeRun(long seed, string biomeId = DefaultBiomeId, string difficultyId = DefaultDifficultyId, double timeScale = WorldClock.DefaultNewRunScale) =>
+            new RunLaunchRequest { Mode = RunLaunchMode.NewRun, Seed = seed, BiomeId = biomeId ?? "", DifficultyId = difficultyId ?? DefaultDifficultyId, TimeScale = timeScale, GeneratedHome = true };
+
         /// <summary>Test-only new run on the golden <c>coherent_ship_001</c> layout (no generation).</summary>
         public static RunLaunchRequest GoldenShip() => new RunLaunchRequest { Mode = RunLaunchMode.NewRun, LayoutOverridePath = GoldenShipDir + "layout.json", BiomeId = "" };
 
@@ -121,7 +133,7 @@ namespace SynapticSea.Runtime.Session
 
         public override string ToString() =>
             $"RunLaunchRequest(mode={Mode}, slot={SlotId}, seed={Seed}, biome={BiomeId}, difficulty={DifficultyId}, class={ClassId}" +
-            (LayoutOverridePath.Length != 0 ? $", layout={LayoutOverridePath}" : "") + $", settings={(SettingsSummary != null ? "dirty" : "untouched")})";
+            (LayoutOverridePath.Length != 0 ? $", layout={LayoutOverridePath}" : "") + (GeneratedHome ? ", generatedHome" : "") + $", settings={(SettingsSummary != null ? "dirty" : "untouched")})";
     }
 
     /// <summary>

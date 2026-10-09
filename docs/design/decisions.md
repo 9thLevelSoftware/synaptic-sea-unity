@@ -102,6 +102,17 @@ A New Run takes any seed from 1 to 2147483647 (`MilestoneALaunch.MinSeed` / `Max
 - **Fix:** `AssemblyMobility.SystemFactor(propulsion, power) = 1 - 0.15 * (1 - propulsion * power)` replaces the linear product. Only operational engines reach it, so the worst case (health product 0.25) still supports 5325 kg for a 6000 kg rating; a pristine ship is unchanged. The hull factor stays linear. `QualityFor` and its 0.5 floor are unchanged.
 - **Guards:** `TravelCapacityTests` (model level, golden state and the 200-seed sweep at skills 0 to 4), plus the session-level class matrix, which now asserts `TravelCapability().success` and a real travel to a wreck for all 11 classes (`EveryStartingClassCanActuallyTravelToAWreckAfterRepairingTheFlightPath`).
 
+## Phase 1.8: generated-home boot behind a flag (not yet the default)
+
+The product direction is that every New Run gets a home ship generated from the run seed, with a guaranteed lifeboat repair kit plus food and water, and the safest start the player will ever have. Phase 1.8 restores only the boot plumbing. Title New Run, direct open and every test still boot the golden hub.
+
+- **Flag:** `RunLaunchRequest.GeneratedHome` (default false; `RunLaunchRequest.GeneratedHomeRun(seed)`). Only when it is set does `PlayableBootstrap.PrepareDeps` call `StartSceneBuilder.BuildHomeStart` with a **Pristine** condition and `exteriorDock: true`. This supersedes the "home is the golden hub for every seed" part of Phase 1.5 **only when the flag is on**; PR F flips the default.
+- **Seeds:** `RunSeed` stays the *requested* seed (the Synaptic Sea world follows it, Phase 1.5). A reseeded home seed (the generator retries seed+1, up to 8 attempts) lives in the written `blueprint.json`.
+- **Files:** the home is written to `user://runs/<id>/{layout,gameplay_slice,blueprint}.json`. Continue and LoadSlot reload it by the saved `layout_path` (`ApplySavedHome`); `RunDirectoryJanitor` keeps referenced runs.
+- **Lifeboat:** the layout carries the `docking_port` contract from `HomeDockPlanner` (Phase 1.7c), which `DockPorts.ForDerelict` honours, so the boat docks on the dock/airlock room's exterior edge.
+- **Loot key:** a generated home (layout under `user://runs/`) rolls containers with `home:<RunSeed>:<containerId>`, so its loot varies by seed. The golden hub keeps `<MarkerId>:<id>` (empty marker), so the Godot parity rolls are unchanged.
+- **NOT guaranteed yet (PRs D, E, F):** the repair kit, food and water; stripping room variants, encounter markers, arc zones and other hazards from the home; the four typed onboarding objectives that drive the free repairs, powered gates and breach seal; role-based replacements for the golden room-id literals (tool pickup, calibrator, web-mooring control); the seed sweep and 30-minute safety proof. **A generated home must not be shipped as the default until those land.**
+
 ## OPEN
 
 - **OPEN-1, book balance:** book XP (200 common, 250 uncommon, 350+ rare) and the loot weights and placement in `book_loot_overlay.json` are placeholders for the product owner to set.

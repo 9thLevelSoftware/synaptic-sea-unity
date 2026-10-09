@@ -255,11 +255,61 @@ namespace SynapticSea.Game
                 return deps;
             }
 
+            if (launch.GeneratedHome)
+            {
+                if (!ApplyGeneratedHome(launch, deps, out failure)) return null;
+                deps.RunSeed = launch.Seed;
+                deps.TimeScale = launch.TimeScale;
+                return deps;
+            }
+
             MilestoneALaunch.ApplyHubPaths(deps);
             deps.RunSeed = launch.Seed;
             deps.TimeScale = launch.TimeScale;
             return deps;
         }
+
+        /// <summary>
+        /// Phase 1.8: generates the home ship from <paramref name="launch"/>'s seed (Pristine, lifeboat docked on the exterior
+        /// edge), writes it to <c>user://runs/&lt;id&gt;/</c> and points <paramref name="deps"/> at it. <c>RunSeed</c> stays the
+        /// requested seed (the Synaptic Sea world follows it); the reseeded home seed lives in the blueprint.
+        /// </summary>
+        bool ApplyGeneratedHome(RunLaunchRequest launch, RunSessionDeps deps, out string failure)
+        {
+            failure = "";
+            StartSceneBuilder.HomeStart start = StartSceneBuilder.BuildHomeStart(launch.Seed, deps.BiomeId, deps.DifficultyId,
+                condition: (long)ShipBlueprint.Condition.Pristine, exteriorDock: true);
+            if (start == null)
+            {
+                failure = "no viable ship could be generated from seed " + launch.Seed + " (" + StartSceneBuilder.MAX_START_ATTEMPTS + " attempts)";
+                return false;
+            }
+            GeneratedStart = start;
+            string runDir = RunsDir + NewRunDirectoryId(start.Seed) + "/";
+            try
+            {
+                IStorage storage = CoreServices.UserStorage;
+                storage.WriteText(runDir + "layout.json", start.Documents.LayoutJson ?? GdJson.Stringify(start.Documents.Layout, "  "));
+                storage.WriteText(runDir + "gameplay_slice.json", start.Documents.GameplaySliceJson ?? GdJson.Stringify(start.Documents.GameplaySlice, "  "));
+                storage.WriteText(runDir + "blueprint.json", GdJson.Stringify(start.Blueprint.ToDict(), "  "));
+            }
+            catch (Exception e)
+            {
+                failure = "could not write the generated run to " + runDir + ": " + e.Message;
+                return false;
+            }
+            RunDirectory = runDir;
+            deps.LayoutPath = runDir + "layout.json";
+            deps.GameplaySlicePath = runDir + "gameplay_slice.json";
+            deps.BlueprintPath = runDir + "blueprint.json";
+            deps.KitPath = string.IsNullOrEmpty(start.Documents.KitPath) ? RunSession.DEFAULT_KIT_PATH : start.Documents.KitPath;
+            if (start.Attempts > 1)
+                Debug.LogWarning($"PlayableBootstrap: seed {start.RequestedSeed} gave no viable start; reseeded to {start.Seed} ({string.Join("; ", start.Rejections)})");
+            return true;
+        }
+
+        static string NewRunDirectoryId(long seed) =>
+            DateTime.UtcNow.ToString("yyyyMMdd'T'HHmmss", System.Globalization.CultureInfo.InvariantCulture) + "-s" + seed + "-" + Guid.NewGuid().ToString("N").Substring(0, 6);
 
         /// <summary>A saved home ship's paths and run context (Continue / LoadSlot boot the layout the save names).</summary>
         static bool ApplySavedHome(RunSessionDeps deps, GdDict home, string label, out string failure)
