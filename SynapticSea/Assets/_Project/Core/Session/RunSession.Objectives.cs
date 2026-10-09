@@ -2,6 +2,7 @@
 // (8178-8313), the derelict objective loop (2901-3001, 6408-6485), the junction calibrator (9883-9997), and the
 // objective-completion verbs that replaced complete_*_for_validation (828-870).
 using System.Collections.Generic;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Rng;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Systems;
@@ -380,8 +381,39 @@ namespace SynapticSea.Core.Session
             ToolPickup = Spawn(pickup);
         }
 
+        /// <summary>
+        /// Phase 1.10: a generated home names the floor cell of each pickup its onboarding hands out in the gameplay slice (<c>home_pickups</c>), chosen by room role
+        /// and checked reachable when the home is generated. The golden hub and every test layout have none, so they keep their original positions.
+        /// </summary>
+        bool TryGeneratedHomePickupPosition(string toolId, out Vec3 position)
+        {
+            position = Vec3.Inf;
+            if (!GeneratedHome || Loader == null || Loader.GameplayDoc == null || Loader.LayoutDoc == null)
+                return false;
+            foreach (object pickupV in Loader.GameplayDoc.GetArrayOrEmpty(HomeObjectiveComposer.PickupsKey))
+            {
+                if (!(pickupV is GdDict pickup) || pickup.GetString("tool_id") != toolId)
+                    continue;
+                string roomId = pickup.GetString("room_id");
+                GdDict room = new GdDict();
+                foreach (object roomV in Loader.LayoutDoc.GetArrayOrEmpty("rooms"))
+                    if (roomV is GdDict candidate && candidate.GetString("id") == roomId)
+                        room = candidate;
+                if (room.IsEmpty || !(pickup.Get("approach_cell", null) is GdArray cell))
+                    continue;
+                Vec3 floor = GeneratedShipLayout.RoomCellWorld(Loader.LayoutDoc, room, cell);
+                if (floor == Vec3.Inf)
+                    continue;
+                position = ToGlobal(Loader, floor) + new Vec3(0.0f, (float)PLAYER_SPAWN_HEIGHT_ABOVE_NAV_FLOOR, 0.0f);
+                return true;
+            }
+            return false;
+        }
+
         Vec3 ResolveToolPickupWorldPosition()
         {
+            if (TryGeneratedHomePickupPosition(HomeObjectiveComposer.ToolPickupId, out Vec3 generated))
+                return generated;
             if (Loader != null)
             {
                 Vec3 roomCenter = Loader.GetRoomCenter("tool_storage_01");
@@ -434,6 +466,8 @@ namespace SynapticSea.Core.Session
 
         Vec3 ResolveJunctionCalibratorWorldPosition()
         {
+            if (TryGeneratedHomePickupPosition(HomeObjectiveComposer.CalibratorPickupId, out Vec3 generated))
+                return generated;
             if (Loader != null)
             {
                 Vec3 roomCenter = Loader.GetRoomCenter(JUNCTION_CALIBRATOR_FALLBACK_ROOM_ID);

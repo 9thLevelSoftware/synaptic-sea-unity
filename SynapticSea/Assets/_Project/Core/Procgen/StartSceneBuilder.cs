@@ -271,8 +271,13 @@ namespace SynapticSea.Core.Procgen
                 StartingHomeGuarantee.Plan plan = null;
                 if (reason.Length == 0 && guarantee != null)
                 {
-                    reason = StartingHomeGuarantee.Apply(docs, blueprint, seed, guarantee, out plan);
+                    // Phase 1.10: the onboarding chain first (the guarantee's caches then avoid its cells), then the kit, then one check of both.
+                    reason = HomeObjectiveComposer.Apply(docs, seed);
+                    if (reason.Length == 0) reason = HomeObjectiveComposer.Validate(docs);
+                    if (reason.Length == 0) reason = StartingHomeGuarantee.Apply(docs, blueprint, seed, guarantee, out plan);
                     if (reason.Length == 0) reason = StartingHomeGuarantee.Validate(docs, blueprint, guarantee);
+                    if (reason.Length == 0) reason = HomeObjectiveComposer.Validate(docs);
+                    if (reason.Length == 0) reason = HomeObjectiveComposer.ReachabilityReason(docs);
                 }
                 if (reason.Length == 0)
                 {

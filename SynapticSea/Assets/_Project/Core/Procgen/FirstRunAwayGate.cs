@@ -162,7 +162,20 @@ namespace SynapticSea.Core.Procgen
             foreach (object other in gameplaySlice.GetArrayOrEmpty("loot_containers"))
                 BlockApproach(other as GdDict, roomId, blocked);
             foreach (object objective in gameplaySlice.GetArrayOrEmpty("objectives"))
+            {
                 BlockApproach(objective as GdDict, roomId, blocked);
+                // A repair_junction objective also stands on the approach cell of each of its steps.
+                if (objective is GdDict junction && V.Str(junction.Get("room_id", "")) == roomId)
+                    foreach (object stepV in junction.GetArrayOrEmpty("steps"))
+                        if (stepV is GdDict step)
+                        {
+                            GdArray stepCell = LayoutSerializer.ParseSlotCell(step.Get("approach_cell", new GdArray()));
+                            if (stepCell.Count >= 2) blocked.Add(V.I64(stepCell[0]) + "," + V.I64(stepCell[1]));
+                        }
+            }
+            // Phase 1.10: a generated home also places pickups (home_pickups); wrecks and the golden hub have none.
+            foreach (object pickup in gameplaySlice.GetArrayOrEmpty("home_pickups"))
+                BlockApproach(pickup as GdDict, roomId, blocked);
             foreach (string bucket in new[] { "center_slots", "wall_slots" })
             {
                 GdArray slots = interior.GetArrayOrEmpty(bucket);
@@ -344,7 +357,7 @@ namespace SynapticSea.Core.Procgen
             return ThreatPathfinder.FindPath(graph, graph.GetNodePos(startNode), graph.GetNodePos(goalNode)).Count > 0;
         }
 
-        static string NearestNodeInRoom(ShipNavGraph graph, Vec3 worldPos, string roomId)
+        internal static string NearestNodeInRoom(ShipNavGraph graph, Vec3 worldPos, string roomId)
         {
             string best = "";
             double bestD = double.PositiveInfinity;
@@ -362,7 +375,7 @@ namespace SynapticSea.Core.Procgen
             return best;
         }
 
-        static Vec3 StandingRoomPos(GdDict layout, string roomId)
+        internal static Vec3 StandingRoomPos(GdDict layout, string roomId)
         {
             GdDict occupancy = layout.GetDictOrEmpty("structural_plan").GetDictOrEmpty("occupancy");
             foreach (object recordV in occupancy.Values)

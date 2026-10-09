@@ -27,7 +27,19 @@ namespace SynapticSea.Core.Session
             { "synthesizer", new[] { "medical", "reactor", "engineering", "maintenance" } },
             { "hydroponics", new[] { "storage", "cargo", "crew_quarters", "quarters", "compartment" } },
             { "water_recycler", new[] { "maintenance", "reactor", "engineering", "storage" } },
+            // Phase 1.10: the onboarding objectives, the pickups they hand out and the web-mooring control, by room role. The golden hub resolves
+            // to its authored rooms (cargo_01, maintenance_01, medbay_01, reactor_01); a generated home resolves the same kinds to whatever rooms it has.
+            { ObjectiveKindPrefix + "recover_supplies", new[] { "cargo", "storage", "hangar", "mess_hall" } },
+            { ObjectiveKindPrefix + "restore_systems", new[] { "maintenance", "engineering", "life_support", "tool_storage" } },
+            { ObjectiveKindPrefix + "download_logs", new[] { "medical", "bridge", "crew_quarters", "quarters" } },
+            { ObjectiveKindPrefix + "stabilize_reactor", new[] { "reactor", "engineering", "life_support", "maintenance" } },
+            { "tool_pickup", new[] { "tool_storage", "maintenance", "engineering", "storage", "cargo" } },
+            { "calibrator_pickup", new[] { "galley", "mess_hall", "crew_quarters", "quarters", "maintenance", "storage" } },
+            { "home_mooring", new[] { "cargo", "storage", "hangar" } },
         };
+
+        /// <summary>Prefix of the <see cref="PREFERRED_ROOM_ROLES"/> keys that name an onboarding objective type.</summary>
+        public const string ObjectiveKindPrefix = "objective:";
 
         /// <summary>Room roles that are passages or entries: stations never go there, except through the legacy fallback.</summary>
         public static readonly HashSet<string> PASSAGE_ROLES = new HashSet<string>(StringComparer.Ordinal)
@@ -90,6 +102,46 @@ namespace SynapticSea.Core.Session
                 output.Add(placement);
             }
             return output;
+        }
+
+        /// <summary>
+        /// Room ids of <paramref name="layout"/> in the order <paramref name="kind"/> prefers them: rooms whose role is the first preferred role
+        /// (layout order), then the next role, and so on, then every other room that is not a passage (layout order). Passages and entries
+        /// (<see cref="PASSAGE_ROLES"/>) are never returned. Deterministic. Empty for a layout with no rooms.
+        /// </summary>
+        public static List<string> RoomIdsByPreference(GdDict layout, string kind)
+        {
+            var output = new List<string>();
+            if (layout == null) return output;
+            GdArray rooms = layout.GetArrayOrEmpty("rooms");
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            if (PREFERRED_ROOM_ROLES.TryGetValue(kind ?? "", out string[] roles))
+            {
+                foreach (string role in roles)
+                    foreach (object roomV in rooms)
+                    {
+                        if (!(roomV is GdDict room) || RoleOf(room) != role) continue;
+                        string id = V.Str(room.Get("id", ""));
+                        if (id.Length != 0 && seen.Add(id)) output.Add(id);
+                    }
+            }
+            foreach (object roomV in rooms)
+            {
+                if (!(roomV is GdDict room) || IsPassage(RoleOf(room))) continue;
+                string id = V.Str(room.Get("id", ""));
+                if (id.Length != 0 && seen.Add(id)) output.Add(id);
+            }
+            return output;
+        }
+
+        /// <summary>A passage or entry role: <see cref="PASSAGE_ROLES"/> plus the generator's connective roles (hub, elevator).</summary>
+        public static bool IsPassage(string role) =>
+            PASSAGE_ROLES.Contains(role) || System.Linq.Enumerable.Contains(SynapticSea.Core.Procgen.GameplaySliceBuilder.CONNECTIVE_ROLES, role);
+
+        static string RoleOf(GdDict room)
+        {
+            string role = V.Str(room.Get("room_role", ""));
+            return role.Length != 0 ? role : V.Str(room.Get("role", ""));
         }
 
         sealed class RoomSpots

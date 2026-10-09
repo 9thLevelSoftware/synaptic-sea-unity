@@ -82,6 +82,26 @@ namespace SynapticSea.Core.Session
                     }
         }
 
+        /// <summary>
+        /// Where the home's web-mooring control stands: at the golden hub's <c>cargo_01</c> loot container, else (Phase 1.10, generated homes) at the container
+        /// of the first room whose role suits mooring work (<c>home_mooring</c> in <see cref="StationPlacer.PREFERRED_ROOM_ROLES"/>), else on the home's
+        /// floor cell nearest the origin; the original (0, .4, 0) when the home has no floor to stand on.
+        /// </summary>
+        Vec3 HomeMooringControlPosition(ShipInstance home)
+        {
+            var containers=Loader?.GetLootContainerSpecsCopy().Cast<GdDict>().ToList() ?? new List<GdDict>();
+            var golden=containers.FirstOrDefault(c=>c.GetString("room_id")=="cargo_01")?.Get("position") as Vec3?;
+            if(golden.HasValue) return golden.Value;
+            if(GeneratedHome && Loader!=null)
+            {
+                foreach(string roomId in StationPlacer.RoomIdsByPreference(Loader.LayoutDoc,"home_mooring"))
+                    if(containers.FirstOrDefault(c=>c.GetString("room_id")==roomId)?.Get("position") is Vec3 inRoom) return inRoom;
+                var floor=AssemblyMobility.Floors(home.BuiltLayout).OrderBy(c=>c.DistanceSquaredTo(Vec3.Zero)).FirstOrDefault();
+                if(floor!=Vec3.Zero || AssemblyMobility.Floors(home.BuiltLayout).Count>0) return floor+new Vec3(0,.4f,0);
+            }
+            return new Vec3(0,.4f,0);
+        }
+
         public void RebuildHomeJoinControls()
         {
             foreach(var old in HomeJoinControls) Despawn(old); HomeJoinControls.Clear();
@@ -93,7 +113,7 @@ namespace SynapticSea.Core.Session
                     if(ship==LifeboatShip)
                         at=BridgeTerminals.FirstOrDefault(t=>t.ShipId==ship.ShipId)?.LocalPosition ?? new Vec3(0,.4f,0);
                     else if(ship==HomeShip)
-                        at=(Loader?.GetLootContainerSpecsCopy().Cast<GdDict>().FirstOrDefault(c=>c.GetString("room_id")=="cargo_01")?.Get("position") as Vec3?) ?? new Vec3(0,.4f,0);
+                        at=HomeMooringControlPosition(ship);
                     else
                     {
                         var port=DockPorts.ForDerelict(ship.BuiltLayout);

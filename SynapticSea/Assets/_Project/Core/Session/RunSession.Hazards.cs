@@ -45,7 +45,10 @@ namespace SynapticSea.Core.Session
                 }
                 zoneIds.Add(zoneId);
             }
-            if (positions.Count == 0)
+            // Phase 1.10: the golden hub's one oxygen hazard is synthesized between its third and fourth objective. A generated home is the
+            // calm opening of the run (the starting-home guarantee strips its authored hazards), so it gets no such zone.
+            bool calmGeneratedHome = GeneratedHome && !AwayFromStart;
+            if (positions.Count == 0 && !calmGeneratedHome)
             {
                 positions.Add(ResolveBreachZoneWorldPosition(breachLoader));
                 zoneIds.Add(BREACH_ZONE_FALLBACK_ID);
