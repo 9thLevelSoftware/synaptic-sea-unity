@@ -105,14 +105,16 @@ namespace SynapticSea.Runtime.Session
             new RunLaunchRequest { Mode = RunLaunchMode.NewRun, Seed = seed, BiomeId = biomeId ?? "", DifficultyId = difficultyId ?? DefaultDifficultyId, TimeScale = timeScale };
 
         /// <summary>
-        /// Phase 1.8: generate the home ship from the run seed instead of booting the golden hub. Default off, and the title's
-        /// New Run does not set it yet (PR F flips that). The generated home is Pristine and docks the lifeboat on its exterior
-        /// edge (<see cref="HomeDockPlanner"/>), but it is NOT yet guaranteed or safe: no repair-kit/food/water guarantee, no
-        /// hazard strip, no typed onboarding objectives. Use it for development and the generated-home tests only.
+        /// Generate the home ship from the run seed instead of booting the authored hub. The Title's New Run sets it (Phase 1.11) whenever the
+        /// pacing is scaled; a request with no flag (direct open, <see cref="NewRun()"/>, <see cref="GoldenShip"/>) stays on the authored hub, which the
+        /// scripted golden routes and the seed-17 tests rely on. The generated home is Pristine, docks the lifeboat on its exterior edge
+        /// (<see cref="HomeDockPlanner"/>), guarantees the lifeboat repair kit, food and water for a 30 game hour excursion, starts free of every hazard
+        /// and carries the four typed onboarding objectives. It needs scaled pacing (<see cref="TimeScale"/> above 1): its food and water are computed
+        /// for scaled time, so real-time pacing falls back to the authored hub.
         /// </summary>
         public bool GeneratedHome;
 
-        /// <summary>Phase 1.8: a New Run whose home ship is generated from <paramref name="seed"/> (see <see cref="GeneratedHome"/>).</summary>
+        /// <summary>A New Run whose home ship is generated from <paramref name="seed"/> (see <see cref="GeneratedHome"/>).</summary>
         public static RunLaunchRequest GeneratedHomeRun(long seed, string biomeId = DefaultBiomeId, string difficultyId = DefaultDifficultyId, double timeScale = WorldClock.DefaultNewRunScale) =>
             new RunLaunchRequest { Mode = RunLaunchMode.NewRun, Seed = seed, BiomeId = biomeId ?? "", DifficultyId = difficultyId ?? DefaultDifficultyId, TimeScale = timeScale, GeneratedHome = true };
 

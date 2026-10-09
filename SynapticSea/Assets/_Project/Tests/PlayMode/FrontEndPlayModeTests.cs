@@ -201,7 +201,8 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual("breach_field", request.BiomeId);
             Assert.AreEqual("standard", request.DifficultyId);
             Assert.AreEqual("engineer", request.ClassId);
-            Assert.AreEqual("", request.LayoutOverridePath, "Title New Run has no layout override; the hub is applied at boot");
+            Assert.AreEqual("", request.LayoutOverridePath, "Title New Run has no layout override; the home is applied at boot");
+            Assert.IsTrue(request.GeneratedHome, "Title New Run at scaled pacing starts in a home generated from the seed (Phase 1.11)");
             Assert.IsNull(request.SettingsSummary, "untouched title settings are not handed off");
             Assert.AreEqual(60.0, request.TimeScale, "a New Run defaults to 1 real minute = 1 game hour");
             Assert.AreSame(request, RunLaunchRequest.Consume());
@@ -229,6 +230,37 @@ namespace SynapticSea.Tests.PlayMode
             Assert.AreEqual(30.0, setup.TimeScale);
             Assert.AreEqual("2 min = 1 hour", setup.RowValue(NewRunSetupPanel.RowTimeScale));
             Assert.AreEqual(30.0, setup.BuildRequest().TimeScale, "the request carries the chosen pacing");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator NewRunSetupAtRealTimePacingStartsInTheAuthoredHubAndSaysWhy()
+        {
+            yield return BootToTitle();
+            MenuCoordinator c = _title.Coordinator;
+            c.MenuState.SetFocusIndex(RowIndex(c, "start"));
+            c.HandleUiInput(UiCommand.Accept);
+            NewRunSetupPanel setup = _title.NewRunSetup;
+            Assert.IsTrue(setup.StartsInGeneratedHome);
+            Assert.IsTrue(setup.BuildRequest().GeneratedHome, "scaled pacing generates the home");
+            StringAssert.Contains(NewRunSetupPanel.LockedReason, setup.StatusDisplay);
+
+            setup.FocusRow(NewRunSetupPanel.RowTimeScale);
+            setup.Cycle(1); // 120x
+            setup.Cycle(1); // off
+            Assert.AreEqual(1.0, setup.TimeScale);
+            Assert.IsFalse(setup.StartsInGeneratedHome);
+            Assert.IsFalse(setup.BuildRequest().GeneratedHome, "real-time pacing boots the authored hub");
+            StringAssert.Contains(NewRunSetupPanel.AuthoredHubReason, setup.StatusDisplay, "the fallback and its reason are on screen");
+
+            setup.Cycle(1); // back to 30x
+            Assert.IsTrue(setup.BuildRequest().GeneratedHome);
+            StringAssert.Contains(NewRunSetupPanel.LockedReason, setup.StatusDisplay);
+
+            setup.ShowStartFailure("No viable home could be generated from seed 1 (8 attempts). Choose Randomize seed and start again.");
+            StringAssert.Contains("Randomize seed", setup.StatusDisplay, "a start failure is reported on the setup");
+            setup.SetSeed(2);
+            StringAssert.Contains(NewRunSetupPanel.LockedReason, setup.StatusDisplay, "changing the seed clears the failure");
             yield return null;
         }
 

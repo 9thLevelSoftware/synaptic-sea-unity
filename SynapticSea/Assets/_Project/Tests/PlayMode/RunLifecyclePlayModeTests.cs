@@ -351,7 +351,12 @@ namespace SynapticSea.Tests.PlayMode
             StringAssert.Contains("Load failed: save slot 'manual_3' could not be loaded", title.StatusText);
         }
 
-        IEnumerator StartThroughTitle()
+        /// <summary>
+        /// Starts a run through the real Title New Run. The scripted routes below were tuned on the authored golden hub, so they ask for it
+        /// explicitly (<paramref name="generatedHome"/> false); the Title's own default is the generated home (Phase 1.11), which the
+        /// generated-home tests start with <paramref name="generatedHome"/> true.
+        /// </summary>
+        IEnumerator StartThroughTitle(bool generatedHome = false, long seed = RunLaunchRequest.DefaultSeed)
         {
             SceneManager.LoadScene("Boot");
             TitleScreen title = null;
@@ -359,7 +364,8 @@ namespace SynapticSea.Tests.PlayMode
             var coordinator = title.Coordinator;
             coordinator.MenuState.SetFocusIndex(coordinator.MenuPanel.Rows.ToList().FindIndex(r => r.Id == "start"));
             coordinator.HandleUiInput(UiCommand.Accept);
-            title.NewRunSetup.SetSeed(RunLaunchRequest.DefaultSeed);
+            title.NewRunSetup.GeneratedHome = generatedHome;
+            title.NewRunSetup.SetSeed(seed);
             title.NewRunSetup.FocusRow(NewRunSetupPanel.RowStart);
             title.NewRunSetup.Consume(UiCommand.Accept);
             float deadline = Time.realtimeSinceStartup + 30f;
@@ -407,6 +413,7 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsTrue(NavMesh.SamplePosition(Frame.ToUnity(target), out var landing, 2.5f, filter), "walkable target: " + target);
             var path = new NavMeshPath();
             bool rebuiltNavigation = false;
+            int nearDoorPresses = 0;
             for (int guard = 0; guard < 8; guard++)
             {
                 if (TryStandingApproach(target, radius, player.transform.position, filter, out var standing))
@@ -444,6 +451,23 @@ namespace SynapticSea.Tests.PlayMode
                     continue;
                 }
                 if (rebuiltNavigation && chosen == null) Debug.Log("[NaturalWalk] route to " + target + " is still missing after a navigation rebuild");
+                if (chosen == null && rebuiltNavigation && nearDoorPresses < 3)
+                {
+                    // A cramped landing (a door a step from a ramp top) leaves no 1.3 m stand-off point, yet the door is in reach: press interact where
+                    // the survivor stands, as a player would, then plan again.
+                    Vector3 here = player.transform.position;
+                    var near = Object.FindObjectsByType<AuthoredPortalRuntime>()
+                        .Where(p => !p.isOpen && p.portalKind != "LOCKED" && Mathf.Abs(p.transform.position.y - here.y) < 1.5f
+                            && new Vector2(p.transform.position.x - here.x, p.transform.position.z - here.z).magnitude < 2.4f)
+                        .OrderBy(p => Vector3.Distance(p.transform.position, here)).FirstOrDefault();
+                    if (near != null)
+                    {
+                        nearDoorPresses++;
+                        player.RequestInteract();
+                        for (int i = 0; i < 8; i++) yield return new WaitForFixedUpdate();
+                        if (near.isOpen) { Debug.Log("[NaturalWalk] opened " + near.portalId + " in reach from a cramped landing"); continue; }
+                    }
+                }
                 Assert.IsNotNull(chosen, "a reachable closed door or standing interaction approach exists for " + target
                     + "; current=" + _s.CurrentShip?.ShipId + " piloted=" + _s.PilotedShip?.ShipId + " home=" + _s.HomeShip?.ShipId + " boat=" + _s.LifeboatShip?.ShipId
                     + "; consoles=" + string.Join(", ", _s.BridgeTerminals.Select(t => t.ShipId + "@" + Frame.ToUnity(t.GlobalPosition)))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using SynapticSea.App;
+using SynapticSea.Core.Procgen;
 using SynapticSea.Core.Services;
 using SynapticSea.Core.Session;
 using SynapticSea.Core.Systems;
@@ -573,7 +574,11 @@ namespace SynapticSea.Tests.PlayMode
             Assert.IsNotNull(_boot.Launch, "the title's request was consumed");
             Assert.AreEqual(RunLaunchMode.NewRun, _boot.Launch.Mode);
             Assert.IsNull(RunLaunchRequest.Pending);
-            StringAssert.Contains("coherent_ship_001", _s.LayoutPath, "Milestone A New Run hub is golden coherent_ship_001");
+            Assert.IsTrue(_boot.Launch.GeneratedHome, "Title New Run at scaled pacing generates the home (Phase 1.11)");
+            Assert.IsNotNull(_boot.GeneratedStart, "the home was generated from the seed");
+            Assert.IsTrue(_s.GeneratedHome);
+            StringAssert.StartsWith(PlayableBootstrap.RunsDir, _s.LayoutPath, "the generated home lives under user://runs/");
+            Assert.AreNotEqual(MilestoneALaunch.HubLayoutPath, _s.LayoutPath, "it is not the authored hub");
             Assert.AreNotEqual(RunSession.DEFAULT_LAYOUT_PATH, _s.LayoutPath);
             Assert.IsNotNull(Player, "the player spawned");
 

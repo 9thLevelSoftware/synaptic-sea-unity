@@ -4,16 +4,18 @@ Verify path for the New Run + first-away launch contract (REQ-SLICE-001, `docs/g
 
 Automated coverage: `dotnet test tools/dotnet/SynapticSea.Core.Tests --filter MilestoneALaunchContract` (hub resolve, fail-closed launch params, preferred-seed order, attach-path first away, travel deny, `StartSceneBuilder` null-with-log) and `--filter RandomSeedNewRun` (any seed accepted, seeded world, golden home for every seed, save/Continue with the same contacts, the first wreck qualifies for the contacts of many worlds; set `SYNAPTICSEA_SEED_SWEEP=200` for a wider sweep). PlayMode: `TitleNewRunRequestBootsTheMilestoneAHub`, `TitleNewRunBootsPlayableAndQuitReturnsToTitle`, `NewRunWithARandomSeedBootsTheGoldenHubOnASeededWorld` and `ResultsNewRunRollsAFreshSeedAndKeepsTheClassAndPacing`.
 
+**Phase 1.11 (current):** the Title's New Run at scaled pacing (the default, 1 real minute = 1 game hour) starts in a **home generated from the seed**, not the golden hub: a Pristine layout with the lifeboat docked on its exterior edge, the lifeboat repair kit plus food and water for a 30 game hour excursion placed in seeded rooms, a calm start (no threats, fire, breaches or hazardous rooms), and the four onboarding objectives by room role. The golden `coherent_ship_001` hub is still what direct open, `RunLaunchRequest.GoldenShip()`, the scripted golden routes and real-time pacing ("Off (real time)" in the setup, which says so on screen) boot. Safety evidence: `docs/playtest/home-safety-1.11.md`. The sections below that say "hub" describe the authored hub path (acceptance 1 applies to it with pacing Off or a direct open).
+
 **Phase 1.5:** a New Run takes any seed from 1 to 2147483647. The title opens on a random seed (Randomize rolls another; Results "New Run" rolls a fresh one). The seed drives the Synaptic Sea world (scanner contacts and their sizes and conditions, sea graph). The first away wreck still uses the validated hull (seed 42, else 777) at the contact's size and condition. The home is the golden `coherent_ship_001` for every seed: its systems damage, loot, tutorial and spawn safety are unchanged. Biome (`breach_field`) and difficulty (`standard`) stay fixed, shown as "(fixed)" with a reason on the setup screen, until the hardened and other-biome homes are playtested.
 
 ## Acceptance
 
-### 1. Title New Run → hub `coherent_ship_001`
+### 1. Title New Run → a generated home (scaled pacing) or the hub `coherent_ship_001` (real-time pacing, direct open)
 
 1. Boot to Title. Leave difficulty at **standard**.
 2. Choose **New Run**. The setup opens on a random seed with the biome and difficulty rows marked "(fixed)".
 3. Start the run (any seed, or Randomize first). The log line `[PlayableBootstrap] booted ... seed=<seed>` shows the seed you chose.
-4. Confirm the hub is golden `coherent_ship_001` (not `smoke/seed_000017`).
+4. Confirm the home: with scaled pacing it is a generated home (its layout is under `user://runs/<id>/` and the log line `[PlayableBootstrap]` names the seed; a different seed gives a different layout); with pacing **Off** it is the golden `coherent_ship_001` (not `smoke/seed_000017`).
 5. Move, interact, and confirm the HUD is live.
 
 ### 2. First away evaluates 42 then 777
@@ -56,9 +58,9 @@ Save/load may only show the already-pinned ≤22 allowed save-rebuild divergence
 - A New Run request with an out-of-range seed (below 1 or above 2147483647), a non-slice biome, or a non-slice difficulty (example: seed 99, `dead_fleet`, `hardened`) must **not** silently load `seed_000017` or the wrong hub. Expect a readable `non_slice_launch` reason and a return to Title. The setup screen cannot produce these (the rows are fixed and the seed is clamped); only a hand-built request can.
 - `BlockedRoute_*` markers keep Godot `96ecb2b0` parity for this slice (stay collidable after powered gates open if that is what Godot does).
 
-### 8. Idle hub is passively safe
+### 8. Idle home is passively safe
 
-Stand in the start room on `coherent_ship_001` after Title New Run. You must not die from unengaged hunters, ship-wide radiation, hunger, or unattended fire while only present. Automation covers 30 simulated minutes with game session deps (`HomeSpawnSafetyTests`). Do not retune survival JSON.
+Stand in the start room after Title New Run (a generated home at scaled pacing, or `coherent_ship_001` with pacing Off). You must not die from unengaged hunters, ship-wide radiation, hunger, or unattended fire while only present. Automation covers 30 simulated minutes with game session deps: `HomeSpawnSafetyTests` for the golden hub, and `GeneratedHomeSafetyTests` for generated homes at 30x, 60x and 120x. Do not retune survival JSON.
 
 ## Godot `96ecb2b0` note
 

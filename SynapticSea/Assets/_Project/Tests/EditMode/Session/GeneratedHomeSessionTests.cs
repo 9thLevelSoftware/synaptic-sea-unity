@@ -59,12 +59,20 @@ namespace SynapticSea.Tests.Session
 
         /// <summary>Boots a generated New Run home exactly as <c>PlayableBootstrap.ApplyGeneratedHome</c> builds it. Null when no home is viable.</summary>
         internal static RunSession BootGeneratedHome(long seed, out SessionHarness.Rig rig, out StartSceneBuilder.HomeStart start)
+            => BootGeneratedHome(seed, out rig, out start, WorldClock.DefaultNewRunScale, null, true);
+
+        /// <summary>
+        /// The same boot with the knobs the safety proof needs: the clock scale the home is generated and run at, the starting class
+        /// (null keeps the harness default), and whether the harness clears the threats the home spawned (the safety proof must not).
+        /// </summary>
+        internal static RunSession BootGeneratedHome(long seed, out SessionHarness.Rig rig, out StartSceneBuilder.HomeStart start,
+            double timeScale, string classId, bool clearThreats)
         {
             RunSessionDeps deps = SessionHarness.GoldenDeps(out rig);
             CoreServices.UserStorage = rig.Storage;
             CoreServices.Resources = new FileSystemResourceReader(Fixtures.StreamingDataRoot, rig.Storage);
             SessionHarness.OverlayGamePlayability(deps);
-            var guarantee = new StartingHomeGuarantee.Spec { ClockScale = WorldClock.DefaultNewRunScale };
+            var guarantee = new StartingHomeGuarantee.Spec { ClockScale = timeScale };
             LastBuildLog = new CollectingLog();
             CoreServices.Log = LastBuildLog;
             start = StartSceneBuilder.BuildHomeStart(seed, Biome, Difficulty, condition: (long)ShipBlueprint.Condition.Pristine,
@@ -81,10 +89,11 @@ namespace SynapticSea.Tests.Session
             deps.RunSeed = seed;
             deps.BiomeId = Biome;
             deps.DifficultyId = Difficulty;
-            deps.TimeScale = WorldClock.DefaultNewRunScale;
+            deps.TimeScale = timeScale;
+            if (classId != null) deps.StartingClassId = classId;
             RunSession s = RunSession.Create(deps);
             Assert.IsTrue(s.PlayableStarted, "seed " + seed + ": " + s.LastFailureReason);
-            s.ThreatManager.Threats.Clear();
+            if (clearThreats) s.ThreatManager.Threats.Clear();
             return s;
         }
 

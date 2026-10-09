@@ -102,9 +102,9 @@ A New Run takes any seed from 1 to 2147483647 (`MilestoneALaunch.MinSeed` / `Max
 - **Fix:** `AssemblyMobility.SystemFactor(propulsion, power) = 1 - 0.15 * (1 - propulsion * power)` replaces the linear product. Only operational engines reach it, so the worst case (health product 0.25) still supports 5325 kg for a 6000 kg rating; a pristine ship is unchanged. The hull factor stays linear. `QualityFor` and its 0.5 floor are unchanged.
 - **Guards:** `TravelCapacityTests` (model level, golden state and the 200-seed sweep at skills 0 to 4), plus the session-level class matrix, which now asserts `TravelCapability().success` and a real travel to a wreck for all 11 classes (`EveryStartingClassCanActuallyTravelToAWreckAfterRepairingTheFlightPath`).
 
-## Phase 1.8: generated-home boot behind a flag (not yet the default)
+## Phase 1.8: generated-home boot behind a flag (the default since Phase 1.11)
 
-The product direction is that every New Run gets a home ship generated from the run seed, with a guaranteed lifeboat repair kit plus food and water, and the safest start the player will ever have. Phase 1.8 restores only the boot plumbing. Title New Run, direct open and every test still boot the golden hub.
+The product direction is that every New Run gets a home ship generated from the run seed, with a guaranteed lifeboat repair kit plus food and water, and the safest start the player will ever have. Phase 1.8 restored the boot plumbing behind a flag; Phase 1.11 made it the Title's default (below).
 
 - **Flag:** `RunLaunchRequest.GeneratedHome` (default false; `RunLaunchRequest.GeneratedHomeRun(seed)`). Only when it is set does `PlayableBootstrap.PrepareDeps` call `StartSceneBuilder.BuildHomeStart` with a **Pristine** condition and `exteriorDock: true`. This supersedes the "home is the golden hub for every seed" part of Phase 1.5 **only when the flag is on**; PR F flips the default.
 - **Seeds:** `RunSeed` stays the *requested* seed (the Synaptic Sea world follows it, Phase 1.5). A reseeded home seed (the generator retries seed+1, up to 8 attempts) lives in the written `blueprint.json`.
@@ -139,6 +139,28 @@ A generated home now carries the same onboarding chain as the golden hub, so fin
 - **Named limitation, LIM-1 (wreck mooring):** `HomeJoinPlanner` only offers the west edge of a deck-0 hull at least 4.05 m from the dock port; fewer than half of generated homes have such a site (the exterior dock often takes the west edge). Phase 5 must generalize the planner to any exposed edge before the joined-home flow works on every generated home.
 - **Verified, not changed:** the runtime's dock-overlap suppression keys on a room id starting with `airlock` or `dock`, and every generated home's dock room id has that prefix (asserted in the sweep). The commissioning control and bridge terminal stand on hull floor cells (asserted over floor in the session test).
 - **Still NOT done (PR F):** the 30-minute idle safety proof, the real-route proof on a generated home, and flipping the default. A generated home still must not ship as the default.
+
+## Phase 1.11: New Run starts in the generated home
+
+**Decision.** The Title's New Run at scaled pacing (the default, 60x; also 30x and 120x) starts in a home generated from the run seed. `StartSceneBuilder.BuildNewRunHome` is the one definition (Pristine, lifeboat docked on the exterior edge, starting-home guarantee, typed onboarding objectives); the bootstrap, the Title's pre-flight and the tests all call it. This **supersedes port-status decisions 60 and 65 for Title New Run** and the "home is the golden hub for every seed" part of Phase 1.5. Direct open, `RunLaunchRequest.NewRun()` with no flag, `RunLaunchRequest.GoldenShip()`, the scripted golden routes and the seed-17 tests still boot the authored golden hub.
+
+**Evidence.** `docs/playtest/home-safety-1.11.md`: 30-minute idle sweeps at 30x, 60x and 120x (60 seeds each), the full route for every starting class (repair skill 0 to 4) from the kit alone, the stores keeping the survivor fed for 30 game hours, two physically walked routes, and the docked lifeboat no deeper into the home than the golden hub's. All passed.
+
+**Wiring.**
+- `NewRunSetupPanel.GeneratedHome` (default true) and `StartsInGeneratedHome`; the request is `GeneratedHomeRun` at scaled pacing. Tests that need the authored hub through the real Title set `GeneratedHome = false`.
+- **Pacing Off falls back to the authored hub.** The food and water guarantee is computed for scaled time (it refuses at 1x), so the setup shows "Real-time pacing starts in the authored hub..." and builds a plain `NewRun`. The authored hub is unchanged and tuned for it.
+- **A seed with no viable home** (8 attempts) is reported on the setup screen before the scene loads, with Randomize seed one press away; the bootstrap keeps its own failure path (a clear message back at the Title) as a second line.
+- **Results "New Run"** after a generated home (including a continued one) generates another home on a fresh seed with the same class and pacing.
+- Continue and LoadSlot reload the saved home by its `user://runs` path (Phase 1.8).
+
+**Known limits.**
+- **LIM-1 (wreck mooring):** fewer than half of generated homes have a site `HomeJoinPlanner` can use, so the joined-home flow is unreliable on generated homes until Phase 5 generalizes the planner.
+- **Variety:** neighbouring seeds can converge on the same home (a rejected seed re-rolls to seed+1): 23 distinct layouts in 30 seeds.
+- **Two decks:** generated homes can be two-deck (ramp transfer by interact); the golden routes are not affected.
+- **OPEN-3 unchanged:** `JoinedHomeFlight...` still fails at the second wreck's engineering objective.
+- **Biome and difficulty stay locked** (`breach_field` / `standard`).
+- **Mooring cut tool:** the home kit holds only the tools its repairs need, so a plasma cutter is not guaranteed. Cutting the home's web mooring is not required to depart (travel does not check it), but a player who wants to cut it needs to find a cutter.
+- **Scripted-route walker:** the shared PlayMode `WalkTo` helper gained a fallback that presses interact in place when a closed door is in reach but no stand-off point exists (a door a step from a ramp top).
 
 ## OPEN
 

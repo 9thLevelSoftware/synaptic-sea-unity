@@ -288,6 +288,15 @@ namespace SynapticSea.App
             panel.StartRequested += request =>
             {
                 request.EnableComponentIntegration = EnableComponentIntegration;
+                // A generated home is built here first, so a seed that cannot keep the starting-home promises is reported on the setup
+                // (with Randomize seed one press away) instead of after the scene has loaded. The bootstrap rebuilds the same home from the same seed.
+                if (request.GeneratedHome && request.Mode == RunLaunchMode.NewRun
+                    && StartSceneBuilder.BuildNewRunHome(request.Seed, request.BiomeId, request.DifficultyId, request.TimeScale) == null)
+                {
+                    panel.ShowStartFailure("No viable home could be generated from seed " + request.Seed + " (" + StartSceneBuilder.MAX_START_ATTEMPTS
+                        + " attempts). Choose Randomize seed and start again.");
+                    return;
+                }
                 Launch(request);
             };
             panel.BackRequested += CloseNewRunSetup;
