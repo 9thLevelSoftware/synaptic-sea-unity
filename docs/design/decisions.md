@@ -125,6 +125,21 @@ Decided by the product owner: the starting area must always hold the parts to re
 - **Still NOT done (PRs E, F):** the four typed onboarding objectives that drive the free repairs, powered gates and the breach seal; role-based replacements for the golden room-id literals; the 30-minute idle safety proof and the real-route proof; flipping the default. A generated home still must not ship as the default.
 - **Sweep (200 seeds):** see `docs/playtest/home-guarantee-1.9.md`.
 
+## Phase 1.10: typed onboarding objectives and role-based placement (generated homes only)
+
+A generated home now carries the same onboarding chain as the golden hub, so finishing it repairs the flight path, grants experience and completes the home chain.
+
+- **Objectives by role:** `HomeObjectiveComposer` replaces the generated `salvage`/`interact` objectives with `recover_supplies`, `restore_systems` (a two-step `repair_junction`), `download_logs` and `stabilize_reactor`, in that order, in rooms chosen from the role table in `StationPlacer.PREFERRED_ROOM_ROLES` (falling back to any usable room), on free interior loot slots. It runs before the guarantee; the guarantee's caches and the composer's cells never collide (`TryFindFreeSlot` blocks objective, junction-step and pickup cells). At least three usable rooms are required.
+- **Pickups:** the portable oxygen pump and the junction calibrator get a room and floor cell in the slice (`home_pickups`), checked reachable when the home is generated. Only generated homes read them; the golden hub keeps `tool_storage_01`, then `maintenance_01`, else next to the survivor.
+- **Role lookup, not literals:** `StationPlacer.RoomIdsByPreference` is the one lookup. On the golden hub it returns the rooms the old literals named (pinned by a test); the web-mooring control uses it for generated homes. `tool_storage_01`/`maintenance_01`/`galley_01`/`cargo_01` remain only as the golden hub's own behaviour.
+- **No synthesized oxygen hazard:** the session's fallback breach zone (between the third and fourth objective) is skipped for a generated home on the home ship, so the calm start holds in play, not just in the documents. Derelicts and the golden hub are unchanged.
+- **Fail closed:** `too_few_rooms`, `no_room_for_objective`, `no_slot_for_pickup`, `unreachable_objective` (a cell-level standing path from the start/dock room to every objective, junction step, pickup and cache); `BuildHomeStart` then rolls the next seed.
+- **Sweep:** 200 of 200 seeds yield a home within 8 attempts; see `docs/playtest/home-objectives-1.10.md`.
+- **Deviation:** no `blocked_links` are generated (the calm-start rule rejects them as hazards, and a blocked doorway needs the compiled structural plan). Generated homes have no powered gates; main power and navigation still come online through the objectives.
+- **Named limitation, LIM-1 (wreck mooring):** `HomeJoinPlanner` only offers the west edge of a deck-0 hull at least 4.05 m from the dock port; fewer than half of generated homes have such a site (the exterior dock often takes the west edge). Phase 5 must generalize the planner to any exposed edge before the joined-home flow works on every generated home.
+- **Verified, not changed:** the runtime's dock-overlap suppression keys on a room id starting with `airlock` or `dock`, and every generated home's dock room id has that prefix (asserted in the sweep). The commissioning control and bridge terminal stand on hull floor cells (asserted over floor in the session test).
+- **Still NOT done (PR F):** the 30-minute idle safety proof, the real-route proof on a generated home, and flipping the default. A generated home still must not ship as the default.
+
 ## OPEN
 
 - **OPEN-1, book balance:** book XP (200 common, 250 uncommon, 350+ rare) and the loot weights and placement in `book_loot_overlay.json` are placeholders for the product owner to set.
