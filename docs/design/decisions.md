@@ -162,6 +162,16 @@ A generated home now carries the same onboarding chain as the golden hub, so fin
 - **Mooring cut tool:** the home kit holds only the tools its repairs need, so a plasma cutter is not guaranteed. Cutting the home's web mooring is not required to depart (travel does not check it), but a player who wants to cut it needs to find a cutter.
 - **Scripted-route walker:** the shared PlayMode `WalkTo` helper gained a fallback that presses interact in place when a closed door is in reach but no stand-off point exists (a door a step from a ramp top).
 
+## Phase 1 gate: playtest kit
+
+**Decision.** The Phase 1 gate (the first 60-minute human playtest on the Mac) gets a small kit, all test tooling: `smoke.sh --new-run` (Title -> New Run -> booted generated home -> lifeboat docked), `playtest-prep.sh` (build SHA vs `origin/main`, backup then clear, collect), a notes template and a one-page player guide in `docs/playtest/`.
+
+**The New Run smoke is test tooling, not a game option.** The player reads the command-line argument `-synaptic-smoke-new-run <seed>` (`SmokeNewRun`), and only in a build whose kind is "dev" and only for a seed the launch contract accepts. Without the argument, or in demo and release builds, it does nothing, so default behaviour is unchanged. It is **not** a persistent or default-off game flag and does not count against the "no new default-off flags" guardrail. The one runtime addition outside the Title is an Info log line when the lifeboat docks to the home, which the smoke test reads.
+
+**Evidence the check can fail.** `tools/mac/smoke-selftest.sh` runs the New Run checks over synthetic logs: the good log passes and each of eleven broken variants (never pressed, no boot line, wrong seed, authored hub instead of a generated home, lifeboat not docked, boot dock failed, playable ship failed, an exception, wrong build kind, no composed line, no viable home) fails.
+
+**Status.** Phase 1 is complete apart from the playtest itself, which needs a human at the keyboard. Findings from it feed the backlog and tune `balance/survival.json`.
+
 ## OPEN
 
 - **OPEN-1, book balance:** book XP (200 common, 250 uncommon, 350+ rare) and the loot weights and placement in `book_loot_overlay.json` are placeholders for the product owner to set.

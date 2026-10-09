@@ -588,6 +588,8 @@ namespace SynapticSea.Core.Session
             GdDict dockResult = DockPilotedTo(HomeShip);
             if (!dockResult.GetBool("success"))
                 Log.Error("PlayableGeneratedShip: boot dock failed — reason=" + V.Str(dockResult.Get("reason", "?")));
+            else
+                Log.Info("PlayableGeneratedShip: lifeboat docked to home");
             SpawnDockBarrier(HomeShip);
             SpawnBridgeTerminal(LifeboatShip);
             SpawnHangarControl(LifeboatShip);

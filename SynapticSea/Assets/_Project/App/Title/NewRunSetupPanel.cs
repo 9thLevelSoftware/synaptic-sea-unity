@@ -290,10 +290,13 @@ namespace SynapticSea.App
                     SetSeed(RandomSeed());
                     break;
                 case RowStart:
-                    StartRequested?.Invoke(BuildRequest());
+                    RequestStart();
                     break;
             }
         }
+
+        /// <summary>Start run with the current choices (what accepting the Start row does; also used by the dev-only smoke automation).</summary>
+        public void RequestStart() => StartRequested?.Invoke(BuildRequest());
 
         public void SetSeed(long seed)
         {
