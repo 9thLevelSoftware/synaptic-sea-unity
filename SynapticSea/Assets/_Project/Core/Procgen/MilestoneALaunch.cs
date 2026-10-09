@@ -1,15 +1,19 @@
 // Milestone A New Run launch contract (vertical_slice_v1.md + generated_seed_boarded_slice.md REQ-SLICE-001).
-// Title New Run loads the golden hub (any run seed: the seed drives the world, markers and wrecks, not the home).
-// It does not use StartSceneBuilder or smoke/seed_000017.
+// Phase 1.11: the Title's New Run at scaled pacing starts in a home generated from the run seed (StartSceneBuilder.BuildNewRunHome:
+// Pristine, exterior-docked lifeboat, guaranteed repair kit, food and water, calm start, typed onboarding objectives). The authored golden hub
+// is still what direct open, RunLaunchRequest.GoldenShip(), the scripted golden routes and real-time pacing ("off") boot.
+// It does not use smoke/seed_000017.
 using SynapticSea.Core.Session;
 
 namespace SynapticSea.Core.Procgen
 {
     /// <summary>
-    /// Milestone A New Run start: hub is golden <c>coherent_ship_001</c> for every run seed (Phase 1.5). The seed drives the Synaptic
-    /// Sea world (markers, sea graph) and the first away wreck; the home ship, its loot and its tutorial stay golden. Biome and
-    /// difficulty stay locked to the slice values (hardened home safety is untested); a non-slice biome / difficulty or an
-    /// out-of-range seed fails closed — never silently load the wrong layout.
+    /// Milestone A New Run start. Any seed in range with the slice biome and difficulty is accepted. Since Phase 1.11 a Title New Run at
+    /// scaled pacing generates its home from the seed (see <see cref="StartSceneBuilder.BuildNewRunHome"/>); the golden
+    /// <c>coherent_ship_001</c> hub below is the authored home that direct open, tests and real-time pacing use. Either way the seed also drives
+    /// the Synaptic Sea world (markers, sea graph) and the first away wreck. Biome and difficulty stay locked to the slice values (the
+    /// hardened and other-biome homes are untested); a non-slice biome / difficulty or an out-of-range seed fails closed — never silently
+    /// load the wrong layout.
     /// </summary>
     public static class MilestoneALaunch
     {

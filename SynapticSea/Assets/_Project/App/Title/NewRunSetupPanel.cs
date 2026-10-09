@@ -58,6 +58,19 @@ namespace SynapticSea.App
         /// </summary>
         public bool BiomeDifficultyLocked { get; set; } = true;
 
+        /// <summary>Why Start run falls back to the authored hub when pacing is off.</summary>
+        public const string AuthoredHubReason = "Real-time pacing starts in the authored hub: the generated home needs scaled time to supply its food and water";
+
+        /// <summary>
+        /// True (default): Start run begins in a home generated from the seed (Phase 1.11). False boots the authored hub, which is what
+        /// direct open does and what the scripted golden-hub routes use. Independent of this flag, real-time pacing ("off") always boots the
+        /// authored hub, because the generated home's food and water guarantee is computed for scaled time.
+        /// </summary>
+        public bool GeneratedHome { get; set; } = true;
+
+        /// <summary>Whether Start run would begin in a generated home with the current choices.</summary>
+        public bool StartsInGeneratedHome => GeneratedHome && TimeScale > WorldClock.DefaultScale;
+
         /// <summary>Random seed source (tests pin it).</summary>
         public static Func<long> RandomSeed = () => UnityEngine.Random.Range((int)MilestoneALaunch.MinSeed, int.MaxValue);
 
@@ -101,7 +114,7 @@ namespace SynapticSea.App
             UiFactory.SetShown(_seedField, false);
             RowElement(RowSeed).Add(_seedField);
             Refresh();
-            StatusText.Set(LockedReason, Severity.Info);
+            RefreshNote();
             SetViewVisible(true);
         }
 
@@ -165,7 +178,19 @@ namespace SynapticSea.App
             CoreServices.Resources is FileSystemResourceReader reader ? reader.ListFiles(dir) : (IReadOnlyList<string>)Array.Empty<string>();
 
         /// <summary>The request this setup describes (class and settings are filled by the title).</summary>
-        public RunLaunchRequest BuildRequest() => RunLaunchRequest.NewRun(_seed, BiomeId, DifficultyId, TimeScale);
+        public RunLaunchRequest BuildRequest() => StartsInGeneratedHome
+            ? RunLaunchRequest.GeneratedHomeRun(_seed, BiomeId, DifficultyId, TimeScale)
+            : RunLaunchRequest.NewRun(_seed, BiomeId, DifficultyId, TimeScale);
+
+        /// <summary>The note under the rows: the locked-rows reason, or why real-time pacing starts in the authored hub.</summary>
+        void RefreshNote()
+        {
+            if (GeneratedHome && TimeScale <= WorldClock.DefaultScale) StatusText.Set(AuthoredHubReason, Severity.Caution);
+            else StatusText.Set(LockedReason, Severity.Info);
+        }
+
+        /// <summary>Shows a start failure (for example, no viable generated home for the seed) under the rows; the seed can be rerolled with Randomize seed.</summary>
+        public void ShowStartFailure(string message) => StatusText.Set(message, Severity.Caution);
 
         // ------------------------------------------------------------------ commands
 
@@ -245,6 +270,7 @@ namespace SynapticSea.App
                     return;
             }
             Refresh();
+            RefreshNote();
         }
 
         /// <summary>Accept on the focused row.</summary>
@@ -273,6 +299,7 @@ namespace SynapticSea.App
         {
             _seed = ClampSeed(seed);
             Refresh();
+            RefreshNote();
         }
 
         public void FocusRow(string rowId)

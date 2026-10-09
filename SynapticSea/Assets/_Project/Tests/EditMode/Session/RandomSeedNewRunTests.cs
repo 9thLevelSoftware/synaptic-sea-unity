@@ -11,8 +11,11 @@ using SynapticSea.Core.Variant;
 namespace SynapticSea.Tests.Session
 {
     /// <summary>
-    /// Phase 1.5: a New Run takes any seed. The seed drives the Synaptic Sea world (markers, sea graph) and the first away wreck;
-    /// the home ship stays the golden <c>coherent_ship_001</c> with identical systems and loot for every seed.
+    /// Phase 1.5: a New Run takes any seed. The seed drives the Synaptic Sea world (markers, sea graph) and the first away wreck.
+    /// These tests pin the AUTHORED hub path (<see cref="MilestoneALaunch.ApplyHubPaths"/>: direct open, <see cref="RunLaunchRequest.GoldenShip"/>,
+    /// and the real-time pacing fallback), where the home is the golden <c>coherent_ship_001</c> with identical systems and loot for every seed.
+    /// Since Phase 1.11 the Title's New Run at scaled pacing starts in a home generated from the seed instead; that path is covered by
+    /// <see cref="GeneratedHomeSessionTests"/> and <see cref="GeneratedHomeSafetyTests"/>.
     /// </summary>
     public class RandomSeedNewRunTests
     {
@@ -85,7 +88,7 @@ namespace SynapticSea.Tests.Session
         }
 
         [Test]
-        public void TheHomeShipIsTheGoldenHubForEverySeed()
+        public void TheAuthoredHubIsTheSameHomeForEverySeed()
         {
             RunSession a = SessionFor(MilestoneALaunch.TitleStartSeed, out _);
             RunSession b = SessionFor(987654321L, out _);

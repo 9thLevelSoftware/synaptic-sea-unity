@@ -277,9 +277,7 @@ namespace SynapticSea.Game
         bool ApplyGeneratedHome(RunLaunchRequest launch, RunSessionDeps deps, out string failure)
         {
             failure = "";
-            var guarantee = new StartingHomeGuarantee.Spec { ClockScale = launch.TimeScale };
-            StartSceneBuilder.HomeStart start = StartSceneBuilder.BuildHomeStart(launch.Seed, deps.BiomeId, deps.DifficultyId,
-                condition: (long)ShipBlueprint.Condition.Pristine, exteriorDock: true, guarantee: guarantee);
+            StartSceneBuilder.HomeStart start = StartSceneBuilder.BuildNewRunHome(launch.Seed, deps.BiomeId, deps.DifficultyId, launch.TimeScale);
             if (start == null)
             {
                 failure = launch.TimeScale <= WorldClock.DefaultScale
@@ -441,12 +439,19 @@ namespace SynapticSea.Game
             LeaveToTitle();
         }
 
-        /// <summary>Results "New Run": another Milestone A hub boot on a freshly rolled seed (slice biome / difficulty) with the same class and pacing.</summary>
+        /// <summary>
+        /// Results "New Run": another run on a freshly rolled seed (slice biome / difficulty) with the same class and pacing. A run that started in a
+        /// generated home (Phase 1.11: every Title New Run at scaled pacing) starts the next one in a generated home too; the authored hub stays the
+        /// authored hub.
+        /// </summary>
         void StartNextRun()
         {
             if (_leaving) return;
-            RunLaunchRequest next = RunLaunchRequest.NewRun(RandomSeed(), RunLaunchRequest.DefaultBiomeId, RunLaunchRequest.DefaultDifficultyId,
-                Session != null ? Session.GameClock.Scale : Launch.TimeScale); // the next run keeps this run's pacing
+            double scale = Session != null ? Session.GameClock.Scale : Launch.TimeScale; // the next run keeps this run's pacing
+            bool generated = (Launch.GeneratedHome || (Session != null && Session.GeneratedHome)) && scale > WorldClock.DefaultScale; // a continued generated run counts too
+            RunLaunchRequest next = generated
+                ? RunLaunchRequest.GeneratedHomeRun(RandomSeed(), RunLaunchRequest.DefaultBiomeId, RunLaunchRequest.DefaultDifficultyId, scale)
+                : RunLaunchRequest.NewRun(RandomSeed(), RunLaunchRequest.DefaultBiomeId, RunLaunchRequest.DefaultDifficultyId, scale);
             next.ClassId = Launch.ClassId;
             if (Results != null && ResultsSummary != null)
                 RecordReturnInfo(ResultsSummary, Results.NormalizedOutcome());

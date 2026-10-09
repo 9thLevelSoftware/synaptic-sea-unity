@@ -236,6 +236,17 @@ namespace SynapticSea.Core.Procgen
         }
 
         /// <summary>
+        /// Phase 1.11: the home a Title New Run starts in, built exactly one way: Pristine, the lifeboat docked on the exterior edge and the
+        /// starting-home guarantee (repair kit, food and water, calm start, typed onboarding objectives) for <paramref name="timeScale"/>.
+        /// The playable bootstrap, the Title's pre-flight check and the generated-home tests all call this, so they cannot disagree.
+        /// Null when no seed within <see cref="MAX_START_ATTEMPTS"/> attempts can keep the promises, or the pacing is "off" (the food and
+        /// water guarantee needs scaled time).
+        /// </summary>
+        public static HomeStart BuildNewRunHome(long seedValue, string biomeId, string difficultyId, double timeScale) =>
+            BuildHomeStart(seedValue, biomeId, difficultyId, condition: (long)ShipBlueprint.Condition.Pristine, exteriorDock: true,
+                guarantee: new StartingHomeGuarantee.Spec { ClockScale = timeScale });
+
+        /// <summary>
         /// Generates the New Run home ship for <paramref name="seedValue"/> through <see cref="ShipGenerator"/> with the run
         /// context, gated by <see cref="ValidateHomeStart"/>. A rejected seed is retried deterministically with seed+1, up to
         /// <paramref name="maxAttempts"/> tries; each rejection is logged. Null (logged as an error) when no try is viable.
