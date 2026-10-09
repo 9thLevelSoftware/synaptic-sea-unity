@@ -31,6 +31,8 @@ namespace SynapticSea.Core.Session
                 ComponentTerminalPending = !LastSaveResult.GetBool("ok");
                 if (ComponentTerminalPending) return 0;
             }
+            if (reason == "death")
+                Log?.Info("DEATH " + AirDiagnostics() + " vitals=" + (VitalsState == null ? "n/a" : GdJson.Stringify(VitalsState.GetSummary())));
             SliceComplete = true;
             Events.RaiseTrackerRunComplete();
             TriggerTutorial("run_ended", reason);

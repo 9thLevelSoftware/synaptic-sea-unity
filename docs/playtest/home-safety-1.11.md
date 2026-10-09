@@ -2,6 +2,17 @@
 
 Evidence behind making a generated home the Title's New Run default. Everything here was measured on the Mac (macOS, Unity 6000.6.0f1) at `main` + the Phase 1.11 branch. Tests: `GeneratedHomeSafetyTests` (EditMode, one seam: a booted headless generated-home session over a seed sweep), the generated-home PlayMode tests in `RunLifecyclePlayModeTests.GeneratedHome.cs`, and the earlier sweeps (`HomeGenerationSweepTests`, `StartingHomeGuaranteeSweepTests`, `HomeObjectiveSweepTests`). Set `SYNAPTICSEA_SEED_SWEEP` to widen a sweep and `SYNAPTICSEA_SAFETY_REPORT=<path>` to rewrite the two tables below.
 
+## Correction after playtest 1 (read this first)
+
+**The proofs below did not show that a generated home is safe to walk around in.** In the first human playtest (build `80c8f18`) survivors suffocated within about a minute, in several rooms, on seeds 756700368 and 816288703. The cause was found afterwards (see `docs/design/decisions.md`, "Playtest 1: suffocation at a generated home") and fixed. Why these proofs missed it:
+
+- **The headless proofs idled the survivor at the spawn cell.** An idle survivor never leaves the cell the occupancy was set for at boot, so "the vessel the occupancy names" and "the vessel under the survivor" always agreed; moving between the home and the docked lifeboat was never exercised.
+- **The idle PlayMode run and the two walked routes ran in the editor,** where the survivor stood on the home's floor, so the (stale) occupancy happened to name the home.
+- **The 60-seed sweeps varied seeds, not the survivor's position relative to the docked lifeboat.** The failure needs the survivor over the lifeboat's deck (or the home's, once the occupancy named the lifeboat) while `CurrentOccupancy` named the other vessel.
+- The "Dock fit" result (the lifeboat docks no deeper than the golden hub) is true but is what made the bug reachable: with the exterior-edge dock the lifeboat's deck lies outside the home's floor cells, so the first step into the boat left every vessel's floor test.
+
+The regression test is `GeneratedHomeEveryWalkablePointHasAVesselUnderItThatSuppliesTheAir` (PlayMode): every point of the navigation surface across the home and the docked lifeboat, for the reported seeds and three seeds whose lifeboat starts unpowered, with **each stale occupancy** the session can hold. Before the fix it failed on every seed (400+ bad pairs each); after, 0 of 598 / 779 / 553 / 563 / 479.
+
 ## Verdict
 
 The default is flipped. Every proof below passed; no seed family failed. One caveat the flip carries: the generated home needs scaled pacing, so "Off (real time)" still starts in the authored golden hub (the setup says so on screen).
