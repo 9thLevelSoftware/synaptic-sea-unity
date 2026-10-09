@@ -12,6 +12,26 @@ namespace SynapticSea.Core.Session
 {
     public sealed partial class RunSession
     {
+        /// <summary>
+        /// True when the home ship was generated for this run (Phase 1.8): its documents live under <c>user://runs/</c>. The golden
+        /// hub and every test layout keep their original loot seed key, so parity tests are unaffected.
+        /// </summary>
+        public bool GeneratedHome =>
+            !string.IsNullOrEmpty(Deps?.LayoutPath) && Deps.LayoutPath.StartsWith(RunDirectoryJanitor.RunsDir + "/", StringComparison.Ordinal);
+
+        /// <summary>
+        /// The deterministic roll key for container <paramref name="containerId"/>. Golden/derelict ships use <c>MarkerId:id</c> (the home's
+        /// marker id is empty, so the golden hub rolls the same loot for every seed). A generated home folds the run seed in so its
+        /// containers vary by seed.
+        /// </summary>
+        public string LootSeedSource(string containerId)
+        {
+            string marker = CurrentShip?.MarkerId ?? "";
+            if (!AwayFromStart && GeneratedHome && marker.Length == 0)
+                return "home:" + (Deps.RunSeed ?? 0) + ":" + containerId;
+            return marker + ":" + containerId;
+        }
+
         /// <summary>Scattered loot containers for the active ship (derelict or home); searched ids read as searched.</summary>
         void BuildLootContainers()
         {
@@ -30,7 +50,7 @@ namespace SynapticSea.Core.Session
                 if (cid.Length == 0 || !(spec.Get("position", null) is Vec3 pos))
                     continue;
                 var lc = new LootContainer();
-                string seedSource = CurrentShip.MarkerId + ":" + cid;
+                string seedSource = LootSeedSource(cid);
                 lc.Configure(cid, V.Str(spec.Get("loot_table", "generic_crate")), seedSource, InventoryState, _loot_tables, pos, 1.8, BuildLootContext(spec), UniqueItemState);
                 if (spec.Has("finite_source"))
                 {
